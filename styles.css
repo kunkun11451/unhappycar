@@ -1,0 +1,684 @@
+body {
+    font-family: 'Microsoft YaHei', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #f0f2f5;
+    padding: 20px;
+    color: #333;
+}
+
+h1 {
+    margin-bottom: 30px;
+    color: #2c3e50;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+}
+
+#initialScreen h1 {
+    text-align: center;
+}
+
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center; /* 水平居中 */
+    align-items: center; /* 垂直居中 */
+    gap: 15px; /* 卡片之间的间距 */
+    margin: 20px auto; /* 居中容器 */
+    max-width: 1000px;
+}
+
+/* 角色盒子样式 */
+.character-box {
+    width: 180px; 
+    height: 210px; 
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    background-color: white;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.4s ease;
+    overflow: hidden;
+    position: relative;
+    transform: translateY(20px);
+    opacity: 0;
+    cursor: pointer; /* 添加指针样式表明可点击 */
+}
+
+.character-box.active {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.character-box:hover {
+    transform: translateY(-5px) scale(1.03);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border-color: #bbb;
+}
+
+.character-image {
+    width: 140px;
+    height: 140px;
+    object-fit: contain;
+    margin-bottom: 10px;
+    border-radius: 50%;
+    background-color: #f9f9f9;
+    padding: 5px;
+    transition: transform 0.3s ease;
+}
+
+.character-box:hover .character-image {
+    transform: scale(1.05);
+}
+
+.character-name {
+    font-size: 18px; 
+    font-weight: bold;
+    text-align: center;
+    margin-top: 10px;
+    color: #2c3e50;
+    transition: color 0.3s;
+}
+
+.character-box:hover .character-name {
+    color: #3498db;
+}
+
+/* 按钮样式 */
+.start-button, #missionButton {
+    padding: 12px 35px;
+    font-size: 18px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin: 15px;
+}
+
+.start-button:hover, #missionButton:hover {
+    background-color: #2980b9;
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.start-button:disabled, #missionButton:disabled {
+    background-color: #95a5a6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* BP按钮样式 */
+.bp-button {
+    padding: 12px 35px;
+    font-size: 18px;
+    color: white;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin: 10px;
+}
+
+/* 不同模式颜色 */
+.bp-button[data-mode="global"] { background-color: #e74c3c; }
+.bp-button[data-mode="personal"] { background-color: #3498db; }
+.bp-button[data-mode="off"] { background-color: #2ecc71; }
+
+.bp-button:disabled {
+    background-color: #95a5a6 !important;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* 重置按钮 */
+.reset-button {
+    padding: 12px 35px;
+    font-size: 18px;
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    font-weight: bold;
+    letter-spacing: 1px;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+}
+
+.reset-button:hover {
+    background-color: #c0392b;
+    transform: translateY(-2px);
+}
+
+/* 历史记录按钮样式 */
+.history-button {
+    padding: 12px 35px;
+    font-size: 18px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    font-weight: bold;
+    letter-spacing: 1px;
+    position: fixed;
+    top: 20px;
+    left: 20px;
+}
+.history-button:hover {
+    background-color: #2980b9;
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+/* 黑色半透明背景 */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* 半透明背景 */
+    z-index: 199;
+    cursor: pointer; /* 鼠标悬停时显示手型 */
+}
+
+/* 历史记录弹窗样式 */
+.history-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    padding: 40px 20px;
+    width: 50%;
+    height: 40%;
+    overflow-y: auto;
+    z-index: 200;
+    cursor: default; /* 弹窗内不显示手型 */
+}
+
+/* 移除关闭按钮样式 */
+.close-history-button {
+    display: none; /* 隐藏关闭按钮 */
+}
+
+/* 调整弹窗内容的内边距，避免与关闭按钮重叠 */
+.history-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    padding: 40px 20px 20px; /* 增加顶部内边距，避免与关闭按钮重叠 */
+    width: 50%;
+    height: 40%;
+    overflow-y: auto;
+    z-index: 200;
+}
+/* 事件样式 */
+.mission-box {
+    width: 150px;  /* 从180px减小到150px */
+    height: 180px;
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    background-color: white;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.4s ease;
+    overflow: hidden;
+    position: relative;
+    transform: translateY(20px);
+    opacity: 0;
+    cursor: pointer; /* 添加指针样式表明可点击 */
+}
+
+/* 添加玩家标识样式 */
+.player-tag {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background-color: #3498db;
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+/* 为每个玩家设置不同的颜色 */
+.player-tag.p1 {
+    background-color: #e74c3c; /* 红色 */
+}
+
+.player-tag.p2 {
+    background-color: #2ecc71; /* 绿色 */
+}
+
+.player-tag.p3 {
+    background-color: #f39c12; /* 橙色 */
+}
+
+.player-tag.p4 {
+    background-color: #9b59b6; /* 紫色 */
+}
+
+.player-tag.show {
+    opacity: 1;
+}
+
+.mission-box.active {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.mission-box:hover {
+    transform: translateY(-5px) scale(1.03);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border-color: #bbb;
+}
+
+.mission-title {
+    font-size: 22px; /* 放大标题字体 */
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 15px;
+    color: #2c3e50;
+    transition: color 0.3s;
+}
+
+.mission-content {
+    font-size: 18px; /* 放大内容字体 */
+    text-align: center;
+    color: #7f8c8d;
+    transition: color 0.3s;
+    line-height: 1.4; /* 增加行高提高可读性 */
+}
+
+.mission-box:hover .mission-title {
+    color: #3498db;
+}
+
+.mission-box:hover .mission-content {
+    color: #34495e;
+}
+
+/* 移动端优化：减小字号，增加弹窗宽度 */
+@media (max-width: 768px) {
+    .history-popup {
+        width: 90%; /* 增加弹窗宽度 */
+        height: 50%; /* 增加弹窗高度 */
+        padding: 15px; /* 减小内边距 */
+    }
+
+    .history-table {
+        font-size: 14px; /* 减小表格字体大小 */
+    }
+
+    .history-table th, .history-table td {
+        padding: 6px; /* 减小单元格内边距 */
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        display: grid; /* 使用网格布局 */
+        grid-template-columns: repeat(2, minmax(120px, 1fr)); /* 一行显示两个卡片，最小宽度 120px */
+        gap: 15px; /* 增加卡片之间的间距 */
+        justify-content: center; /* 居中对齐 */
+        padding: 10px; /* 增加容器内边距 */
+    }
+
+    .character-box {
+        width: 100%; /* 卡片宽度自适应 */
+        max-width: 140px; /* 限制卡片最大宽度 */
+        height: auto; /* 高度自适应内容 */
+        aspect-ratio: 3 / 4; /* 设置宽高比例为 3:4 */
+        margin: 0 auto; /* 居中卡片 */
+        border: 2px solid #ddd; /* 确保边框可见 */
+        background-color: #f9f9f9; /* 添加背景颜色以增强可见性 */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 添加阴影提升视觉效果 */
+    }
+
+    .character-image {
+        width: 90%; /* 图片宽度占卡片的 90% */
+        height: auto; /* 高度自适应 */
+        object-fit: contain; /* 保持图片比例 */
+        margin-bottom: 10px; /* 增加底部间距 */
+    }
+
+    .character-name {
+        font-size: 14px; /* 调整字体大小以适应小屏幕 */
+        margin-top: 5px; /* 减小顶部间距 */
+        color: #333; /* 确保文字颜色清晰 */
+        text-align: center; /* 居中对齐文字 */
+    }
+}
+
+/* 主界面容器居中 */
+#gameScreen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center; /* 确保文字居中 */
+    width: 100%;
+}
+
+/* 按钮居中 */
+.button-container {
+    display: flex;
+    justify-content: center;
+    gap: 15px; /* 按钮之间的间距 */
+}
+
+.remaining-characters {
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
+    display: none; /* 默认隐藏 */
+}
+
+.history-popup .history-round {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 10px 0;
+    font-size: 14px;
+    color: #333;
+}
+
+.history-popup .round-label {
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.history-popup .separator {
+    margin: 0 10px;
+    color: #999;
+    display: inline-block;
+    text-align: center;
+    width: 20px; /* 确保分隔符宽度一致 */
+}
+
+@keyframes stripe-move {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes legendary-glow {
+    0% { transform: scale(0.8); opacity: 0.7; }
+    50% { transform: scale(1.2); opacity: 0.9; }
+    100% { transform: scale(0.8); opacity: 0.7; }
+}
+
+
+@keyframes float {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0); }
+}
+@keyframes float {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0); }
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 弹窗样式 */
+.bonus-popup {
+    cursor: pointer;
+}
+
+/* 游戏规则样式 */
+.rules-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    .container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        max-width: 100vw;
+        padding: 0 8px;
+    }
+    .character-box,
+    .mission-box {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        margin: 0;
+    }
+    .character-box {
+        height: auto;
+        min-height: 140px;
+    }
+    .mission-box {
+        height: auto;
+        min-height: 100px;  /* 减小最小高度 */
+        padding: 8px;  /* 减小内边距 */
+    }
+    .character-image {
+        width: 80px;
+        height: 80px;
+    }
+    .mission-title {
+        font-size: 16px;  /* 减小字体大小 */
+        margin-bottom: 6px;  /* 减小下边距 */
+    }
+    .mission-content {
+        font-size: 14px;  /* 减小字体大小 */
+        line-height: 1.3;
+    }
+    
+    /* 修复弹窗在移动端的显示 */
+    .popup-content {
+        max-width: 85% !important;
+        padding: 20px !important;
+    }
+    
+    .popup-content h3 {
+        font-size: 18px !important;
+    }
+    
+    .popup-content p {
+        font-size: 20px !important;
+    }
+    
+    .popup-content button {
+        padding: 8px 20px !important;
+        font-size: 14px !important;
+    }
+}
+
+/* 添加更多响应式断点 */
+@media (min-width: 601px) and (max-width: 900px) {
+    .container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));  /* 减小最小宽度 */
+        gap: 12px;  /* 减小间距 */
+        width: 100%;
+        max-width: 900px;
+    }
+    .mission-box {
+        width: 100%;
+        height: auto;
+        min-height: 140px;  /* 减小最小高度 */
+    }
+}
+
+/* 大屏幕响应式 */
+@media (min-width: 901px) {
+    .container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 15px;  
+        width: 100%;
+        max-width: 1200px;
+    }
+    .mission-box {
+        width: 18%;  
+        min-width: 140px; 
+        max-width: 180px; 
+        height: auto;
+        min-height: 150px;  
+    }
+}
+
+/* 小屏幕适配 */
+@media (max-width: 480px) {
+    .container {
+        display: grid; /* 使用网格布局 */
+        grid-template-columns: repeat(2, minmax(120px, 1fr)); /* 一行显示两个卡片，最小宽度 120px */
+        gap: 15px; /* 增加卡片之间的间距 */
+        justify-content: center; /* 居中对齐 */
+        padding: 10px; /* 增加容器内边距 */
+    }
+
+    .character-box {
+        width: 100%; /* 卡片宽度自适应 */
+        max-width: 140px; /* 限制卡片最大宽度 */
+        height: auto; /* 高度自适应内容 */
+        aspect-ratio: 3 / 4; /* 设置宽高比例为 3:4 */
+        margin: 0 auto; /* 居中卡片 */
+        border: 2px solid #ddd; /* 确保边框可见 */
+        background-color: #f9f9f9; /* 添加背景颜色以增强可见性 */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 添加阴影提升视觉效果 */
+    }
+
+    .character-image {
+        width: 90%; /* 图片宽度占卡片的 90% */
+        height: auto; /* 高度自适应 */
+        object-fit: contain; /* 保持图片比例 */
+        margin-bottom: 10px; /* 增加底部间距 */
+    }
+
+    .character-name {
+        font-size: 14px; /* 调整字体大小以适应小屏幕 */
+        margin-top: 5px; /* 减小顶部间距 */
+        color: #333; /* 确保文字颜色清晰 */
+        text-align: center; /* 居中对齐文字 */
+    }
+}
+
+/* 页脚样式 */
+.footer {
+    text-align: center;
+    padding: 20px 0;
+    margin-top: 30px;
+    color: #7f8c8d;
+    font-size: 14px;
+}
+
+.footer p {
+    margin: 0;
+}
+
+/* 确保角色卡片和事件卡片在重置后可见 */
+.character-box, .mission-box {
+    opacity: 1; /* 确保可见 */
+    pointer-events: auto; /* 确保可点击 */
+    transition: opacity 0.3s ease; /* 添加平滑过渡效果 */
+}
+
+/* 历史记录表格样式 */
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 16px;
+    text-align: center;
+    max-height: 300px; /* 限制表格高度 */
+    overflow-y: auto; /* 启用垂直滚动条 */
+    display: block; /* 使滚动条生效 */
+}
+
+.history-table th, .history-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+.history-table th {
+    background-color: #f4f4f4;
+    font-weight: bold;
+}
+body {
+    user-select: none; /* 禁用文字选择 */
+}
+
+img {
+    -webkit-user-drag: none; /* 禁用图片拖动 (WebKit 浏览器) */
+    pointer-events: none; /* 禁用鼠标事件 */
+}
+
+/* 同步数据按钮样式 */
+.sync-button {
+    padding: 12px 35px;
+    font-size: 18px;
+    background-color: #8e44ad; /* 紫色背景 */
+    color: white;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.sync-button:hover {
+    background-color: #732d91; /* 深紫色背景 */
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+/* 提示框动画 */
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>unhappycar</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="hardmode.css"> 
+    <script charset="UTF-8" id="LA_COLLECT" src="//sdk.51.la/js-sdk-pro.min.js"></script>
+    <script>LA.init({id:"3M2oGTfSWji6ROQb",ck:"3M2oGTfSWji6ROQb"})</script>
+</head>
+<body>
+    <!-- 初始界面 -->
+    <div id="initialScreen">
+        <h1>叫地主？</h1>
+        <button class="start-button" id="hostGameButton">主持游戏</button>
+        <button class="start-button" id="joinGameButton">加入游戏</button>
+    </div>
+
+    <!-- 主游戏界面 -->
+    <div id="gameScreen" style="display: none;">
+        <h1>抽取角色</h1>
+        <button class="bp-button" id="bpButton">BP模式：关闭</button>
+        <button class="reset-button" id="resetButton" style="display: none;">重置游戏</button>
+        <div class="container">
+            <div class="character-box" id="box1">
+                <img class="character-image" src="" alt="" style="display: none;">
+                <div class="character-name"></div>
+            </div>
+            <div class="character-box" id="box2">
+                <img class="character-image" src="" alt="" style="display: none;">
+                <div class="character-name"></div>
+            </div>
+            <div class="character-box" id="box3">
+                <img class="character-image" src="" alt="" style="display: none;">
+                <div class="character-name"></div>
+            </div>
+            <div class="character-box" id="box4">
+                <img class="character-image" src="" alt="" style="display: none;">
+                <div class="character-name"></div>
+            </div>
+        </div>
+        <button class="start-button" id="startButton">开始抽取</button>
+        <div id="roundCounter" style="margin: 10px 0; font-size: 16px; color: #666;">当前轮数：0</div>
+
+        <h1>抽取事件</h1>
+        <div class="container">
+            <div class="mission-box" id="mission1">
+                <div class="mission-title"></div>
+                <div class="mission-content"></div>
+            </div>
+            <div class="mission-box" id="mission2">
+                <div class="mission-title"></div>
+                <div class="mission-content"></div>
+            </div>
+            <div class="mission-box" id="mission3">
+                <div class="mission-title"></div>
+                <div class="mission-content"></div>
+            </div>
+            <div class="mission-box" id="mission4">
+                <div class="mission-title"></div>
+                <div class="mission-content"></div>
+            </div>
+        </div>
+        <div class="selected-hard-mission" id="selectedHardMission" style="display: none;">
+            <div class="mission-title"></div>
+            <div class="mission-content"></div>
+        </div>
+        <div class="button-container">
+            <button class="start-button" id="missionButton">抽取事件</button>
+            <button class="hard-button" id="hardModeButton">不够牢！</button>
+            <button class="sync-button" id="syncButton" style="display: none;" >同步数据</button> 
+        </div>
+
+        <div class="rules-container">
+            <h2>游戏规则</h2>
+            <div class="rules-content">
+                <ul>
+                    <li>阿巴阿巴阿巴阿巴阿巴阿巴阿巴阿巴</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入角色数据JS文件 -->
+    <script src="characters.js"></script>
+    <script src="npc.js"></script>
+    <script src="mission.js"></script>
+    <script src="hardmission.js"></script>
+    <script src="multiplayer.js"></script>
+    <script src="app.js"></script>
+    <script src="mission-app.js"></script>
+    <script src="hard-mission-app.js"></script>
+
+    <!-- 页脚署名 -->
+    <footer class="footer">
+        <p>原@虾仁不眨眼 happy-car.netlify.app 的个性化修改版 </p>
+        <p>修改部分纯AI写的屎山代码，有bug请憋着，唉嘿</p>
+        <p>点击主持游戏没反应是服务器关了，也请憋着，嘿嘿</p>
+        <img src="https://bbs-static.miyoushe.com/static/2024/06/12/7982e4f54092be80c43a251f26e44235_6026540790739799944.png" alt="图片">
+    </footer>
+</body>
+</html>
