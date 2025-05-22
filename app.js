@@ -89,6 +89,27 @@ document.addEventListener('DOMContentLoaded', function () {
             box.style.pointerEvents = 'auto'; // 恢复点击事件
         });
 
+            // 清空事件卡片
+        const missionBoxes = document.querySelectorAll('.mission-box');
+        missionBoxes.forEach(box => {
+            const title = box.querySelector('.mission-title');
+            const content = box.querySelector('.mission-content');
+            title.textContent = ''; // 清空标题
+            content.textContent = ''; // 清空内容
+            box.style.opacity = 1; // 确保卡片可见
+            box.style.pointerEvents = 'auto'; // 恢复点击事件
+        });
+
+        // 隐藏困难事件卡片
+        const hardMissionBox = document.getElementById('selectedHardMission');
+        if (hardMissionBox) {
+            hardMissionBox.style.display = 'none'; // 隐藏卡片
+            const title = hardMissionBox.querySelector('.mission-title');
+            const content = hardMissionBox.querySelector('.mission-content');
+            if (title) title.textContent = ''; // 清空标题
+            if (content) content.textContent = ''; // 清空内容
+        }
+
         // 清空历史记录并关闭弹窗
         historyData.length = 0;
         historyPopup.style.display = 'none';
