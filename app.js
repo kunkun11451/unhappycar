@@ -369,7 +369,7 @@ document.addEventListener('DOMContentLoaded', function () {
         isShowingPersonal = true; // 默认显示个人任务
         personalEvents.style.display = 'block';
         teamEvents.style.display = 'none';
-        toggleEventsButton.textContent = '显示团体任务';
+        toggleEventsButton.textContent = '显示团体事件';
     });
 
     // 关闭弹窗
@@ -389,11 +389,11 @@ document.addEventListener('DOMContentLoaded', function () {
         if (isShowingPersonal) {
             personalEvents.style.display = 'block';
             teamEvents.style.display = 'none';
-            toggleEventsButton.textContent = '显示团体任务';
+            toggleEventsButton.textContent = '显示团体事件';
         } else {
             personalEvents.style.display = 'none';
             teamEvents.style.display = 'block';
-            toggleEventsButton.textContent = '显示个人任务';
+            toggleEventsButton.textContent = '显示个人事件';
         }
     });
 
