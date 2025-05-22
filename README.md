@@ -5,7 +5,7 @@
 让ai用happy-car.netlify.app/的源码添加了一些小功能和实现了多人房间同步\
 此项目前端已部署在netlify，访问网址unhappycar.netlify.app； 服务端托管在glitch\
 服务端托管使用的是免费计划，可能会有反应慢，宕机的情况\
-修改代码全部由copilot完成，可能会有没发现的bug
+修改代码全部由copilot完成，可能会有没发现的bug\
 以下是一些自定义项目的修改教程
 
 ## 自定义任务事件
