@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const ws = new WebSocket('ws://120.79.224.245:8080'); // 替换为你的服务器地址
+    const ws = new WebSocket('wss://animated-kaput-touch.glitch.me');
 
     // DOM 元素
     const initialScreen = document.getElementById('initialScreen');
