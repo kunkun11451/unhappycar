@@ -331,6 +331,72 @@ document.addEventListener('DOMContentLoaded', function () {
         document.body.style.overflow = 'auto'; // 恢复页面滚动
     });
 
+    // ================= 事件相关代码 =================
+    // 获取查看事件按钮和弹窗相关元素
+    const viewEventsButton = document.getElementById('viewEventsButton');
+    const eventOverlay = document.getElementById('eventOverlay');
+    const eventPopup = document.getElementById('eventPopup');
+    const closeEventPopup = document.getElementById('closeEventPopup');
+    const toggleEventsButton = document.getElementById('toggleEventsButton');
+    const personalEvents = document.getElementById('personalEvents');
+    const teamEvents = document.getElementById('teamEvents');
+    const personalEventsTable = document.getElementById('personalEventsTable');
+    const teamEventsTable = document.getElementById('teamEventsTable');
+
+    let isShowingPersonal = true; // 当前显示的任务类型
+
+    // 填充任务表格
+    function populateTable(table, tasks) {
+        table.innerHTML = '';
+        Object.keys(tasks).forEach(key => {
+            const row = document.createElement('tr');
+            const titleCell = document.createElement('td');
+            const contentCell = document.createElement('td');
+            titleCell.textContent = key;
+            contentCell.textContent = tasks[key].内容;
+            row.appendChild(titleCell);
+            row.appendChild(contentCell);
+            table.appendChild(row);
+        });
+    }
+
+    // 显示弹窗
+    viewEventsButton.addEventListener('click', () => {
+        populateTable(personalEventsTable, mission); // 填充个人任务
+        populateTable(teamEventsTable, hardmission); // 填充团体任务
+        eventOverlay.style.display = 'block';
+        eventPopup.style.display = 'block';
+        isShowingPersonal = true; // 默认显示个人任务
+        personalEvents.style.display = 'block';
+        teamEvents.style.display = 'none';
+        toggleEventsButton.textContent = '显示团体任务';
+    });
+
+    // 关闭弹窗
+    closeEventPopup.addEventListener('click', () => {
+        eventOverlay.style.display = 'none';
+        eventPopup.style.display = 'none';
+    });
+
+    eventOverlay.addEventListener('click', () => {
+        eventOverlay.style.display = 'none';
+        eventPopup.style.display = 'none';
+    });
+
+    // 切换任务类型
+    toggleEventsButton.addEventListener('click', () => {
+        isShowingPersonal = !isShowingPersonal;
+        if (isShowingPersonal) {
+            personalEvents.style.display = 'block';
+            teamEvents.style.display = 'none';
+            toggleEventsButton.textContent = '显示团体任务';
+        } else {
+            personalEvents.style.display = 'none';
+            teamEvents.style.display = 'block';
+            toggleEventsButton.textContent = '显示个人任务';
+        }
+    });
+
     // ================= 工具函数 =================
     function getCharacterKeys() {
         return Object.keys(characterData);
