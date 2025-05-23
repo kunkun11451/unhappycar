@@ -23,7 +23,8 @@
 3.在服务器上，进入代码所在目录并运行以下命令安装依赖：npm install ；还有依赖库：npm install ws uuid\
 4.运行以下命令启动 WebSocket 服务器：node server.js\
 5.在multiplayer.js中，将   const ws = new WebSocket('wss://（这里改成你的服务器地址）');\
-可以询问ai咨询详细步骤和报错
+可以询问ai咨询详细步骤和报错\
 
-## ......
+### 如遇bug等，可以在上方找到Issues提交。也可以提交有趣的事件或期望的功能(尽量做)等。
+## .....
 
