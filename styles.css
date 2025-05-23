@@ -88,7 +88,7 @@ h1 {
 }
 
 /* 按钮样式 */
-.start-button, #missionButton {
+.start-button, #missionButton, #exploreButton, #viewEventsButton {
     padding: 12px 35px;
     font-size: 18px;
     background-color: #3498db;
@@ -100,7 +100,7 @@ h1 {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     font-weight: bold;
     letter-spacing: 1px;
-    margin: 15px;
+    margin: 20px;
 }
 
 .start-button:hover, #missionButton:hover {
@@ -778,18 +778,81 @@ img {
         padding: 6px; /* 减小单元格内边距 */
     }
 }
-@media (max-width: 400px) {
+@media (max-width: 412px) {
+    body {
+        padding: 10px;
+    }
+
+    h1 {
+        font-size: 20px; /* 缩小标题字体 */
+        margin-bottom: 20px;
+    }
+
+    #initialScreen img {
+        height: 6em; /* 调整图片大小 */
+    }
+
+    .container {
+        display: grid; /* 使用网格布局 */
+        grid-template-columns: repeat(2, 1fr); /* 每行显示两个卡片 */
+        gap: 10px; /* 减小卡片间距 */
+    }
+
+    .character-box {
+        width: 100%; /* 卡片宽度自适应 */
+        max-width: 120px; /* 限制卡片最大宽度 */
+        height: auto; /* 高度自适应 */
+        aspect-ratio: 3 / 4; /* 设置宽高比例 */
+        margin: 0 auto; /* 居中卡片 */
+    }
+
+    .character-image {
+        width: 80%; /* 缩小图片宽度 */
+        height: auto; /* 高度自适应 */
+    }
+
+    .character-name {
+        font-size: 14px; /* 缩小字体 */
+    }
+
+    .start-button, #missionButton, #viewEventsButton, #exploreButton {
+        font-size: 16px; /* 缩小按钮字体 */
+        padding: 10px 25px; /* 减小按钮内边距 */
+    }
+
+    .rules-container {
+        padding: 15px; /* 减小规则容器的内边距 */
+        font-size: 14px; /* 缩小规则字体 */
+    }
+
+    .mission-box {
+        width: 100%; /* 卡片宽度自适应 */
+        max-width: 140px; /* 限制卡片最大宽度 */
+        height: 100px; /* 高度自适应 */
+        padding: 10px; /* 减小内边距 */
+
+    }
+
+    .mission-title {
+        font-size: 16px; /* 缩小标题字体 */
+    }
+
+    .mission-content {
+        font-size: 12px; /* 缩小内容字体 */
+    }
+
+    .button-container {
+        flex-direction: column; /* 按钮垂直排列 */
+        gap: 10px; /* 减小按钮间距 */
+    }
+
     .event-popup {
-        width: calc(100% - 30px); /* 总宽度减去左右各15px */
-        padding: 15px; /* 减小内边距 */
+        width: 95%; /* 弹窗宽度适应屏幕 */
+        padding: 10px; /* 减小内边距 */
     }
 
     .event-table {
-        font-size: 14px; /* 缩小表格字体 */
-    }
-
-    .event-table th, .event-table td {
-        padding: 6px; /* 减小单元格内边距 */
+        font-size: 12px; /* 缩小表格字体 */
     }
 }
 /* 调整勾选框大小 */

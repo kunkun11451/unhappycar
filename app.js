@@ -56,6 +56,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     initializeBPButton();
 
+
+
     // ================= BP模式切换 =================
     const BP_MODES = ['global', 'personal', 'off'];
     bpButton.addEventListener('click', () => {
@@ -551,4 +553,7 @@ document.addEventListener('DOMContentLoaded', function () {
         displayRandomCharacters(); // 抽取角色逻辑
     });
 
+    // 初始化个人任务和团体任务表格
+    populateTable(personalEventsTable, mission, 'personalEventsTable');
+    populateTable(teamEventsTable, hardmission, 'teamEventsTable');
 });
