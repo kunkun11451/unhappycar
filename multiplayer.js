@@ -14,12 +14,57 @@ document.addEventListener('DOMContentLoaded', function () {
     const roundCounterDisplay = document.getElementById('roundCounter');
     const characterBoxes = document.querySelectorAll('.character-box');
     const missionBoxes = document.querySelectorAll('.mission-box');
-    const syncButton = document.getElementById('syncButton'); // 获取同步数据按钮
+    const syncButton = document.getElementById('syncButton'); 
     const selectedHardMission = document.getElementById('selectedHardMission');
-    const timeCounter = document.getElementById('timeCounter'); // 获取时间计数器元素
+    const timeCounter = document.getElementById('timeCounter');
+    const connectionStatus = document.getElementById('connectionStatus');
+    const exploreButton = document.getElementById('exploreButton'); 
 
     let isHost = false;
     let currentRoomId = null;
+
+    // 默认禁用按钮
+    hostGameButton.disabled = true;
+    joinGameButton.disabled = true;
+
+    // WebSocket 连接成功
+    ws.onopen = () => {
+        console.log('WebSocket 连接成功');
+        if (connectionStatus) {
+            connectionStatus.textContent = '多人游戏服务器连接成功！';
+            connectionStatus.style.color = 'green'; 
+        }
+
+        // 启用按钮
+        hostGameButton.disabled = false;
+        joinGameButton.disabled = false;
+    };
+
+    // WebSocket 连接错误
+    ws.onerror = (error) => {
+        console.error('WebSocket 连接错误:', error);
+        if (connectionStatus) {
+            connectionStatus.textContent = '服务器连接失败，请刷新页面重试...';
+            connectionStatus.style.color = 'red'; 
+        }
+
+        // 确保按钮保持禁用状态
+        hostGameButton.disabled = true;
+        joinGameButton.disabled = true;
+    };
+
+    // WebSocket 连接关闭
+    ws.onclose = () => {
+        console.log('WebSocket 连接已关闭');
+        if (connectionStatus) {
+            connectionStatus.textContent = '服务器连接已断开，请刷新页面重试...';
+            connectionStatus.style.color = 'red'; 
+        }
+
+        // 确保按钮保持禁用状态
+        hostGameButton.disabled = true;
+        joinGameButton.disabled = true;
+    };
 
     // 主持游戏
     hostGameButton.addEventListener('click', () => {
@@ -117,7 +162,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // 在主界面顶部动态显示当前人数
-function showPlayerCount(count) {
+    function showPlayerCount(count) {
     // 检查是否已经存在提示框
     let playerCountDisplay = document.getElementById('playerCountDisplay');
     if (!playerCountDisplay) {
@@ -210,7 +255,7 @@ ws.onmessage = (event) => {
                     box.style.pointerEvents = 'none'; // 禁用点击事件
                 });
 
-                // 始终显示历史记录按钮
+                // 历史记录按钮
                 const historyButton = document.querySelector('.history-button');
                 if (historyButton) {
                     historyButton.style.display = 'none'; 
@@ -272,19 +317,6 @@ ws.onmessage = (event) => {
             console.log('未知消息类型:', data.type);
     }
 };
-
-    ws.onopen = () => {
-        console.log('WebSocket 连接成功');
-    };
-
-    ws.onerror = (error) => {
-        console.error('WebSocket 连接错误:', error);
-    };
-
-    ws.onclose = () => {
-        console.log('WebSocket 连接已关闭');
-        localStorage.removeItem('roomId'); // WebSocket 断开时清除房间代码
-    };
 
     // 主持人发送游戏状态
     window.sendGameState = function sendGameState() {
@@ -348,4 +380,12 @@ ws.onmessage = (event) => {
             hardMissionContent.textContent = state.hardMission.content;
         }
     }
+
+    exploreButton.addEventListener('click', () => {
+        initialScreen.style.display = 'none';
+        gameScreen.style.display = 'block';
+
+        // 禁用房间同步功能
+        console.log('进入游戏主界面，但不进行多人游戏功能');
+    });
 });

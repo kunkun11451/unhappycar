@@ -58,6 +58,24 @@ wss.on('connection', (ws) => {
                 }
                 break;
 
+            case 'timeUpdate':
+                console.log(`收到用时更新，房间ID: ${data.roomId}`);
+                const timeRoom = rooms[data.roomId];
+                if (timeRoom && timeRoom.host === ws) {
+                    // 广播用时统计数据
+                    const timeUpdateMessage = JSON.stringify({
+                        type: 'timeUpdate',
+                        totalTime: data.totalTime,
+                        roundTime: data.roundTime
+                    });
+                    timeRoom.players.forEach((player) => {
+                        player.send(timeUpdateMessage);
+                    });
+                } else {
+                    console.log('用时更新失败：房间不存在或请求者不是主持人');
+                }
+                break;
+
             default:
                 console.log('未知消息类型:', data.type);
         }

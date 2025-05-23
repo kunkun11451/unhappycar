@@ -733,7 +733,7 @@ img {
     border-radius: 20px;
     cursor: pointer;
     transition: all 0.3s;
-    margin-bottom: 15px;
+    /* margin-bottom: 15px; */
     text-align: center;
 }
 
@@ -791,4 +791,10 @@ img {
     .event-table th, .event-table td {
         padding: 6px; /* 减小单元格内边距 */
     }
+}
+/* 调整勾选框大小 */
+input[type="checkbox"] {
+    width: 25px; /* 设置宽度 */
+    height: 25px; /* 设置高度 */
+    cursor: pointer; /* 鼠标悬停时显示手型 */
 }

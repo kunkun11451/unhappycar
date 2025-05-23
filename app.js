@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', function () {
             box.style.pointerEvents = 'auto'; // 恢复点击事件
         });
 
-            // 清空事件卡片
+        // 清空事件卡片
         const missionBoxes = document.querySelectorAll('.mission-box');
         missionBoxes.forEach(box => {
             const title = box.querySelector('.mission-title');
@@ -398,24 +398,45 @@ document.addEventListener('DOMContentLoaded', function () {
     let isShowingPersonal = true; // 当前显示的任务类型
 
     // 填充任务表格
-    function populateTable(table, tasks) {
+    function populateTable(table, tasks, tableId) {
         table.innerHTML = '';
         Object.keys(tasks).forEach(key => {
             const row = document.createElement('tr');
+
+            // 创建启用勾选框
+            const enableCell = document.createElement('td');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = true; // 默认勾选
+            checkbox.dataset.key = key; // 保存任务的 key
+            enableCell.appendChild(checkbox);
+
+            // 创建标题和内容单元格
             const titleCell = document.createElement('td');
             const contentCell = document.createElement('td');
             titleCell.textContent = key;
             contentCell.textContent = tasks[key].内容;
+
+            // 将单元格添加到行
+            row.appendChild(enableCell);
             row.appendChild(titleCell);
             row.appendChild(contentCell);
+
+            // 将行添加到表格
             table.appendChild(row);
         });
+
+        // 加载保存的勾选状态
+        loadCheckedState(tableId);
+
+        // 绑定勾选框的事件监听器
+        attachCheckboxListeners(tableId);
     }
 
     // 显示弹窗
     viewEventsButton.addEventListener('click', () => {
-        populateTable(personalEventsTable, mission); // 填充个人任务
-        populateTable(teamEventsTable, hardmission); // 填充团体任务
+        populateTable(personalEventsTable, mission, 'personalEventsTable'); // 填充个人任务
+        populateTable(teamEventsTable, hardmission, 'teamEventsTable'); // 填充团体任务
         eventOverlay.style.display = 'block';
         eventPopup.style.display = 'block';
         isShowingPersonal = true; // 默认显示个人任务
@@ -448,6 +469,34 @@ document.addEventListener('DOMContentLoaded', function () {
             toggleEventsButton.textContent = '显示个人事件';
         }
     });
+
+    // 保存勾选状态
+    function saveCheckedState(tableId) {
+        const checkboxes = document.querySelectorAll(`#${tableId} input[type="checkbox"]`);
+        const checkedState = {};
+        checkboxes.forEach(checkbox => {
+            checkedState[checkbox.dataset.key] = checkbox.checked; // 保存每个任务的勾选状态
+        });
+        localStorage.setItem(`${tableId}-checkedState`, JSON.stringify(checkedState)); // 存储到 localStorage
+    }
+
+    // 加载勾选状态
+    function loadCheckedState(tableId) {
+        const savedState = JSON.parse(localStorage.getItem(`${tableId}-checkedState`)) || {};
+        const checkboxes = document.querySelectorAll(`#${tableId} input[type="checkbox"]`);
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = savedState[checkbox.dataset.key] !== undefined ? savedState[checkbox.dataset.key] : true; // 默认勾选
+        });
+    }
+
+    function attachCheckboxListeners(tableId) {
+        const checkboxes = document.querySelectorAll(`#${tableId} input[type="checkbox"]`);
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                saveCheckedState(tableId); // 保存勾选状态
+            });
+        });
+    }
 
     // ================= 工具函数 =================
     function getCharacterKeys() {

@@ -27,12 +27,19 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 从mission.js获取事件数据
     function getMissionKeys() {
-        return Object.keys(mission);
+        const enabledKeys = [];
+        const checkboxes = document.querySelectorAll('#personalEventsTable input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+                enabledKeys.push(checkbox.dataset.key);
+            }
+        });
+        return enabledKeys;
     }
     
     // 随机选择事件
     function getRandomMissions(count) {
-        const keys = getMissionKeys();
+        const keys = getMissionKeys(); // 获取已启用的任务
         const shuffled = [...keys].sort(() => 0.5 - Math.random());
         return shuffled.slice(0, count);
     }
@@ -142,4 +149,65 @@ document.addEventListener('DOMContentLoaded', function() {
     missionButton.addEventListener('click', () => {
       displayRandomMissions(); // 抽取事件逻辑
     });
+    
+    function saveCheckedState(tableId) {
+        const checkboxes = document.querySelectorAll(`#${tableId} input[type="checkbox"]`);
+        const checkedState = {};
+        checkboxes.forEach(checkbox => {
+            checkedState[checkbox.dataset.key] = checkbox.checked; // 保存每个任务的勾选状态
+        });
+        localStorage.setItem(`${tableId}-checkedState`, JSON.stringify(checkedState)); // 存储到 localStorage
+    }
+    
+    function loadCheckedState(tableId) {
+        const savedState = JSON.parse(localStorage.getItem(`${tableId}-checkedState`)) || {};
+        const checkboxes = document.querySelectorAll(`#${tableId} input[type="checkbox"]`);
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = savedState[checkbox.dataset.key] !== undefined ? savedState[checkbox.dataset.key] : true; // 默认勾选
+        });
+    }
+    
+    function attachCheckboxListeners(tableId) {
+        const checkboxes = document.querySelectorAll(`#${tableId} input[type="checkbox"]`);
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                saveCheckedState(tableId); // 保存勾选状态
+            });
+        });
+    }
+    
+    function populateTable(table, tasks, tableId) {
+        table.innerHTML = '';
+        Object.keys(tasks).forEach(key => {
+            const row = document.createElement('tr');
+
+            // 创建启用勾选框
+            const enableCell = document.createElement('td');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = true; // 默认勾选
+            checkbox.dataset.key = key; // 保存任务的 key
+            enableCell.appendChild(checkbox);
+
+            // 创建标题和内容单元格
+            const titleCell = document.createElement('td');
+            const contentCell = document.createElement('td');
+            titleCell.textContent = key;
+            contentCell.textContent = tasks[key].内容;
+
+            // 将单元格添加到行
+            row.appendChild(enableCell);
+            row.appendChild(titleCell);
+            row.appendChild(contentCell);
+
+            // 将行添加到表格
+            table.appendChild(row);
+        });
+
+        // 加载保存的勾选状态
+        loadCheckedState(tableId);
+
+        // 绑定勾选框的事件监听器
+        attachCheckboxListeners(tableId);
+    }
 });

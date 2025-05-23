@@ -56,12 +56,19 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 从hardmission.js中获取困难模式事件
     function getHardMissionKeys() {
-        return Object.keys(hardmission);
+        const enabledKeys = [];
+        const checkboxes = document.querySelectorAll('#teamEventsTable input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+                enabledKeys.push(checkbox.dataset.key);
+            }
+        });
+        return enabledKeys;
     }
     
     // 获取随机困难模式事件
     function getRandomHardMissions(count) {
-        const keys = getHardMissionKeys();
+        const keys = getHardMissionKeys(); // 获取已启用的任务
         const shuffled = [...keys].sort(() => 0.5 - Math.random());
         return shuffled.slice(0, count);
     }
@@ -278,4 +285,54 @@ document.addEventListener('DOMContentLoaded', function() {
         // 显示"那可不行"的提示
         alert('那可不行');
     });
+    
+    function saveCheckedState(tableId) {
+        const checkboxes = document.querySelectorAll(`#${tableId} input[type="checkbox"]`);
+        const checkedState = {};
+        checkboxes.forEach(checkbox => {
+            checkedState[checkbox.dataset.key] = checkbox.checked;
+        });
+        localStorage.setItem(`${tableId}-checkedState`, JSON.stringify(checkedState));
+    }
+
+    function loadCheckedState(tableId) {
+        const savedState = JSON.parse(localStorage.getItem(`${tableId}-checkedState`)) || {};
+        const checkboxes = document.querySelectorAll(`#${tableId} input[type="checkbox"]`);
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = savedState[checkbox.dataset.key] !== undefined ? savedState[checkbox.dataset.key] : true;
+        });
+    }
+
+    function populateTable(table, tasks, tableId) {
+        table.innerHTML = '';
+        Object.keys(tasks).forEach(key => {
+            const row = document.createElement('tr');
+
+            // 创建启用勾选框
+            const enableCell = document.createElement('td');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = true;
+            checkbox.dataset.key = key;
+            enableCell.appendChild(checkbox);
+
+            // 创建标题和内容单元格
+            const titleCell = document.createElement('td');
+            const contentCell = document.createElement('td');
+            titleCell.textContent = key;
+            contentCell.textContent = tasks[key].内容;
+
+            row.appendChild(enableCell);
+            row.appendChild(titleCell);
+            row.appendChild(contentCell);
+
+            table.appendChild(row);
+        });
+
+        // 加载保存的勾选状态
+        loadCheckedState(tableId);
+
+        // 绑定勾选框事件
+        attachCheckboxListeners(tableId);
+    }
 });
