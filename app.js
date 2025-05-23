@@ -8,7 +8,11 @@ document.addEventListener('DOMContentLoaded', function () {
         },
         unavailableCharacters: [new Set(), new Set(), new Set(), new Set()], // 每个玩家不可用的角色
         isGameStarted: false,      // 游戏是否开始
-        roundCounter: 0            // 当前轮数
+        roundCounter: 0,           // 当前轮数
+        startTime: null,           // 游戏开始时间
+        lastRoundTime: null,       // 上一轮抽取时间
+        totalTime: 0,              // 总用时（秒）
+        timerInterval: null        // 定时器
     };
 
     // ================= DOM元素获取 =================
@@ -72,6 +76,12 @@ document.addEventListener('DOMContentLoaded', function () {
         gameState.isGameStarted = false;
         gameState.roundCounter = 0;
 
+        // 停止计时器
+        if (gameState.timerInterval) {
+            clearInterval(gameState.timerInterval);
+            gameState.timerInterval = null;
+        }
+
         // 重置按钮状态
         resetButton.style.display = 'none';
         bpButton.disabled = false;
@@ -115,16 +125,46 @@ document.addEventListener('DOMContentLoaded', function () {
         historyPopup.style.display = 'none';
         overlay.style.display = 'none';
 
+        // 清空时间显示
+        const timeCounter = document.getElementById('timeCounter');
+        timeCounter.textContent = '总用时：00:00 | 本轮用时：00:00';
+
         alert('游戏已重置！');
     });
 
     // ================= 抽取角色 =================
     function displayRandomCharacters() {
+        const now = Date.now(); // 当前时间戳
+
         if (!gameState.isGameStarted) {
             gameState.isGameStarted = true;
+            gameState.startTime = now; // 记录游戏开始时间
+            gameState.lastRoundTime = now; // 初始化上一轮时间
             bpButton.disabled = true;
             resetButton.style.display = 'inline-block';
             historyButton.style.display = 'inline-block'; // 显示历史记录按钮
+
+            // 启动定时器，实时更新总用时和本轮用时
+            gameState.timerInterval = setInterval(() => {
+                const currentTime = Date.now();
+                const totalElapsed = Math.floor((currentTime - gameState.startTime) / 1000); // 总用时
+                const roundElapsed = Math.floor((currentTime - gameState.lastRoundTime) / 1000); // 本轮用时
+
+                // 更新页面显示
+                const timeCounter = document.getElementById('timeCounter');
+                timeCounter.textContent = `总用时：${formatTime(totalElapsed)} | 本轮用时：${formatTime(roundElapsed)}`;
+            }, 1000); // 每秒更新一次
+        } else {
+            // 计算本轮用时
+            const roundTime = Math.floor((now - gameState.lastRoundTime) / 1000); // 秒
+            gameState.lastRoundTime = now; // 更新上一轮时间
+            gameState.totalTime += roundTime; // 累加总用时
+
+            // 将本轮用时记录到历史数据
+            const lastRound = historyData[historyData.length - 1];
+            if (lastRound) {
+                lastRound.roundTime = roundTime; // 保存本轮用时
+            }
         }
 
         // 增加轮数
@@ -270,6 +310,12 @@ document.addEventListener('DOMContentLoaded', function () {
         roundHeader.style.padding = '8px';
         headerRow.appendChild(roundHeader);
 
+        const timeHeader = document.createElement('th');
+        timeHeader.textContent = '用时';
+        timeHeader.style.border = '1px solid #ddd';
+        timeHeader.style.padding = '8px';
+        headerRow.appendChild(timeHeader);
+
         // 添加玩家列头
         ['1P', '2P', '3P', '4P'].forEach(player => {
             const playerHeader = document.createElement('th');
@@ -291,6 +337,12 @@ document.addEventListener('DOMContentLoaded', function () {
             roundCell.style.border = '1px solid #ddd';
             roundCell.style.padding = '8px';
             row.appendChild(roundCell);
+
+            const timeCell = document.createElement('td');
+            timeCell.textContent = formatTime(round.roundTime || 0); // 使用格式化时间
+            timeCell.style.border = '1px solid #ddd';
+            timeCell.style.padding = '8px';
+            row.appendChild(timeCell);
 
             // 添加每位玩家的角色
             round.forEach(player => {
@@ -316,7 +368,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // 显示弹窗和黑色半透明背景
         overlay.style.display = 'block';
         historyPopup.style.display = 'block';
-        document.body.style.overflow = 'hidden'; 
+        document.body.style.overflow = 'hidden';
     });
 
     closeHistoryButton.addEventListener('click', () => {
@@ -428,6 +480,19 @@ document.addEventListener('DOMContentLoaded', function () {
         }, delay);
     }
 
+    function formatTime(seconds) {
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+        const remainingSeconds = (seconds % 60).toString().padStart(2, '0');
+
+        // 如果小时位为 0，则不显示小时
+        if (hours > 0) {
+            return `${hours}:${minutes}:${remainingSeconds}`;
+        } else {
+            return `${minutes}:${remainingSeconds}`;
+        }
+    }
+
     // ================= 事件绑定 =================
     characterBoxes.forEach(box => {
         box.addEventListener('click', () => refreshSingleCharacter(box));
@@ -436,4 +501,5 @@ document.addEventListener('DOMContentLoaded', function () {
     startButton.addEventListener('click', () => {
         displayRandomCharacters(); // 抽取角色逻辑
     });
+
 });

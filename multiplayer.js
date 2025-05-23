@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const missionBoxes = document.querySelectorAll('.mission-box');
     const syncButton = document.getElementById('syncButton'); // 获取同步数据按钮
     const selectedHardMission = document.getElementById('selectedHardMission');
+    const timeCounter = document.getElementById('timeCounter'); // 获取时间计数器元素
 
     let isHost = false;
     let currentRoomId = null;
@@ -24,6 +25,10 @@ document.addEventListener('DOMContentLoaded', function () {
     hostGameButton.addEventListener('click', () => {
         ws.send(JSON.stringify({ type: 'createRoom' }));
         isHost = true;
+
+        if (timeCounter) {
+            timeCounter.style.display = 'block';
+        }
     });
 
     // 加入游戏
@@ -38,6 +43,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (roomId) {
             ws.send(JSON.stringify({ type: 'joinRoom', roomId }));
+        }
+
+        isHost = false;
+        if (timeCounter) {
+            timeCounter.style.display = 'none';
         }
     });
 
