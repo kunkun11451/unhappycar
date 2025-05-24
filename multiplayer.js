@@ -173,20 +173,16 @@ document.addEventListener('DOMContentLoaded', function () {
         playerCountDisplay.style.top = '10px';
         playerCountDisplay.style.left = '50%';
         playerCountDisplay.style.transform = 'translateX(-50%)';
-        playerCountDisplay.style.color = '#000'; // 设置文字颜色为黑色
-        playerCountDisplay.style.padding = '10px 20px';
-        playerCountDisplay.style.borderRadius = '8px';
+        playerCountDisplay.style.color = '#000'; 
         playerCountDisplay.style.fontSize = '16px';
-        playerCountDisplay.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
         playerCountDisplay.style.zIndex = '1000';
         playerCountDisplay.style.textAlign = 'center';
-
         // 添加到主界面
         gameScreen.appendChild(playerCountDisplay);
     }
 
     // 更新提示框内容
-    playerCountDisplay.textContent = `当前房间人数：${count}`;
+    playerCountDisplay.textContent = `当前人数：${count}`;
 }
 
 // 显示临时提示框

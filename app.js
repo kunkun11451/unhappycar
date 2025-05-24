@@ -195,11 +195,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const newChar = availableChars[Math.floor(Math.random() * availableChars.length)];
 
-            // 更新不可用角色列表（仅在关闭模式下）
             if (gameState.bpMode === 'off') {
-                unavailableSet.add(newChar);
             }
-
             // 更新 BP 列表
             if (gameState.bpMode === 'global') {
                 gameState.usedCharacters.global.add(newChar);
@@ -220,7 +217,7 @@ document.addEventListener('DOMContentLoaded', function () {
         startButton.disabled = true;
         setTimeout(() => {
             startButton.disabled = false;
-        }, 500);
+        }, 0);
     }
 
     // ================= 单独切换角色 =================
@@ -265,7 +262,7 @@ document.addEventListener('DOMContentLoaded', function () {
             gameState.usedCharacters.global.add(newChar); // 添加新角色到全局 BP 列表
         } else if (gameState.bpMode === 'personal') {
             if (oldChar) {
-                usedSet.delete(oldChar); // 从个人 BP 列表中移除旧角色
+                usedSet.add(oldChar);
             }
             usedSet.add(newChar); // 添加新角色到个人 BP 列表
         }
