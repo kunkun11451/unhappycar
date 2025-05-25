@@ -91,11 +91,21 @@
             <h2>游戏规则</h2>
             <div class="rules-content">
                 <ul>
+                   <h3>角色</h3> 
                     <li>角色按照选择的bp模式进行随机抽取，碰到没有的角色跟地主说，重新抽取角色到有为止。</li>
-                    <li>每轮抽取完个人buff可点击"不够牢"3选1抽取团体buff</li>
-                    <li>全体buff与个人buff冲突情况，全体buff优先级大于个人buff。</li>
-                    <li>每轮全队没有人死过可获得4次共享重抽角色/事件机会（或者地主说了算）</li>
-                    <li>测试版，地主归最终解释权所有(shi de)。</li>
+                    <li>通过事件更换的角色不bp</li>
+                   <h3>事件</h3>   
+                    <li>初始获得3次可重抽事件机会</li>                  
+                    <li>每轮抽取完个人事件可点击"不够牢"3选1抽取团体事件</li>
+                    <li>全体事件与个人事件冲突情况，全体事件优先级大于个人事件。</li>
+                    <li>抽取每个事件会随机给予或扣除重抽事件的机会。
+                        <span id="viewProbabilityText" style="color: blue; text-decoration: underline; cursor: pointer;">查看概率</span>
+                        <span id="probabilityPopup" style="display: none; position: absolute; background: white; border: 1px solid #ccc; padding: 10px; border-radius: 5px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
+                            每个事件的抽取有 5% 概率触发“重抽次数+1”或“重抽次数-1”（各 50% 概率），未触发时概率每次增加 5%，触发后重置为 5%，若结果为 -1，则下一次必定为 +1。四人共享这个概率。
+                        </span>
+                    </li>
+                    <li>重抽事件机会可供全队重抽个人事件，共享使用次数，可保留，需要自己记录一下。</li>
+                    <h3>测试版，地主归最终解释权所有(shi de)。</h3>
                 </ul>
             </div>
         </div>

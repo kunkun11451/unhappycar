@@ -3,7 +3,9 @@ document.addEventListener('DOMContentLoaded', function() {
     window.missionBoxes = document.querySelectorAll('.mission-box');
     const missionButton = document.getElementById('missionButton');
     const hardModeButton = document.getElementById('hardModeButton');
-    
+    let rerollChance = 0.05; // 初始概率为 5%
+    let nextRerollGuaranteed = false; // 是否保证下一次为 +1
+
     // 初始化时隐藏困难模式按钮
     hardModeButton.style.display = 'none';
     
@@ -50,36 +52,80 @@ document.addEventListener('DOMContentLoaded', function() {
         const randomIndex = Math.floor(Math.random() * keys.length);
         const missionKey = keys[randomIndex];
         const missionData = mission[missionKey];
-        
+
         // 重置动画
         box.classList.remove('active');
-        
+
         // 设置事件内容
         const titleElement = box.querySelector('.mission-title');
         const contentElement = box.querySelector('.mission-content');
-        
+
         // 隐藏玩家标识
         const playerTag = box.querySelector('.player-tag');
         if (playerTag) {
             playerTag.classList.remove('show');
         }
-        
+
         // 清空内容
         titleElement.textContent = '';
         contentElement.textContent = '';
-        
+        contentElement.innerHTML = ''
+
         // 添加淡出效果
         box.style.opacity = 0;
-        
+
         setTimeout(() => {
             // 设置新内容
             titleElement.textContent = missionKey;
-            contentElement.textContent = missionData.内容;
-            
+
+            let modifiedContent = typeof missionData.内容 === 'function' 
+                ? missionData.内容() 
+                : missionData.内容;
+
+            // 检查是否为“方位车？给我干哪来了？”事件
+            if (missionKey === "方位车？给我干哪来了？") {
+                const AAOptions = ["等级", "命座", "攻击", "生命", "防御", "精通"];
+                const BBOptions = ["上", "下", "左", "右", "左上", "左下", "右上", "右下"];
+                
+                const randomAA = AAOptions[Math.floor(Math.random() * AAOptions.length)];
+                const randomBB = BBOptions[Math.floor(Math.random() * BBOptions.length)];
+                
+                modifiedContent = modifiedContent.replace("AA", randomAA).replace("BB", randomBB);
+            }
+
+            // 添加随机逻辑
+            const randomChance = Math.random();
+            if (randomChance < rerollChance || nextRerollGuaranteed) {
+                // 确定是 +1 还是 -1
+                let rerollResult;
+                if (nextRerollGuaranteed) {
+                    rerollResult = "+1";
+                    nextRerollGuaranteed = false; // 重置保证状态
+                } else {
+                    rerollResult = Math.random() < 0.5 ? "+1" : "-1";
+                    if (rerollResult === "-1") {
+                        nextRerollGuaranteed = true; // 如果是 -1，下次必定是 +1
+                    }
+                }
+
+                // 添加重抽次数
+                const color = rerollResult === "+1" ? "green" : "red";
+                modifiedContent += `;<span style="color: ${color};">重抽次数${rerollResult}</span>`;
+
+                // 重置概率
+                rerollChance = 0.05;
+            } else {
+                // 未触发，增加概率
+                rerollChance += 0.05;
+            }
+
+            contentElement.textContent = modifiedContent;
+            contentElement.innerHTML = modifiedContent;
+
             // 添加淡入效果
             box.style.opacity = 1;
             box.classList.add('active');
-            
+
             // 显示玩家标识
             if (playerTag) {
                 setTimeout(() => {
@@ -107,26 +153,69 @@ document.addEventListener('DOMContentLoaded', function() {
         missionBoxes.forEach((box, index) => {
             const missionKey = randomMissions[index];
             const missionData = mission[missionKey];
-            
+
             // 重置动画
             box.classList.remove('active');
-            
+
             // 设置事件内容
             const titleElement = box.querySelector('.mission-title');
             const contentElement = box.querySelector('.mission-content');
-            
+
             // 清空内容
             titleElement.textContent = '';
             contentElement.textContent = '';
+            contentElement.innerHTML = ''
             
             // 添加淡出效果
             box.style.opacity = 0;
-            
+
             setTimeout(() => {
                 // 设置新内容
                 titleElement.textContent = missionKey;
-                contentElement.textContent = missionData.内容;
-                
+
+                let modifiedContent = typeof missionData.内容 === 'function' 
+                    ? missionData.内容() 
+                    : missionData.内容;
+
+                if (missionKey === "方位车？给我干哪来了？") {
+                    const AAOptions = ["等级", "命座", "攻击", "生命", "防御", "精通"];
+                    const BBOptions = ["上", "下", "左", "右", "左上", "左下", "右上", "右下"];
+                    
+                    const randomAA = AAOptions[Math.floor(Math.random() * AAOptions.length)];
+                    const randomBB = BBOptions[Math.floor(Math.random() * BBOptions.length)];
+                    
+                    modifiedContent = modifiedContent.replace("AA", randomAA).replace("BB", randomBB);
+                }
+
+            // 添加随机逻辑
+            const randomChance = Math.random();
+            if (randomChance < rerollChance || nextRerollGuaranteed) {
+                // 确定是 +1 还是 -1
+                let rerollResult;
+                if (nextRerollGuaranteed) {
+                    rerollResult = "+1";
+                    nextRerollGuaranteed = false; // 重置保证状态
+                } else {
+                    rerollResult = Math.random() < 0.5 ? "+1" : "-1";
+                    if (rerollResult === "-1") {
+                        nextRerollGuaranteed = true; // 如果是 -1，下次必定是 +1
+                    }
+                }
+
+                // 添加重抽次数
+                const color = rerollResult === "+1" ? "green" : "red";
+                modifiedContent += `;<span style="color: ${color};">重抽次数${rerollResult}</span>`;
+
+                // 重置概率
+                rerollChance = 0.05;
+            } else {
+                // 未触发，增加概率
+                rerollChance += 0.05;
+            }
+
+                contentElement.textContent = modifiedContent;
+                contentElement.innerHTML = modifiedContent;
+
                 // 添加淡入效果
                 box.style.opacity = 1;
                 box.classList.add('active');
@@ -210,4 +299,35 @@ document.addEventListener('DOMContentLoaded', function() {
         // 绑定勾选框的事件监听器
         attachCheckboxListeners(tableId);
     }
+
+    const viewProbabilityText = document.getElementById('viewProbabilityText');
+    const probabilityPopup = document.getElementById('probabilityPopup');
+
+    // 点击文字显示弹窗
+    viewProbabilityText.addEventListener('click', function (event) {
+        if (probabilityPopup.style.display === 'none') {
+                // 显示弹窗
+            probabilityPopup.style.display = 'block';
+
+            // 在手机端居中显示
+            if (window.innerWidth <= 768) {
+                probabilityPopup.style.left = '5%';
+                probabilityPopup.style.top = `${window.scrollY + 100}px`; // 距离顶部 100px
+            } else {
+                // 桌面端显示在文字旁边
+                probabilityPopup.style.left = `${event.pageX + 10}px`;
+                probabilityPopup.style.top = `${event.pageY}px`;
+            }
+        } else {
+            // 隐藏弹窗
+            probabilityPopup.style.display = 'none';
+        }
+    });
+
+    // 点击页面其他地方隐藏弹窗
+    document.addEventListener('click', function (event) {
+        if (!viewProbabilityText.contains(event.target) && !probabilityPopup.contains(event.target)) {
+            probabilityPopup.style.display = 'none';
+        }
+    });
 });

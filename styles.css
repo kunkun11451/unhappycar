@@ -469,6 +469,7 @@ h1 {
 
 /* 游戏规则样式 */
 .rules-container {
+    text-align: left;
     max-width: 800px;
     margin: 40px auto;
     padding: 20px;
@@ -482,6 +483,16 @@ h1 {
         max-width: 100vw;
         padding: 0 8px;
     }
+.rules-container h2 {
+    text-align: center; /* 标题居中 */
+    margin-bottom: 10px; /* 添加下方间距 */
+}
+
+.rules-content li {
+    text-align: left; /* 内容靠左对齐 */
+    margin: 0; /* 去除默认外边距 */
+    padding: 0; /* 去除默认内边距 */
+}
     .character-box,
     .mission-box {
         width: 100%;
@@ -860,4 +871,30 @@ input[type="checkbox"] {
     width: 25px; /* 设置宽度 */
     height: 25px; /* 设置高度 */
     cursor: pointer; /* 鼠标悬停时显示手型 */
+}
+#probabilityPopup {
+    display: none;
+    position: absolute;
+    background: white;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    max-width: 300px; /* 限制最大宽度 */
+    word-wrap: break-word; /* 自动换行 */
+    z-index: 1000;
+}
+
+/* 手机端优化 */
+@media (max-width: 768px) {
+    #probabilityPopup {
+        max-width: 90%; /* 弹窗宽度占屏幕的 90% */
+        left: 5%; /* 居中弹窗 */
+        right: 5%;
+        top: auto; /* 自动调整顶部位置 */
+        bottom: auto; /* 自动调整底部位置 */
+        padding: 15px; /* 增加内边距 */
+        font-size: 14px; /* 缩小字体 */
+        line-height: 1.5; /* 增加行高 */
+    }
 }

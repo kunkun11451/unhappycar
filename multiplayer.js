@@ -111,15 +111,14 @@ document.addEventListener('DOMContentLoaded', function () {
             })),
             missions: Array.from(missionBoxes).map((box) => ({
                 title: box.querySelector('.mission-title').textContent,
-                content: box.querySelector('.mission-content').textContent
+                content: box.querySelector('.mission-content').innerHTML // 使用 innerHTML 保留颜色
             })),
             hardMission: {
                 title: selectedHardMission.querySelector('.mission-title')?.textContent || '',
-                content: selectedHardMission.querySelector('.mission-content')?.textContent || ''
+                content: selectedHardMission.querySelector('.mission-content')?.innerHTML || '' // 使用 innerHTML 保留颜色
             }
         };
 
-        // 包含历史记录数据
         const history = window.historyData || [];
 
         console.log('同步的游戏状态:', state, '历史记录:', history);
@@ -362,7 +361,7 @@ ws.onmessage = (event) => {
             const content = box.querySelector('.mission-content');
 
             title.textContent = mission.title;
-            content.textContent = mission.content;
+            content.innerHTML = mission.content; // 使用 innerHTML 恢复颜色
         });
 
         // 更新困难模式事件
@@ -370,10 +369,9 @@ ws.onmessage = (event) => {
         const hardMissionContent = selectedHardMission.querySelector('.mission-content');
 
         if (state.hardMission && state.hardMission.title) {
-            // 在其他玩家界面中始终显示困难模式事件区域
             selectedHardMission.style.display = 'block';
             hardMissionTitle.textContent = state.hardMission.title;
-            hardMissionContent.textContent = state.hardMission.content;
+            hardMissionContent.innerHTML = state.hardMission.content; // 使用 innerHTML 恢复颜色
         }
     }
 
