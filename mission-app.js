@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const missionButton = document.getElementById('missionButton');
     const hardModeButton = document.getElementById('hardModeButton');
     let rerollChance = 0.05; // 初始概率为 5%
-    let nextRerollGuaranteed = false; // 是否保证下一次为 +1
+    let negativeCount = 0; // 累计 -1 的次数
 
     // 初始化时隐藏困难模式按钮
     hardModeButton.style.display = 'none';
@@ -95,16 +95,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // 添加随机逻辑
             const randomChance = Math.random();
-            if (randomChance < rerollChance || nextRerollGuaranteed) {
+            if (randomChance < rerollChance || negativeCount >= 2) {
                 // 确定是 +1 还是 -1
                 let rerollResult;
-                if (nextRerollGuaranteed) {
-                    rerollResult = "+1";
-                    nextRerollGuaranteed = false; // 重置保证状态
+                if (negativeCount >= 2) {
+                    rerollResult = "+1"; // 累计两次 -1 后强制 +1
+                    negativeCount = 0; // 重置计数器
                 } else {
                     rerollResult = Math.random() < 0.5 ? "+1" : "-1";
                     if (rerollResult === "-1") {
-                        nextRerollGuaranteed = true; // 如果是 -1，下次必定是 +1
+                        negativeCount++; // 累计 -1 次数
+                    } else {
+                        negativeCount = 0; // 如果是 +1，清空 -1 的累计次数
                     }
                 }
 
@@ -189,16 +191,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // 添加随机逻辑
             const randomChance = Math.random();
-            if (randomChance < rerollChance || nextRerollGuaranteed) {
+            if (randomChance < rerollChance || negativeCount >= 2) {
                 // 确定是 +1 还是 -1
                 let rerollResult;
-                if (nextRerollGuaranteed) {
-                    rerollResult = "+1";
-                    nextRerollGuaranteed = false; // 重置保证状态
+                if (negativeCount >= 2) {
+                    rerollResult = "+1"; // 累计两次 -1 后强制 +1
+                    negativeCount = 0; // 重置计数器
                 } else {
                     rerollResult = Math.random() < 0.5 ? "+1" : "-1";
                     if (rerollResult === "-1") {
-                        nextRerollGuaranteed = true; // 如果是 -1，下次必定是 +1
+                        negativeCount++; // 累计 -1 次数
+                    } else {
+                        negativeCount = 0; // 如果是 +1，清空 -1 的累计次数
                     }
                 }
 
