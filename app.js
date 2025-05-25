@@ -213,11 +213,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         historyData.push(roundHistory);
 
-        // 禁用按钮 1 秒
+        // 禁用按钮 0.5 秒
         startButton.disabled = true;
         setTimeout(() => {
             startButton.disabled = false;
-        }, 0);
+        }, 500);
     }
 
     // ================= 单独切换角色 =================
