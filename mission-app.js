@@ -95,13 +95,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // 添加随机逻辑
             const randomChance = Math.random();
-            if (randomChance < rerollChance || negativeCount >= 2) {
+            if (randomChance < rerollChance) {
                 // 确定是 +1 还是 -1
                 let rerollResult;
                 if (negativeCount >= 2) {
-                    rerollResult = "+1"; // 累计两次 -1 后强制 +1
+                    // 如果累计两次 -1，下一次触发时强制为 +1
+                    rerollResult = "+1";
                     negativeCount = 0; // 重置计数器
                 } else {
+                    // 正常随机判断 +1 或 -1
                     rerollResult = Math.random() < 0.5 ? "+1" : "-1";
                     if (rerollResult === "-1") {
                         negativeCount++; // 累计 -1 次数
@@ -191,13 +193,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // 添加随机逻辑
             const randomChance = Math.random();
-            if (randomChance < rerollChance || negativeCount >= 2) {
+            if (randomChance < rerollChance) {
                 // 确定是 +1 还是 -1
                 let rerollResult;
                 if (negativeCount >= 2) {
-                    rerollResult = "+1"; // 累计两次 -1 后强制 +1
+                    // 如果累计两次 -1，下一次触发时强制为 +1
+                    rerollResult = "+1";
                     negativeCount = 0; // 重置计数器
                 } else {
+                    // 正常随机判断 +1 或 -1
                     rerollResult = Math.random() < 0.5 ? "+1" : "-1";
                     if (rerollResult === "-1") {
                         negativeCount++; // 累计 -1 次数
