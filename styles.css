@@ -30,62 +30,61 @@ h1 {
 
 /* 角色盒子样式 */
 .character-box {
-  box-sizing: border-box;
-  width: 210px;
-  height: 254px;
-  margin: 7px;
-  border: 1px solid white;
-  box-shadow: 12px 17px 51px rgba(0, 0, 0, 0.22);
-  backdrop-filter: blur(6px);
-  border-radius: 17px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.5s;
-  display: flex;
-  flex-direction: column; 
-  align-items: center;
-  justify-content: space-between; 
-  user-select: none;
-  font-weight: bolder;
-  color: black;
-  padding: 15px; 
+    width: 180px; 
+    height: 210px; 
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    background-color: white;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.4s ease;
+    overflow: hidden;
+    position: relative;
+    transform: translateY(20px);
+    opacity: 0;
+    cursor: pointer; /* 添加指针样式表明可点击 */
+}
+
+.character-box.active {
+    transform: translateY(0);
+    opacity: 1;
 }
 
 .character-box:hover {
-  border: 1px solid black;
-  transform: scale(1.05);
-}
-
-.character-box:active {
-  transform: scale(0.95) rotateZ(1.7deg);
+    transform: translateY(-5px) scale(1.03);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border-color: #bbb;
 }
 
 .character-image {
-  width: 140px;
-  height: 140px;
-  object-fit: contain;
-  border-radius: 50%;
-  background-color: #f9f9f9;
-  padding: 5px;
-  transition: transform 0.3s ease;
+    width: 140px;
+    height: 140px;
+    object-fit: contain;
+    margin-bottom: 10px;
+    border-radius: 50%;
+    background-color: #f9f9f9;
+    padding: 5px;
+    transition: transform 0.3s ease;
 }
 
 .character-box:hover .character-image {
-  transform: scale(1.05);
+    transform: scale(1.05);
 }
 
 .character-name {
-  font-size: 18px;
-  font-weight: bold;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 10px; /* 与图片保持间距 */
-  transition: color 0.3s;
-  margin: 10px;
+    font-size: 18px; 
+    font-weight: bold;
+    text-align: center;
+    margin-top: 10px;
+    color: #2c3e50;
+    transition: color 0.3s;
 }
 
 .character-box:hover .character-name {
-  color: #3498db;
+    color: #3498db;
 }
 
 /* 按钮样式 */
@@ -241,26 +240,23 @@ h1 {
 }
 /* 事件样式 */
 .mission-box {
-  box-sizing: border-box;
-  width: 400px !important; /* 调整宽度 */
-  height: 200px !important; /* 调整高度 */
-  border: 1px solid white;
-  box-shadow: 12px 17px 51px rgba(0, 0, 0, 0.22);
-  backdrop-filter: blur(6px);
-  border-radius: 17px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.5s;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  user-select: none;
-  font-weight: bolder;
-  color: black;
-  padding: 15px; /* 增加内边距 */
-  margin: 2px; /* 增加外边距 */
+    width: 150px;  /* 从180px减小到150px */
+    height: 180px;
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    background-color: white;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.4s ease;
+    overflow: hidden;
+    position: relative;
+    transform: translateY(20px);
+    opacity: 0;
+    cursor: pointer; /* 添加指针样式表明可点击 */
 }
-
 
 /* 添加玩家标识样式 */
 .player-tag {
@@ -309,30 +305,26 @@ h1 {
 }
 
 .mission-box:hover {
-  border: 1px solid black;
-  transform: scale(1.05);
-}
-
-.mission-box:active {
-  transform: scale(0.95) rotateZ(1.7deg);
+    transform: translateY(-5px) scale(1.03);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border-color: #bbb;
 }
 
 .mission-title {
-  font-size: 18px;
-  font-weight: bold;
-  text-align: center;
-  color: #2c3e50;
-  margin-bottom: 5px; /* 减少与内容的间距 */
-  transition: color 0.3s;
+    font-size: 22px; /* 放大标题字体 */
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 15px;
+    color: #2c3e50;
+    transition: color 0.3s;
 }
 
 .mission-content {
-  font-size: 16px;
-  text-align: center;
-  color: #7f8c8d;
-  line-height: 1.4;
-  margin-top: 0; /* 移除顶部多余间距 */
-  transition: color 0.3s;
+    font-size: 18px; /* 放大内容字体 */
+    text-align: center;
+    color: #7f8c8d;
+    transition: color 0.3s;
+    line-height: 1.4; /* 增加行高提高可读性 */
 }
 
 .mission-box:hover .mission-title {
@@ -699,35 +691,18 @@ img {
 
 /* 弹窗样式 */
 .event-popup {
-    width: 900px;
-    height: 800px;
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-    border-radius: 49px;
-    backdrop-filter: blur(11px);
-    background-color: rgba(0, 42, 255, 0); /* 背景透明 */
-    box-shadow: rgba(0, 0, 0, 0.3) 2px 8px 8px;
-    border: 4px rgba(255, 255, 255, 0.4) solid;
-    border-bottom: 4px rgba(40, 40, 40, 0.35) solid;
-    border-right: 4px rgba(40, 40, 40, 0.35) solid;
     position: fixed;
-    top: 50%; /* 垂直居中 */
-    /* transform: translate(-50%, -50%) ; 修正偏移，确保居中 */
-    z-index: 200;
-    overflow-y: auto;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     padding: 20px;
-    scrollbar-width: none;
-}
-
-.event-popup::-webkit-scrollbar {
-    display: none; 
-}
-
-.event-popup {
-    animation: popup-fade-in 0.3s ease-out; /* 默认动画 */
+    width: 60%;
+    max-height: 80%;
+    overflow-y: auto;
+    z-index: 200;
 }
 
 .overlay {
@@ -738,23 +713,6 @@ img {
     height: 100%;
     background: rgba(0, 0, 0, 0.5);
     z-index: 199;
-}
-
-/* 事件弹窗的滑入动画样式 */
-.event-popup {
-    -webkit-transform: translateY(20%);
-    -moz-transform: translateY(20%);
-    -ms-transform: translateY(20%);
-    transform: translateY(20%);
-    opacity: 0;
-    -webkit-transition: all 0.3s ease;
-    -moz-transition: all 0.3s ease;
-    transition: all 0.3s ease;
-}
-
-.event-popup.md-show {
-    transform: translate(0%, -50%);
-    opacity: 1;
 }
 
 /* 弹窗关闭按钮样式 */
@@ -770,60 +728,28 @@ img {
 }
 
 /* 弹窗切换按钮样式 */
-/* 弹窗标题样式 */
-.popup-title {
-    font-size: 30px;
-    font-weight: bold;
-    color: #fff;
-    text-align: center;
-    margin-bottom: 15px;
-}
-
-/* 切换按钮样式 */
-.radio-inputs {
-    position: relative;
+.popup-header {
     display: flex;
-    flex-wrap: wrap;
-    border-radius: 4px;
-    background-color: #2c3e50; /* 修改为深蓝色背景 */
-    box-sizing: border-box;
-    padding: 0.25rem;
-    width: 340px;
-    font-size: 14px;
-    height: 46px;
-    transition: clip-path 0.3s ease;
-    margin: 20px auto; /* 居中对齐 */
-}
-
-.radio-inputs .radio {
-    flex: 1 1 auto;
-    text-align: center;
-}
-
-.radio-inputs .radio input {
-    display: none;
-}
-
-.radio-inputs .radio .radio-item {
-    display: flex;
-    cursor: pointer;
-    align-items: center;
     justify-content: center;
-    border-radius: 4px;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.toggle-button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #3498db;
+    color: white;
     border: none;
-    padding: 0.5rem 0;
-    color: #bdc3c7; /* 修改为浅灰色文字 */
-    transition: background-color 0.5s ease, font-weight 0.5s ease;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+    /* margin-bottom: 15px; */
+    text-align: center;
 }
 
-.radio-inputs input:checked ~ .radio-item {
-    background-color: #9eb3c1; /* 修改为蓝色选中背景 */
-    font-weight: 600;
-    color: #fff;
-}
-
-.radio-inputs input:checked ~ .radio {
-    clip-path: polygon(0% 0%, 100% 0%, 90% 100%, 10% 100%);
+.toggle-button:hover {
+    background-color: #2980b9;
 }
 
 /* 表格样式 */
@@ -839,14 +765,9 @@ img {
 }
 
 .event-table th {
-    background-color: #a1b4c0; /* 设置表头背景颜色为蓝色 */
-    color: white; /* 设置表头文字颜色为白色 */
-    font-weight: bold; /* 加粗文字 */
-    text-align: center; /* 居中对齐 */
-    padding: 10px; /* 增加内边距 */
-    border: 1px solid #ddd; /* 添加边框 */
+    background-color: #f4f4f4;
+    font-weight: bold;
 }
-
 #viewEventsButton {
     margin-top: 20px;
     display: block; 
@@ -854,25 +775,6 @@ img {
     margin-right: auto; 
     text-align: center; 
 }
-
-.event-table tr:hover {
-    background-color: rgba(0, 0, 0, 0.1); /* 添加浅灰色背景 */
-    transform: scale(1.01); /* 略微放大 */
-    transition: all 0.1s ease; /* 平滑过渡效果 */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 添加阴影效果 */
-    cursor: pointer; /* 鼠标悬停时显示手型 */
-}
-
-/* 为未启用的行添加暗红色遮罩 */
-.event-table tr.unchecked {
-    background-color: rgba(139, 0, 0, 0.2); /* 暗红色背景 */
-    transition: background-color 0.3s ease; /* 添加平滑过渡效果 */
-}
-
-.event-table tr.unchecked:hover {
-    background-color: rgba(139, 0, 0, 0.3); /* 鼠标悬停时加深遮罩 */
-}
-
 @media (max-width: 768px) {
     .event-popup {
         width: 90%; /* 增加宽度 */
@@ -964,6 +866,24 @@ img {
         font-size: 12px; /* 缩小表格字体 */
     }
 }
+/* 调整勾选框大小 */
+input[type="checkbox"] {
+    width: 25px; /* 设置宽度 */
+    height: 25px; /* 设置高度 */
+    cursor: pointer; /* 鼠标悬停时显示手型 */
+}
+#probabilityPopup {
+    display: none;
+    position: absolute;
+    background: white;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    max-width: 300px; /* 限制最大宽度 */
+    word-wrap: break-word; /* 自动换行 */
+    z-index: 1000;
+}
 
 /* 手机端优化 */
 @media (max-width: 768px) {
@@ -978,69 +898,3 @@ img {
         line-height: 1.5; /* 增加行高 */
     }
 }
-
-/* From Uiverse.io by KhaledMatalkah */
-.custom-checkbox {
-  display: inline-flex;
-  align-items: center;
-  cursor: pointer;
-  user-select: none;
-  font-size: 16px;
-  color: #333;
-  transition: color 0.3s;
-}
-
-.custom-checkbox input[type="checkbox"] {
-  display: none;
-}
-
-.custom-checkbox .checkmark {
-  width: 24px;
-  height: 24px;
-  border: 2px solid #333;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 10px;
-  transition: background-color 0.3s, border-color 0.3s, transform 0.3s;
-  transform-style: preserve-3d;
-}
-
-.custom-checkbox .checkmark::before {
-  content: "\2713";
-  font-size: 16px;
-  color: transparent;
-  transition: color 0.3s, transform 0.3s;
-}
-
-.custom-checkbox input[type="checkbox"]:checked + .checkmark {
-  background-color: #333;
-  border-color: #333;
-  transform: scale(1.1) rotateZ(360deg) rotateY(360deg);
-}
-
-.custom-checkbox input[type="checkbox"]:checked + .checkmark::before {
-  color: #fff;
-}
-
-.custom-checkbox:hover {
-  color: #666;
-}
-
-.custom-checkbox:hover .checkmark {
-  border-color: #666;
-  background-color: #f0f0f0;
-  transform: scale(1.05);
-}
-
-.custom-checkbox input[type="checkbox"]:focus + .checkmark {
-  box-shadow: 0 0 3px 2px rgba(0, 0, 0, 0.2);
-  outline: none;
-}
-
-.custom-checkbox .checkmark,
-.custom-checkbox input[type="checkbox"]:checked + .checkmark {
-  transition: background-color 1.3s, border-color 1.3s, color 1.3s, transform 0.3s;
-}
-
