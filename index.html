@@ -18,8 +18,10 @@
                  style="width: auto; height: 8em;">
         </div>
         <h1>叫地主？</h1>
-        <button class="start-button" id="hostGameButton">主持游戏</button>
-        <button class="start-button" id="joinGameButton">加入游戏</button>
+        <div style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;">      
+            <button class="start-button" id="hostGameButton">主持游戏</button>
+            <button class="start-button" id="joinGameButton">加入游戏</button>
+        </div>      
         <div id="connectionStatus" style="margin-top: 10px; font-size: 14px; color: rgb(255, 187, 0); text-align: center;">
             正在连接多人游戏服务器，可能需要1~30秒...
         </div>
@@ -115,36 +117,54 @@
     <div class="overlay" id="eventOverlay" style="display: none;"></div>
     <div class="event-popup" id="eventPopup" style="display: none;">
         <button class="close-popup-button" id="closeEventPopup">✕</button>
-        <div class="popup-header">
-            <button class="toggle-button" id="toggleEventsButton">显示团体任务</button>
+    <div class="popup-header">
+        <h2 class="popup-title">事件管理</h2>
+        <div class="radio-inputs">
+            <label class="radio">
+                <input type="radio" name="eventType" id="personalEventsRadio" checked>
+                <span class="radio-item">个人事件</span>
+            </label>
+            <label class="radio">
+                <input type="radio" name="eventType" id="teamEventsRadio">
+                <span class="radio-item">团队事件</span>
+            </label>
         </div>
+    </div>
         <div class="popup-content" id="personalEvents" style="display: block;">
             <table class="event-table">
+            <div class="add-event-form">
+                <input type="text" id="newEventTitle" placeholder="添加个人事件:  标题" class="input-field">
+                <textarea id="newEventContent" placeholder="添加个人事件:  内容" class="textarea-field"></textarea>
+                <button id="addEventButton" class="add-event-btn">添加事件</button>
+            </div>
                 <thead>
-                        <h6 style="font-size: 15px; color: gray; text-align: center;">
-                            主持游戏时地主的更改会应用到所有人，至少启用4个否则会影响个人事件的正常抽取。
-                        </h6>
                     <tr>
-                        <th>启用</th>
+                        <th>序号</th>
                         <th>事件标题</th>
                         <th>事件内容</th>
+                        <th>启用</th>
                     </tr>
                 </thead>
                 <tbody id="personalEventsTable">
-                    <!-- 个人任务内容将通过 JavaScript 动态填充 -->
+                    <!-- 通过 JavaScript 动态填充 -->
                 </tbody>
             </table>
+            <!-- 添加事件表单 -->
         </div>
         <div class="popup-content" id="teamEvents" style="display: none;">
             <table class="event-table">
+            <!-- 添加事件表单 -->
+            <div class="add-event-form">
+                <input type="text" id="newTeamEventTitle" placeholder="添加团队事件:  标题" class="input-field">
+                <textarea id="newTeamEventContent" placeholder="添加团队事件:  内容" class="textarea-field"></textarea>
+                <button id="addTeamEventButton" class="add-event-btn">添加事件</button>
+            </div>
                 <thead>
-                        <h6 style="font-size: 15px; color: gray; text-align: center;">
-                            主持游戏时地主的更改会应用到所有人，至少启用3个否则会影响团队事件的正常抽取。
-                        </h6>
                     <tr>
-                        <th>启用</th>
+                        <th>序号</th>
                         <th>事件标题</th>
                         <th>事件内容</th>
+                        <th>启用</th>
                     </tr>
                 </thead>
                 <tbody id="teamEventsTable">
@@ -154,12 +174,20 @@
         </div>
     </div>
 
+    <div id="contextMenu" class="context-menu" style="display: none;">
+    <ul>
+        <li id="editEvent">编辑事件</li>
+        <li id="deleteEvent">删除事件</li>
+    </ul>
+</div>
+
     <!-- 引入角色数据JS文件 -->
     <script src="characters.js"></script>
     <script src="npc.js"></script>
     <script src="mission.js"></script>
     <script src="hardmission.js"></script>
     <script src="multiplayer.js"></script>
+    <script src="events.js"></script>
     <script src="app.js"></script>
     <script src="mission-app.js"></script>
     <script src="hard-mission-app.js"></script>
