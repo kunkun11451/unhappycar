@@ -249,7 +249,13 @@ ws.onmessage = (event) => {
                 missionBoxes.forEach((box) => {
                     box.style.pointerEvents = 'none'; // 禁用点击事件
                 });
-
+                
+                // 隐藏重抽计数器
+                const rerollCounter = document.getElementById('rerollCounter');
+                if (rerollCounter) {
+                    rerollCounter.style.display = 'none';
+                }
+                
                 // 历史记录按钮
                 const historyButton = document.querySelector('.history-button');
                 if (historyButton) {
