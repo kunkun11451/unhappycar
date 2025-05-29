@@ -213,7 +213,7 @@ function showTemporaryMessage(message) {
 
 // WebSocket 消息处理
 ws.onmessage = (event) => {
-    console.log('收到消息:', event.data);
+    // console.log('收到消息:', event.data);
     const data = JSON.parse(event.data);
 
     switch (data.type) {
