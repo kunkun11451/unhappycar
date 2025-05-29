@@ -3,8 +3,12 @@ document.addEventListener('DOMContentLoaded', function() {
     window.missionBoxes = document.querySelectorAll('.mission-box');
     const missionButton = document.getElementById('missionButton');
     const hardModeButton = document.getElementById('hardModeButton');
+    const rerollCountDisplay = document.getElementById('rerollCount');
+    const increaseRerollButton = document.getElementById('increaseReroll');
+    const decreaseRerollButton = document.getElementById('decreaseReroll');
     let rerollChance = 0.05; // 初始概率为 5%
     let negativeCount = 0; // 累计 -1 的次数
+    let rerollCount = 3; // 初始重抽次数
 
     // 初始化时隐藏困难模式按钮
     hardModeButton.style.display = 'none';
@@ -46,8 +50,30 @@ document.addEventListener('DOMContentLoaded', function() {
         return shuffled.slice(0, count);
     }
     
+    // 更新重抽次数显示
+    function updateRerollCount(change) {
+        rerollCount += change;
+        rerollCountDisplay.textContent = rerollCount; // 更新显示
+    }
+
+    // 增加重抽次数
+    increaseRerollButton.addEventListener('click', () => {
+        updateRerollCount(1);
+    });
+
+    // 减少重抽次数
+    decreaseRerollButton.addEventListener('click', () => {
+        updateRerollCount(-1);
+    });
+
     // 刷新单个事件
     function refreshSingleMission(box, index) {
+        // 检查重抽次数是否足够
+        if (rerollCount <= 0) {
+            alert('重抽次数不足！');
+            return;
+        }
+
         const keys = getMissionKeys();
         const randomIndex = Math.floor(Math.random() * keys.length);
         const missionKey = keys[randomIndex];
@@ -69,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // 清空内容
         titleElement.textContent = '';
         contentElement.textContent = '';
-        contentElement.innerHTML = ''
+        contentElement.innerHTML = '';
 
         // 添加淡出效果
         box.style.opacity = 0;
@@ -78,19 +104,22 @@ document.addEventListener('DOMContentLoaded', function() {
             // 设置新内容
             titleElement.textContent = missionKey;
 
-            let modifiedContent = typeof missionData.内容 === 'function' 
-                ? missionData.内容() 
+            let modifiedContent = typeof missionData.内容 === 'function'
+                ? missionData.内容()
                 : missionData.内容;
 
             // 检查是否为“方位车？给我干哪来了？”事件
             if (missionKey === "方位车？给我干哪来了？") {
                 const AAOptions = ["等级", "命座", "攻击", "生命", "防御", "精通"];
                 const BBOptions = ["上", "下", "左", "右", "左上", "左下", "右上", "右下"];
-                
+
                 const randomAA = AAOptions[Math.floor(Math.random() * AAOptions.length)];
                 const randomBB = BBOptions[Math.floor(Math.random() * BBOptions.length)];
-                
-                modifiedContent = modifiedContent.replace("AA", randomAA).replace("BB", randomBB);
+
+                // 确保替换后的内容不为空
+                modifiedContent = modifiedContent
+                    .replace("AA", randomAA || "未知")
+                    .replace("BB", randomBB || "未知");
             }
 
             // 添加随机逻辑
@@ -116,6 +145,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const color = rerollResult === "+1" ? "green" : "red";
                 modifiedContent += `;<span style="color: ${color};">重抽次数${rerollResult}</span>`;
 
+                // 更新重抽次数
+                updateRerollCount(rerollResult === "+1" ? 1 : -1);
+
                 // 重置概率
                 rerollChance = 0.05;
             } else {
@@ -123,6 +155,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 rerollChance += 0.05;
             }
 
+            // 确保内容被正确更新到卡片
             contentElement.textContent = modifiedContent;
             contentElement.innerHTML = modifiedContent;
 
@@ -137,6 +170,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 500); // 在内容显示后再显示玩家标识
             }
         }, 300);
+
+        // 减少重抽次数（点击卡片时至少需要 1 次）
+        updateRerollCount(-1);
     }
     
     // 显示随机事件
@@ -181,15 +217,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     ? missionData.内容() 
                     : missionData.内容;
 
-                if (missionKey === "方位车？给我干哪来了？") {
-                    const AAOptions = ["等级", "命座", "攻击", "生命", "防御", "精通"];
-                    const BBOptions = ["上", "下", "左", "右", "左上", "左下", "右上", "右下"];
-                    
-                    const randomAA = AAOptions[Math.floor(Math.random() * AAOptions.length)];
-                    const randomBB = BBOptions[Math.floor(Math.random() * BBOptions.length)];
-                    
-                    modifiedContent = modifiedContent.replace("AA", randomAA).replace("BB", randomBB);
-                }
+            // 检查是否为“方位车？给我干哪来了？”事件
+            if (missionKey === "方位车？给我干哪来了？") {
+                const AAOptions = ["等级", "命座", "攻击", "生命", "防御", "精通"];
+                const BBOptions = ["上", "下", "左", "右", "左上", "左下", "右上", "右下"];
+
+                const randomAA = AAOptions[Math.floor(Math.random() * AAOptions.length)];
+                const randomBB = BBOptions[Math.floor(Math.random() * BBOptions.length)];
+
+                // 确保替换后的内容不为空
+                modifiedContent = modifiedContent
+                    .replace("AA", randomAA || "未知")
+                    .replace("BB", randomBB || "未知");
+            }
 
             // 添加随机逻辑
             const randomChance = Math.random();
@@ -214,6 +254,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const color = rerollResult === "+1" ? "green" : "red";
                 modifiedContent += `;<span style="color: ${color};">重抽次数${rerollResult}</span>`;
 
+                // 更新重抽次数
+                updateRerollCount(rerollResult === "+1" ? 1 : -1);
+
                 // 重置概率
                 rerollChance = 0.05;
             } else {
@@ -221,6 +264,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 rerollChance += 0.05;
             }
 
+                // 确保内容被正确更新到卡片
                 contentElement.textContent = modifiedContent;
                 contentElement.innerHTML = modifiedContent;
 

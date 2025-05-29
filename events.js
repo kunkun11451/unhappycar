@@ -319,18 +319,15 @@ function editEvent() {
     const isPersonal = currentEventType === 'personal';
     const eventData = isPersonal ? mission[currentEventKey] : hardmission[currentEventKey];
 
-    // 显示编辑表单
-    const newTitle = prompt('编辑事件标题：', currentEventKey);
+    // 显示编辑表单，仅允许编辑内容
     const newContent = prompt('编辑事件内容：', eventData.内容);
 
-    if (newTitle && newContent) {
+    if (newContent) {
         // 更新事件数据
         if (isPersonal) {
-            delete mission[currentEventKey];
-            mission[newTitle] = { 内容: newContent };
+            mission[currentEventKey].内容 = newContent;
         } else {
-            delete hardmission[currentEventKey];
-            hardmission[newTitle] = { 内容: newContent };
+            hardmission[currentEventKey].内容 = newContent;
         }
 
         // 保存到 localStorage

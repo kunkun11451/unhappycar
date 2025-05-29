@@ -84,6 +84,11 @@
             <div class="mission-content"></div>
         </div>
         <div class="button-container">
+            <div id="rerollCounter" style="margin-bottom: 10px; font-size: 16px; color: #666; text-align: center;">
+                <button id="decreaseReroll" style="padding: 5px 10px; font-size: 16px;">-</button>
+                重抽次数：<span id="rerollCount">3</span>
+                <button id="increaseReroll" style="padding: 5px 10px; font-size: 16px;">+</button>
+            </div>
             <button class="start-button" id="missionButton">抽取事件</button>
             <button class="hard-button" id="hardModeButton">不够牢！</button>
             <button class="sync-button" id="syncButton" style="display: none;" >同步数据</button> 
@@ -91,23 +96,27 @@
 
         <div class="rules-container">
             <h2>游戏规则</h2>
+            <hr style="border: none; border-top: 2px solid #3396D9; margin: 8px 0;">
             <div class="rules-content">
                 <ul>
-                   <h3>角色</h3> 
-                    <li>角色按照选择的bp模式进行随机抽取，碰到没有的角色跟地主说，重新抽取角色到有为止。</li>
+                <h3>角色</h3> 
+                    <li>角色按照选择的bp模式进行随机抽</li>
+                    <li>点击对应的角色卡片可以重抽角色，碰到没有的角色跟地主说，重新抽取角色到有为止。</li>
                     <li>通过事件更换的角色不bp</li>
-                   <h3>事件</h3>   
-                    <li>初始获得3次可重抽事件机会</li>                  
+                <h3>事件</h3>                                      
                     <li>每轮抽取完个人事件可点击"不够牢"3选1抽取团体事件</li>
                     <li>全体事件与个人事件冲突情况，全体事件优先级大于个人事件。</li>
-                    <li>抽取每个事件会随机给予或扣除重抽事件的机会。
+                <h3>个人事件重抽</h3>
+                    <li>初始获得3次可重抽事件机会</li>
+                    <li>重抽事件机会可供全队重抽个人事件，共享使用次数。</li>                      
+                    <li>抽取每个事件会随机附加给予或扣除重抽事件的机会。
                         <span id="viewProbabilityText" style="color: blue; text-decoration: underline; cursor: pointer;">查看概率</span>
                         <span id="probabilityPopup" style="display: none; position: absolute; background: white; border: 1px solid #ccc; padding: 10px; border-radius: 5px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
                             每个事件的抽取有 5% 概率触发“重抽次数+1”或“重抽次数-1”（各 50% 概率），未触发时概率每次增加 5%，触发后重置为 5%，若连着出现两次 -1，则下一次出现必定为 +1。四人共享这个概率。
                         </span>
                     </li>
-                    <li>重抽事件机会可供全队重抽个人事件，共享使用次数，可保留，需要自己记录一下。</li>
-                    <h3>测试版，地主归最终解释权所有(shi de)。</h3>
+                    <li>计数器不会统计部分事件本身自带的重抽，遇到了需要手动调整。</li>
+                    <h3>测试版，地主归最终解释权所有。</h3>
                 </ul>
             </div>
         </div>
@@ -132,11 +141,6 @@
     </div>
         <div class="popup-content" id="personalEvents" style="display: block;">
             <table class="event-table">
-            <div class="add-event-form">
-                <input type="text" id="newEventTitle" placeholder="添加个人事件:  标题" class="input-field">
-                <textarea id="newEventContent" placeholder="添加个人事件:  内容" class="textarea-field"></textarea>
-                <button id="addEventButton" class="add-event-btn">添加事件</button>
-            </div>
                 <thead>
                     <tr>
                         <th>序号</th>
@@ -150,15 +154,14 @@
                 </tbody>
             </table>
             <!-- 添加事件表单 -->
+            <div class="add-event-form">
+                <input type="text" id="newEventTitle" placeholder="添加个人事件:  标题" class="input-field">
+                <textarea id="newEventContent" placeholder="添加个人事件:  内容" class="textarea-field"></textarea>
+                <button id="addEventButton" class="add-event-btn">添加事件</button>
+            </div>
         </div>
         <div class="popup-content" id="teamEvents" style="display: none;">
             <table class="event-table">
-            <!-- 添加事件表单 -->
-            <div class="add-event-form">
-                <input type="text" id="newTeamEventTitle" placeholder="添加团队事件:  标题" class="input-field">
-                <textarea id="newTeamEventContent" placeholder="添加团队事件:  内容" class="textarea-field"></textarea>
-                <button id="addTeamEventButton" class="add-event-btn">添加事件</button>
-            </div>
                 <thead>
                     <tr>
                         <th>序号</th>
@@ -171,6 +174,12 @@
                     <!-- 团体任务内容将通过 JavaScript 动态填充 -->
                 </tbody>
             </table>
+            <!-- 添加事件表单 -->
+            <div class="add-event-form">
+                <input type="text" id="newTeamEventTitle" placeholder="添加团队事件:  标题" class="input-field">
+                <textarea id="newTeamEventContent" placeholder="添加团队事件:  内容" class="textarea-field"></textarea>
+                <button id="addTeamEventButton" class="add-event-btn">添加事件</button>
+            </div>
         </div>
     </div>
 

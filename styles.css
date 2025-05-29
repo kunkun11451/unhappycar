@@ -44,7 +44,7 @@ h1 {
   display: flex;
   flex-direction: column; 
   align-items: center;
-  justify-content: space-between; 
+  justify-content: space-evenly; 
   user-select: none;
   font-weight: bolder;
   color: black;
@@ -89,7 +89,7 @@ h1 {
 }
 
 /* 按钮样式 */
-.start-button, #missionButton, #exploreButton, #viewEventsButton {
+.start-button {
     padding: 12px 35px;
     font-size: 18px;
     background-color: #3498db;
@@ -100,7 +100,6 @@ h1 {
     transition: all 0.3s;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     font-weight: bold;
-    letter-spacing: 1px;
     margin: 20px;
 }
 
@@ -202,23 +201,6 @@ h1 {
     cursor: pointer; /* 鼠标悬停时显示手型 */
 }
 
-/* 历史记录弹窗样式 */
-.history-popup {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    padding: 40px 20px;
-    width: 50%;
-    height: 40%;
-    overflow-y: auto;
-    z-index: 200;
-    cursor: default; /* 弹窗内不显示手型 */
-}
-
 /* 移除关闭按钮样式 */
 .close-history-button {
     display: none; /* 隐藏关闭按钮 */
@@ -242,8 +224,8 @@ h1 {
 /* 事件样式 */
 .mission-box {
   box-sizing: border-box;
-  width: 400px !important; /* 调整宽度 */
-  height: 200px !important; /* 调整高度 */
+  width: 200px ; /* 调整宽度 */
+  height: 180px ; /* 调整高度 */
   border: 1px solid white;
   box-shadow: 12px 17px 51px rgba(0, 0, 0, 0.22);
   backdrop-filter: blur(6px);
@@ -343,58 +325,6 @@ h1 {
     color: #34495e;
 }
 
-/* 移动端优化：减小字号，增加弹窗宽度 */
-@media (max-width: 768px) {
-    .history-popup {
-        width: 90%; /* 增加弹窗宽度 */
-        height: 50%; /* 增加弹窗高度 */
-        padding: 15px; /* 减小内边距 */
-    }
-
-    .history-table {
-        font-size: 14px; /* 减小表格字体大小 */
-    }
-
-    .history-table th, .history-table td {
-        padding: 6px; /* 减小单元格内边距 */
-    }
-}
-
-@media (max-width: 480px) {
-    .container {
-        display: grid; /* 使用网格布局 */
-        grid-template-columns: repeat(2, minmax(120px, 1fr)); /* 一行显示两个卡片，最小宽度 120px */
-        gap: 15px; /* 增加卡片之间的间距 */
-        justify-content: center; /* 居中对齐 */
-        padding: 10px; /* 增加容器内边距 */
-    }
-
-    .character-box {
-        width: 100%; /* 卡片宽度自适应 */
-        max-width: 140px; /* 限制卡片最大宽度 */
-        height: auto; /* 高度自适应内容 */
-        aspect-ratio: 3 / 4; /* 设置宽高比例为 3:4 */
-        margin: 0 auto; /* 居中卡片 */
-        border: 2px solid #ddd; /* 确保边框可见 */
-        background-color: #f9f9f9; /* 添加背景颜色以增强可见性 */
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 添加阴影提升视觉效果 */
-    }
-
-    .character-image {
-        width: 90%; /* 图片宽度占卡片的 90% */
-        height: auto; /* 高度自适应 */
-        object-fit: contain; /* 保持图片比例 */
-        margin-bottom: 10px; /* 增加底部间距 */
-    }
-
-    .character-name {
-        font-size: 14px; /* 调整字体大小以适应小屏幕 */
-        margin-top: 5px; /* 减小顶部间距 */
-        color: #333; /* 确保文字颜色清晰 */
-        text-align: center; /* 居中对齐文字 */
-    }
-}
-
 /* 主界面容器居中 */
 #gameScreen {
     display: flex;
@@ -408,8 +338,19 @@ h1 {
 /* 按钮居中 */
 .button-container {
     display: flex;
-    justify-content: center;
-    gap: 15px; /* 按钮之间的间距 */
+    flex-direction: column; /* 垂直排列 */
+    align-items: center; /* 水平居中 */
+    gap: 10px; /* 按钮和计数器之间的间距 */
+}
+
+/* 重抽计数器样式 */
+#rerollCounter {
+    display: flex;
+    align-items: center; /* 垂直居中 */
+    justify-content: center; /* 水平居中 */
+    gap: 10px; /* 按钮和文本之间的间距 */
+    font-size: 16px;
+    color: #666;
 }
 
 .remaining-characters {
@@ -477,7 +418,6 @@ h1 {
 
 /* 游戏规则样式 */
 .rules-container {
-    text-align: left;
     max-width: 800px;
     margin: 40px auto;
     padding: 20px;
@@ -491,16 +431,28 @@ h1 {
         max-width: 100vw;
         padding: 0 8px;
     }
+
 .rules-container h2 {
-    text-align: center; /* 标题居中 */
-    margin-bottom: 10px; /* 添加下方间距 */
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
 }
 
 .rules-content li {
     text-align: left; /* 内容靠左对齐 */
-    margin: 0; /* 去除默认外边距 */
+    margin: 15px; /* 去除默认外边距 */
     padding: 0; /* 去除默认内边距 */
 }
+
+.rules-content h3 {
+    text-align: left; /* 内容靠左对齐 */
+    margin: 5px; /* 去除默认外边距 */
+    padding: 0; /* 去除默认内边距 */
+    margin-top: 5px;
+}
+
     .character-box,
     .mission-box {
         width: 100%;
@@ -550,76 +502,6 @@ h1 {
     }
 }
 
-/* 添加更多响应式断点 */
-@media (min-width: 601px) and (max-width: 900px) {
-    .container {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));  /* 减小最小宽度 */
-        gap: 12px;  /* 减小间距 */
-        width: 100%;
-        max-width: 900px;
-    }
-    .mission-box {
-        width: 100%;
-        height: auto;
-        min-height: 140px;  /* 减小最小高度 */
-    }
-}
-
-/* 大屏幕响应式 */
-@media (min-width: 901px) {
-    .container {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 15px;  
-        width: 100%;
-        max-width: 1200px;
-    }
-    .mission-box {
-        width: 18%;  
-        min-width: 140px; 
-        max-width: 180px; 
-        height: auto;
-        min-height: 150px;  
-    }
-}
-
-/* 小屏幕适配 */
-@media (max-width: 480px) {
-    .container {
-        display: grid; /* 使用网格布局 */
-        grid-template-columns: repeat(2, minmax(120px, 1fr)); /* 一行显示两个卡片，最小宽度 120px */
-        gap: 15px; /* 增加卡片之间的间距 */
-        justify-content: center; /* 居中对齐 */
-        padding: 10px; /* 增加容器内边距 */
-    }
-
-    .character-box {
-        width: 100%; /* 卡片宽度自适应 */
-        max-width: 140px; /* 限制卡片最大宽度 */
-        height: auto; /* 高度自适应内容 */
-        aspect-ratio: 3 / 4; /* 设置宽高比例为 3:4 */
-        margin: 0 auto; /* 居中卡片 */
-        border: 2px solid #ddd; /* 确保边框可见 */
-        background-color: #f9f9f9; /* 添加背景颜色以增强可见性 */
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 添加阴影提升视觉效果 */
-    }
-
-    .character-image {
-        width: 90%; /* 图片宽度占卡片的 90% */
-        height: auto; /* 高度自适应 */
-        object-fit: contain; /* 保持图片比例 */
-        margin-bottom: 10px; /* 增加底部间距 */
-    }
-
-    .character-name {
-        font-size: 14px; /* 调整字体大小以适应小屏幕 */
-        margin-top: 5px; /* 减小顶部间距 */
-        color: #333; /* 确保文字颜色清晰 */
-        text-align: center; /* 居中对齐文字 */
-    }
-}
 
 /* 页脚样式 */
 .footer {
@@ -847,13 +729,13 @@ img {
     border: 1px solid #ddd; /* 添加边框 */
 }
 
-#viewEventsButton {
+/* #viewEventsButton {
     margin-top: 20px;
     display: block; 
     margin-left: auto; 
     margin-right: auto; 
     text-align: center; 
-}
+} */
 
 .event-table tr:hover {
     background-color: rgba(0, 0, 0, 0.1); /* 添加浅灰色背景 */
@@ -871,112 +753,6 @@ img {
 
 .event-table tr.unchecked:hover {
     background-color: rgba(139, 0, 0, 0.3); /* 鼠标悬停时加深遮罩 */
-}
-
-@media (max-width: 768px) {
-    .event-popup {
-        width: 90%; /* 增加宽度 */
-        padding: 15px; /* 减小内边距 */
-    }
-
-    .event-table {
-        font-size: 14px; /* 缩小表格字体 */
-    }
-
-    .event-table th, .event-table td {
-        padding: 6px; /* 减小单元格内边距 */
-    }
-}
-@media (max-width: 412px) {
-    body {
-        padding: 10px;
-    }
-
-    h1 {
-        font-size: 20px; /* 缩小标题字体 */
-        margin-bottom: 20px;
-    }
-
-    #initialScreen img {
-        height: 6em; /* 调整图片大小 */
-    }
-
-    .container {
-        display: grid; /* 使用网格布局 */
-        grid-template-columns: repeat(2, 1fr); /* 每行显示两个卡片 */
-        gap: 10px; /* 减小卡片间距 */
-    }
-
-    .character-box {
-        width: 100%; /* 卡片宽度自适应 */
-        max-width: 150px; /* 限制卡片最大宽度 */
-        height: auto; /* 高度自适应 */
-        aspect-ratio: 3 / 4; /* 设置宽高比例 */
-        margin: 0 auto; /* 居中卡片 */
-    }
-
-    .character-image {
-        width: 80%; /* 缩小图片宽度 */
-        height: auto; /* 高度自适应 */
-    }
-
-    .character-name {
-        font-size: 14px; /* 缩小字体 */
-    }
-
-    .start-button, #missionButton, #viewEventsButton, #exploreButton {
-        font-size: 16px; /* 缩小按钮字体 */
-        padding: 10px 25px; /* 减小按钮内边距 */
-    }
-
-    .rules-container {
-        padding: 15px; /* 减小规则容器的内边距 */
-        font-size: 14px; /* 缩小规则字体 */
-    }
-
-    .mission-box {
-        width: 100%; /* 卡片宽度自适应 */
-        max-width: 140px; /* 限制卡片最大宽度 */
-        height: 100px; /* 高度自适应 */
-        padding: 10px; /* 减小内边距 */
-
-    }
-
-    .mission-title {
-        font-size: 16px; /* 缩小标题字体 */
-    }
-
-    .mission-content {
-        font-size: 12px; /* 缩小内容字体 */
-    }
-
-    .button-container {
-        flex-direction: column; /* 按钮垂直排列 */
-        gap: 10px; /* 减小按钮间距 */
-    }
-
-    .event-popup {
-        width: 95%; /* 弹窗宽度适应屏幕 */
-        padding: 10px; /* 减小内边距 */
-    }
-
-    .event-table {
-        font-size: 12px; /* 缩小表格字体 */
-    }
-}
-
-/* 手机端优化 */
-@media (max-width: 768px) {
-    #probabilityPopup {
-        max-width: 90%; /* 弹窗宽度占屏幕的 90% */
-        left: 5%; /* 居中弹窗 */
-        right: 5%;
-        top: auto; /* 自动调整顶部位置 */
-        bottom: auto; /* 自动调整底部位置 */
-        padding: 15px; /* 增加内边距 */
-        font-size: 14px; /* 缩小字体 */
-        line-height: 1.5; /* 增加行高 */
-    }
 }
 
 /* From Uiverse.io by KhaledMatalkah */
@@ -1071,50 +847,91 @@ img {
     background: #f0f0f0;
 }
 
+/* 弹窗展开和收起动画 */
+@keyframes slideDown {
+    from {
+        transform: translateY(-20%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateY(-20%);
+        opacity: 0;
+    }
+}
+
+
+
+/* 弹窗显示时的动画 */
+.edit-event-form.show {
+    animation: slideDown 0.3s ease-out forwards;
+}
+
+/* 弹窗隐藏时的动画 */
+.edit-event-form.hide {
+    animation: slideUp 0.3s ease-in forwards;
+}
+
 /* 选中列的样式 */
 .highlighted-row {
     background-color: rgba(255, 223, 0, 0.3) !important; /* 暗黄色遮罩 */
     transition: background-color 0.3s ease; /* 平滑过渡效果 */
 }
 
-/* 右键菜单样式 */
-.context-menu {
-    position: absolute;
-    background: #fff;
+/* 编辑事件弹窗样式 */
+.edit-event-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+    background-color: #f9f9f9;
     border: 1px solid #ccc;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    z-index: 1000;
     border-radius: 5px;
-    padding: 5px 0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 10px;
+}
+
+.edit-event-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.edit-event-form input,
+.edit-event-form textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
     font-size: 14px;
-    display: none; /* 默认隐藏 */
 }
 
-.context-menu ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-.context-menu li {
+.edit-event-form button {
     padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
     cursor: pointer;
 }
 
-.context-menu li:hover {
-    background: #f0f0f0;
+.edit-event-form button#saveEventButton {
+    background-color: #3498db;
+    color: white;
 }
 
-@media (max-width: 412px) {
-    .event-popup {
-        width: 90%; /* 宽度占屏幕的 90% */
-        height: 70%; /* 高度占屏幕的 80% */
-        padding: 15px; /* 减小内边距 */
-    }
-    .context-menu {
-        font-size: 12px; /* 缩小字体 */
-        padding: 5px; /* 减小内边距 */
-    }
+.edit-event-form button#deleteEventButton {
+    background-color: #e74c3c;
+    color: white;
 }
 
 /* 输入框和文本域样式 */
@@ -1180,4 +997,46 @@ img {
     display: flex;
     flex-direction: column;
     gap: 10px; /* 输入框和按钮之间的间距 */
+}
+
+@media screen and (max-width: 518px) {
+    .container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr); /* 一行显示两个 */
+        gap: 12px; /* 卡片之间的间距 */
+    }
+
+    .character-image {
+        width: 110px; /* 缩小宽度 */
+        height: 110px; /* 缩小高度 */
+    }
+
+    .character-box,
+    .mission-box {
+        width: 100%; /* 让卡片宽度自适应 */
+        max-width: 100%; /* 防止超出容器 */
+        margin: 0; /* 去除外边距 */
+        height: 220px;
+    }
+
+    .history-popup {
+        width: 120%; /* 宽度为屏幕的 90% */
+        height: 45%; /* 高度为屏幕的 70% */
+        font-size: 13px; /* 减小字体大小 */
+        padding: 20px; /* 调整内边距 */
+    }
+
+    .history-table {
+        width: 90%; /* 表格宽度为 80% */
+        margin: 0 auto; /* 居中对齐 */
+    }
+  
+    .event-popup {
+        width: 85%; /* 宽度为屏幕的 90% */
+        height: 75%; /* 高度为屏幕的 70% */
+        font-size: 12px; /* 减小字体大小 */
+        padding: 20px; /* 调整内边距 */
+    }
+
+
 }
