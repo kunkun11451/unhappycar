@@ -1473,12 +1473,12 @@ position: absolute;
     }
 
     .character-management-image {
-        width: 60px; /* 缩小图片宽度 */
-        height: 60px; /* 缩小图片高度 */
+        width: 78px; /* 缩小图片宽度 */
+        height: 78px; /* 缩小图片高度 */
     }
 
     .character-management-name {
-        font-size: 12px; /* 缩小字体大小 */
+        font-size: 16px; /* 缩小字体大小 */
     }
 
     .character-card-container {
