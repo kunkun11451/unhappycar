@@ -1415,6 +1415,7 @@ position: absolute;
     /* 菜单 */
     .settings-popup {
         width: 95%; /* 弹窗宽度占满屏幕的 95% */
+        height: 85%;
         font-size: 14px; /* 缩小字体 */
         padding: 10px; /* 调整内边距 */
     }
@@ -1464,6 +1465,32 @@ position: absolute;
 
     .input.show {
         display: flex; /* 显示左侧设置选项 */
+    }
+
+    .character-management-card {
+        width: 25%; /* 缩小卡片宽度 */
+
+    }
+
+    .character-management-image {
+        width: 60px; /* 缩小图片宽度 */
+        height: 60px; /* 缩小图片高度 */
+    }
+
+    .character-management-name {
+        font-size: 12px; /* 缩小字体大小 */
+    }
+
+    .character-card-container {
+        gap: none;
+    }
+
+    .settings-content {
+        padding: 0px;
+    }
+
+    .character-management-container {
+        padding: 0px;
     }
 }
 
