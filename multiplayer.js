@@ -239,7 +239,13 @@ ws.onmessage = (event) => {
 
                 // 隐藏 BP 按钮
                 bpButton.style.display = 'none'; // 隐藏 BP 按钮
-
+                
+                // 隐藏设置按钮
+                const settingsButton = document.getElementById('settingsButton');
+                if (settingsButton) {
+                    settingsButton.style.display = 'none'; // 隐藏设置按钮
+                }
+                
                 // 禁用角色卡片单击事件
                 characterBoxes.forEach((box) => {
                     box.style.pointerEvents = 'none'; // 禁用点击事件
