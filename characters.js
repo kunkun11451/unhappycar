@@ -1,5 +1,5 @@
 // 角色数据
-const characterData = {
+window.characterData = {
     "爱可菲": {
         "头像": "https://act-upload.mihoyo.com/ys-obc/2025/04/30/73740358/cc1d0ae2568f3791339a21ff22b43ed9_5999783633252671899.png",
         "元素类型": "冰",

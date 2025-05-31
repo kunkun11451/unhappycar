@@ -21,32 +21,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const bpButton = document.getElementById('bpButton');
     const resetButton = document.getElementById('resetButton');
     const roundCounterDisplay = document.getElementById('roundCounter');
-    const historyButton = document.createElement('button');
-    historyButton.textContent = '历史记录';
-    historyButton.className = 'history-button';
-    historyButton.style.display = 'none';
-    document.body.appendChild(historyButton);
-
-    const overlay = document.createElement('div'); // 黑色半透明背景
-    overlay.className = 'overlay';
-    overlay.style.display = 'none';
-    document.body.appendChild(overlay);
-
-    const historyPopup = document.createElement('div');
-    historyPopup.className = 'history-popup';
-    historyPopup.style.display = 'none';
-    document.body.appendChild(historyPopup);
-
-    const historyContent = document.createElement('div'); // 历史记录内容
-    historyContent.className = 'history-content';
-    historyPopup.appendChild(historyContent);
-
-    const closeHistoryButton = document.createElement('button'); // 添加关闭按钮
-    closeHistoryButton.textContent = '关闭';
-    closeHistoryButton.className = 'close-history-button';
-    historyPopup.appendChild(closeHistoryButton);
-
-    const historyData = []; // 保存历史记录
 
     // ================= 初始化 =================
     function initializeBPButton() {
@@ -55,8 +29,6 @@ document.addEventListener('DOMContentLoaded', function () {
         bpButton.className = `bp-button ${gameState.bpMode}`;
     }
     initializeBPButton();
-
-
 
     // ================= BP模式切换 =================
     const BP_MODES = ['global', 'personal', 'off'];
@@ -70,13 +42,20 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // ================= 重置游戏 =================
-    resetButton.addEventListener('click', () => {
+    function resetGame() {
         // 清空游戏状态
         gameState.usedCharacters.global.clear();
         gameState.usedCharacters.players.forEach(s => s.clear());
         gameState.unavailableCharacters.forEach(s => s.clear());
         gameState.isGameStarted = false;
         gameState.roundCounter = 0;
+
+        // 恢复重抽次数
+        window.rerollCount = 3; // 将重抽次数恢复到 3
+        const rerollCountDisplay = document.getElementById('rerollCount');
+        if (rerollCountDisplay) {
+            rerollCountDisplay.textContent = window.rerollCount; // 更新显示
+        }
 
         // 停止计时器
         if (gameState.timerInterval) {
@@ -85,56 +64,58 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // 重置按钮状态
-        resetButton.style.display = 'none';
         bpButton.disabled = false;
         startButton.disabled = false;
-        roundCounterDisplay.textContent = '当前轮数：0';
+        roundCounterDisplay.textContent = "当前轮数：0";
 
         // 清空角色卡片
         characterBoxes.forEach(box => {
-            const img = box.querySelector('.character-image');
-            const name = box.querySelector('.character-name');
-            img.style.display = 'none';
-            img.src = '';
-            name.textContent = '';
+            const img = box.querySelector(".character-image");
+            const name = box.querySelector(".character-name");
+            img.style.display = "none";
+            img.src = "";
+            name.textContent = "";
             box.style.opacity = 1; // 确保卡片可见
-            box.style.pointerEvents = 'auto'; // 恢复点击事件
+            box.style.pointerEvents = "auto"; // 恢复点击事件
         });
 
         // 清空事件卡片
-        const missionBoxes = document.querySelectorAll('.mission-box');
+        const missionBoxes = document.querySelectorAll(".mission-box");
         missionBoxes.forEach(box => {
-            const title = box.querySelector('.mission-title');
-            const content = box.querySelector('.mission-content');
-            title.textContent = ''; // 清空标题
-            content.textContent = ''; // 清空内容
+            const title = box.querySelector(".mission-title");
+            const content = box.querySelector(".mission-content");
+            title.textContent = ""; // 清空标题
+            content.textContent = ""; // 清空内容
             box.style.opacity = 1; // 确保卡片可见
-            box.style.pointerEvents = 'auto'; // 恢复点击事件
+            box.style.pointerEvents = "auto"; // 恢复点击事件
         });
 
         // 隐藏困难事件卡片
-        const hardMissionBox = document.getElementById('selectedHardMission');
+        const hardMissionBox = document.getElementById("selectedHardMission");
         if (hardMissionBox) {
-            hardMissionBox.style.display = 'none'; // 隐藏卡片
-            const title = hardMissionBox.querySelector('.mission-title');
-            const content = hardMissionBox.querySelector('.mission-content');
-            if (title) title.textContent = ''; // 清空标题
-            if (content) content.textContent = ''; // 清空内容
+            hardMissionBox.style.display = "none"; // 隐藏卡片
+            const title = hardMissionBox.querySelector(".mission-title");
+            const content = hardMissionBox.querySelector(".mission-content");
+            if (title) title.textContent = ""; // 清空标题
+            if (content) content.textContent = ""; // 清空内容
         }
 
         // 清空历史记录并关闭弹窗
-        historyData.length = 0;
-        historyPopup.style.display = 'none';
-        overlay.style.display = 'none';
+        window.historyModule.clearHistory(); // 调用清空历史记录的方法
 
         // 清空时间显示
-        const timeCounter = document.getElementById('timeCounter');
-        timeCounter.textContent = '总用时：00:00 | 本轮用时：00:00';
+        const timeCounter = document.getElementById("timeCounter");
+        timeCounter.textContent = "总用时：00:00 | 本轮用时：00:00";
 
-        alert('游戏已重置！');
-    });
+        alert("游戏已重置！");
+    }
+    window.resetGame = resetGame;
 
     // ================= 抽取角色 =================
+    startButton.addEventListener('click', () => {
+        displayRandomCharacters(); // 抽取角色逻辑
+    });
+
     function displayRandomCharacters() {
         const now = Date.now(); // 当前时间戳
 
@@ -143,8 +124,9 @@ document.addEventListener('DOMContentLoaded', function () {
             gameState.startTime = now; // 记录游戏开始时间
             gameState.lastRoundTime = now; // 初始化上一轮时间
             bpButton.disabled = true;
-            resetButton.style.display = 'inline-block';
-            historyButton.style.display = 'inline-block'; // 显示历史记录按钮
+
+            // 初始化历史记录功能（移除对 historyButton 的依赖）
+            window.historyModule.initHistoryUI();
 
             // 启动定时器，实时更新总用时和本轮用时
             gameState.timerInterval = setInterval(() => {
@@ -161,12 +143,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const roundTime = Math.floor((now - gameState.lastRoundTime) / 1000); // 秒
             gameState.lastRoundTime = now; // 更新上一轮时间
             gameState.totalTime += roundTime; // 累加总用时
-
-            // 将本轮用时记录到历史数据
-            const lastRound = historyData[historyData.length - 1];
-            if (lastRound) {
-                lastRound.roundTime = roundTime; // 保存本轮用时
-            }
+            window.historyModule.updateLastRoundTime(roundTime); // 更新历史记录
         }
 
         // 增加轮数
@@ -211,7 +188,8 @@ document.addEventListener('DOMContentLoaded', function () {
             roundHistory.push({ new: newChar });
         });
 
-        historyData.push(roundHistory);
+        // 将本轮抽取的角色存到历史
+        window.historyModule.pushRoundHistory(roundHistory);
 
         // 禁用按钮 0.5 秒
         startButton.disabled = true;
@@ -273,118 +251,15 @@ document.addEventListener('DOMContentLoaded', function () {
         setTimeout(() => box.style.pointerEvents = 'auto', 3500);
 
         // 更新历史记录
-        const lastRound = historyData[historyData.length - 1];
-        if (lastRound) {
-            if (!lastRound[playerIndex].replaced) {
-                // 初始化 replaced 数组并记录第一次替换
-                lastRound[playerIndex].replaced = [oldChar, newChar];
-            } else {
-                // 检查最后一个角色是否与新角色相同，避免重复记录
-                const lastCharacter = lastRound[playerIndex].replaced[lastRound[playerIndex].replaced.length - 1];
-                if (lastCharacter !== newChar) {
-                    lastRound[playerIndex].replaced.push(newChar);
-                }
-            }
+        if (oldChar) {
+            window.historyModule.updateSingleCharacter(playerIndex, oldChar, newChar);
         }
     }
 
-    // ================= 显示历史记录 =================
-    historyButton.addEventListener('click', () => {
-        historyContent.innerHTML = ''; // 清空内容
-
-        // 创建表格
-        const table = document.createElement('table');
-        table.style.margin = '0 auto'; // 居中表格
-        table.style.borderCollapse = 'collapse';
-        table.style.width = '80%';
-
-        // 添加表头
-        const headerRow = document.createElement('tr');
-        headerRow.style.backgroundColor = '#f2f2f2';
-        headerRow.style.textAlign = 'center';
-
-        const roundHeader = document.createElement('th');
-        roundHeader.textContent = '轮次';
-        roundHeader.style.border = '1px solid #ddd';
-        roundHeader.style.padding = '8px';
-        headerRow.appendChild(roundHeader);
-
-        const timeHeader = document.createElement('th');
-        timeHeader.textContent = '用时';
-        timeHeader.style.border = '1px solid #ddd';
-        timeHeader.style.padding = '8px';
-        headerRow.appendChild(timeHeader);
-
-        // 添加玩家列头
-        ['1P', '2P', '3P', '4P'].forEach(player => {
-            const playerHeader = document.createElement('th');
-            playerHeader.textContent = player;
-            playerHeader.style.border = '1px solid #ddd';
-            playerHeader.style.padding = '8px';
-            headerRow.appendChild(playerHeader);
-        });
-
-        table.appendChild(headerRow);
-
-        // 添加每轮记录
-        historyData.forEach((round, index) => {
-            const row = document.createElement('tr');
-            row.style.textAlign = 'center';
-
-            const roundCell = document.createElement('td');
-            roundCell.textContent = ` ${index + 1} `;
-            roundCell.style.border = '1px solid #ddd';
-            roundCell.style.padding = '8px';
-            row.appendChild(roundCell);
-
-            const timeCell = document.createElement('td');
-            timeCell.textContent = formatTime(round.roundTime || 0); // 使用格式化时间
-            timeCell.style.border = '1px solid #ddd';
-            timeCell.style.padding = '8px';
-            row.appendChild(timeCell);
-
-            // 添加每位玩家的角色
-            round.forEach(player => {
-                const playerCell = document.createElement('td');
-                playerCell.style.border = '1px solid #ddd';
-                playerCell.style.padding = '8px';
-
-                // 如果有替换记录，显示完整的替换链条
-                if (player.replaced && player.replaced.length > 1) {
-                    playerCell.textContent = player.replaced.join('→');
-                } else {
-                    playerCell.textContent = player.new; // 否则显示当前角色
-                }
-
-                row.appendChild(playerCell);
-            });
-
-            table.appendChild(row);
-        });
-
-        historyContent.appendChild(table);
-
-        // 显示弹窗和黑色半透明背景
-        overlay.style.display = 'block';
-        historyPopup.style.display = 'block';
-        document.body.style.overflow = 'hidden';
-    });
-
-    closeHistoryButton.addEventListener('click', () => {
-        historyPopup.style.display = 'none'; // 关闭弹窗
-        overlay.style.display = 'none'; // 隐藏黑色半透明背景
-        document.body.style.overflow = ''; // 恢复页面滚动
-    });
-
-    overlay.addEventListener('click', () => {
-        historyPopup.style.display = 'none'; // 隐藏弹窗
-        overlay.style.display = 'none'; // 隐藏背景遮罩
-        document.body.style.overflow = 'auto'; // 恢复页面滚动
-    });
-
     // ================= 工具函数 =================
     function getCharacterKeys() {
-        return Object.keys(characterData);
+        // 排除禁用的角色
+        return Object.keys(characterData).filter(character => !disabledCharacters.has(character));
     }
 
     function disableGameControls() {
@@ -430,11 +305,6 @@ document.addEventListener('DOMContentLoaded', function () {
     characterBoxes.forEach(box => {
         box.addEventListener('click', () => refreshSingleCharacter(box));
     });
-
-    startButton.addEventListener('click', () => {
-        displayRandomCharacters(); // 抽取角色逻辑
-    });
-
     // 初始化个人任务和团体任务表格
     populateTable(personalEventsTable, mission, 'personalEventsTable');
     populateTable(teamEventsTable, hardmission, 'teamEventsTable');

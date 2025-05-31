@@ -381,6 +381,7 @@ function bindTableRowContextMenu(table, type) {
     let touchTimer = null; // 用于记录长按的计时器
 
     table.addEventListener('contextmenu', (event) => {
+        event.preventDefault(); // 阻止浏览器默认右键菜单
         const row = event.target.closest('tr');
         if (!row) return;
 

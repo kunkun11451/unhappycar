@@ -94,6 +94,94 @@
             <button class="sync-button" id="syncButton" style="display: none;" >同步数据</button> 
         </div>
 
+        <div style="text-align: center; margin-bottom: 20px;">
+            <button class="start-button" id="settingsButton">设置</button>
+        </div>
+
+        <!-- 设置弹窗 -->
+        <div class="overlay" id="settingsOverlay" style="display: none;"></div>
+        <div class="settings-popup" id="settingsPopup" style="display: none;">
+            <button class="close-popup-button" id="closeSettingsPopup">✕</button>
+            <div class="settings-container">
+                <div class="settings-title">设置</div>
+                <!-- 左侧设置选项 -->
+                <div class="input">
+                    <button class="value" id="characterManagement">
+                        <svg data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                            <path d="m1.5 13v1a.5.5 0 0 0 .3379.4731 18.9718 18.9718 0 0 0 6.1621 1.0269 18.9629 18.9629 0 0 0 6.1621-1.0269.5.5 0 0 0 .3379-.4731v-1a6.5083 6.5083 0 0 0 -4.461-6.1676 3.5 3.5 0 1 0 -4.078 0 6.5083 6.5083 0 0 0 -4.461 6.1676zm4-9a2.5 2.5 0 1 1 2.5 2.5 2.5026 2.5026 0 0 1 -2.5-2.5zm2.5 3.5a5.5066 5.5066 0 0 1 5.5 5.5v.6392a18.08 18.08 0 0 1 -11 0v-.6392a5.5066 5.5066 0 0 1 5.5-5.5z" fill="#FFFFFF"></path>
+                        </svg>
+                        角色管理
+                    </button>
+                    <button class="value" id="characterHistory">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="10" fill="none" stroke="#FFFFFF" stroke-width="2"/>
+                            <line x1="12" y1="12" x2="12" y2="7" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+                            <line x1="12" y1="12" x2="16" y2="12" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        角色历史记录
+                    </button>
+                    <button class="value" id="eventManagement">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="5" y="3" width="14" height="18" rx="1" ry="1" fill="none" stroke="#FFFFFF" stroke-width="2"/>
+                            <rect x="8" y="1" width="2" height="2" fill="#FFFFFF"/>
+                            <rect x="14" y="1" width="2" height="2" fill="#FFFFFF"/>
+                            <line x1="5" y1="8" x2="19" y2="8" stroke="#FFFFFF" stroke-width="1"/>
+                            <line x1="5" y1="13" x2="19" y2="13" stroke="#FFFFFF" stroke-width="1"/>
+                            <rect x="9" y="10" width="2" height="2" fill="#FFFFFF"/>
+                            <rect x="14" y="10" width="2" height="2" fill="#FFFFFF"/>
+                            <rect x="9" y="15" width="2" height="2" fill="#FFFFFF"/>
+                            <rect x="12" y="15" width="2" height="2" fill="#FFFFFF"/>
+                            <rect x="15" y="15" width="2" height="2" fill="#FFFFFF"/>
+                            </svg>
+                        事件管理
+                    </button>
+                    <button class="value" id="eventHistory">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="10" fill="none" stroke="#FFFFFF" stroke-width="2"/>
+                            <line x1="12" y1="12" x2="12" y2="7" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+                            <line x1="12" y1="12" x2="16" y2="12" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        事件历史记录
+                    </button>
+                        <button class="value" id="moreSettings">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="3" fill="none" stroke="#FFFFFF" stroke-width="2"/>
+                            <path d="M12,2 L12,0 M12,24 L12,22 M2,12 L0,12 M24,12 L22,12 M4.24,4.24 L2.83,2.83 M19.76,19.76 L21.17,21.17 M4.24,19.76 L2.83,21.17 M19.76,4.24 L21.17,2.83" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+                            <rect x="7" y="8" width="2" height="8" fill="#FFFFFF"/>
+                            <rect x="5" y="10" width="6" height="2" fill="#FFFFFF"/>
+                            <circle cx="17" cy="10" r="1.5" fill="#FFFFFF"/>
+                            <circle cx="19" cy="12" r="1.5" fill="#FFFFFF"/>
+                            <circle cx="17" cy="14" r="1.5" fill="#FFFFFF"/>
+                            <circle cx="15" cy="12" r="1.5" fill="#FFFFFF"/>
+                            </svg>
+                        更多玩法设置
+                    </button>
+                    <button class="value" id="gameSettings">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" id="Line">
+                        <path
+                            d="m17.074 30h-2.148c-1.038 0-1.914-.811-1.994-1.846l-.125-1.635c-.687-.208-1.351-.484-1.985-.824l-1.246 1.067c-.788.677-1.98.631-2.715-.104l-1.52-1.52c-.734-.734-.78-1.927-.104-2.715l1.067-1.246c-.34-.635-.616-1.299-.824-1.985l-1.634-.125c-1.035-.079-1.846-.955-1.846-1.993v-2.148c0-1.038.811-1.914 1.846-1.994l1.635-.125c.208-.687.484-1.351.824-1.985l-1.068-1.247c-.676-.788-.631-1.98.104-2.715l1.52-1.52c.734-.734 1.927-.779 2.715-.104l1.246 1.067c.635-.34 1.299-.616 1.985-.824l.125-1.634c.08-1.034.956-1.845 1.994-1.845h2.148c1.038 0 1.914.811 1.994 1.846l.125 1.635c.687.208 1.351.484 1.985.824l1.246-1.067c.787-.676 1.98-.631 2.715.104l1.52 1.52c.734.734.78 1.927.104 2.715l-1.067 1.246c.34.635.616 1.299.824 1.985l1.634.125c1.035.079 1.846.955 1.846 1.993v2.148c0 1.038-.811 1.914-1.846 1.994l-1.635.125c-.208.687-.484 1.351-.824 1.985l1.067 1.246c.677.788.631 1.98-.104 2.715l-1.52 1.52c-.734.734-1.928.78-2.715.104l-1.246-1.067c-.635.34-1.299.616-1.985.824l-.125 1.634c-.079 1.035-.955 1.846-1.993 1.846zm-5.835-6.373c.848.53 1.768.912 2.734 1.135.426.099.739.462.772.898l.18 2.341 2.149-.001.18-2.34c.033-.437.347-.8.772-.898.967-.223 1.887-.604 2.734-1.135.371-.232.849-.197 1.181.089l1.784 1.529 1.52-1.52-1.529-1.784c-.285-.332-.321-.811-.089-1.181.53-.848.912-1.768 1.135-2.734.099-.426.462-.739.898-.772l2.341-.18h-.001v-2.148l-2.34-.18c-.437-.033-.8-.347-.898-.772-.223-.967-.604-1.887-1.135-2.734-.232-.37-.196-.849.089-1.181l1.529-1.784-1.52-1.52-1.784 1.529c-.332.286-.81.321-1.181.089-.848-.53-1.768-.912-2.734-1.135-.426-.099-.739-.462-.772-.898l-.18-2.341-2.148.001-.18 2.34c-.033.437-.347.8-.772.898-.967.223-1.887.604-2.734 1.135-.37.232-.849.197-1.181-.089l-1.785-1.529-1.52 1.52 1.529 1.784c.285.332.321.811.089 1.181-.53.848-.912 1.768-1.135 2.734-.099.426-.462.739-.898.772l-2.341.18.002 2.148 2.34.18c.437.033.8.347.898.772.223.967.604 1.887 1.135 2.734.232.37.196.849-.089 1.181l-1.529 1.784 1.52 1.52 1.784-1.529c.332-.287.813-.32 1.18-.089z"
+                            id="XMLID_1646_"
+                            fill="#FFFFFF"
+                        ></path>
+                        <path
+                            d="m16 23c-3.859 0-7-3.141-7-7s3.141-7 7-7 7 3.141 7 7-3.141 7-7 7zm0-12c-2.757 0-5 2.243-5 5s2.243 5 5 5 5-2.243 5-5-2.243-5-5-5z"
+                            fill="#FFFFFF"
+                            id="XMLID_1645_"
+                        ></path>
+                        </svg>
+                        游戏设置
+                    </button>
+                </div>
+                <!-- 右侧设置内容 -->
+                <div class="settings-content">
+                    <h2 id="settingsTitle">设置选项</h2>
+                    <div id="settingsDetails">
+                        <!-- 动态填充内容 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="rules-container">
             <h2>游戏规则</h2>
             <hr style="border: none; border-top: 2px solid #3396D9; margin: 8px 0;">
@@ -128,6 +216,7 @@
         <button class="close-popup-button" id="closeEventPopup">✕</button>
     <div class="popup-header">
         <h2 class="popup-title">事件管理</h2>
+        <div style="margin-top: 10px; font-size: 14px; color: rgb(197, 197, 197); text-align: center;">最下方可添加事件，右键/长按可删除或编辑事件，无法右键请关闭Simple Allow Copy等插件</div>
         <div class="radio-inputs">
             <label class="radio">
                 <input type="radio" name="eventType" id="personalEventsRadio" checked>
@@ -192,14 +281,17 @@
 
     <!-- 引入角色数据JS文件 -->
     <script src="characters.js"></script>
+    <script src="characterManagement.js"></script>
     <script src="npc.js"></script>
     <script src="mission.js"></script>
     <script src="hardmission.js"></script>
     <script src="multiplayer.js"></script>
     <script src="events.js"></script>
+    <script src="history.js"></script>    
     <script src="app.js"></script>
     <script src="mission-app.js"></script>
     <script src="hard-mission-app.js"></script>
+    <script src="settings.js"></script>
 
     <!-- 页脚署名 -->
     <footer class="footer">
