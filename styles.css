@@ -559,7 +559,7 @@ img {
     justify-content: center;
     align-items: center;
     gap: 20px;
-    border-radius: 49px;
+    border-radius: 20px;
     backdrop-filter: blur(11px);
     background-color: rgba(0, 42, 255, 0); /* 背景透明 */
     box-shadow: rgba(0, 0, 0, 0.3) 2px 8px 8px;
