@@ -2,7 +2,6 @@
 const settingsButton = document.getElementById("settingsButton");
 const settingsOverlay = document.getElementById("settingsOverlay");
 const settingsPopup = document.getElementById("settingsPopup");
-const closeSettingsPopup = document.getElementById("closeSettingsPopup");
 const settingsTitle = document.getElementById("settingsTitle");
 const settingsDetails = document.getElementById("settingsDetails");
 
@@ -21,30 +20,48 @@ settingsButton.addEventListener("click", () => {
     document.body.classList.add("no-scroll");
 
     // 默认加载角色管理界面
+    activeFilter = null; 
     const container = window.loadCharacterManagement(); // 获取角色管理内容
     settingsDetails.innerHTML = ""; // 清空内容
     settingsDetails.appendChild(container); // 插入角色管理内容
     settingsTitle.textContent = "角色管理"; // 设置标题
     document.querySelectorAll(".value").forEach(btn => btn.classList.remove("active"));
     characterManagement.classList.add("active"); 
+
+    settingsDetails.scrollTop = 0;
 });
 
 // 关闭设置弹窗
+const closeSettingsPopup = document.createElement("button");
+closeSettingsPopup.className = "close-popup-button"; // 添加样式类名    
 closeSettingsPopup.addEventListener("click", () => {
     settingsOverlay.style.display = "none";
     settingsPopup.style.display = "none";
     document.body.classList.remove("no-scroll");
 });
 
+// 将关闭按钮添加到设置弹窗
+settingsPopup.appendChild(closeSettingsPopup);
+
+// 点击空白处关闭设置弹窗
+settingsOverlay.addEventListener("click", (event) => {
+    if (event.target === settingsOverlay) {
+        settingsOverlay.style.display = "none";
+        settingsPopup.style.display = "none";
+        document.body.classList.remove("no-scroll");
+    }
+});
+
 // 设置选项点击事件
 characterManagement.addEventListener("click", () => {
+    activeFilter = null; 
     const container = window.loadCharacterManagement(); // 获取角色管理内容
     selectOption(characterManagement, "角色管理", container);
 });
 
 characterHistory.addEventListener("click", () => {
-    const historyContent = window.historyModule.getHistoryContent(); // 获取历史记录内容
-    selectOption(characterHistory, "角色历史记录", historyContent);
+    const historyContent = window.historyModule.getHistoryContent(); 
+    selectOption(characterHistory, "角色历史记录", historyContent); 
 });
 
 eventManagement.addEventListener("click", () => {

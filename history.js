@@ -35,28 +35,13 @@ window.historyModule = (() => {
 
         // 创建表格
         const table = document.createElement('table');
+        table.className = 'history-table'; // 添加表格样式类
         table.style.margin = '0 auto';
         table.style.borderCollapse = 'collapse';
         table.style.width = '80%';
 
-        // 添加表头
-        const headerRow = document.createElement('tr');
-        // headerRow.style.backgroundColor = '#3396D9'; // 更改表头颜色
-        headerRow.style.color = '#FFFFFF'; // 表头文字颜色
-        headerRow.style.textAlign = 'center';
-
-        ['轮次', '用时', '1P', '2P', '3P', '4P'].forEach(text => {
-            const th = document.createElement('th');
-            th.textContent = text;
-            th.style.border = '1px solid #ddd';
-            th.style.padding = '8px';
-            headerRow.appendChild(th);
-        });
-        table.appendChild(headerRow);
-
         // 填充记录
         if (historyData.length === 0) {
-            // 如果没有历史记录，显示提示信息
             const emptyRow = document.createElement('tr');
             const emptyCell = document.createElement('td');
             emptyCell.colSpan = 6; // 跨越所有列
@@ -99,6 +84,11 @@ window.historyModule = (() => {
                 });
 
                 table.appendChild(row);
+
+                // 添加动画类名，延迟依次排开
+                setTimeout(() => {
+                    row.classList.add('animate');
+                }, index * 30); // 每一行延迟 
             });
         }
 
@@ -107,10 +97,20 @@ window.historyModule = (() => {
         overlay.style.display = 'block';
         historyPopup.style.display = 'block';
         document.body.style.overflow = 'hidden';
+
+        // 显示表格动画
+        setTimeout(() => {
+            table.style.opacity = "1"; // 显示表格
+            table.style.transform = "translateY(0)"; // 恢复位置
+        }, 50); // 延迟 
     }
 
     // 隐藏历史记录
     function hideHistoryPopup() {
+        // 移除所有动画类，避免下次打开时失效
+        document.querySelectorAll('.history-table tr.animate')
+            .forEach(row => row.classList.remove('animate'));
+
         historyPopup.style.display = 'none';
         overlay.style.display = 'none';
         document.body.style.overflow = '';
@@ -157,27 +157,12 @@ window.historyModule = (() => {
     // 添加一个方法返回历史记录的 HTML 内容
     function getHistoryContent() {
         const container = document.createElement("div");
-
-        // 创建表格
         const table = document.createElement("table");
+        table.className = "history-table";
         table.style.margin = "0 auto";
         table.style.borderCollapse = "collapse";
         table.style.width = "100%";
 
-        // 添加表头
-        const headerRow = document.createElement("tr");
-        // headerRow.style.backgroundColor = '#3396D9'; // 更改表头颜色
-        headerRow.style.color = '#FFFFFF'; // 表头文字颜色
-        headerRow.style.textAlign = "center";
-
-        ["轮次", "用时", "1P", "2P", "3P", "4P"].forEach(text => {
-            const th = document.createElement("th");
-            th.textContent = text;
-            th.style.border = "1px solid #ddd";
-            th.style.padding = "8px";
-            headerRow.appendChild(th);
-        });
-        table.appendChild(headerRow);
 
         // 填充记录
         if (historyData.length === 0) {
@@ -187,7 +172,7 @@ window.historyModule = (() => {
             emptyCell.textContent = "开始游戏以记录数据";
             emptyCell.style.textAlign = "center";
             emptyCell.style.padding = "16px";
-            emptyCell.style.color = "#FFFFFF";
+            emptyCell.style.color = "#666";
             emptyRow.appendChild(emptyCell);
             table.appendChild(emptyRow);
         } else {
@@ -220,11 +205,16 @@ window.historyModule = (() => {
                 });
 
                 table.appendChild(row);
+
+                // 延迟添加动画类名
+                setTimeout(() => {
+                    row.classList.add("animate");
+                }, index * 30); // 每一行延迟
             });
         }
 
         container.appendChild(table);
-        return container.innerHTML;
+        return container; // 返回 DOM
     }
 
     // 清空历史记录

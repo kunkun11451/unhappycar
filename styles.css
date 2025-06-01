@@ -163,29 +163,6 @@ h1 {
     transform: translateY(-2px);
 }
 
-/* 历史记录按钮样式 */
-.history-button {
-    padding: 12px 35px;
-    font-size: 18px;
-    background-color: #3498db;
-    color: white;
-    border: none;
-    border-radius: 30px;
-    cursor: pointer;
-    transition: all 0.3s;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    font-weight: bold;
-    letter-spacing: 1px;
-    position: fixed;
-    top: 20px;
-    left: 20px;
-}
-.history-button:hover {
-    background-color: #2980b9;
-    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
-    transform: translateY(-2px);
-}
-
 /* 黑色半透明背景 */
 .overlay {
     position: fixed;
@@ -198,26 +175,6 @@ h1 {
     cursor: pointer; /* 鼠标悬停时显示手型 */
 }
 
-/* 移除关闭按钮样式 */
-.close-history-button {
-    display: none; /* 隐藏关闭按钮 */
-}
-
-/* 调整弹窗内容的内边距，避免与关闭按钮重叠 */
-.history-popup {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    padding: 40px 20px 20px; /* 增加顶部内边距，避免与关闭按钮重叠 */
-    width: 50%;
-    height: 40%;
-    overflow-y: auto;
-    z-index: 200;
-}
 /* 事件样式 */
 .mission-box {
   box-sizing: border-box;
@@ -529,18 +486,35 @@ h1 {
     text-align: center;
     max-height: 300px; /* 限制表格高度 */
     overflow-y: auto; /* 启用垂直滚动条 */
-    display: block; /* 使滚动条生效 */
+    display: table;
+    opacity: 0; /* 初始状态不可见 */
+    transform: translateY(20px); /* 初始位置稍微向下 */
+    animation: slideIn 0.3s ease forwards; /* 应用动画 */
 }
 
-.history-table th, .history-table td {
-    border: 1px solid #ddd;
-    padding: 8px;
+/* 定义表格行依次浮现的动画 */
+@keyframes slideIn {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
-.history-table th {
-    background-color: #f4f4f4;
-    font-weight: bold;
+/* 定义表头和表格行的初始状态 */
+.history-table tr{
+    opacity: 0; /* 初始状态不可见 */
+    transform: translateY(20px); /* 初始位置稍微向下 */
 }
+
+/* 动画触发状态 */
+.history-table tr.animate {
+    animation: slideIn 0.3s ease forwards;
+}
+
 body {
     user-select: none; /* 禁用文字选择 */
 }
@@ -1010,7 +984,46 @@ img {
     border: 4px rgba(255, 255, 255, 0.4) solid;
     border-bottom: 4px rgba(40, 40, 40, 0.35) solid;
     border-right: 4px rgba(40, 40, 40, 0.35) solid;
-    overflow: hidden;
+}
+
+/* 关闭按钮样式 */
+.close-popup-button {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    font-size: 20px;
+    color: #fff;
+    background-color: #e74c3c; /* 红色背景 */
+    border: none;
+    border-radius: 50%; /* 圆形按钮 */
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+    z-index: 999;
+}
+
+/* 使用伪元素显示叉号 */
+.close-popup-button::before {
+    content: "×"; /* 显示叉号 */
+    font-size: 25px; /* 设置叉号大小 */
+    color: #fff; /* 设置叉号颜色 */
+    transition: transform 0.3s ease; /* 添加动画 */
+}
+
+/* 悬停时的效果 */
+.close-popup-button:hover {
+    background-color: #c0392b; /* 深红色背景 */
+    transform: scale(1.1); /* 放大 */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* 增强阴影 */
+}
+
+.close-popup-button:hover::before {
+    transform: rotate(360deg); /* 悬停时旋转 */
 }
 
 /* 左上角大标题 */
@@ -1104,10 +1117,14 @@ position: absolute;
     padding: 20px;
     color: white;
     overflow-y: auto;
+    scrollbar-width: none; /* 隐藏滚动条 (适用于 Firefox) */   
+}
+.settings-content::-webkit-scrollbar {
+    display: none; /* 隐藏滚动条 (适用于 WebKit 浏览器，如 Chrome 和 Safari) */
 }
 
 .settings-content h2 {
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     font-size: 20px;
     color: #fff;
 }
@@ -1129,19 +1146,25 @@ position: absolute;
 .character-management-container {
     display: flex;
     flex-wrap: wrap;
-    padding: 16px;
     justify-content: center;
+    align-items: center;  
+}
 
+.enabled-count-container,
+.filter-container {
+    flex: 1 1 100%;  
+    text-align: center;
+    margin: 10px 0;  
 }
 
 .character-management-card {
-    border: 2px solid #aaa; /* 与外部卡片区分的边框样式 */
+    border: 2px solid #aaa; /* 默认边框颜色 */
     border-radius: 12px; /* 圆角边框 */
     padding: 6px;
     text-align: center;
     width: 120px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 默认阴影 */
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease; /* 添加平滑过渡效果 */
     cursor: pointer;
     position: relative;
     z-index: 1;
@@ -1199,15 +1222,75 @@ position: absolute;
 }
 
 .character-management-card.disabled {
-    background-color: rgba(139, 0, 0, 0.2); /* 暗红色背景 */
-    border-color: rgba(139, 0, 0, 0.5); /* 边框颜色加深 */
-    transition: background-color 0.3s ease, border-color 0.3s ease; /* 平滑过渡效果 */
+    background-color: rgba(255, 0, 0, 0.3); 
+    border-color: rgba(255, 0, 0, 0.7); 
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5); 
 }
 
 .character-management-card.disabled:hover {
-    background-color: rgba(139, 0, 0, 0.3); /* 鼠标悬停时加深背景 */
+    background-color: rgba(255, 0, 0, 0.33); 
+    border-color: rgba(255, 0, 0, 0.9); 
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.8); 
 }
 
+.character-management-card.disabled .character-management-image {
+    filter: grayscale(25%); 
+    opacity: 0.6; 
+    transition: filter 0.3s ease, opacity 0.3s ease; 
+}
+
+.character-management-card.disabled:hover .character-management-image {
+    filter: grayscale(0); 
+    opacity: 0.8; 
+}
+
+.character-management-card.disabled .character-management-name {
+    color: #a9a9a9;
+    opacity: 0.8; /* 降低透明度 */
+    transition: color 0.3s ease, opacity 0.3s ease; 
+}
+
+.character-management-card.disabled:hover .character-management-name {
+    color: #c0c0c0; 
+    opacity: 1; /* 鼠标悬停时提高透明度 */
+}
+
+/* 定义卡片依次排开的动画 */
+@keyframes slideIn {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* 为角色卡片添加动画效果 */
+.character-card-container .character-management-card {
+    opacity: 0; /* 初始状态不可见 */
+    transform: translateY(20px); /* 初始位置稍微向下 */
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.character-card-container .character-management-card.animate {
+    animation: slideIn 0.3s ease forwards;
+}
+
+.enabled-count-container {
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    color: #ffffff;
+}
+
+.filter-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
 /* 筛选按钮容器 */
 .filter-container {
     display: flex;
@@ -1228,11 +1311,14 @@ position: absolute;
 
 .filter-button:hover {
     transform: scale(1.2);
-    filter: none;
+    border-radius: 8px; 
+    width: 40px; 
+    height: 40px; 
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2); 
 }
 
 .filter-button.active {
-    border-radius: 50%;
+    border-radius: 8px;
     filter: none;
 }
 
@@ -1296,8 +1382,8 @@ position: absolute;
 /* 汉堡菜单样式 */
 .burger {
   position: absolute; /* 绝对定位 */
-  top: 20px; /* 距离弹窗顶部 */
-  left: 20px; /* 距离弹窗左侧 */
+  top: 8px; /* 距离弹窗顶部 */
+  left: 8px; /* 距离弹窗左侧 */
   width: 40px;
   height: 30px;
   background: transparent;
