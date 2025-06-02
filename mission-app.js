@@ -169,6 +169,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     playerTag.classList.add('show');
                 }, 500); // 在内容显示后再显示玩家标识
             }
+
+            // 更新事件历史记录
+            if (window.eventHistoryModule && window.eventHistoryModule.eventHistoryData.length > 0) {
+                const lastRound = window.eventHistoryModule.eventHistoryData[
+                    window.eventHistoryModule.eventHistoryData.length - 1
+                ];
+                const currentEvent = lastRound[index];
+                if (currentEvent) {
+                    // 将当前事件添加到切换链条
+                    currentEvent.replaced.push(missionKey);
+                }
+            }
         }, 300);
 
         // 减少重抽次数（点击卡片时至少需要 1 次）
@@ -179,6 +191,11 @@ document.addEventListener('DOMContentLoaded', function() {
     function displayRandomMissions() {
         const randomMissions = getRandomMissions(4);
         
+    // 记录本轮事件
+    const roundEvents = randomMissions.map(key => ({ event: key }));
+    // 将事件存入事件历史
+    window.eventHistoryModule.pushEventRoundHistory(roundEvents);
+
         // 隐藏所有玩家标识
         document.querySelectorAll('.player-tag').forEach(tag => {
             tag.classList.remove('show');
@@ -264,7 +281,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 rerollChance += 0.05;
             }
 
-                // 确保内容被正确更新到卡片
+            // 确保内容被正确更新到卡片
                 contentElement.textContent = modifiedContent;
                 contentElement.innerHTML = modifiedContent;
 
