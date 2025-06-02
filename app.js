@@ -103,11 +103,12 @@ document.addEventListener('DOMContentLoaded', function () {
         // 清空历史记录并关闭弹窗
         window.historyModule.clearHistory(); // 调用清空历史记录的方法
 
+        // 清空事件历史记录
+        window.eventHistoryModule.clearEventHistory(); // 调用清空事件历史记录的方法
+
         // 清空时间显示
         const timeCounter = document.getElementById("timeCounter");
         timeCounter.textContent = "总用时：00:00 | 本轮用时：00:00";
-
-        alert("游戏已重置！");
     }
     window.resetGame = resetGame;
 

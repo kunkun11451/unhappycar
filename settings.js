@@ -69,7 +69,8 @@ eventManagement.addEventListener("click", () => {
 });
 
 eventHistory.addEventListener("click", () => {
-    selectOption(eventHistory, "事件历史记录", "<p> coming soon</p>");
+    const eventHistoryContent = window.eventHistoryModule.getEventHistoryContent();
+    selectOption(eventHistory, "事件历史记录", eventHistoryContent);
 });
 
 moreSettings.addEventListener("click", () => {
