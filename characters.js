@@ -593,7 +593,6 @@ window.characterData = {
     },
     "旅行者": {
         "头像": "https://uploadstatic.mihoyo.com/ys-obc/2022/05/24/4328207/cb560b65a2880d2fa03d1d25faa50805_8382943334706958229.png",
-        "元素类型": "火",
         "武器类型": "单手剑",
         "星级": "五星"
     },
