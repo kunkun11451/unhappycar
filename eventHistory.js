@@ -98,12 +98,10 @@ window.eventHistoryModule = (() => {
                 row.appendChild(playerCell);
             });
 
-            table.appendChild(row);
-
-            // 添加动画类名，延迟依次排开
+            table.appendChild(row);            // 添加动画类名，延迟依次排开
             setTimeout(() => {
                 row.classList.add("animate");
-            }, index * 30); // 每一行延迟
+            }, index * 15); // 每一行延迟15ms（加快速度）
         });
     }
 

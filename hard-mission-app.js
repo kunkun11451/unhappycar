@@ -1,3 +1,38 @@
+1// 全局函数：获取启用的困难模式事件键
+function getHardMissionKeys() {
+    const enabledKeys = [];
+    const checkboxes = document.querySelectorAll('#teamEventsTable input[type="checkbox"]');
+    
+    // 如果表格不存在（用户还没打开事件管理），从localStorage读取勾选状态
+    if (checkboxes.length === 0) {
+        // 确保hardmission对象存在
+        const hardmissionObj = window.hardmission || hardmission;
+        if (!hardmissionObj) {
+            console.error('hardmission对象未找到');
+            return [];
+        }
+        
+        // 从localStorage读取保存的勾选状态
+        const savedState = JSON.parse(localStorage.getItem('teamEventsTable-checkedState')) || {};
+        const allKeys = Object.keys(hardmissionObj);
+        
+        // 如果没有保存的状态，默认所有事件都启用
+        if (Object.keys(savedState).length === 0) {
+            return allKeys;
+        }
+        
+        // 根据保存的状态过滤启用的事件
+        return allKeys.filter(key => savedState[key] !== false);
+    }
+    
+    checkboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+            enabledKeys.push(checkbox.dataset.key);
+        }
+    });
+    return enabledKeys;
+}
+
 // 困难模式事件处理
 document.addEventListener('DOMContentLoaded', function() {
     // 获取DOM元素
@@ -51,20 +86,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="modal-instruction" style="display: none;">请做出你的选择</div>
             <button id="cancelButton" class="cancel-button">还是算了吧</button>
         </div>
-    `;
-    document.body.appendChild(modal);
-    
-    // 从hardmission.js中获取困难模式事件
-    function getHardMissionKeys() {
-        const enabledKeys = [];
-        const checkboxes = document.querySelectorAll('#teamEventsTable input[type="checkbox"]');
-        checkboxes.forEach(checkbox => {
-            if (checkbox.checked) {
-                enabledKeys.push(checkbox.dataset.key);
-            }
-        });
-        return enabledKeys;
-    }
+    `;    document.body.appendChild(modal);
     
     // 获取随机困难模式事件
     function getRandomHardMissions(count) {
@@ -86,11 +108,22 @@ document.addEventListener('DOMContentLoaded', function() {
         // 获取三个随机困难模式事件
         const randomHardMissions = getRandomHardMissions(3);
         const modalCards = modal.querySelectorAll('.hard-card');
+          // 确保能够访问hardmission对象
+        const hardmissionObj = window.hardmission || hardmission;
+        if (!hardmissionObj) {
+            console.error('hardmission对象未找到');
+            return;
+        }
         
         // 为每张卡牌设置事件内容
         modalCards.forEach((card, index) => {
             const missionKey = randomHardMissions[index];
-            const missionData = hardmission[missionKey];
+            const missionData = hardmissionObj[missionKey];
+            
+            if (!missionData) {
+                console.error('无法找到困难事件数据:', missionKey);
+                return;
+            }
             
             const titleElement = card.querySelector('.hard-mission-title');
             const contentElement = card.querySelector('.hard-mission-content');
@@ -150,11 +183,16 @@ document.addEventListener('DOMContentLoaded', function() {
         // 为每张卡牌添加点击事件
         newModalCards.forEach(card => {
             // 为卡牌添加点击事件
-            card.addEventListener('click', function() {
-                // 如果所有卡牌都已显示正面，则可以选择
+            card.addEventListener('click', function() {                // 如果所有卡牌都已显示正面，则可以选择
                 if (modal.querySelector('.modal-instruction').style.display === 'block') {
                     const missionKey = this.dataset.missionKey;
-                    const missionData = hardmission[missionKey];
+                    const hardmissionObj = window.hardmission || hardmission;
+                    const missionData = hardmissionObj[missionKey];
+                    
+                    if (!missionData) {
+                        console.error('无法找到困难事件数据:', missionKey);
+                        return;
+                    }
                     
                     // 显示选中的困难模式事件
                     selectedHardMission.style.display = 'block';
@@ -233,11 +271,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // 修改卡牌点击事件处理函数
-    function handleCardClick(card, newModalCards) {
-        // 如果所有卡牌都已显示正面，则可以选择
+    function handleCardClick(card, newModalCards) {        // 如果所有卡牌都已显示正面，则可以选择
         if (modal.querySelector('.modal-instruction').style.display === 'block') {
             const missionKey = card.dataset.missionKey;
-            const missionData = hardmission[missionKey];
+            const hardmissionObj = window.hardmission || hardmission;
+            const missionData = hardmissionObj[missionKey];
+            
+            if (!missionData) {
+                console.error('无法找到困难事件数据:', missionKey);
+                return;
+            }
             
             // 显示选中的困难模式事件
             selectedHardMission.style.display = 'block';

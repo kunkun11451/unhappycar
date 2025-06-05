@@ -65,7 +65,22 @@ characterHistory.addEventListener("click", () => {
 });
 
 eventManagement.addEventListener("click", () => {
-    selectOption(eventManagement, "事件管理", "<p>暂时只能在外面的事件管理进行修改</p>");
+    // 确保在加载内容前隐藏添加事件表单
+    if (typeof window.eventManagement.setAddEventFormsVisibility === 'function') {
+        window.eventManagement.setAddEventFormsVisibility(false, 0);
+    }
+    
+    // 使用 events.js 模块中的事件管理功能
+    const eventManagementContent = window.eventManagement.loadEventManagement();
+    selectOption(eventManagement, "事件管理", eventManagementContent);
+    
+    // 延时确保DOM已经更新，然后触发表格动画
+    setTimeout(() => {
+        const personalTableBody = document.getElementById('personalEventsTable');
+        if (personalTableBody && typeof window.eventManagement.triggerTableAnimation === 'function') {
+            window.eventManagement.triggerTableAnimation(personalTableBody);
+        }
+    }, 100);
 });
 
 eventHistory.addEventListener("click", () => {
@@ -222,3 +237,12 @@ adjustMenuForScreenSize();
 
 // 监听窗口大小变化，动态调整菜单状态
 window.addEventListener("resize", adjustMenuForScreenSize);
+
+// 页面加载时自动初始化事件数据
+document.addEventListener('DOMContentLoaded', function() {
+    // 确保事件管理模块已加载
+    if (window.eventManagement) {
+        // 初始化事件数据
+        window.eventManagement.initializeEventData();
+    }
+});

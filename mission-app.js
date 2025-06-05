@@ -1,3 +1,38 @@
+// 从mission.js获取事件数据
+function getMissionKeys() {
+    const enabledKeys = [];
+    const checkboxes = document.querySelectorAll('#personalEventsTable input[type="checkbox"]');
+    
+    // 如果表格不存在（用户还没打开事件管理），从localStorage读取勾选状态
+    if (checkboxes.length === 0) {
+        // 确保mission对象存在
+        const missionObj = window.mission || mission;
+        if (!missionObj) {
+            console.error('mission对象未找到');
+            return [];
+        }
+        
+        // 从localStorage读取保存的勾选状态
+        const savedState = JSON.parse(localStorage.getItem('personalEventsTable-checkedState')) || {};
+        const allKeys = Object.keys(missionObj);
+        
+        // 如果没有保存的状态，默认所有事件都启用
+        if (Object.keys(savedState).length === 0) {
+            return allKeys;
+        }
+        
+        // 根据保存的状态过滤启用的事件
+        return allKeys.filter(key => savedState[key] !== false);
+    }
+    
+    checkboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+            enabledKeys.push(checkbox.dataset.key);
+        }
+    });
+    return enabledKeys;
+}
+
 // 随机事件展示功能
 document.addEventListener('DOMContentLoaded', function() {
     window.missionBoxes = document.querySelectorAll('.mission-box');
@@ -31,18 +66,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 100 * index);
     });
     
-    // 从mission.js获取事件数据
-    function getMissionKeys() {
-        const enabledKeys = [];
-        const checkboxes = document.querySelectorAll('#personalEventsTable input[type="checkbox"]');
-        checkboxes.forEach(checkbox => {
-            if (checkbox.checked) {
-                enabledKeys.push(checkbox.dataset.key);
-            }
-        });
-        return enabledKeys;
-    }
-    
     // 随机选择事件
     function getRandomMissions(count) {
         const keys = getMissionKeys(); // 获取已启用的任务
@@ -72,12 +95,23 @@ document.addEventListener('DOMContentLoaded', function() {
         if (rerollCount <= 0) {
             alert('重抽次数不足！');
             return;
+        }        const keys = getMissionKeys();
+        if (keys.length === 0) {
+            alert('没有可用的事件！请检查事件管理设置。');
+            return;
         }
-
-        const keys = getMissionKeys();
+        
         const randomIndex = Math.floor(Math.random() * keys.length);
         const missionKey = keys[randomIndex];
-        const missionData = mission[missionKey];
+        
+        // 确保能够访问mission对象
+        const missionObj = window.mission || mission;
+        if (!missionObj || !missionObj[missionKey]) {
+            console.error('无法找到事件数据:', missionKey);
+            alert('事件数据加载失败，请刷新页面重试。');
+            return;
+        }
+        const missionData = missionObj[missionKey];
 
         // 重置动画
         box.classList.remove('active');
@@ -186,10 +220,21 @@ document.addEventListener('DOMContentLoaded', function() {
         // 减少重抽次数（点击卡片时至少需要 1 次）
         updateRerollCount(-1);
     }
-    
-    // 显示随机事件
+      // 显示随机事件
     function displayRandomMissions() {
         const randomMissions = getRandomMissions(4);
+        
+        if (randomMissions.length === 0) {
+            alert('没有可用的事件！请检查事件管理设置。');
+            return;
+        }
+        
+        // 确保能够访问mission对象
+        const missionObj = window.mission || mission;
+        if (!missionObj) {
+            alert('事件数据未加载，请刷新页面重试。');
+            return;
+        }
         
     // 记录本轮事件
     const roundEvents = randomMissions.map(key => ({ event: key }));
@@ -209,7 +254,12 @@ document.addEventListener('DOMContentLoaded', function() {
         
         missionBoxes.forEach((box, index) => {
             const missionKey = randomMissions[index];
-            const missionData = mission[missionKey];
+            const missionData = missionObj[missionKey];
+            
+            if (!missionData) {
+                console.error('无法找到事件数据:', missionKey);
+                return;
+            }
 
             // 重置动画
             box.classList.remove('active');

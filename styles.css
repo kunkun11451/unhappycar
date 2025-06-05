@@ -524,92 +524,6 @@ img {
     pointer-events: none; /* 禁用鼠标事件 */
 }
 
-/* 同步数据按钮样式 */
-.sync-button {
-    padding: 12px 35px;
-    font-size: 18px;
-    background-color: #8e44ad; /* 紫色背景 */
-    color: white;
-    border: none;
-    border-radius: 30px;
-    cursor: pointer;
-    transition: all 0.3s;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    font-weight: bold;
-    letter-spacing: 1px;
-}
-
-.sync-button:hover {
-    background-color: #732d91; /* 深紫色背景 */
-    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
-    transform: translateY(-2px);
-}
-
-/* 查看事件按钮样式 */
-#viewEventsButton {
-    margin-top: 20px;
-}
-
-/* 弹窗样式 */
-.event-popup {
-    width: 900px;
-    height: 800px;
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-    border-radius: 20px;
-    backdrop-filter: blur(11px);
-    background-color: rgba(0, 42, 255, 0); /* 背景透明 */
-    box-shadow: rgba(0, 0, 0, 0.3) 2px 8px 8px;
-    border: 4px rgba(255, 255, 255, 0.4) solid;
-    border-bottom: 4px rgba(40, 40, 40, 0.35) solid;
-    border-right: 4px rgba(40, 40, 40, 0.35) solid;
-    position: fixed;
-    top: 50%; /* 垂直居中 */
-    /* transform: translate(-50%, -50%) ; 修正偏移，确保居中 */
-    z-index: 200;
-    overflow-y: auto;
-    padding: 20px;
-    scrollbar-width: none;
-}
-
-.event-popup::-webkit-scrollbar {
-    display: none; 
-}
-
-.event-popup {
-    animation: popup-fade-in 0.3s ease-out; /* 默认动画 */
-}
-
-.overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 199;
-}
-
-/* 事件弹窗的滑入动画样式 */
-.event-popup {
-    -webkit-transform: translateY(20%);
-    -moz-transform: translateY(20%);
-    -ms-transform: translateY(20%);
-    transform: translateY(20%);
-    opacity: 0;
-    -webkit-transition: all 0.3s ease;
-    -moz-transition: all 0.3s ease;
-    transition: all 0.3s ease;
-}
-
-.event-popup.md-show {
-    transform: translate(0%, -50%);
-    opacity: 1;
-}
-
 /* 弹窗关闭按钮样式 */
 .close-popup-button {
     position: absolute;
@@ -632,25 +546,52 @@ img {
     margin-bottom: 15px;
 }
 
-/* 切换按钮样式 */
+/* 切换按钮样式 - 改进版本 */
 .radio-inputs {
     position: relative;
     display: flex;
-    flex-wrap: wrap;
-    border-radius: 4px;
-    background-color: #2c3e50; /* 修改为深蓝色背景 */
+    border-radius: 12px;
+    background: linear-gradient(145deg, #34495e, #2c3e50);
+    box-shadow: 
+        0 8px 20px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
     box-sizing: border-box;
-    padding: 0.25rem;
-    width: 340px;
+    padding: 4px;
+    width: 400px;
     font-size: 14px;
-    height: 46px;
-    transition: clip-path 0.3s ease;
-    margin: 20px auto; /* 居中对齐 */
+    height: 48px;
+    margin: 20px auto;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.radio-inputs::before {
+    content: '';
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: calc(50% - 4px);
+    height: calc(100% - 8px);
+    background: linear-gradient(145deg, #3498db, #2980b9);
+    border-radius: 8px;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 
+        0 2px 8px rgba(52, 152, 219, 0.3),
+        0 1px 3px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+}
+
+.radio-inputs:has(#teamEventsRadioInSettings:checked)::before {
+    transform: translateX(100%);
 }
 
 .radio-inputs .radio {
-    flex: 1 1 auto;
-    text-align: center;
+    flex: 1;
+    position: relative;
+    z-index: 2;
+    display: flex; /* 使用 flex 布局 */
+    align-items: center; /* 垂直居中 */
+    justify-content: center; /* 水平居中 */
 }
 
 .radio-inputs .radio input {
@@ -659,24 +600,52 @@ img {
 
 .radio-inputs .radio .radio-item {
     display: flex;
-    cursor: pointer;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
-    border: none;
-    padding: 0.5rem 0;
-    color: #bdc3c7; /* 修改为浅灰色文字 */
-    transition: background-color 0.5s ease, font-weight 0.5s ease;
+    text-align: center; /* 确保文字居中 */
+    height: 100%;
+    padding: 0 16px;
+    color: #bdc3c7;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 8px;
+    position: relative;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.radio-inputs .radio .radio-item:hover {
+    color: #ecf0f1;
+    transform: translateY(-1px);
 }
 
 .radio-inputs input:checked ~ .radio-item {
-    background-color: #9eb3c1; /* 修改为蓝色选中背景 */
+    color: #ffffff;
     font-weight: 600;
-    color: #fff;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-.radio-inputs input:checked ~ .radio {
-    clip-path: polygon(0% 0%, 100% 0%, 90% 100%, 10% 100%);
+.radio-inputs input:checked ~ .radio-item::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 6px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 0.8;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.2);
+    }
 }
 
 /* 表格样式 */
@@ -684,11 +653,28 @@ img {
     width: 100%;
     border-collapse: collapse;
     text-align: left;
+    table-layout: fixed; /* 固定表格布局，防止列宽动态变化 */
+    position: relative; /* 确保表格位置固定 */
+}
+
+/* 表头固定样式 */
+.event-table thead {
+    position: relative;
+    z-index: 10;
+}
+
+.event-table thead tr {
+    opacity: 1 !important; /* 表头始终可见 */
+    transform: none !important; /* 表头不参与动画 */
 }
 
 .event-table th, .event-table td {
     border: 1px solid #ddd;
     padding: 8px;
+    overflow: hidden; /* 隐藏溢出的内容 */
+    text-overflow: ellipsis; /* 显示省略号 */
+    white-space: nowrap; /* 防止换行 */
+    box-sizing: border-box; /* 确保边框包含在宽度内 */
 }
 
 .event-table th {
@@ -697,6 +683,35 @@ img {
     text-align: center; /* 居中对齐 */
     padding: 10px; /* 增加内边距 */
     border: 1px solid #ddd; /* 添加边框 */
+    position: relative; /* 固定表头位置 */
+    min-width: 0; /* 防止内容撑开表头 */
+}
+
+/* 为事件表格列设置固定宽度比例 - 使用更精确的定位 */
+.event-table th:nth-child(1), .event-table td:nth-child(1) {
+    width: 8%; /* 序号列 */
+    max-width: 8%;
+    min-width: 8%;
+}
+
+.event-table th:nth-child(2), .event-table td:nth-child(2) {
+    width: 30%; /* 事件标题列 */
+    max-width: 30%;
+    min-width: 30%;
+    white-space: normal; /* 允许标题换行 */
+}
+
+.event-table th:nth-child(3), .event-table td:nth-child(3) {
+    width: 52%; /* 事件内容列 */
+    max-width: 52%;
+    min-width: 52%;
+    white-space: normal; /* 允许内容换行 */
+}
+
+.event-table th:nth-child(4), .event-table td:nth-child(4) {
+    width: 10%; /* 启用列 */
+    max-width: 10%;
+    min-width: 10%;
 }
 
 .event-table tr:hover {
@@ -710,11 +725,61 @@ img {
 /* 为未启用的行添加暗红色遮罩 */
 .event-table tr.unchecked {
     background-color: rgba(139, 0, 0, 0.2); /* 暗红色背景 */
+    border: 1.8px solid rgba(139, 0, 0, 0.5); 
     transition: background-color 0.3s ease; /* 添加平滑过渡效果 */
 }
 
 .event-table tr.unchecked:hover {
     background-color: rgba(139, 0, 0, 0.3); /* 鼠标悬停时加深遮罩 */
+}
+
+/* 事件行动画效果 */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 只有tbody中的行才参与动画，表头不参与 */
+.event-table tbody tr {
+    opacity: 0;
+    animation: fadeInUp 0.3s ease forwards;
+}
+
+/* 确保表头行始终可见且不参与动画 */
+.event-table thead tr {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+}
+
+/* 设置每行的动画延迟，实现逐行出现的效果 - 加快速度 */
+/* 只为tbody中的行设置动画延迟 */
+.event-table tbody tr:nth-child(1) { animation-delay: 0.005s; }
+.event-table tbody tr:nth-child(2) { animation-delay: 0.01s; }
+.event-table tbody tr:nth-child(3) { animation-delay: 0.015s; }
+.event-table tbody tr:nth-child(4) { animation-delay: 0.02s; }
+.event-table tbody tr:nth-child(5) { animation-delay: 0.025s; }
+.event-table tbody tr:nth-child(6) { animation-delay: 0.03s; }
+.event-table tbody tr:nth-child(7) { animation-delay: 0.035s; }
+.event-table tbody tr:nth-child(8) { animation-delay: 0.04s; }
+.event-table tbody tr:nth-child(9) { animation-delay: 0.045s; }
+.event-table tbody tr:nth-child(10) { animation-delay: 0.05s; }
+.event-table tbody tr:nth-child(n+11) { animation-delay: 0.055s; }
+
+/* 表格行重新加载动画类 */
+.event-table tbody tr.animate-row {
+    animation: none;
+    opacity: 0;
+}
+
+.event-table tbody tr.animate-row.show {
+    animation: fadeInUp 0.23s ease forwards;
 }
 
 /* From Uiverse.io by KhaledMatalkah */
@@ -784,29 +849,22 @@ img {
 
 /* 右键菜单样式 */
 .context-menu {
-    position: absolute;
+    position: fixed;
     background: #fff;
     border: 1px solid #ccc;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    z-index: 1000;
+    z-index: 1500;
     border-radius: 5px;
     padding: 5px 0;
     font-size: 14px;
+    opacity: 0;
+    transform: scale(0.9);
+    transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
-.context-menu ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-.context-menu li {
-    padding: 8px 12px;
-    cursor: pointer;
-}
-
-.context-menu li:hover {
-    background: #f0f0f0;
+.context-menu.visible {
+    opacity: 1;
+    transform: scale(1);
 }
 
 /* 弹窗展开和收起动画 */
@@ -832,7 +890,56 @@ img {
     }
 }
 
+/* 高亮行样式 */
+.highlighted-row {
+    background-color: rgba(51, 150, 217, 0.3) !important;
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 0 10px rgba(51, 150, 217, 0.5);
+    transition: all 0.2s ease;
+}
 
+.highlighted-row::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 2px solid #3396D9;
+    pointer-events: none;
+    animation: pulse 1.5s infinite alternate;
+    z-index: -1;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(51, 150, 217, 0.4); }
+    100% { box-shadow: 0 0 0 8px rgba(51, 150, 217, 0); }
+}
+
+/* 事件表格行选中时文字加粗 */
+.highlighted-row td {
+    font-weight: bold;
+    color: #ffffff;
+}
+
+/* 触摸反馈效果 */
+.touch-feedback {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    background-color: rgba(51, 150, 217, 0.3);
+    transform: scale(0);
+    z-index: 9999;
+    animation: ripple 0.6s linear;
+}
+
+@keyframes ripple {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
 
 /* 弹窗显示时的动画 */
 .edit-event-form.show {
@@ -842,12 +949,6 @@ img {
 /* 弹窗隐藏时的动画 */
 .edit-event-form.hide {
     animation: slideUp 0.3s ease-in forwards;
-}
-
-/* 选中列的样式 */
-.highlighted-row {
-    background-color: rgba(255, 223, 0, 0.3) !important; /* 暗黄色遮罩 */
-    transition: background-color 0.3s ease; /* 平滑过渡效果 */
 }
 
 /* 编辑事件弹窗样式 */
@@ -932,7 +1033,7 @@ img {
 .add-event-btn {
     width: 100%; /* 按钮宽度与输入框对齐 */
     padding: 10px;
-    background-color: #A1B4C0; /* 按钮背景颜色 */
+    background-color: #1C7CC5; /* 按钮背景颜色 */
     color: white; /* 按钮文字颜色 */
     border: none;
     border-radius: 5px; /* 圆角 */
@@ -944,7 +1045,7 @@ img {
 }
 
 .add-event-btn:hover {
-    background-color: #8ea2af; /* 悬停时的背景颜色 */
+    background-color: #2C86C2; /* 悬停时的背景颜色 */
     transform: translateY(-2px); /* 悬停时的轻微上移效果 */
 }
 

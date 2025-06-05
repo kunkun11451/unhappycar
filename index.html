@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>unhappycar</title>
-    <link rel="icon" href="https://bbs-static.miyoushe.com/static/2024/06/12/7982e4f54092be80c43a251f26e44235_6026540790739799944.png" type="image/png">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="https://bbs-static.miyoushe.com/static/2024/06/12/7982e4f54092be80c43a251f26e44235_6026540790739799944.png" type="image/png">    <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="hardmode.css"> 
+    <link rel="stylesheet" href="highlight-row.css">
     <script charset="UTF-8" id="LA_COLLECT" src="//sdk.51.la/js-sdk-pro.min.js"></script>
     <script>LA.init({id:"3M2oGTfSWji6ROQb",ck:"3M2oGTfSWji6ROQb"})</script>
 </head>
@@ -27,15 +27,16 @@
         </div>
         <h6 style="margin-top: 10px; font-size: 11px; color: gray; text-align: center;">
             推荐使用电脑端主持游戏，主持人杀后台、掉线会使房间解散。
-        </h6>
-        <div style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;">
-            <button class="start-button" id="viewEventsButton">事件管理</button>
+        </h6>        <div style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;">
             <button class="start-button" id="exploreButton">进去看看</button>
         </div>
     </div>
 
     <!-- 主游戏界面 -->
     <div id="gameScreen" style="display: none;">
+                <div style="text-align: center; margin-bottom: 20px;">
+            <button class="start-button" id="settingsButton">设置</button>
+        </div>
         <h1>抽取角色</h1>
         <button class="bp-button" id="bpButton">BP模式：关闭</button>
         <button class="reset-button" id="resetButton" style="display: none;">重置游戏</button>
@@ -94,9 +95,7 @@
             <button class="sync-button" id="syncButton" style="display: none;" >同步数据</button> 
         </div>
 
-        <div style="text-align: center; margin-bottom: 20px;">
-            <button class="start-button" id="settingsButton">设置</button>
-        </div>
+
 
         <!-- 设置弹窗 -->
         <div class="overlay" id="settingsOverlay" style="display: none;"></div>
@@ -210,85 +209,14 @@
         </div>
     </div>
 
-    <!-- 弹窗结构 -->
-    <div class="overlay" id="eventOverlay" style="display: none;"></div>
-    <div class="event-popup" id="eventPopup" style="display: none;">
-        <button class="close-popup-button" id="closeEventPopup"> </button>
-    <div class="popup-header">
-        <h2 class="popup-title">事件管理</h2>
-        <div style="margin-top: 10px; font-size: 14px; color: rgb(197, 197, 197); text-align: center;">最下方可添加事件，右键/长按可删除或编辑事件，无法右键请关闭Simple Allow Copy等插件</div>
-        <div class="radio-inputs">
-            <label class="radio">
-                <input type="radio" name="eventType" id="personalEventsRadio" checked>
-                <span class="radio-item">个人事件</span>
-            </label>
-            <label class="radio">
-                <input type="radio" name="eventType" id="teamEventsRadio">
-                <span class="radio-item">团队事件</span>
-            </label>
-        </div>
-    </div>
-        <div class="popup-content" id="personalEvents" style="display: block;">
-            <table class="event-table">
-                <thead>
-                    <tr>
-                        <th>序号</th>
-                        <th>事件标题</th>
-                        <th>事件内容</th>
-                        <th>启用</th>
-                    </tr>
-                </thead>
-                <tbody id="personalEventsTable">
-                    <!-- 通过 JavaScript 动态填充 -->
-                </tbody>
-            </table>
-            <!-- 添加事件表单 -->
-            <div class="add-event-form">
-                <input type="text" id="newEventTitle" placeholder="添加个人事件:  标题" class="input-field">
-                <textarea id="newEventContent" placeholder="添加个人事件:  内容" class="textarea-field"></textarea>
-                <button id="addEventButton" class="add-event-btn">添加事件</button>
-            </div>
-        </div>
-        <div class="popup-content" id="teamEvents" style="display: none;">
-            <table class="event-table">
-                <thead>
-                    <tr>
-                        <th>序号</th>
-                        <th>事件标题</th>
-                        <th>事件内容</th>
-                        <th>启用</th>
-                    </tr>
-                </thead>
-                <tbody id="teamEventsTable">
-                    <!-- 团体任务内容将通过 JavaScript 动态填充 -->
-                </tbody>
-            </table>
-            <!-- 添加事件表单 -->
-            <div class="add-event-form">
-                <input type="text" id="newTeamEventTitle" placeholder="添加团队事件:  标题" class="input-field">
-                <textarea id="newTeamEventContent" placeholder="添加团队事件:  内容" class="textarea-field"></textarea>
-                <button id="addTeamEventButton" class="add-event-btn">添加事件</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="contextMenu" class="context-menu" style="display: none;">
-    <ul>
-        <li id="editEvent">编辑事件</li>
-        <li id="deleteEvent">删除事件</li>
-    </ul>
-</div>
-
     <!-- 引入角色数据JS文件 -->
     <script src="characters.js"></script>
     <script src="characterManagement.js"></script>
     <script src="npc.js"></script>
-    <script src="mission.js"></script>
-    <script src="hardmission.js"></script>
+    <script src="mission.js"></script>    <script src="hardmission.js"></script>
     <script src="multiplayer.js"></script>
+    <script src="history.js"></script>      <script src="eventHistory.js"></script>
     <script src="events.js"></script>
-    <script src="history.js"></script>    
-    <script src="eventHistory.js"></script>
     <script src="app.js"></script>
     <script src="mission-app.js"></script>
     <script src="hard-mission-app.js"></script>
