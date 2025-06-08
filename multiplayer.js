@@ -60,8 +60,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         
         // 每200秒发送一次心跳包
-        heartbeatInterval = setInterval(sendHeartbeat, 200000);
-        console.log('心跳包机制已启动 (每200秒一次)');
+        heartbeatInterval = setInterval(sendHeartbeat, 100000);
+        console.log('心跳包机制已启动 (每100秒一次)');
     }
     
     // 停止心跳包机制
