@@ -119,3 +119,6 @@ const npc = {
         "职业": "救生员",
     },
 };
+
+// 将npc对象绑定到window，使其可以在全局访问
+window.npc = npc;

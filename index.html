@@ -4,9 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>unhappycar</title>
-    <link rel="icon" href="https://bbs-static.miyoushe.com/static/2024/06/12/7982e4f54092be80c43a251f26e44235_6026540790739799944.png" type="image/png">    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="hardmode.css"> 
-    <link rel="stylesheet" href="highlight-row.css">
+    <link rel="icon" href="https://bbs-static.miyoushe.com/static/2024/06/12/7982e4f54092be80c43a251f26e44235_6026540790739799944.png" type="image/png">    
+    <link rel="stylesheet" href="styles.css">
     <script charset="UTF-8" id="LA_COLLECT" src="//sdk.51.la/js-sdk-pro.min.js"></script>
     <script>LA.init({id:"3M2oGTfSWji6ROQb",ck:"3M2oGTfSWji6ROQb"})</script>
 </head>
@@ -27,18 +26,18 @@
         </div>
         <h6 style="margin-top: 10px; font-size: 11px; color: gray; text-align: center;">
             推荐使用电脑端主持游戏，主持人杀后台、掉线会使房间解散。
-        </h6> 
-        <h6 style="margin-top: 5px; font-size: 11px; color: gray; text-align: center;">
-        访问Bate版测试事件投票功能 <a href="https://unhappycar-beta.netlify.app/" style="color: blue; text-decoration: underline;">unhappycar-beta.netlify.app</a>
-        </h6>
-        <div style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;">
+        </h6>        <div style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;">
             <button class="start-button" id="exploreButton">进去看看</button>
         </div>
-    </div>
-
-    <!-- 主游戏界面 -->
-    <div id="gameScreen" style="display: none;">
-                <div style="text-align: center; margin-bottom: 20px;">
+    </div>    <!-- 主游戏界面 -->
+    <div id="gameScreen" style="display: none;">        <!-- 房间码复制区域 -->
+        <div id="roomCodeSection" class="room-code-section" style="display: none;">
+            <span class="room-code-label">房间代码:</span>
+            <span id="roomCodeDisplay" class="room-code-value">----</span>
+            <button id="copyRoomCodeBtn" class="copy-room-btn">复制</button>
+        </div>
+        
+        <div style="text-align: center; margin-bottom: 20px; margin-top: 20px">
             <button class="start-button" id="settingsButton">设置</button>
         </div>
         <h1>抽取角色</h1>
@@ -82,21 +81,27 @@
             <div class="mission-box" id="mission4">
                 <div class="mission-title"></div>
                 <div class="mission-content"></div>
+            </div>        </div>
+            <div id="rerollCounter" style="margin-bottom: 10px; font-size: 16px; color: #666; text-align: center;">
+                <button id="decreaseReroll" style="padding: 5px 10px; font-size: 16px;">-</button>
+                重抽次数：<span id="rerollCount">3</span>
+                <button id="increaseReroll" style="padding: 5px 10px; font-size: 16px;">+</button>
+            </div> 
+        <!-- 困难事件显示区域 -->
+        <div class="hard-missions-container" id="hardMissionsContainer">
+            <div class="hard-missions-title">团体事件</div>
+            <div class="hard-missions-grid" id="hardMissionsGrid">
+                <!-- 困难事件将动态添加到这里 -->
             </div>
         </div>
+        
         <div class="selected-hard-mission" id="selectedHardMission" style="display: none;">
             <div class="mission-title"></div>
             <div class="mission-content"></div>
         </div>
         <div class="button-container">
-            <div id="rerollCounter" style="margin-bottom: 10px; font-size: 16px; color: #666; text-align: center;">
-                <button id="decreaseReroll" style="padding: 5px 10px; font-size: 16px;">-</button>
-                重抽次数：<span id="rerollCount">3</span>
-                <button id="increaseReroll" style="padding: 5px 10px; font-size: 16px;">+</button>
-            </div>
-            <button class="start-button" id="missionButton">抽取事件</button>
-            <button class="hard-button" id="hardModeButton">不够牢！</button>
-            <button class="sync-button" id="syncButton" style="display: none;" >同步数据</button> 
+           <button class="start-button" id="missionButton">抽取事件</button>
+           <button class="sync-button" id="syncButton" style="display: none;" >同步数据</button> 
         </div>
 
 
@@ -193,10 +198,11 @@
                 <h3>角色</h3> 
                     <li>角色按照选择的bp模式进行随机抽</li>
                     <li>点击对应的角色卡片可以重抽角色，碰到没有的角色跟地主说，重新抽取角色到有为止。</li>
-                    <li>通过事件更换的角色不bp</li>
-                <h3>事件</h3>                                      
-                    <li>每轮抽取完个人事件可点击"不够牢"3选1抽取团体事件</li>
-                    <li>全体事件与个人事件冲突情况，全体事件优先级大于个人事件。</li>
+                    <li>通过事件更换的角色不bp（想bp需要地主打开设置中的角色管理手动禁用）</li>                <h3>事件</h3>                                      
+                    <li>点击"抽取事件"按钮会同时抽取4个个人事件和3个团体事件</li>
+                    <li>每位玩家可点击想玩的团体事件进行投票，地主算两票。</li>
+                    <li>胜出的作为本轮事件，两个平票会在其中随机抽取一个。</li>
+                    <li>团体事件与个人事件冲突情况，团体事件优先级大于个人事件。</li>
                 <h3>个人事件重抽</h3>
                     <li>初始获得3次可重抽事件机会</li>
                     <li>重抽事件机会可供全队重抽个人事件，共享使用次数。</li>                      
@@ -233,6 +239,7 @@
         <p>修改部分纯AI写的屎山代码，有bug请憋着，唉嘿</p>
         <p>服务端一直连接不上就是宕机了，也请憋着，嘿嘿</p>
         <p>反馈bug等请 <a href="https://github.com/kunkun11451/unhappycar" target="_blank" style="color: blue; text-decoration: underline;">访问 GitHub 项目</a>查看</p>
+        <p>访问Beta版测试功能 <a href="https://unhappycar-beta.netlify.app" style="color: blue; text-decoration: underline;">unhappycar-beta.netlify.app</a></p>
         <img src="https://upload-bbs.miyoushe.com/upload/2024/06/29/273489775/4be47bf1376bfb4f69c1e3fe26c8a8e8_8119842655567179283.png" style="width: auto; height: 8em;">
     </footer>
 </body>

@@ -88,9 +88,7 @@ document.addEventListener('DOMContentLoaded', function () {
             content.textContent = ""; // 清空内容
             box.style.opacity = 1; // 确保卡片可见
             box.style.pointerEvents = "auto"; // 恢复点击事件
-        });
-
-        // 隐藏困难事件卡片
+        });        // 隐藏困难事件卡片
         const hardMissionBox = document.getElementById("selectedHardMission");
         if (hardMissionBox) {
             hardMissionBox.style.display = "none"; // 隐藏卡片
@@ -98,6 +96,12 @@ document.addEventListener('DOMContentLoaded', function () {
             const content = hardMissionBox.querySelector(".mission-content");
             if (title) title.textContent = ""; // 清空标题
             if (content) content.textContent = ""; // 清空内容
+        }
+
+        // 隐藏新的困难事件容器
+        const hardMissionsContainer = document.getElementById("hardMissionsContainer");
+        if (hardMissionsContainer) {
+            hardMissionsContainer.style.display = "none";
         }
 
         // 清空历史记录并关闭弹窗
@@ -300,13 +304,25 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             return `${minutes}:${remainingSeconds}`;
         }
-    }
-
-    // ================= 事件绑定 =================
+    }    // ================= 事件绑定 =================
     characterBoxes.forEach(box => {
         box.addEventListener('click', () => refreshSingleCharacter(box));
-    });
-    // 初始化个人任务和团体任务表格
-    populateTable(personalEventsTable, mission, 'personalEventsTable');
-    populateTable(teamEventsTable, hardmission, 'teamEventsTable');
+    });    // 等待所有脚本加载完成后初始化表格
+    setTimeout(() => {
+        // 获取表格元素
+        const personalEventsTable = document.getElementById('personalEventsTable');
+        const teamEventsTable = document.getElementById('teamEventsTable');
+        
+        // 初始化个人任务和团体任务表格
+        if (window.eventManagement && typeof window.eventManagement.populateTable === 'function') {
+            if (personalEventsTable) {
+                window.eventManagement.populateTable(personalEventsTable, mission, 'personalEventsTable');
+            }
+            if (teamEventsTable) {
+                window.eventManagement.populateTable(teamEventsTable, hardmission, 'teamEventsTable');
+            }
+        } else {
+            console.warn('eventManagement模块未加载或populateTable函数未找到');
+        }
+    }, 100);
 });

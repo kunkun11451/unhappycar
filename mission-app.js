@@ -37,16 +37,13 @@ function getMissionKeys() {
 document.addEventListener('DOMContentLoaded', function() {
     window.missionBoxes = document.querySelectorAll('.mission-box');
     const missionButton = document.getElementById('missionButton');
-    const hardModeButton = document.getElementById('hardModeButton');
+    // 注意：hardModeButton已被移除，不再需要引用
     const rerollCountDisplay = document.getElementById('rerollCount');
     const increaseRerollButton = document.getElementById('increaseReroll');
     const decreaseRerollButton = document.getElementById('decreaseReroll');
+    let rerollCount = 3; // 初始重抽次数   
     let rerollChance = 0.05; // 初始概率为 5%
-    let negativeCount = 0; // 累计 -1 的次数
-    let rerollCount = 3; // 初始重抽次数
-
-    // 初始化时隐藏困难模式按钮
-    hardModeButton.style.display = 'none';
+    let negativeCount = 0; // 累计 -1 的次数  
     
     // 初始化动画效果
     missionBoxes.forEach((box, index) => {
@@ -219,8 +216,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 减少重抽次数（点击卡片时至少需要 1 次）
         updateRerollCount(-1);
-    }
-      // 显示随机事件
+    }      // 显示随机事件
     function displayRandomMissions() {
         const randomMissions = getRandomMissions(4);
         
@@ -236,21 +232,18 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-    // 记录本轮事件
-    const roundEvents = randomMissions.map(key => ({ event: key }));
-    // 将事件存入事件历史
-    window.eventHistoryModule.pushEventRoundHistory(roundEvents);
+        // 记录本轮事件
+        const roundEvents = randomMissions.map(key => ({ event: key }));
+        // 将事件存入事件历史
+        window.eventHistoryModule.pushEventRoundHistory(roundEvents);
 
         // 隐藏所有玩家标识
         document.querySelectorAll('.player-tag').forEach(tag => {
             tag.classList.remove('show');
         });
         
-        // 隐藏上一次抽到的困难模式事件
-        const selectedHardMission = document.getElementById('selectedHardMission');
-        if (selectedHardMission) {
-            selectedHardMission.style.display = 'none';
-        }
+        // 同时抽取并显示困难事件
+        displayHardMissions();
         
         missionBoxes.forEach((box, index) => {
             const missionKey = randomMissions[index];
@@ -341,16 +334,39 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // 显示玩家标识
                 const playerTag = box.querySelector('.player-tag');
-                if (playerTag) {
-                    setTimeout(() => {
+                if (playerTag) {                setTimeout(() => {
                         playerTag.classList.add('show');
                     }, 500); // 在内容显示后再显示玩家标识
                 }
             }, 300);
         });
         
-        // 显示困难模式按钮
-        hardModeButton.style.display = 'inline-block';
+        // 不再显示困难模式按钮，因为困难事件会自动显示
+        // hardModeButton.style.display = 'inline-block';
+    }    // 显示困难事件的函数
+    function displayHardMissions() {
+        // 获取三个随机困难事件
+        const hardMissionKeys = typeof getHardMissionKeys === 'function' ? getHardMissionKeys() : [];
+        if (hardMissionKeys.length === 0) {
+            console.log('没有可用的困难事件');
+            return;
+        }
+        
+        // 随机选择三个困难事件
+        const shuffled = [...hardMissionKeys].sort(() => 0.5 - Math.random());
+        const selectedHardMissions = shuffled.slice(0, 3);        // 调用投票系统显示困难事件
+        const tryDisplayHardMissions = () => {
+            if (window.hardMissionVoting && window.hardMissionVoting.displayHardMissionsWithVoting) {
+                console.log('调用困难事件投票系统，事件数量:', selectedHardMissions.length);
+                window.hardMissionVoting.displayHardMissionsWithVoting(selectedHardMissions);
+            } else {
+                console.log('等待困难事件投票系统加载...');
+                // 如果投票系统还没加载完成，稍后重试
+                setTimeout(tryDisplayHardMissions, 50);
+            }
+        };
+        
+        tryDisplayHardMissions();
     }
     
     // 绑定按钮点击事件

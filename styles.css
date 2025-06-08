@@ -524,18 +524,6 @@ img {
     pointer-events: none; /* 禁用鼠标事件 */
 }
 
-/* 弹窗关闭按钮样式 */
-.close-popup-button {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    font-size: 20px;
-    color: #333;
-    border: none;
-    background: none;
-    cursor: pointer;
-}
-
 /* 弹窗切换按钮样式 */
 /* 弹窗标题样式 */
 .popup-title {
@@ -719,7 +707,6 @@ img {
     transform: scale(1.01); /* 略微放大 */
     transition: all 0.1s ease; /* 平滑过渡效果 */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 添加阴影效果 */
-    cursor: pointer; /* 鼠标悬停时显示手型 */
 }
 
 /* 为未启用的行添加暗红色遮罩 */
@@ -1564,6 +1551,305 @@ position: absolute;
     animation: slideUp 0.3s ease-out;
 }
 
+/* 困难事件显示区域样式 */
+.hard-missions-container {
+    margin: 20px auto;
+    max-width: 1000px;
+    display: none; /* 默认隐藏 */
+}
+
+.hard-missions-title {
+    text-align: center;
+    font-size: 1.5em;
+    font-weight: bold;
+    margin: 20px 0 15px 0;
+    color: #000000;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+}
+
+.hard-missions-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+/* 困难事件盒子样式 - 基于原有mission-box但有区别 */
+.hard-mission-box {
+    box-sizing: border-box;
+    width: 220px;
+    height: 200px;
+    border: 2px solid #ababab;
+    box-shadow: 12px 17px 51px rgba(191, 191, 191, 0.3);
+    backdrop-filter: blur(6px);
+    border-radius: 17px;
+    text-align: center;
+    transition: all 0.5s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    font-weight: bolder;
+    color: #2c3e50;
+    padding: 15px;
+    margin: 5px;
+    background: #F0F2F5;
+    position: relative;
+    overflow: hidden;
+}
+
+.hard-mission-box::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border-radius: 17px;
+    z-index: -1;
+    animation: borderRotate 3s linear infinite;
+}
+
+.hard-mission-box:hover {
+    transform: translateY(-8px) scale(1.05);
+    box-shadow: 15px 20px 60px rgba(231, 76, 60, 0.4);
+}
+
+.hard-mission-title {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #2C3E50;
+    margin-bottom: 10px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+}
+
+.hard-mission-content {
+    font-size: 0.9em;
+    line-height: 1.4;
+    color: #7F8C8D;
+    text-align: center;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 响应式设计 */
+@media screen and (max-width: 768px) {
+    .hard-missions-grid {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .hard-mission-box {
+        width: 280px;
+        height: 180px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .hard-mission-box {
+        width: 250px;
+        height: 160px;
+        padding: 10px;
+    }
+    
+    .hard-missions-title {
+        font-size: 1.3em;
+    }
+}
+
+/* 投票系统样式 */
+.vote-dots-container {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    margin-top: 8px;
+    min-height: 12px;
+}
+
+.vote-dot {
+    width: 28px;
+    height: 28px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    animation: voteDotPulse 1s ease-in-out;
+    background-color: transparent;
+}
+
+@keyframes voteDotPulse {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+/* 投票状态样式 */
+.hard-mission-box.voted {
+    border-color: #27ae60;
+    box-shadow: 0 0 20px rgba(39, 174, 96, 0.5);
+    transform: scale(1.02);
+}
+
+.hard-mission-box.selected {
+    border-color: #f39c12;
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    box-shadow: 0 0 25px rgba(243, 156, 18, 0.8);
+    transform: scale(1.05);
+}
+
+.hard-mission-box.rejected {
+    opacity: 0.5;
+    filter: grayscale(100%);
+    border-color: #95a5a6;
+    transform: scale(0.95);
+}
+
+/* 投票结果提示 */
+.voting-result {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px 20px;
+    border-radius: 10px;
+    text-align: center;
+    margin: 15px 0;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    animation: slideDown 0.5s ease-out;
+}
+
+.voting-result h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.2em;
+    color: #fff;
+}
+
+.voting-result p {
+    margin: 5px 0;
+    font-size: 0.95em;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 改进困难事件盒子的点击反馈 */
+.hard-mission-box:hover:not(.rejected) {
+    cursor: pointer;
+    border-color: #3498db;
+    box-shadow: 0 0 20px rgba(52, 152, 219, 0.4);
+}
+
+.hard-mission-box:active:not(.rejected) {
+    transform: scale(0.98);
+}
+
+/* 投票说明样式 */
+.voting-instructions {
+    border-radius: 8px;
+    margin: 10px 0;
+    text-align: center;
+    animation: fadeInDown 0.5s ease-out;
+}
+
+.voting-instructions p {
+    margin: 0;
+    color: #1976d2;
+    font-weight: 500;
+    font-size: 0.9em;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 响应式优化 */
+@media screen and (max-width: 518px) {
+    .voting-instructions {
+        font-size: 0.85em;
+        padding: 8px 12px;
+    }
+}
+
+/* 响应式设计 */
+@media screen and (max-width: 768px) {
+    .status-bar {
+        height: 50px;
+        padding: 0 10px;
+    }
+    
+    .status-center {
+        gap: 10px;
+    }
+    
+    .status-left,
+    .status-right {
+        gap: 8px;
+    }
+    
+    .status-btn {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+    
+    .status-info {
+        font-size: 12px;
+        padding: 3px 8px;
+    }
+    
+    .room-code-value {
+        font-size: 12px;
+    }
+    
+    body {
+        padding-top: 70px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .status-bar {
+        height: 45px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .status-center {
+        order: 1;
+        width: 100%;
+        justify-content: center;
+        margin-top: 5px;
+    }
+    
+    .status-left,
+    .status-right {
+        order: 0;
+    }
+    
+    .status-btn {
+        padding: 4px 8px;
+        font-size: 11px;
+    }
+    
+    body {
+        padding-top: 65px;
+    }
+}
+
 @media screen and (max-width: 518px) {
     .container {
         display: grid;
@@ -1650,7 +1936,6 @@ position: absolute;
         border: 4px rgba(255, 255, 255, 0.4) solid;
         border-bottom: 4px rgba(40, 40, 40, 0.35) solid;
         border-right: 4px rgba(40, 40, 40, 0.35) solid;
-        overflow: hidden;
     }
 
     .input.show {
@@ -1692,7 +1977,6 @@ position: absolute;
             animation: none; /* 禁用动画 */
             box-shadow: none !important; 
             background-color: transparent !important
-            
         }
         .burger {
             display: none !important; /* 隐藏汉堡菜单按钮 */
