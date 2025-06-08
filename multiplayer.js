@@ -59,9 +59,9 @@ document.addEventListener('DOMContentLoaded', function () {
             clearInterval(heartbeatInterval);
         }
         
-        // 每60秒发送一次心跳包
-        heartbeatInterval = setInterval(sendHeartbeat, 60000);
-        console.log('心跳包机制已启动 (每60秒一次)');
+        // 每200秒发送一次心跳包
+        heartbeatInterval = setInterval(sendHeartbeat, 200000);
+        console.log('心跳包机制已启动 (每200秒一次)');
     }
     
     // 停止心跳包机制
@@ -225,7 +225,7 @@ document.addEventListener('DOMContentLoaded', function () {
             console.log('执行保活同步检查...');
             syncGameState(true); // 传入保活标识
         }
-    }, 120000); // 2分钟一次保活同步（比原来的3.5秒大幅减少）
+    }, 200000); //200秒一次保活同步
     
     // 游戏状态缓存，用于检测变化
     let lastGameStateHash = null;
