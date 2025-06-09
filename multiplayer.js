@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     // 在连接WebSocket之前先发送一次HTTP请求唤醒服务器
     console.log('发送唤醒请求到服务器...');
-    fetch('https://foremost-plum-octopus.glitch.me/wakeup', {
+    fetch('https://socket.unhappycar.games:3000', {
         method: 'GET',
         mode: 'no-cors'
     }).then(() => {
@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log('服务器唤醒请求发送（可能失败，但不影响后续连接）:', err.message);
     });
 
-    const ws = new WebSocket('wss://foremost-plum-octopus.glitch.me');
+    const ws = new WebSocket('wss://socket.unhappycar.games:3000');
 
     // DOM 元素
     const initialScreen = document.getElementById('initialScreen');
