@@ -1,0 +1,2885 @@
+/* Unhappycar 文档样式 */
+
+/* ========== 基础样式 ========== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Microsoft YaHei', 'Arial', 'Helvetica', sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 0 0 20px 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    min-height: 100vh;
+}
+
+/* ========== 导航栏样式 ========== */
+.navbar {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: white;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.logo {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.navbar h1 {
+    font-size: 1.5rem;
+    margin: 0;
+    background: linear-gradient(45deg, #fff, #e0e7ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.nav-menu {
+    display: flex;
+    list-style: none;
+    gap: 2rem;
+}
+
+.nav-menu a {
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.nav-menu a:hover,
+.nav-menu a.active {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* ========== Hero 区域样式 ========== */
+.hero {
+    padding: 4rem 2rem;
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 3rem;
+    align-items: center;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
+}
+
+.hero-content h2 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hero-description {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    line-height: 1.8;
+}
+
+.hero-stats {
+    display: flex;
+    gap: 2rem;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.stat-item:hover {
+    transform: translateY(-5px);
+}
+
+.stat-number {
+    display: block;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #4f46e5;
+}
+
+.stat-label {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.hero-image img {
+    width: 100%;
+    max-width: 300px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* ========== 区域样式 ========== */
+.section {
+    padding: 4rem 2rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.section-header h2 {
+    font-size: 2.2rem;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.section-header p {
+    font-size: 1.1rem;
+}
+
+/* ========== 快速开始样式 ========== */
+.quick-start-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.quick-start-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.quick-start-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+.card-icon {
+    font-size: 3rem;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.quick-start-card h3 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: #4f46e5;
+    font-size: 1.3rem;
+}
+
+.step-list {
+    margin-bottom: 1.5rem;
+    padding-left: 1.2rem;
+}
+
+.step-list li {
+    margin-bottom: 0.8rem;
+}
+
+.tip {
+    background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid #0ea5e9;
+    color: #555;
+    font-size: 0.9rem;
+}
+
+/* ========== 游戏流程图 ========== */
+.game-flow {
+    margin-top: 3rem;
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.game-flow h3 {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #4f46e5;
+}
+
+.flow-diagram {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.flow-step {
+    display: flex;
+    align-items: center;
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    min-width: 180px;
+    transition: transform 0.3s ease;
+}
+
+.flow-step:hover {
+    transform: scale(1.05);
+}
+
+.step-number {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-right: 1rem;
+    flex-shrink: 0;
+}
+
+.step-content h4 {
+    margin-bottom: 0.5rem;
+    color: #333;
+    font-size: 0.9rem;
+}
+
+.step-content p {
+    color: #666;
+    font-size: 0.8rem;
+    line-height: 1.4;
+}
+
+.flow-arrow {
+    font-size: 1.5rem;
+    color: #4f46e5;
+    font-weight: bold;
+}
+
+/* ========== 详细指南样式 ========== */
+.feature-detail {
+    margin-bottom: 4rem;
+    background: white;
+    padding: 2.5rem;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.feature-detail h3 {
+    margin-bottom: 2rem;
+    color: #4f46e5;
+    font-size: 1.8rem;
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 0.5rem;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.detail-card {
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+    padding: 2rem;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.detail-card h4 {
+    margin-bottom: 1.5rem;
+    font-size: 1.2rem;
+}
+
+/* ========== BP模式样式 ========== */
+.mode-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.mode-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.mode-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    min-width: 60px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.mode-badge.global {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+}
+
+.mode-badge.personal {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+}
+
+.mode-badge.off {
+    background: linear-gradient(135deg, #6b7280, #4b5563);
+    color: white;
+}
+
+.mode-desc {
+    flex: 1;
+    line-height: 1.6;
+}
+
+/* ========== 机制步骤样式 ========== */
+.mechanism-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.step {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    border-left: 4px solid #4f46e5;
+}
+
+.step-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.step div {
+    flex: 1;
+}
+
+.step strong {
+    color: #374151;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.step p {
+    color: #666;
+    margin: 0;
+}
+
+/* ========== 代码示例样式 ========== */
+.code-example {
+    background: #1f2937;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-top: 2rem;
+}
+
+.code-example h4 {
+    color: #e5e7eb;
+    margin-bottom: 1rem;
+}
+
+.code-example pre {
+    color: #e5e7eb;
+    font-family: 'Consolas', 'Monaco', monospace;
+    overflow-x: auto;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.code-example code {
+    color: #e5e7eb;
+}
+
+/* ========== 事件类型样式 ========== */
+.event-types {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.event-type {
+    background: rgba(255, 255, 255, 0.7);
+    padding: 1.5rem;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.type-badge {
+    display: inline-block;
+    padding: 0.5rem 1.5rem;
+    border-radius: 20px;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.type-badge.personal {
+    background: linear-gradient(135deg, #059669, #047857);
+    color: white;
+}
+
+.type-badge.team {
+    background: linear-gradient(135deg, #7c3aed, #6d28d9);
+    color: white;
+}
+
+.event-type ul {
+    margin: 0;
+    padding-left: 1.5rem;
+}
+
+.event-type li {
+    margin-bottom: 0.8rem;
+    color: #555;
+    line-height: 1.5;
+}
+
+/* ========== 重抽系统样式 ========== */
+.reroll-system {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.reroll-info {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    border-left: 4px solid #f59e0b;
+}
+
+.reroll-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.reroll-info strong {
+    color: #374151;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.reroll-info p {
+    color: #666;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* ========== 概率表格样式 ========== */
+.probability-table {
+    margin-top: 2rem;
+}
+
+.probability-table h4 {
+    margin-bottom: 1rem;
+    color: #374151;
+}
+
+.probability-table table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.probability-table th,
+.probability-table td {
+    padding: 1rem;
+    text-align: center;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.probability-table th {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: white;
+    font-weight: bold;
+}
+
+.probability-table td {
+    color: #555;
+}
+
+.probability-table tr:last-child td {
+    border-bottom: none;
+}
+
+.probability-table tr:hover {
+    background: rgba(79, 70, 229, 0.05);
+}
+
+/* ========== 投票系统样式 ========== */
+.voting-rules {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.rule-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    border-left: 4px solid #10b981;
+}
+
+.rule-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.rule-item strong {
+    color: #374151;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.rule-item p {
+    color: #666;
+    margin: 0;
+}
+
+/* ========== 投票流程样式 ========== */
+.voting-flow {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.vote-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+}
+
+.vote-step-number {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    flex-shrink: 0;
+    font-size: 0.9rem;
+}
+
+.vote-step-content {
+    flex: 1;
+}
+
+.vote-step-content h5 {
+    margin-bottom: 0.5rem;
+    color: #374151;
+    font-size: 1rem;
+}
+
+.vote-step-content p {
+    color: #666;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* ========== 投票示例样式 ========== */
+.voting-example {
+    margin-top: 2rem;
+    background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+    padding: 2rem;
+    border-radius: 12px;
+    border: 1px solid #0ea5e9;
+}
+
+.voting-example h4 {
+    margin-bottom: 1.5rem;
+    color: #0369a1;
+}
+
+.scenario-setup {
+    margin-bottom: 1.5rem;
+    font-weight: bold;
+    color: #374151;
+}
+
+.vote-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.vote-option {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid #0ea5e9;
+}
+
+.option-name {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    color: #374151;
+}
+
+.vote-details {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.vote-total {
+    font-weight: bold;
+    color: #0369a1;
+}
+
+.result {
+    background: rgba(16, 185, 129, 0.1);
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid #10b981;
+    color: #065f46;
+    font-weight: bold;
+}
+
+/* ========== 功能说明样式 ========== */
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+}
+
+.feature-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+.feature-icon {
+    font-size: 2.5rem;
+    text-align: center;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.feature-card h3 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: #4f46e5;
+    font-size: 1.3rem;
+}
+
+.feature-content h4 {
+    margin: 1.5rem 0 1rem 0;
+    color: #374151;
+    font-size: 1.1rem;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 0.5rem;
+}
+
+.feature-content ul {
+    margin-bottom: 1.5rem;
+    padding-left: 1.5rem;
+}
+
+.feature-content li {
+    margin-bottom: 0.8rem;
+    line-height: 1.5;
+}
+
+/* ========== 同步项目样式 ========== */
+.sync-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.sync-item {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+/* ========== 元素类型样式 ========== */
+.element-types {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.element {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: white;
+}
+
+/* ========== 存储信息样式 ========== */
+.storage-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.storage-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    border-left: 4px solid #8b5cf6;
+}
+
+.storage-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.storage-item strong {
+    color: #374151;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.storage-item p {
+    color: #666;
+    margin: 0;
+}
+
+/* ========== 历史查看样式 ========== */
+.history-views {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.view-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    border-left: 4px solid #06b6d4;
+}
+
+.view-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.view-item strong {
+    color: #374151;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.view-item p {
+    color: #666;
+    margin: 0;
+}
+
+/* ========== 服务器状态样式 ========== */
+.server-status {
+    margin-top: 1rem;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.status-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+.status-dot.connected {
+    background: #10b981;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.status-info p {
+    color: #666;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+/* ========== 响应式特性样式 ========== */
+.responsive-features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.responsive-item {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+/* ========== 高级设置样式 ========== */
+.advanced-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    gap: 2rem;
+}
+
+.advanced-card {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.advanced-card h3 {
+    margin-bottom: 2rem;
+    color: #4f46e5;
+    font-size: 1.5rem;
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 0.5rem;
+}
+
+/* ========== 文件结构样式 ========== */
+.file-structure {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.file-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.file-icon {
+    font-size: 1.5rem;
+    color: #4f46e5;
+}
+
+.file-item strong {
+    color: #374151;
+    margin-bottom: 0.2rem;
+    display: block;
+}
+
+.file-item p {
+    color: #666;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+/* ========== 自定义步骤样式 ========== */
+.custom-steps {
+    padding-left: 1.5rem;
+}
+
+.custom-steps li {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+/* ========== 部署指南样式 ========== */
+.requirements {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.req-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.2rem;
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    border-radius: 20px;
+    border: 1px solid #22c55e;
+    color: #15803d;
+    font-weight: bold;
+}
+
+.req-icon {
+    font-size: 1.2rem;
+}
+
+.deployment-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.deploy-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+    border-radius: 10px;
+    border-left: 4px solid #4f46e5;
+}
+
+.deploy-step .step-number {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: white;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.deploy-step .step-content {
+    flex: 1;
+}
+
+.deploy-step h5 {
+    margin-bottom: 0.5rem;
+    color: #374151;
+}
+
+.deploy-step code {
+    background: #1f2937;
+    color: #e5e7eb;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    display: inline-block;
+    margin-top: 0.5rem;
+}
+
+.deploy-step p {
+    color: #666;
+    margin: 0;
+}
+
+.deployment-note {
+    background: linear-gradient(135deg, #fffbeb, #fef3c7);
+    padding: 1.5rem;
+    border-radius: 10px;
+    border-left: 4px solid #f59e0b;
+}
+
+.deployment-note strong {
+    color: #92400e;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.deployment-note p {
+    color: #78350f;
+    margin: 0;
+}
+
+/* ========== 故障排除样式 ========== */
+.issue-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.issue-item {
+    background: linear-gradient(135deg, #fef2f2, #fee2e2);
+    padding: 1.5rem;
+    border-radius: 10px;
+    border-left: 4px solid #ef4444;
+}
+
+.issue-title {
+    font-weight: bold;
+    color: #991b1b;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.issue-solution strong {
+    color: #374151;
+    display: block;
+    margin-bottom: 0.8rem;
+}
+
+.issue-solution ul {
+    margin: 0;
+    padding-left: 1.5rem;
+}
+
+.issue-solution li {
+    margin-bottom: 0.5rem;
+    color: #555;
+    line-height: 1.5;
+}
+
+.debug-tools {
+    margin-top: 2rem;
+}
+
+.debug-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.debug-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+    border-radius: 8px;
+    border-left: 4px solid #0ea5e9;
+}
+
+.debug-icon {
+    font-size: 1.5rem;
+    color: #0369a1;
+    flex-shrink: 0;
+}
+
+.debug-item strong {
+    color: #0369a1;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.debug-item p {
+    color: #0c4a6e;
+    margin: 0;
+}
+
+/* ========== 项目信息样式 ========== */
+.tech-stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+.tech-item {
+    background: linear-gradient(135deg, #374151, #1f2937);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.features-list {
+    margin-bottom: 2rem;
+    padding-left: 1.5rem;
+}
+
+.features-list li {
+    margin-bottom: 0.8rem;
+    line-height: 1.5;
+}
+
+.dev-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    margin-bottom: 2rem;
+}
+
+.info-item {
+    line-height: 1.5;
+}
+
+.links {
+    margin-top: 2rem;
+}
+
+.links h4 {
+    margin-bottom: 1rem;
+    color: #374151;
+}
+
+.link-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.link-btn {
+    display: inline-block;
+    padding: 0.8rem 1.5rem;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.link-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+}
+
+/* ========== 页脚样式 ========== */
+.footer {
+    background: linear-gradient(135deg, #1f2937, #111827);
+    color: white;
+    padding: 3rem 2rem 2rem;
+    margin-top: 4rem;
+}
+
+.footer-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.footer-section h4 {
+    margin-bottom: 1rem;
+    color: #e5e7eb;
+    font-size: 1.1rem;
+}
+
+.footer-section ul {
+    list-style: none;
+}
+
+.footer-section li {
+    margin-bottom: 0.5rem;
+}
+
+.footer-section a {
+    color: #9ca3af;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer-section a:hover {
+    color: #e5e7eb;
+}
+
+.footer-bottom {
+    border-top: 1px solid #374151;
+    padding-top: 2rem;
+    text-align: center;
+    color: #9ca3af;
+}
+
+.footer-bottom p {
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+}
+
+/* ========== 返回顶部按钮 ========== */
+.back-to-top {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(79, 70, 229, 0.3);
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.back-to-top:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(79, 70, 229, 0.4);
+}
+
+/* ========== 响应式设计 ========== */
+@media (max-width: 768px) {
+    .navbar {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+    }
+    
+    .nav-menu {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1rem;
+    }
+    
+    .hero {
+        grid-template-columns: 1fr;
+        text-align: center;
+        padding: 2rem 1rem;
+    }
+    
+    .hero-content h2 {
+        font-size: 2rem;
+    }
+    
+    .hero-stats {
+        justify-content: center;
+    }
+    
+    .section {
+        padding: 2rem 1rem;
+    }
+    
+    .quick-start-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .flow-diagram {
+        flex-direction: column;
+    }
+    
+    .flow-arrow {
+        transform: rotate(90deg);
+    }
+    
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .features-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .advanced-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .footer-content {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+    
+    .back-to-top {
+        bottom: 1rem;
+        right: 1rem;
+        width: 45px;
+        height: 45px;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-content h2 {
+        font-size: 1.5rem;
+    }
+    
+    .section-header h2 {
+        font-size: 1.8rem;
+    }
+    
+    .hero-stats {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .nav-menu {
+        gap: 0.5rem;
+    }
+    
+    .nav-menu a {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* ========== 打印样式 ========== */
+@media print {
+    .navbar,
+    .back-to-top {
+        display: none;
+    }
+    
+    .container {
+        background: white;
+        box-shadow: none;
+    }
+    
+    .section {
+        page-break-inside: avoid;
+    }
+    
+    .feature-card,
+    .advanced-card {
+        break-inside: avoid;
+    }
+}
+
+/* ========== 暗色模式支持 ========== */
+@media (prefers-color-scheme: dark) {
+    body {
+        background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+    }
+    
+    .container {
+        background: rgba(31, 41, 55, 0.95);
+        color: #e5e7eb;
+    }
+    
+    .section-header h2,
+    .feature-detail h3,
+    .advanced-card h3 {
+        color: #a78bfa;
+    }
+    
+    .feature-card,
+    .advanced-card,
+    .quick-start-card {
+        background: #374151;
+        color: #e5e7eb;
+    }
+    
+    .detail-card {
+        background: #4b5563;
+    }
+}
+
+/* ========== 动画效果 ========== */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.section {
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.feature-card,
+.quick-start-card,
+.advanced-card {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+/* ========== 滚动条样式 ========== */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #3730a3, #5b21b6);
+}
+
+/* ========== 个人事件抽取系统样式 ========== */
+
+/* 算法部分样式 */
+.algorithm-section {
+    margin-bottom: 3rem;
+    background: linear-gradient(135deg, #fefcbf, #fef3c7);
+    padding: 2rem;
+    border-radius: 15px;
+    border: 2px solid #f59e0b;
+}
+
+.algorithm-section h4 {
+    color: #92400e;
+    margin-bottom: 1.5rem;
+    font-size: 1.4rem;
+}
+
+.algorithm-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.algorithm-steps .step {
+    background: rgba(255, 255, 255, 0.8);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border-left: 4px solid #f59e0b;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.1);
+}
+
+.algorithm-steps .step code {
+    background: #1f2937;
+    color: #10b981;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.85rem;
+    display: block;
+    margin-top: 0.5rem;
+    overflow-x: auto;
+}
+
+/* 流程图样式 */
+.flow-chart {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+}
+
+.flow-node {
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    font-weight: bold;
+    color: white;
+    text-align: center;
+    min-width: 160px;
+    font-size: 0.9rem;
+}
+
+.flow-node.start {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.flow-node.process {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.flow-node.decision {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.flow-node.end {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.flow-arrow-down {
+    font-size: 1.2rem;
+    color: #6b7280;
+    font-weight: bold;
+}
+
+/* 重抽系统样式 */
+.reroll-section {
+    margin-bottom: 3rem;
+    background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+    padding: 2rem;
+    border-radius: 15px;
+    border: 2px solid #0ea5e9;
+}
+
+.reroll-section h4 {
+    color: #0369a1;
+    margin-bottom: 1.5rem;
+    font-size: 1.4rem;
+}
+
+.reroll-overview {
+    margin-bottom: 2rem;
+}
+
+.reroll-intro {
+    background: rgba(255, 255, 255, 0.8);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border-left: 4px solid #0ea5e9;
+    color: #0c4a6e;
+    font-style: italic;
+}
+
+.usage-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.usage-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    border-left: 4px solid #0ea5e9;
+}
+
+.usage-icon {
+    font-size: 1.8rem;
+    flex-shrink: 0;
+    color: #0369a1;
+}
+
+.usage-item strong {
+    color: #0369a1;
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.usage-item p {
+    color: #0c4a6e;
+    margin: 0.3rem 0;
+    line-height: 1.6;
+}
+
+.operation-methods {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.method-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    border-left: 4px solid #0ea5e9;
+}
+
+.method-number {
+    background: linear-gradient(135deg, #0ea5e9, #0284c7);
+    color: white;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.method-item strong {
+    color: #0369a1;
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.method-item p {
+    color: #0c4a6e;
+    margin: 0.3rem 0;
+    line-height: 1.6;
+}
+
+/* 获得机制样式 */
+.acquisition-section {
+    margin-bottom: 3rem;
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    padding: 2rem;
+    border-radius: 15px;
+    border: 2px solid #22c55e;
+}
+
+.acquisition-section h4 {
+    color: #15803d;
+    margin-bottom: 1.5rem;
+    font-size: 1.4rem;
+}
+
+.initial-allocation {
+    margin-bottom: 2rem;
+}
+
+.allocation-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    border-left: 4px solid #22c55e;
+}
+
+.allocation-icon {
+    font-size: 1.8rem;
+    flex-shrink: 0;
+    color: #15803d;
+}
+
+.allocation-item strong {
+    color: #15803d;
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.allocation-item p {
+    color: #166534;
+    margin: 0.3rem 0;
+    line-height: 1.6;
+}
+
+.dynamic-acquisition {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.acquisition-method {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    border-left: 4px solid #22c55e;
+}
+
+.method-icon {
+    font-size: 1.8rem;
+    flex-shrink: 0;
+    color: #15803d;
+}
+
+.acquisition-method strong {
+    color: #15803d;
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.acquisition-method p {
+    color: #166534;
+    margin: 0.3rem 0;
+    line-height: 1.6;
+}
+
+/* 概率系统样式 */
+.probability-section {
+    margin-bottom: 3rem;
+    background: linear-gradient(135deg, #fdf2f8, #fce7f3);
+    padding: 2rem;
+    border-radius: 15px;
+    border: 2px solid #ec4899;
+}
+
+.probability-section h4 {
+    color: #be185d;
+    margin-bottom: 1.5rem;
+    font-size: 1.4rem;
+}
+
+.probability-explanation {
+    background: rgba(255, 255, 255, 0.8);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border-left: 4px solid #ec4899;
+    margin-bottom: 2rem;
+    color: #831843;
+    font-style: italic;
+}
+
+.formula-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.formula-item {
+    background: rgba(255, 255, 255, 0.8);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border-left: 4px solid #ec4899;
+}
+
+.formula-item strong {
+    color: #be185d;
+    display: block;
+    margin-bottom: 0.8rem;
+    font-size: 1.1rem;
+}
+
+.formula {
+    background: #1f2937;
+    color: #ec4899;
+    padding: 0.8rem 1rem;
+    border-radius: 6px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 1rem;
+    margin: 0.5rem 0;
+    display: block;
+    text-align: center;
+    font-weight: bold;
+}
+
+.formula-item p {
+    color: #831843;
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+.probability-features {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.feature-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    border-left: 4px solid #ec4899;
+}
+
+.feature-icon {
+    font-size: 1.8rem;
+    flex-shrink: 0;
+    color: #be185d;
+}
+
+.feature-item strong {
+    color: #be185d;
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.feature-item p {
+    color: #831843;
+    margin: 0.3rem 0;
+    line-height: 1.6;
+}
+
+/* 概率图表样式 */
+.probability-chart-section {
+    margin-bottom: 3rem;
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+    padding: 2rem;
+    border-radius: 15px;
+    border: 2px solid #6b7280;
+}
+
+.probability-chart-section h4 {
+    color: #374151;
+    margin-bottom: 1.5rem;
+    font-size: 1.4rem;
+    text-align: center;
+}
+
+.chart-container {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.chart-description {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #4b5563;
+    font-style: italic;
+}
+
+.chart-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+#probabilityChart {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    max-width: 100%;
+    height: auto;
+}
+
+.chart-legend {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: #4b5563;
+}
+
+.legend-color {
+    width: 20px;
+    height: 4px;
+    border-radius: 2px;
+}
+
+.legend-color.total {
+    background: #4f46e5;
+}
+
+.legend-color.plus {
+    background: #10b981;
+}
+
+.legend-color.minus {
+    background: #ef4444;
+}
+
+.probability-table-enhanced {
+    margin-top: 2rem;
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.probability-table-enhanced h5 {
+    color: #374151;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    font-size: 1.2rem;
+}
+
+.probability-table-enhanced table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+}
+
+.probability-table-enhanced th,
+.probability-table-enhanced td {
+    padding: 1rem;
+    text-align: center;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.probability-table-enhanced th {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: white;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.probability-table-enhanced td {
+    color: #555;
+}
+
+.probability-table-enhanced tr:nth-child(even) {
+    background: rgba(79, 70, 229, 0.05);
+}
+
+.probability-table-enhanced tr:hover {
+    background: rgba(79, 70, 229, 0.1);
+}
+
+.table-note {
+    background: linear-gradient(135deg, #fffbeb, #fef3c7);
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid #f59e0b;
+    margin-top: 1rem;
+}
+
+.table-note p {
+    color: #92400e;
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+}
+
+.table-note strong {
+    color: #78350f;
+}
+
+/* 事件分类样式 */
+.event-classification {
+    margin-bottom: 3rem;
+    background: linear-gradient(135deg, #f5f3ff, #ede9fe);
+    padding: 2rem;
+    border-radius: 15px;
+    border: 2px solid #8b5cf6;
+}
+
+.event-classification h4 {
+    color: #6d28d9;
+    margin-bottom: 1.5rem;
+    font-size: 1.4rem;
+}
+
+.event-category {
+    background: rgba(255, 255, 255, 0.8);
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid #8b5cf6;
+}
+
+.category-header {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+}
+
+.category-icon {
+    font-size: 1.3rem;
+    color: #6d28d9;
+}
+
+.category-header strong {
+    color: #6d28d9;
+    font-size: 1.1rem;
+}
+
+.event-category ul {
+    margin: 0;
+    padding-left: 1.5rem;
+}
+
+.event-category li {
+    margin-bottom: 0.8rem;
+    color: #5b21b6;
+    line-height: 1.5;
+}
+
+.event-category li strong {
+    color: #4c1d95;
+}
+
+.team-event-types {
+    background: rgba(255, 255, 255, 0.6);
+    padding: 1rem;
+    border-radius: 12px;
+}
+
+.team-category {
+    background: rgba(255, 255, 255, 0.8);
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid #7c3aed;
+}
+
+.team-category .category-header {
+    color: #7c3aed;
+}
+
+.team-category .category-icon {
+    color: #7c3aed;
+}
+
+.team-category ul {
+    margin: 0;
+    padding-left: 1.5rem;
+}
+
+.team-category li {
+    margin-bottom: 0.8rem;
+    color: #6d28d9;
+    line-height: 1.5;
+}
+
+.team-category li strong {
+    color: #5b21b6;
+}
+
+/* 响应式适配 */
+@media (max-width: 768px) {
+    .algorithm-section,
+    .reroll-section,
+    .acquisition-section,
+    .probability-section,
+    .probability-chart-section,
+    .event-classification {
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .usage-item,
+    .method-item,
+    .allocation-item,
+    .acquisition-method,
+    .formula-item,
+    .feature-item {
+        padding: 1rem;
+    }
+    
+    .usage-icon,
+    .method-icon,
+    .allocation-icon,
+    .feature-icon {
+        font-size: 1.5rem;
+    }
+    
+    .chart-legend {
+        gap: 1rem;
+    }
+    
+    #probabilityChart {
+        width: 100%;
+        height: 300px;
+    }
+    
+    .flow-chart {
+        padding: 0.5rem;
+    }
+    
+    .flow-node {
+        min-width: 120px;
+        padding: 0.8rem 1rem;
+        font-size: 0.8rem;
+    }
+}
+
+/* ========== 响应式设计优化 ========== */
+@media (max-width: 500px) {
+    /* 容器和基础布局 */
+    .container {
+        margin: 0;
+        border-radius: 0;
+    }
+    
+    .navbar {
+        padding: 0.8rem;
+    }
+    
+    .nav-brand h1 {
+        font-size: 1.2rem;
+    }
+    
+    .nav-menu {
+        gap: 0.3rem;
+    }
+    
+    .nav-menu a {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.8rem;
+    }
+    
+    /* Hero区域优化 */
+    .hero {
+        padding: 2rem 1rem;
+        grid-template-columns: 1fr;
+    }
+    
+    .hero-content h2 {
+        font-size: 1.8rem;
+        line-height: 1.3;
+    }
+    
+    .hero-description {
+        font-size: 1rem;
+    }
+    
+    .hero-stats {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: center;
+    }
+    
+    .stat-item {
+        min-width: 120px;
+        padding: 0.8rem;
+    }
+    
+    .stat-number {
+        font-size: 1.5rem;
+    }
+    
+    /* 区域通用优化 */
+    .section {
+        padding: 2rem 0.8rem;
+    }
+    
+    .section-header h2 {
+        font-size: 1.6rem;
+        line-height: 1.3;
+    }
+    
+    .section-header p {
+        font-size: 1rem;
+    }
+    
+    /* 快速开始卡片优化 */
+    .quick-start-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .quick-start-card {
+        padding: 1.2rem;
+        margin: 0 0.2rem;
+    }
+    
+    .quick-start-card h3 {
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .card-icon {
+        font-size: 2rem;
+        margin-bottom: 0.8rem;
+    }
+    
+    .step-list {
+        padding-left: 1rem;
+    }
+    
+    .step-list li {
+        font-size: 0.9rem;
+        margin-bottom: 0.6rem;
+    }
+    
+    .tip {
+        padding: 0.8rem;
+        font-size: 0.8rem;
+        margin-top: 1rem;
+    }
+    
+    /* 游戏流程图优化 */
+    .game-flow {
+        padding: 1.2rem;
+        margin: 1.5rem 0.2rem 0;
+    }
+    
+    .flow-diagram {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .flow-step {
+        padding: 1rem;
+        min-width: auto;
+        width: 100%;
+        max-width: 280px;
+        margin: 0 auto;
+    }
+    
+    .step-number {
+        width: 30px;
+        height: 30px;
+        font-size: 0.9rem;
+        margin-right: 0.8rem;
+    }
+    
+    .step-content h4 {
+        font-size: 0.85rem;
+    }
+    
+    .step-content p {
+        font-size: 0.75rem;
+    }
+    
+    .flow-arrow {
+        transform: rotate(90deg);
+        font-size: 1.2rem;
+    }
+    
+    /* 详细指南卡片优化 */
+    .feature-detail {
+        padding: 1.5rem;
+        margin: 0 0.2rem 2rem;
+    }
+    
+    .feature-detail h3 {
+        font-size: 1.4rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .detail-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .detail-card {
+        padding: 1.2rem;
+    }
+    
+    .detail-card h4,
+    .detail-card h5 {
+        font-size: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    /* 功能卡片优化 */
+    .features-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .feature-card {
+        padding: 1.2rem;
+        margin: 0 0.2rem;
+    }
+    
+    .feature-icon {
+        font-size: 2rem;
+        margin-bottom: 0.8rem;
+    }
+    
+    .feature-card h3 {
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .feature-content h4 {
+        font-size: 1rem;
+        margin: 1rem 0 0.8rem;
+    }
+    
+    .feature-content ul {
+        padding-left: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .feature-content li {
+        font-size: 0.9rem;
+        margin-bottom: 0.6rem;
+    }
+    
+    /* 高级设置卡片优化 */
+    .advanced-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .advanced-card {
+        padding: 1.5rem;
+        margin: 0 0.2rem;
+    }
+    
+    .advanced-card h3 {
+        font-size: 1.2rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    /* 个人事件抽取系统优化 */
+    .algorithm-section,
+    .reroll-section,
+    .acquisition-section,
+    .probability-section,
+    .probability-chart-section,
+    .event-classification {
+        padding: 1.2rem;
+        margin: 0 0.2rem 1.5rem;
+    }
+    
+    .algorithm-section h4,
+    .reroll-section h4,
+    .acquisition-section h4,
+    .probability-section h4,
+    .probability-chart-section h4,
+    .event-classification h4 {
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+    }
+    
+    /* 步骤和项目优化 */
+    .usage-item,
+    .method-item,
+    .allocation-item,
+    .acquisition-method,
+    .formula-item,
+    .feature-item,
+    .step {
+        padding: 1rem;
+        gap: 0.8rem;
+    }
+    
+    .usage-icon,
+    .method-icon,
+    .allocation-icon,
+    .feature-icon,
+    .step-icon {
+        font-size: 1.3rem;
+    }
+    
+    .method-number,
+    .step-number {
+        width: 28px;
+        height: 28px;
+        font-size: 0.8rem;
+    }
+    
+    /* 流程图特殊优化 */
+    .flow-chart {
+        padding: 0.8rem;
+    }
+    
+    .flow-node {
+        min-width: 140px;
+        max-width: 200px;
+        padding: 0.8rem 1rem;
+        font-size: 0.75rem;
+    }
+    
+    .flow-arrow-down {
+        font-size: 1rem;
+    }
+    
+    /* 概率图表优化 */
+    .chart-container {
+        padding: 1rem;
+    }
+    
+    .chart-description {
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+    
+    #probabilityChart {
+        width: 100%;
+        height: 250px;
+    }
+    
+    .chart-legend {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .legend-item {
+        font-size: 0.8rem;
+    }
+    
+    /* 表格优化 */
+    .probability-table-enhanced {
+        padding: 1rem;
+        overflow-x: auto;
+    }
+    
+    .probability-table-enhanced table {
+        min-width: 300px;
+        font-size: 0.8rem;
+    }
+    
+    .probability-table-enhanced th,
+    .probability-table-enhanced td {
+        padding: 0.6rem 0.4rem;
+    }
+    
+    .probability-table-enhanced h5 {
+        font-size: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    /* 代码示例优化 */
+    .code-example {
+        padding: 1rem;
+        margin: 1rem 0.2rem;
+    }
+    
+    .code-example h4 {
+        font-size: 1rem;
+        margin-bottom: 0.8rem;
+    }
+    
+    .code-example pre {
+        font-size: 0.75rem;
+        overflow-x: auto;
+    }
+    
+    .algorithm-steps .step code {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.4rem;
+    }
+    
+    .formula {
+        font-size: 0.8rem;
+        padding: 0.6rem 0.8rem;
+    }
+    
+    /* 事件分类优化 */
+    .event-category,
+    .team-category {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .category-header {
+        gap: 0.6rem;
+        margin-bottom: 0.8rem;
+    }
+    
+    .category-icon {
+        font-size: 1.1rem;
+    }
+    
+    .category-header strong {
+        font-size: 1rem;
+    }
+    
+    .event-category ul,
+    .team-category ul {
+        padding-left: 1rem;
+    }
+    
+    .event-category li,
+    .team-category li {
+        font-size: 0.9rem;
+        margin-bottom: 0.6rem;
+    }
+    
+    /* 模式和标签优化 */
+    .mode-item {
+        flex-direction: column;
+        gap: 0.8rem;
+        align-items: flex-start;
+    }
+    
+    .mode-badge {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
+        min-width: auto;
+    }
+    
+    .mode-desc {
+        font-size: 0.9rem;
+    }
+    
+    .type-badge {
+        font-size: 0.8rem;
+        padding: 0.4rem 1rem;
+        margin-bottom: 0.8rem;
+    }
+    
+    /* 存储和信息项目优化 */
+    .storage-item,
+    .view-item,
+    .debug-item,
+    .issue-item {
+        padding: 1rem;
+        gap: 0.8rem;
+    }
+    
+    .storage-icon,
+    .view-icon,
+    .debug-icon {
+        font-size: 1.3rem;
+    }
+    
+    /* 文件结构优化 */
+    .file-item {
+        padding: 0.8rem;
+        gap: 0.8rem;
+    }
+    
+    .file-icon {
+        font-size: 1.2rem;
+    }
+    
+    .file-item strong {
+        font-size: 0.9rem;
+    }
+    
+    .file-item p {
+        font-size: 0.8rem;
+    }
+    
+    /* 部署步骤优化 */
+    .deploy-step {
+        padding: 1rem;
+        gap: 0.8rem;
+    }
+    
+    .deploy-step .step-number {
+        width: 28px;
+        height: 28px;
+        font-size: 0.8rem;
+    }
+    
+    .deploy-step h5 {
+        font-size: 0.9rem;
+        margin-bottom: 0.4rem;
+    }
+    
+    .deploy-step code {
+        font-size: 0.7rem;
+        padding: 0.4rem 0.6rem;
+        margin-top: 0.4rem;
+    }
+    
+    .deploy-step p {
+        font-size: 0.8rem;
+    }
+    
+    /* 需求项目优化 */
+    .requirements {
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .req-item {
+        padding: 0.6rem 1rem;
+        font-size: 0.8rem;
+    }
+    
+    .req-icon {
+        font-size: 1rem;
+    }
+    
+    /* 技术栈优化 */
+    .tech-stack {
+        gap: 0.3rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .tech-item {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
+    }
+    
+    /* 同步和元素标签优化 */
+    .sync-items,
+    .element-types,
+    .responsive-features {
+        gap: 0.3rem;
+    }
+    
+    .sync-item,
+    .element,
+    .responsive-item {
+        font-size: 0.7rem;
+        padding: 0.3rem 0.6rem;
+    }
+    
+    /* 投票相关优化 */
+    .vote-step {
+        padding: 1rem;
+        gap: 0.8rem;
+    }
+    
+    .vote-step-number {
+        width: 28px;
+        height: 28px;
+        font-size: 0.8rem;
+    }
+    
+    .vote-step-content h5 {
+        font-size: 0.9rem;
+        margin-bottom: 0.4rem;
+    }
+    
+    .vote-step-content p {
+        font-size: 0.8rem;
+    }
+    
+    .voting-example {
+        padding: 1.2rem;
+        margin: 1rem 0.2rem;
+    }
+    
+    .voting-example h4 {
+        font-size: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .vote-option {
+        padding: 0.8rem;
+    }
+    
+    .option-name {
+        font-size: 0.9rem;
+        margin-bottom: 0.4rem;
+    }
+    
+    .vote-details {
+        font-size: 0.8rem;
+        margin-bottom: 0.4rem;
+    }
+    
+    .vote-total {
+        font-size: 0.8rem;
+    }
+    
+    .result {
+        padding: 0.8rem;
+        font-size: 0.9rem;
+    }
+    
+    /* 注释和提示优化 */
+    .table-note,
+    .deployment-note {
+        padding: 0.8rem;
+        margin-top: 0.8rem;
+    }
+    
+    .table-note p,
+    .deployment-note p {
+        font-size: 0.8rem;
+        margin: 0.3rem 0;
+    }
+    
+    .reroll-intro {
+        padding: 1rem;
+        font-size: 0.9rem;
+    }
+    
+    /* 页脚优化 */
+    .footer {
+        padding: 2rem 0.8rem 1.5rem;
+    }
+    
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        text-align: center;
+    }
+    
+    .footer-section h4 {
+        font-size: 1rem;
+        margin-bottom: 0.8rem;
+    }
+    
+    .footer-section li {
+        margin-bottom: 0.3rem;
+    }
+    
+    .footer-section a {
+        font-size: 0.9rem;
+    }
+    
+    .footer-bottom {
+        padding-top: 1.5rem;
+    }
+    
+    .footer-bottom p {
+        font-size: 0.8rem;
+        margin: 0.3rem 0;
+    }
+    
+    /* 返回顶部按钮优化 */
+    .back-to-top {
+        bottom: 1rem;
+        right: 1rem;
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
+    
+    /* 链接按钮优化 */
+    .link-buttons {
+        gap: 0.8rem;
+        justify-content: center;
+    }
+    
+    .link-btn {
+        padding: 0.6rem 1rem;
+        font-size: 0.8rem;
+        min-width: 120px;
+        text-align: center;
+    }
+    
+    /* 故障排除优化 */
+    .issue-title {
+        font-size: 1rem;
+        margin-bottom: 0.8rem;
+    }
+    
+    .issue-solution ul {
+        padding-left: 1rem;
+    }
+    
+    .issue-solution li {
+        font-size: 0.8rem;
+        margin-bottom: 0.4rem;
+    }
+    
+    /* 特殊容器边距调整 */
+    .probability-explanation,
+    .reroll-overview,
+    .chart-container {
+        margin: 0 0.2rem 1.5rem;
+    }
+    
+    /* 文本和内容微调 */
+    .algorithm-steps .step strong,
+    .usage-item strong,
+    .method-item strong,
+    .allocation-item strong,
+    .acquisition-method strong,
+    .formula-item strong,
+    .feature-item strong {
+        font-size: 1rem;
+        margin-bottom: 0.4rem;
+    }
+    
+    .algorithm-steps .step p,
+    .usage-item p,
+    .method-item p,
+    .allocation-item p,
+    .acquisition-method p,
+    .formula-item p,
+    .feature-item p {
+        font-size: 0.85rem;
+        line-height: 1.5;
+        margin: 0.2rem 0;
+    }
+}
+
+/* ========== 极小屏幕优化 (400px以下) ========== */
+@media (max-width: 400px) {
+    .hero-content h2 {
+        font-size: 1.5rem;
+    }
+    
+    .section-header h2 {
+        font-size: 1.4rem;
+    }
+    
+    .quick-start-card,
+    .feature-card,
+    .advanced-card {
+        padding: 1rem;
+    }
+    
+    .feature-detail {
+        padding: 1.2rem;
+    }
+    
+    .algorithm-section,
+    .reroll-section,
+    .acquisition-section,
+    .probability-section,
+    .probability-chart-section,
+    .event-classification {
+        padding: 1rem;
+    }
+    
+    .flow-step {
+        max-width: 240px;
+        padding: 0.8rem;
+    }
+    
+    .step-number {
+        width: 25px;
+        height: 25px;
+        font-size: 0.7rem;
+    }
+    
+    .step-content h4 {
+        font-size: 0.8rem;
+    }
+    
+    .step-content p {
+        font-size: 0.7rem;
+    }
+    
+    #probabilityChart {
+        height: 200px;
+    }
+    
+    .navbar {
+        padding: 0.6rem;
+    }
+    
+    .nav-brand h1 {
+        font-size: 1rem;
+    }
+    
+    .nav-menu a {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.7rem;
+    }
+}

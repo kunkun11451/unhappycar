@@ -12,6 +12,7 @@ const eventManagement = document.getElementById("eventManagement");
 const eventHistory = document.getElementById("eventHistory");
 const moreSettings = document.getElementById("moreSettings");
 const gameSettings = document.getElementById("gameSettings");
+const userDocumentation = document.getElementById("userDocumentation");
 
 // 打开设置弹窗
 settingsButton.addEventListener("click", () => {
@@ -110,10 +111,14 @@ gameSettings.addEventListener("click", () => {
     // 创建容器并插入内容
     const container = document.createElement("div");
     container.innerHTML = "<p>这里是游戏设置的内容。</p>";
-    container.appendChild(resetButton);
-
-    // 显示游戏设置内容
+    container.appendChild(resetButton);    // 显示游戏设置内容
     selectOption(gameSettings, "游戏设置", container);
+});
+
+// 使用文档按钮点击事件
+userDocumentation.addEventListener("click", () => {
+    // 在新窗口中打开使用文档
+    window.open('documentation.html', '_blank');
 });
 
 // 通用函数：选定设置选项

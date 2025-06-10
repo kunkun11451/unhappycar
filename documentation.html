@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unhappycar -使用文档</title>
+    <link rel="stylesheet" href="documentation-styles.css">
+    <link rel="icon" href="https://bbs-static.miyoushe.com/static/2024/06/12/7982e4f54092be80c43a251f26e44235_6026540790739799944.png" type="image/png">
+</head>
+<body>
+    <div class="container">
+        <!-- 导航栏 -->
+        <nav class="navbar">
+            <div class="nav-brand">
+                <img src="https://upload-bbs.miyoushe.com/upload/2024/06/29/273489775/4be47bf1376bfb4f69c1e3fe26c8a8e8_8119842655567179283.png" alt="Logo" class="logo">
+                <h1>Unhappycar 使用文档</h1>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#quick-start">快速开始</a></li>
+                <li><a href="#detailed-guide">详细指南</a></li>
+                <li><a href="#features">功能说明</a></li>
+                <li><a href="#advanced">高级设置</a></li>
+            </ul>
+        </nav>
+
+        <!-- 项目简介 -->
+        <section class="hero">
+            <div class="hero-content">
+                <h2>猿神锄地娱乐车角色和事件抽取器</h2>
+                <p class="hero-description">
+                    这是一个为玩家设计的多人在线角色和事件抽取系统，支持实时同步、多种BP模式、自定义事件管理等功能。
+                </p>
+            
+            </div>
+            <div class="hero-image">
+                <img src="https://upload-bbs.miyoushe.com/upload/2024/05/10/404686886/17350b7b4b6f4c5af3d5d5bcc4a52250_6220852643654440217.png  " alt="游戏截图">
+            </div>
+        </section>
+
+        <!-- 快速开始 -->
+        <section id="quick-start" class="section">
+            <div class="section-header">
+                <h2>🚀 快速开始</h2>
+                <p>几分钟内开始您的第一场游戏</p>
+            </div>
+
+            <div class="quick-start-grid">
+                <!-- 单人游戏 -->
+                <div class="quick-start-card">
+                    <div class="card-icon">🎮</div>
+                    <h3>单机模式</h3>
+                    <ol class="step-list">
+                        <li>打开游戏页面</li>
+                        <li>点击"进去看看"按钮</li>
+                        <li>点击"开始抽取"获得角色</li>
+                        <li>点击"抽取事件"获得任务</li>
+                    </ol>
+                    <div class="tip">
+                        <strong>💡 </strong> 单人模式适合练习和熟悉游戏机制
+                    </div>
+                </div>
+
+                <!-- 多人游戏-主持 -->
+                <div class="quick-start-card">
+                    <div class="card-icon">👑</div>
+                    <h3>主持多人游戏</h3>
+                    <ol class="step-list">
+                        <li>等待服务器连接（1-30秒）</li>
+                        <li>点击"主持游戏"按钮</li>
+                        <li>复制房间代码发给朋友</li>
+                        <li>开始抽取角色和事件</li>
+                        <li>管理游戏进程</li>
+                    </ol>
+                    <div class="tip">
+                        <strong>⚠️ </strong> 主持人断线会导致房间解散，使用电脑端获得更好体验。
+                    </div>
+                </div>
+
+                <!-- 多人游戏-加入 -->
+                <div class="quick-start-card">
+                    <div class="card-icon">👥</div>
+                    <h3>加入多人游戏</h3>
+                    <ol class="step-list">
+                        <li>等待服务器连接</li>
+                        <li>点击"加入游戏"按钮</li>
+                        <li>输入主持人提供的房间代码</li>
+                        <li>等待主持人开始游戏</li>
+                        <li>参与团体事件投票</li>
+                    </ol>
+                    <div class="tip">
+                        <strong>⚠️ </strong> 遇到不刷新等情况可以尝试刷新界面重新进入房间。
+                    </div>
+                </div>
+            </div>
+
+            <!-- 游戏流程图 -->
+            <div class="game-flow">
+                <h3>🔄 完整游戏流程</h3>
+                <div class="flow-diagram">
+                    <div class="flow-step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h4>游戏准备</h4>
+                            <p>配置你想玩的事件，设置BP规则</p>
+                        </div>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h4>抽取角色</h4>
+                            <p>为每位玩家随机分配角色</p>
+                            <p>没有的角色告知主持人</p>
+                            <p>点击对应的角色卡片可重新抽取</p>
+                        </div>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h4>抽取事件</h4>
+                            <p>获得个人事件和团体事件</p>
+                        </div>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                        <div class="flow-step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h4>重抽个人事件</h4>
+                            <p>可以消耗重抽次数重抽不喜欢的任务</p>
+                        </div>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <div class="step-number">5</div>
+                        <div class="step-content">
+                            <h4>团体投票</h4>
+                            <p>投票选择团体事件</p>
+                        </div>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <div class="step-number">6</div>
+                        <div class="step-content">
+                            <h4>执行任务</h4>
+                            <p>在游戏中完成相应任务</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 详细指南 -->
+        <section id="detailed-guide" class="section">
+            <div class="section-header">
+                <h2>📚 详细指南</h2>
+                <p>深入了解每个功能的具体操作方法</p>
+            </div>
+
+            <!-- 角色抽取系统 -->
+            <div class="feature-detail">
+                <h3>🎭 角色抽取系统</h3>
+                
+                <div class="detail-grid">
+                    <div class="detail-card">
+                        <h4>BP模式说明</h4>
+                        <div class="mode-list">
+                            <div class="mode-item">
+                                <div class="mode-badge global">全局</div>
+                                <div class="mode-desc">
+                                    <strong>全局BP模式：</strong>所有玩家共享已使用角色列表，一旦被抽中的角色，其他玩家无法再次抽到
+                                </div>
+                            </div>
+                            <div class="mode-item">
+                                <div class="mode-badge personal">个人</div>
+                                <div class="mode-desc">
+                                    <strong>个人BP模式：</strong>每个玩家独立维护已使用角色列表，不同玩家可以抽到相同角色
+                                </div>
+                            </div>
+                            <div class="mode-item">
+                                <div class="mode-badge off">关闭</div>
+                                <div class="mode-desc">
+                                    <strong>关闭BP模式：</strong>不限制角色重复，完全随机抽取
+                                </div>
+                            </div>
+                            <div class="step">
+                                <span class="step-icon">🚫</span>
+                                <div>
+                                    <strong>屏蔽机制：</strong>
+                                    <p>若使用点击角色卡片重抽，则重抽前的角色会视为“该玩家无此角色”，对应玩家以后都不会抽到“没有的角色”</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-card">
+                        <h4>角色抽取机制</h4>
+                        <div class="mechanism-steps">
+                            <div class="step">
+                                <span class="step-icon">🎲</span>
+                                <div>
+                                    <strong>随机算法：</strong>
+                                    <p>使用JavaScript Math.random()确保随机性</p>
+                                </div>
+                            </div>
+                            <div class="step">
+                                <span class="step-icon">🚫</span>
+                                <div>
+                                    <strong>排除机制：</strong>
+                                    <p>根据BP模式和禁用列表过滤不可用角色</p>
+                                </div>
+                            </div>
+                            <div class="step">
+                                <span class="step-icon">🔄</span>
+                                <div>
+                                    <strong>单独重抽：</strong>
+                                    <p>点击角色卡片可为该位置重新抽取角色</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="code-example">
+                    <h4>角色过滤逻辑示例</h4>
+                    <pre><code>// 根据BP模式过滤可用角色
+if (gameState.bpMode === 'personal') {
+    availableChars = availableChars.filter(c => 
+        !gameState.usedCharacters.players[index].has(c) && 
+        !unavailableSet.has(c)
+    );
+} else if (gameState.bpMode === 'global') {
+    availableChars = availableChars.filter(c => 
+        !gameState.usedCharacters.global.has(c) && 
+        !unavailableSet.has(c)
+    );
+}</code></pre>
+                </div>
+            </div>            <!-- 个人事件抽取系统 -->
+            <div class="feature-detail">
+                <h3>🎯 个人事件抽取系统</h3>
+                
+                <!-- 事件抽取算法 -->
+                <div class="algorithm-section">
+                    <h4>🔬 随机算法详解</h4>
+                    <div class="detail-grid">
+                        <div class="detail-card">
+                            <h5>核心随机机制</h5>
+                            <div class="algorithm-steps">
+                                <div class="step">
+                                    <span class="step-icon">🎲</span>
+                                    <div>
+                                        <strong>伪随机数生成：</strong>
+                                        <p>暂时使用 JavaScript 内置 Math.random() 函数，基于线性同余生成器（LCG）算法</p>
+                                        <code>Math.floor(Math.random() * availableEvents.length)</code>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <span class="step-icon">🎯</span>
+                                    <div>
+                                        <strong>均匀分布保证：</strong>
+                                        <p>每个启用的事件被选中的概率完全相等，确保抽取的公平性</p>
+                                        <p>概率计算：P = 1 / n（其中 n 为可用事件总数）</p>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <span class="step-icon">🔍</span>
+                                    <div>
+                                        <strong>事件过滤机制：</strong>
+                                        <p>在随机选择前先过滤已禁用的事件，确保只从有效事件池中抽取</p>
+                                        <p>动态更新可用事件列表，实时反映用户设置</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="detail-card">
+                            <h5>抽取流程图</h5>
+                            <div class="flow-chart">
+                                <div class="flow-node start">
+                                    <span>开始抽取</span>
+                                </div>
+                                <div class="flow-arrow-down">↓</div>
+                                <div class="flow-node process">
+                                    <span>获取已启用事件列表</span>
+                                </div>
+                                <div class="flow-arrow-down">↓</div>
+                                <div class="flow-node decision">
+                                    <span>检查可用事件数量</span>
+                                </div>
+                                <div class="flow-arrow-down">↓</div>
+                                <div class="flow-node process">
+                                    <span>生成随机索引</span>
+                                </div>
+                                <div class="flow-arrow-down">↓</div>
+                                <div class="flow-node process">
+                                    <span>选择对应事件</span>
+                                </div>
+                                <div class="flow-arrow-down">↓</div>
+                                <div class="flow-node end">
+                                    <span>显示事件内容</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 重抽次数系统 -->
+                <div class="reroll-section">
+                    <h4>🔄 重抽次数系统</h4>
+                    
+                    <div class="reroll-overview">
+                        <div class="reroll-intro">
+                            <p>重抽系统是游戏的核心机制之一，为玩家提供了二次选择的机会，增加了游戏的策略性和容错性。</p>
+                        </div>
+                    </div>
+
+                    <div class="detail-grid">
+                        <div class="detail-card">
+                            <h5>重抽次数的用途</h5>
+                            <div class="usage-list">
+                                <div class="usage-item">
+                                    <span class="usage-icon">🎯</span>
+                                    <div>
+                                        <strong>个人事件重抽：</strong>
+                                        <p>点击任意个人事件卡片消耗1次重抽机会，重新随机一个事件</p>
+                                        <p>适用于不喜欢当前事件或事件过于困难的情况</p>
+                                    </div>
+                                </div>
+                                <div class="usage-item">
+                                    <span class="usage-icon">👥</span>
+                                    <div>
+                                        <strong>全队共享机制：</strong>
+                                        <p>重抽次数为全队共享资源，任何玩家都可以使用</p>
+                                        <p>鼓励团队协作和策略讨论</p>
+                                    </div>
+                                </div>
+                                <div class="usage-item">
+                                    <span class="usage-icon">⚖️</span>
+                                    <div>
+                                        <strong>策略选择：</strong>
+                                        <p>需要权衡是否值得消耗重抽次数</p>
+                                        <p>建议保留一定数量应对后续更困难的事件</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="detail-card">
+                            <h5>重抽操作方法</h5>
+                            <div class="operation-methods">
+                                <div class="method-item">
+                                    <span class="method-number">1</span>
+                                    <div>
+                                        <strong>点击事件卡片：</strong>
+                                        <p>直接点击想要重抽的个人事件卡片</p>
+                                        <p>系统自动消耗1次重抽并显示新事件</p>
+                                    </div>
+                                </div>
+                                <div class="method-item">
+                                    <span class="method-number">2</span>
+                                    <div>
+                                        <strong>手动调节：</strong>
+                                        <p>使用重抽计数器旁的 ± 按钮</p>
+                                        <p>主持人可以手动增减重抽次数</p>
+                                        <p>用于操作事件本身带有重抽事件的情况</p>
+                                    </div>
+                                </div>
+                                <div class="method-item">
+                                    <span class="method-number">3</span>
+                                    <div>
+                                        <strong>限制条件：</strong>
+                                        <p>重抽次数为0时无法进行事件重抽</p>
+                                        <p>重抽后的事件仍可以再次重抽（如有次数）</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 重抽次数获得机制 -->
+                <div class="acquisition-section">
+                    <h4>📈 重抽次数获得机制</h4>
+                    
+                    <div class="detail-grid">
+                        <div class="detail-card">
+                            <h5>初始分配</h5>
+                            <div class="initial-allocation">
+                                <div class="allocation-item">
+                                    <span class="allocation-icon">🎮</span>
+                                    <div>
+                                        <strong>游戏开始时：</strong>
+                                        <p>每次开始新游戏或重置游戏时，重抽次数重置为3次</p>
+                                        <p>这个数值是经过平衡性测试确定的最佳初始值</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="detail-card">
+                            <h5>动态获得机制</h5>
+                            <div class="dynamic-acquisition">
+                                <div class="acquisition-method">
+                                    <span class="method-icon">🎲</span>
+                                    <div>
+                                        <strong>抽取事件时触发：</strong>
+                                        <p>每次抽取个人事件时都有机会获得额外重抽次数</p>
+                                        <p>这是游戏中重抽次数的主要来源</p>
+                                    </div>
+                                </div>
+                                <div class="acquisition-method">
+                                    <span class="method-icon">🎯</span>
+                                    <div>
+                                        <strong>触发判定：</strong>
+                                        <p>系统生成0-1之间的随机数与当前概率比较</p>
+                                        <p>若随机数小于触发概率，则激活重抽次数变化</p>
+                                    </div>
+                                </div>                                <div class="acquisition-method">
+                                    <span class="method-icon">⚖️</span>
+                                    <div>
+                                        <strong>增减机制：</strong>
+                                        <p>触发"重抽次数"事件时：+1和-1各有50%概率</p>
+                                        <p>特殊保护：连续两次-1后，下一次必定是+1</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 概率系统详解 -->
+                <div class="probability-section">
+                    <h4>📊 概率系统详解</h4>
+                    
+                    <div class="probability-explanation">
+                        <p>重抽概率系统采用递增机制，确保玩家在连续未触发时获得更高的补偿概率，同时避免过度堆叠资源。</p>
+                    </div>
+
+                    <div class="detail-grid">
+                        <div class="detail-card">
+                            <h5>概率计算公式</h5>
+                            <div class="formula-section">
+                                <div class="formula-item">
+                                    <strong>基础概率：</strong>
+                                    <div class="formula">P₀ = 5% = 0.05</div>
+                                </div>
+                                <div class="formula-item">
+                                    <strong>累积概率：</strong>
+                                    <div class="formula">Pₙ = P₀ + (n-1) × 0.05</div>
+                                    <p>其中 n 为连续未触发的次数</p>
+                                </div>                                <div class="formula-item">
+                                    <strong>重抽+1概率：</strong>
+                                    <div class="formula">P(+1) = 50%（正常情况）或 100%（连续-1保护）</div>
+                                </div>
+                                <div class="formula-item">
+                                    <strong>重抽-1概率：</strong>
+                                    <div class="formula">P(-1) = 50%（正常情况）或 0%（连续-1保护）</div>
+                                </div>
+                                <div class="formula-item">
+                                    <strong>保护机制：</strong>
+                                    <div class="formula">连续-1计数 ≥ 2 → 强制+1</div>
+                                </div>
+                                <div class="formula-item">
+                                    <strong>触发后重置：</strong>
+                                    <div class="formula">Pₙ₊₁ = P₀ = 5%</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="detail-card">
+                            <h5>概率特性分析</h5>
+                            <div class="probability-features">
+                                <div class="feature-item">
+                                    <span class="feature-icon">📈</span>
+                                    <div>
+                                        <strong>递增保底机制：</strong>
+                                        <p>连续未触发时概率递增，最高可达95%（理论上）</p>
+                                        <p>避免玩家长期无法获得重抽次数的情况</p>
+                                    </div>
+                                </div>
+                                <div class="feature-item">
+                                    <span class="feature-icon">🔄</span>
+                                    <div>
+                                        <strong>重置机制：</strong>
+                                        <p>一旦触发，概率立即重置为基础5%</p>
+                                        <p>防止概率过高导致资源泛滥</p>
+                                    </div>
+                                </div>                                <div class="feature-item">
+                                    <span class="feature-icon">⚖️</span>
+                                    <div>
+                                        <strong>平衡性设计：</strong>
+                                        <p>正常情况下50%概率获得重抽，50%概率失去重抽</p>
+                                        <p>保护机制确保不会连续失去过多重抽次数</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 概率函数图像 -->
+                <div class="probability-chart-section">
+                    <h4>📈 重抽概率函数图像</h4>
+                    
+                    <div class="chart-container">
+                        <div class="chart-description">
+                            <p>以下图表展示了重抽概率随抽取次数的变化趋势，帮助理解概率系统的运作机制。</p>
+                        </div>
+                        
+                        <div class="chart-wrapper">
+                            <canvas id="probabilityChart" width="800" height="400"></canvas>
+                        </div>
+                        
+                        <div class="chart-legend">
+                            <div class="legend-item">
+                                <span class="legend-color total"></span>
+                                <span>总触发概率</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color plus"></span>
+                                <span>重抽+1概率</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color minus"></span>
+                                <span>重抽-1概率</span>
+                            </div>
+                        </div>
+                    </div>
+                        <div class="table-note">
+                            <p><strong>期望重抽变化</strong> = P(+1) × 1 + P(-1) × (-1) = 正常情况下为0（平衡设计）</p>
+                            <p>保护机制确保连续-1不超过2次，维持长期平衡</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 事件类型分类 -->
+                <div class="event-classification">
+                    <h4>📋 事件类型分类</h4>
+                    <div class="detail-grid">
+                        <div class="detail-card">
+                            <h5>个人事件分类</h5>
+                            <div class="event-types">
+                                <div class="event-category">
+                                    <div class="category-header">
+                                        <span class="category-icon">🌟</span>
+                                        <strong>自选类事件</strong>
+                                    </div>
+                                    <ul>
+                                        <li><strong>四星自选：</strong>可以选择任意四星角色</li>
+                                        <li><strong>五星自选：</strong>可以选择任意五星角色</li>
+                                        <li><strong>元素王：</strong>选择同元素类型的四星角色</li>
+                                        <li><strong>武器王：</strong>选择同武器类型的四星角色</li>
+                                        <li><strong>常驻自选：</strong>从常驻角色中自由选择</li>
+                                    </ul>
+                                </div>
+                                <div class="event-category">
+                                    <div class="category-header">
+                                        <span class="category-icon">🎯</span>
+                                        <strong>条件类事件</strong>
+                                    </div>
+                                    <ul>
+                                        <li><strong>运气游戏：</strong>捡到四星圣遗物获得奖励</li>
+                                        <li><strong>元素论：</strong>触发20次元素反应获得四星自选</li>
+                                        <li><strong>高级元素论：</strong>触发50次元素反应获得五星自选</li>
+                                        <li><strong>无伤挑战：</strong>无伤完成战斗获得奖励</li>
+                                    </ul>
+                                </div>
+                                <div class="event-category">
+                                    <div class="category-header">
+                                        <span class="category-icon">🚫</span>
+                                        <strong>限制类事件</strong>
+                                    </div>
+                                    <ul>
+                                        <li><strong>我来保护你们：</strong>只能使用治疗/护盾角色</li>
+                                        <li><strong>别小瞧我：</strong>单挑世界boss获得奖励</li>
+                                        <li><strong>总比没有好吧：</strong>只能使用大招的角色</li>
+                                    </ul>
+                                </div>
+                                <div class="event-category">
+                                    <div class="category-header">
+                                        <span class="category-icon">🔄</span>
+                                        <strong>互动类事件</strong>
+                                    </div>
+                                    <ul>
+                                        <li><strong>克隆：</strong>选择队伍中已有的角色</li>
+                                        <li><strong>交换：</strong>与其他玩家交换角色</li>
+                                        <li><strong>拿来吧你：</strong>抢夺其他玩家的角色或事件</li>
+                                        <li><strong>指挥官：</strong>为其他玩家指定角色和事件</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="detail-card">
+                            <h5>团体事件分类</h5>
+                            <div class="team-event-types">
+                                <div class="team-category">
+                                    <div class="category-header">
+                                        <span class="category-icon">🔇</span>
+                                        <strong>行为限制类</strong>
+                                    </div>
+                                    <ul>
+                                        <li><strong>小嘴巴：</strong>禁止发言，只能发表情</li>
+                                        <li><strong>交换双手：</strong>操作方式受限</li>
+                                        <li><strong>关闭UI：</strong>界面元素隐藏</li>
+                                        <li><strong>关闭队友特效：</strong>减少视觉干扰</li>
+                                    </ul>
+                                </div>
+                                <div class="team-category">
+                                    <div class="category-header">
+                                        <span class="category-icon">💪</span>
+                                        <strong>挑战类</strong>
+                                    </div>
+                                    <ul>
+                                        <li><strong>不要笑挑战：</strong>保持严肃表情</li>
+                                        <li><strong>单手操作：</strong>限制操作方式</li>
+                                        <li><strong>传送完等等我啊：</strong>必须第一个到达</li>
+                                    </ul>
+                                </div>
+                                <div class="team-category">
+                                    <div class="category-header">
+                                        <span class="category-icon">🎪</span>
+                                        <strong>互动类</strong>
+                                    </div>
+                                    <ul>
+                                        <li><strong>打起来打起来：</strong>玩家间决斗</li>
+                                        <li><strong>主人的任务：</strong>服从指定玩家命令</li>
+                                        <li><strong>喵喵计数器：</strong>特殊行为要求</li>
+                                    </ul>
+                                </div>
+                                <div class="team-category">
+                                    <div class="category-header">
+                                        <span class="category-icon">⚙️</span>
+                                        <strong>特殊规则类</strong>
+                                    </div>
+                                    <ul>
+                                        <li><strong>全部启动：</strong>保持三个食物buff</li>
+                                        <li><strong>镜头锁定：</strong>视角操作限制</li>
+                                        <li><strong>谁把灯关了：</strong>亮度调节要求</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- JavaScript 图表代码 -->
+                <script>
+                    // 绘制概率函数图像
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const canvas = document.getElementById('probabilityChart');
+                        if (!canvas) return;
+                        
+                        const ctx = canvas.getContext('2d');
+                        const width = canvas.width;
+                        const height = canvas.height;
+                        
+                        // 清空画布
+                        ctx.clearRect(0, 0, width, height);
+                        
+                        // 设置样式
+                        ctx.fillStyle = '#f8f9fa';
+                        ctx.fillRect(0, 0, width, height);
+                        
+                        // 绘制网格
+                        ctx.strokeStyle = '#e0e0e0';
+                        ctx.lineWidth = 1;
+                        
+                        // 垂直网格线
+                        for (let i = 0; i <= 10; i++) {
+                            const x = (width - 100) * i / 10 + 60;
+                            ctx.beginPath();
+                            ctx.moveTo(x, 40);
+                            ctx.lineTo(x, height - 60);
+                            ctx.stroke();
+                        }
+                        
+                        // 水平网格线
+                        for (let i = 0; i <= 8; i++) {
+                            const y = (height - 100) * i / 8 + 40;
+                            ctx.beginPath();
+                            ctx.moveTo(60, y);
+                            ctx.lineTo(width - 40, y);
+                            ctx.stroke();
+                        }
+                        
+                        // 绘制坐标轴
+                        ctx.strokeStyle = '#333';
+                        ctx.lineWidth = 2;
+                        
+                        // X轴
+                        ctx.beginPath();
+                        ctx.moveTo(60, height - 60);
+                        ctx.lineTo(width - 40, height - 60);
+                        ctx.stroke();
+                        
+                        // Y轴
+                        ctx.beginPath();
+                        ctx.moveTo(60, 40);
+                        ctx.lineTo(60, height - 60);
+                        ctx.stroke();
+                        
+                        // 绘制标签
+                        ctx.fillStyle = '#333';
+                        ctx.font = '12px Arial';
+                        ctx.textAlign = 'center';
+                        
+                        // X轴标签
+                        for (let i = 1; i <= 10; i++) {
+                            const x = (width - 100) * i / 10 + 60;
+                            ctx.fillText(i.toString(), x, height - 40);
+                        }
+                        
+                        // Y轴标签
+                        ctx.textAlign = 'right';
+                        for (let i = 0; i <= 8; i++) {
+                            const y = (height - 100) * (8 - i) / 8 + 40;
+                            const value = i * 5;
+                            ctx.fillText(value + '%', 50, y + 4);
+                        }
+                        
+                        // 轴标题
+                        ctx.textAlign = 'center';
+                        ctx.font = '14px Arial';
+                        ctx.fillText('抽取次数', width / 2, height - 15);
+                        
+                        ctx.save();
+                        ctx.translate(20, height / 2);
+                        ctx.rotate(-Math.PI / 2);
+                        ctx.fillText('触发概率', 0, 0);
+                        ctx.restore();
+                        
+                        // 绘制概率曲线
+                        const drawLine = (data, color, lineWidth = 3) => {
+                            ctx.strokeStyle = color;
+                            ctx.lineWidth = lineWidth;
+                            ctx.beginPath();
+                            
+                            data.forEach((point, index) => {
+                                const x = (width - 100) * (index + 1) / 10 + 60;
+                                const y = height - 60 - (height - 100) * point / 40;
+                                
+                                if (index === 0) {
+                                    ctx.moveTo(x, y);
+                                } else {
+                                    ctx.lineTo(x, y);
+                                }
+                                
+                                // 绘制数据点
+                                ctx.fillStyle = color;
+                                ctx.beginPath();
+                                ctx.arc(x, y, 4, 0, 2 * Math.PI);
+                                ctx.fill();
+                            });
+                            
+                            ctx.stroke();
+                        };
+                          // 概率数据 - 50%/50%平衡机制
+                        const totalProbability = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
+                        const plusProbability = totalProbability.map(p => p * 0.5); // 50%概率获得+1
+                        const minusProbability = totalProbability.map(p => p * 0.5); // 50%概率失去-1
+                        
+                        // 绘制三条曲线
+                        drawLine(totalProbability, '#4f46e5'); // 总概率 - 紫色
+                        drawLine(plusProbability, '#10b981'); // +1概率 - 绿色
+                        drawLine(minusProbability, '#ef4444'); // -1概率 - 红色
+                        
+                        // 添加保护机制说明文字
+                        ctx.fillStyle = '#666';
+                        ctx.font = '12px Arial';
+                        ctx.textAlign = 'left';
+                        ctx.fillText('注：连续两次-1后，下一次必定+1（保护机制）', 80, height - 100);
+                    });
+                </script>
+
+            <!-- 团体事件投票系统 -->
+            <div class="feature-detail">
+                <h3>🗳️ 团体事件投票系统</h3>
+                
+                <div class="detail-grid">
+                    <div class="detail-card">
+                        <h4>投票机制</h4>
+                        <div class="voting-rules">
+                            <div class="rule-item">
+                                <span class="rule-icon">👑</span>
+                                <div>
+                                    <strong>主持人权重：</strong>2票
+                                    <p>主持人的投票权重为普通玩家的2倍</p>
+                                </div>
+                            </div>
+                            <div class="rule-item">
+                                <span class="rule-icon">👤</span>
+                                <div>
+                                    <strong>普通玩家：</strong>1票
+                                    <p>每位普通玩家拥有1票投票权</p>
+                                </div>
+                            </div>
+                            <div class="rule-item">
+                                <span class="rule-icon">🎲</span>
+                                <div>
+                                    <strong>平票处理：</strong>随机选择
+                                    <p>如果多个事件得票相同，系统随机从平票的中选择一个</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-card">
+                        <h4>投票流程</h4>
+                        <div class="voting-flow">
+                            <div class="vote-step">
+                                <div class="vote-step-number">1</div>
+                                <div class="vote-step-content">
+                                    <h5>系统抽取3个团体事件</h5>
+                                    <p>自动从团体事件库中随机选择3个事件</p>
+                                </div>
+                            </div>
+                            <div class="vote-step">
+                                <div class="vote-step-number">2</div>
+                                <div class="vote-step-content">
+                                    <h5>玩家进行投票</h5>
+                                    <p>点击想要的事件卡片进行投票</p>
+                                </div>
+                            </div>
+                            <div class="vote-step">
+                                <div class="vote-step-number">3</div>
+                                <div class="vote-step-content">
+                                    <h5>统计投票结果</h5>
+                                    <p>所有人投票完成后自动统计</p>
+                                </div>
+                            </div>
+                            <div class="vote-step">
+                                <div class="vote-step-number">4</div>
+                                <div class="vote-step-content">
+                                    <h5>显示胜出事件</h5>
+                                    <p>高亮显示获胜事件</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="voting-example">
+                    <h4>投票示例</h4>
+                    <div class="example-scenario">
+                        <div class="scenario-setup">
+                            <strong>场景：</strong>4人房间（1主持人 + 3玩家）
+                        </div>
+                        <div class="vote-breakdown">
+                            <div class="vote-option">
+                                <span class="option-name">事件A：小嘴巴</span>
+                                <div class="vote-details">
+                                    <span class="voter">主持人</span>
+                                    <span class="vote-weight">2票</span>
+                                </div>
+                                <div class="vote-total">总计：2票</div>
+                            </div>
+                            <div class="vote-option">
+                                <span class="option-name">事件B：不要笑挑战</span>
+                                <div class="vote-details">
+                                    <span class="voter">玩家1 + 玩家2</span>
+                                    <span class="vote-weight">1+1票</span>
+                                </div>
+                                <div class="vote-total">总计：2票</div>
+                            </div>
+                            <div class="vote-option">
+                                <span class="option-name">事件C：单手操作</span>
+                                <div class="vote-details">
+                                    <span class="voter">玩家3</span>
+                                    <span class="vote-weight">1票</span>
+                                </div>
+                                <div class="vote-total">总计：1票</div>
+                            </div>
+                        </div>
+                        <div class="result">
+                            <strong>结果：</strong>"不要笑挑战"获得2票（平票随机选择），该团体事件已被选定为本轮任务！
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 功能说明 -->
+        <section id="features" class="section">
+            <div class="section-header">
+                <h2>⚙️ 功能说明</h2>
+                <p>探索系统的所有功能特性</p>
+            </div>
+
+            <div class="features-grid">
+                <!-- 多人同步 -->
+                <div class="feature-card">
+                    <div class="feature-icon">🔄</div>
+                    <h3>实时多人同步</h3>
+                    <div class="feature-content">
+                        <h4>同步机制</h4>
+                        <ul>
+                            <li><strong>事件驱动同步：</strong>关键操作时自动同步状态</li>
+                            <li><strong>智能同步：</strong>仅在状态变化时触发同步</li>
+                            <li><strong>心跳保活：</strong>定期检测连接状态</li>
+                        </ul>
+                        
+                        <h4>同步内容</h4>
+                        <div class="sync-items">
+                            <span class="sync-item">角色信息</span>
+                            <span class="sync-item">事件内容</span>
+                            <span class="sync-item">轮数计数</span>
+                            <span class="sync-item">投票状态</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 角色管理 -->
+                <div class="feature-card">
+                    <div class="feature-icon">👥</div>
+                    <h3>角色管理系统</h3>
+                    <div class="feature-content">
+                        <h4>管理功能</h4>
+                        <ul>
+                            <li><strong>角色禁用：</strong>点击角色卡片禁用/启用角色</li>
+                            <li><strong>元素筛选：</strong>按元素类型筛选角色</li>
+                            <li><strong>角色排序：</strong>按登场顺序进行的角色排序</li>
+                            <li><strong>计数显示：</strong>实时显示启用角色数量</li>
+                        </ul>
+                        
+                        <h4>元素类型</h4>
+                        <div class="element-types">
+
+                        </div>
+                                <div class="storage-item">
+                                <span class="storage-icon">🔄</span>
+                                <div>
+                                    <strong>同步共享：</strong>
+                                    <p>主持人的启用的角色会影响所有玩家的抽取</p>
+                                </div>
+                            </div>
+                    </div>
+                </div>
+
+                <!-- 事件管理 -->
+                <div class="feature-card">
+                    <div class="feature-icon">📝</div>
+                    <h3>事件管理系统</h3>
+                    <div class="feature-content">
+                        <h4>管理功能</h4>
+                        <ul>
+                            <li><strong>事件启用/禁用：</strong>勾选框控制事件是否参与抽取</li>
+                            <li><strong>自定义事件：</strong>添加个人和团体自定义事件</li>
+                            <li><strong>事件编辑：</strong>右键选择编辑现有事件内容</li>
+                            <li><strong>事件删除：</strong>右键选择删除不需要的事件</li>
+                        </ul>
+                        
+                        <h4>存储机制</h4>
+                        <div class="storage-info">
+                            <div class="storage-item">
+                                <span class="storage-icon">💾</span>
+                                <div>
+                                    <strong>本地存储：</strong>
+                                    <p>设置自动保存到浏览器本地存储</p>
+                                </div>
+                            </div>
+                            <div class="storage-item">
+                                <span class="storage-icon">🔄</span>
+                                <div>
+                                    <strong>同步共享：</strong>
+                                    <p>主持人的自定义事件会同步给所有玩家</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 历史记录 -->
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>历史记录系统</h3>
+                    <div class="feature-content">
+                        <h4>记录内容</h4>
+                        <ul>
+                            <li><strong>角色历史：</strong>每轮抽取的角色和更换记录</li>
+                            <li><strong>事件历史：</strong>个人事件的抽取记录，鼠标悬停可预览内容</li>
+                            <li><strong>时间记录：</strong>游戏总时长和每轮用时</li>
+                            <li><strong>轮数统计：</strong>当前游戏进行的轮数</li>
+                        </ul>
+                        
+                        <h4>查看方式</h4>
+                        <div class="history-views">
+                            <div class="view-item">
+                                <span class="view-icon">📋</span>
+                                <div>
+                                    <strong>弹窗查看：</strong>
+                                    <p>点击设置中对应的历史按钮打开详细记录</p>
+                                </div>
+                            </div>
+                            <div class="view-item">
+                                <span class="view-icon">🔢</span>
+                                <div>
+                                    <strong>实时显示：</strong>
+                                    <p>页面上实时显示轮数和用时</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 网络功能 -->
+                <div class="feature-card">
+                    <div class="feature-icon">🌐</div>
+                    <h3>网络连接功能</h3>
+                    <div class="feature-content">
+                        <h4>连接特性</h4>
+                        <ul>
+                            <li><strong>WebSocket实时通信：</strong>低延迟的实时数据传输</li>
+                            <li><strong>房间管理：</strong>6位房间代码，支持最多7人</li>
+                                <li><strong>状态保持：</strong>短暂断线不影响游戏状态</li>
+                            </ul>
+                        
+                        <h4>服务器状态</h4>
+                    <div class="tip">
+                        <strong>💡 </strong> 房间人数设置多几个 应对小部分情况 因掉线没有自动踢出房间 导致的房间内位置被占用满 使重连的玩家无法加入房间
+                    </div>
+                    <div class="tip" style="margin-top: 15px;">
+                        <strong>💡 </strong> 使用电脑端 或手机设置后台活动 获得更好体验
+                    </div>
+                    </div>
+                </div>
+
+                <!-- 响应式设计 -->
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3>响应式设计</h3>
+                    <div class="feature-content">
+                        <h4>设备支持</h4>
+                        <ul>
+                            <li><strong>电脑端：</strong>完整功能体验，推荐主持游戏</li>
+                            <li><strong>平板端：</strong>优化触控操作体验</li>
+                            <li><strong>手机端：</strong>适配小屏幕，便于参与游戏</li>
+                        </ul>
+                        
+                        <h4>界面适配</h4>
+                        <div class="responsive-features">
+                            <span class="responsive-item">🔄 自适应布局</span>
+                            <span class="responsive-item">👆 触控优化</span>
+                            <span class="responsive-item">📐 弹性网格</span>
+                            <span class="responsive-item">🎨 主题一致</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 高级设置 -->
+        <section id="advanced" class="section">
+            <div class="section-header">
+                <h2>🔧 高级设置</h2>
+                <p>自定义和扩展功能指南</p>
+            </div>
+
+            <div class="advanced-grid">
+                <!-- 自定义事件 -->
+                <div class="advanced-card">
+                    <h3>🛠️ 持久化自定义事件开发</h3>
+                    <div class="custom-event-guide">
+                        <h4>修改事件文件</h4>
+                        <div class="file-structure">
+                            <div class="file-item">
+                                <span class="file-icon">📄</span>
+                                <div>
+                                    <strong>mission.js</strong>
+                                    <p>个人事件定义文件</p>
+                                </div>
+                            </div>
+                            <div class="file-item">
+                                <span class="file-icon">📄</span>
+                                <div>
+                                    <strong>hardmission.js</strong>
+                                    <p>团体事件定义文件</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h4>事件格式示例</h4>
+                        <div class="code-example">
+                            <pre><code>// 个人事件格式
+"事件名称": {
+    "内容": "事件的具体描述和规则"
+},
+
+// 团体事件格式
+"团体事件名称": {
+    "内容": "团体事件的具体描述和规则"
+}</code></pre>
+                        </div>
+                        
+                        <h4>使用步骤</h4>
+                        <ol class="custom-steps">
+                            <li>下载所有项目文件到本地</li>
+                            <li>编辑 mission.js 或 hardmission.js 文件</li>
+                            <li>保持JSON格式正确性</li>
+                            <li>使用浏览器打开 index.html</li>
+                            <li>主持游戏时自定义事件生效</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <!-- 服务器部署 -->
+                <div class="advanced-card">
+                    <h3>🌐 服务器部署指南</h3>
+                    <div class="deployment-guide">
+                        <h4>部署前准备</h4>
+                        <div class="requirements">
+                            <div class="req-item">
+                                <span class="req-icon">🟢</span>
+                                <span>Node.js 环境</span>
+                            </div>
+                            <div class="req-item">
+                                <span class="req-icon">🔓</span>
+                                <span>开放相应端口</span>
+                            </div>
+                            <div class="req-item">
+                                <span class="req-icon">📁</span>
+                                <span>server.js 文件</span>
+                            </div>
+                        </div>
+                        
+                        <h4>部署步骤</h4>
+                        <div class="deployment-steps">
+                            <div class="deploy-step">
+                                <div class="step-number">1</div>
+                                <div class="step-content">
+                                    <h5>安装依赖</h5>
+                                    <code>npm install ws uuid</code>
+                                </div>
+                            </div>
+                            <div class="deploy-step">
+                                <div class="step-number">2</div>
+                                <div class="step-content">
+                                    <h5>启动服务器</h5>
+                                    <code>node server.js</code>
+                                </div>
+                            </div>
+                            <div class="deploy-step">
+                                <div class="step-number">3</div>
+                                <div class="step-content">
+                                    <h5>修改连接地址</h5>
+                                    <p>在 multiplayer.js 中修改WebSocket地址</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="deployment-note">
+                            <strong>💡 提示：</strong>
+                            <p>推荐使用云服务器部署以获得更好的稳定性和访问速度</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 故障排除 -->
+                <div class="advanced-card">
+                    <h3>🔧 故障排除</h3>
+                    <div class="troubleshooting">
+                        <h4>常见问题</h4>
+                        <div class="issue-list">
+                            <div class="issue-item">
+                                <div class="issue-title">❌ 无法连接服务器</div>
+                                <div class="issue-solution">
+                                    <strong>解决方案：</strong>
+                                    <ul>
+                                        <li>检查网络连接状态</li>
+                                        <li>等待1-30秒让服务器启动</li>
+                                        <li>刷新页面重新尝试</li>
+                                        <li>使用"进去看看"进入单机模式</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div class="issue-item">
+                                <div class="issue-title">❌ 房间代码无效</div>
+                                <div class="issue-solution">
+                                    <strong>解决方案：</strong>
+                                    <ul>
+                                        <li>确认房间代码正确性（区分大小写字母）</li>
+                                        <li>检查主持人是否在线</li>
+                                        <li>确认房间未满（最多7人）</li>
+                                        <li>让主持人重新创建房间</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div class="issue-item">
+                                <div class="issue-title">❌ 同步不及时</div>
+                                <div class="issue-solution">
+                                    <strong>解决方案：</strong>
+                                    <ul>
+                                        <li>检查网络延迟情况</li>
+                                        <li>主持人可手动点击同步按钮</li>
+                                        <li>避免频繁操作导致同步延迟</li>
+                                        <li>重新进入房间重新同步</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div class="issue-item">
+                                <div class="issue-title">❌ 角色/事件不显示</div>
+                                <div class="issue-solution">
+                                    <strong>解决方案：</strong>
+                                    <ul>
+                                        <li>检查角色是否被禁用</li>
+                                        <li>确认事件管理中的勾选状态</li>
+                                        <li>清除浏览器缓存重新加载</li>
+                                        <li>检查JavaScript是否被阻止</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="debug-tools">
+                            <h4>调试工具</h4>
+                            <div class="debug-info">
+                                <div class="debug-item">
+                                    <span class="debug-icon">🔍</span>
+                                    <div>
+                                        <strong>浏览器控制台：</strong>
+                                        <p>按F12打开开发者工具查看错误信息</p>
+                                    </div>
+                                </div>
+                                <div class="debug-item">
+                                    <span class="debug-icon">📊</span>
+                                    <div>
+                                        <strong>网络面板：</strong>
+                                        <p>检查WebSocket连接状态和数据传输</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 项目信息 -->
+                <div class="advanced-card">
+                    <h3>ℹ️ 项目信息</h3>
+                    <div class="project-info">
+                        <h4>技术栈</h4>
+                        <div class="tech-stack">
+                            <span class="tech-item">HTML5</span>
+                            <span class="tech-item">CSS3</span>
+                            <span class="tech-item">JavaScript</span>
+                            <span class="tech-item">WebSocket</span>
+                            <span class="tech-item">Node.js</span>
+                        </div>
+                        
+                        <h4>项目特色</h4>
+                        <ul class="features-list">
+                            <li>完全基于Web技术，无需下载安装</li>
+                            <li>实时多人同步，支持跨平台协作</li>
+                            <li>模块化代码结构，易于扩展修改</li>
+                            <li>丰富的自定义选项和管理功能</li>
+                        </ul>
+                        
+                        <h4>开发信息</h4>
+                        <div class="dev-info">
+                            <div class="info-item">
+                                <strong>原项目：</strong>happy-car.netlify.app
+                            </div>
+                            <div class="info-item">
+                                <strong>功能扩展：</strong>AI (Claude Sonnet 4)
+                            </div>
+                            <div class="info-item">
+                                <strong>问题反馈：</strong>GitHub Issues
+                            </div>
+                        </div>
+                        
+                        <div class="links">
+                            <h4>相关链接</h4>
+                            <div class="link-buttons">
+                                <a href="https://unhappycar.netlify.app" class="link-btn" target="_blank">
+                                    🌐 在线体验
+                                </a>
+                                <a href="https://github.com/kunkun11451/unhappycar" class="link-btn" target="_blank">
+                                    📦 GitHub仓库
+                                </a>
+                                <a href="https://github.com/kunkun11451/unhappycar/issues" class="link-btn" target="_blank">
+                                    🐛 问题反馈
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 页脚 -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>快速导航</h4>
+                    <ul>
+                        <li><a href="#quick-start">快速开始</a></li>
+                        <li><a href="#detailed-guide">详细指南</a></li>
+                        <li><a href="#features">功能说明</a></li>
+                        <li><a href="#advanced">高级设置</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>相关链接</h4>
+                    <ul>
+                        <li><a href="https://unhappycar.netlify.app">在线游戏</a></li>
+                        <li><a href="https://happy-car.netlify.app">原版项目</a></li>
+                        <li><a href="https://github.com/kunkun11451/unhappycar">GitHub仓库</a></li>
+                        <li><a href="https://github.com/kunkun11451/unhappycar/issues">问题反馈</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>技术支持</h4>
+                    <ul>
+                        <li><a href="#advanced">部署指南</a></li>
+                        <li><a href="#advanced">故障排除</a></li>
+                        <li><a href="#advanced">自定义开发</a></li>
+                        <li><a href="#advanced">API文档</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p> Unhappycar Project. 基于原项目 happy-car.netlify.app 扩展开发。</p>
+                <p>技术实现：Claude Sonnet 4 | 文档撰写：kunkun11451</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- 返回顶部按钮 -->
+    <button id="backToTop" class="back-to-top" style="display: none;">
+        ↑
+    </button>
+
+    <script>
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // 返回顶部按钮
+        const backToTopButton = document.getElementById('backToTop');
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                backToTopButton.style.display = 'block';
+            } else {
+                backToTopButton.style.display = 'none';
+            }
+        });
+
+        backToTopButton.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // 导航栏高亮
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('.nav-menu a[href^="#"]');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (window.pageYOffset >= sectionTop - 200) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href').substring(1) === current) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
