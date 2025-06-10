@@ -1,0 +1,12 @@
+# Netlify 重定向规则
+# 将 /log 路径代理到 Node.js 服务器
+
+# 日志页面重定向到 Node.js 服务器
+/log https://socket.unhappycar.games/log 200!
+/log/* https://socket.unhappycar.games/log/:splat 200!
+
+# API 相关的路径也重定向到服务器
+/api/* https://socket.unhappycar.games/api/:splat 200!
+
+# 其他所有路径保持在 Netlify 上
+/* /index.html 200
