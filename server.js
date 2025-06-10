@@ -1,11 +1,19 @@
-const http = require("http");
+const fs = require("fs");
+const https = require("https");
 const WebSocket = require("ws");
 const { v4: uuidv4 } = require("uuid");
 
 const PORT = process.env.PORT || 3000;
 
-// 创建 HTTP 服务器
-const server = http.createServer();
+// 加载 SSL 证书
+const sslOptions = {
+  cert: fs.readFileSync("/etc/letsencrypt/live/socket.unhappycar.games/fullchain.pem"),
+  key: fs.readFileSync("/etc/letsencrypt/live/socket.unhappycar.games/privkey.pem"),
+  ca: fs.readFileSync("/etc/letsencrypt/live/socket.unhappycar.games/chain.pem"),
+};
+
+// 创建 HTTPS 服务器
+const server = https.createServer(sslOptions);
 const wss = new WebSocket.Server({ server });
 
 const rooms = {}; // 存储房间信息

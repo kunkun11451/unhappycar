@@ -39,39 +39,39 @@ document.addEventListener('DOMContentLoaded', function () {
     joinGameButton.disabled = true;    // 心跳包定时器
     let heartbeatInterval = null;
     
-    // 发送心跳包函数
-    function sendHeartbeat() {
-        if (ws && ws.readyState === WebSocket.OPEN) {
-            console.log('发送心跳包...');
-            ws.send(JSON.stringify({ 
-                type: 'heartbeat', 
-                timestamp: Date.now(),
-                playerId: currentPlayerId,
-                roomId: currentRoomId
-            }));
-        }
-    }
+    // // 发送心跳包函数
+    // function sendHeartbeat() {
+    //     if (ws && ws.readyState === WebSocket.OPEN) {
+    //         console.log('发送心跳包...');
+    //         ws.send(JSON.stringify({ 
+    //             type: 'heartbeat', 
+    //             timestamp: Date.now(),
+    //             playerId: currentPlayerId,
+    //             roomId: currentRoomId
+    //         }));
+    //     }
+    // }
     
-    // 启动心跳包机制
-    function startHeartbeat() {
-        // 清除现有的心跳包定时器
-        if (heartbeatInterval) {
-            clearInterval(heartbeatInterval);
-        }
+    // // 启动心跳包机制
+    // function startHeartbeat() {
+    //     // 清除现有的心跳包定时器
+    //     if (heartbeatInterval) {
+    //         clearInterval(heartbeatInterval);
+    //     }
         
-        // 每200秒发送一次心跳包
-        heartbeatInterval = setInterval(sendHeartbeat, 100000);
-        console.log('心跳包机制已启动 (每100秒一次)');
-    }
+    //     // 每200秒发送一次心跳包
+    //     heartbeatInterval = setInterval(sendHeartbeat, 100000);
+    //     console.log('心跳包机制已启动 (每100秒一次)');
+    // }
     
-    // 停止心跳包机制
-    function stopHeartbeat() {
-        if (heartbeatInterval) {
-            clearInterval(heartbeatInterval);
-            heartbeatInterval = null;
-            console.log('心跳包机制已停止');
-        }
-    }
+    // // 停止心跳包机制
+    // function stopHeartbeat() {
+    //     if (heartbeatInterval) {
+    //         clearInterval(heartbeatInterval);
+    //         heartbeatInterval = null;
+    //         console.log('心跳包机制已停止');
+    //     }
+    // }
 
     // WebSocket 连接成功
     ws.onopen = () => {
@@ -85,8 +85,8 @@ document.addEventListener('DOMContentLoaded', function () {
         hostGameButton.disabled = false;
         joinGameButton.disabled = false;
         
-        // 启动心跳包机制
-        startHeartbeat();
+        // // 启动心跳包机制
+        // startHeartbeat();
     };    // WebSocket 连接错误
     ws.onerror = (error) => {
         console.error('WebSocket 连接错误:', error);
@@ -99,8 +99,8 @@ document.addEventListener('DOMContentLoaded', function () {
         hostGameButton.disabled = true;
         joinGameButton.disabled = true;
         
-        // 停止心跳包机制
-        stopHeartbeat();
+        // // 停止心跳包机制
+        // stopHeartbeat();
     };
 
     // WebSocket 连接关闭
@@ -115,8 +115,8 @@ document.addEventListener('DOMContentLoaded', function () {
         hostGameButton.disabled = true;
         joinGameButton.disabled = true;
         
-        // 停止心跳包机制
-        stopHeartbeat();
+        // // 停止心跳包机制
+        // stopHeartbeat();
     };
 
     // 主持游戏
@@ -215,17 +215,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
         console.log('同步的游戏状态:', state, '历史记录:', history);
         ws.send(JSON.stringify({ type: 'updateState', roomId: currentRoomId, state, history }));
+
     }    // 优化后的同步机制：事件驱动同步 + 长间隔保活同步
-    // 保持服务器连接活跃，防止5分钟自动休眠，但大幅减少同步频率
     let lastEventSyncTime = null; // 追踪最后一次事件驱动同步的时间
     
-    setInterval(() => {
-        // 只有主持人发送保活同步，且只在有连接时发送
-        if (isHost && ws && ws.readyState === WebSocket.OPEN && currentRoomId) {
-            console.log('执行保活同步检查...');
-            syncGameState(true); // 传入保活标识
-        }
-    }, 200000); //200秒一次保活同步
+    // setInterval(() => {
+    //     // 只有主持人发送保活同步，且只在有连接时发送
+    //     if (isHost && ws && ws.readyState === WebSocket.OPEN && currentRoomId) {
+    //         console.log('执行保活同步检查...');
+    //         syncGameState(true); // 传入保活标识
+    //     }
+    // }, 200000); //200秒一次保活同步
     
     // 游戏状态缓存，用于检测变化
     let lastGameStateHash = null;
