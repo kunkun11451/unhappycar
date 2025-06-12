@@ -236,7 +236,270 @@ if (gameState.bpMode === 'personal') {
     );
 }</code></pre>
                 </div>
-            </div>            <!-- 个人事件抽取系统 -->
+            </div>
+
+            <!-- 阵容模式系统 -->
+            <div class="feature-detail highlight-card">
+                <h3>⚔️ 阵容模式系统</h3>
+                <div class="feature-description" style="color: black;">
+                    <p>阵容模式允许您预设多套完整的角色阵容，系统将从这些阵容中随机选择一套进行抽取，确保团队搭配的合理性和战术协同。</p>
+                </div>
+
+                <!-- 阵容模式开启 -->
+                <div class="algorithm-section">
+                    <h4>🎮 阵容模式启用</h4>
+                    <div class="detail-grid">
+                        <div class="detail-card">
+                            <h5>开启步骤</h5>
+                            <div class="algorithm-steps">
+                                <div class="step">
+                                    <span class="step-icon">⚙️</span>
+                                    <div>
+                                        <strong>进入设置：</strong>
+                                        <p>点击主界面的"设置"按钮</p>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <span class="step-icon">🎯</span>
+                                    <div>
+                                        <strong>选择更多设置：</strong>
+                                        <p>在设置面板中点击"更多玩法设置"选项</p>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <span class="step-icon">🔄</span>
+                                    <div>
+                                        <strong>开启阵容模式：</strong>
+                                        <p>将"阵容模式"开关切换到开启状态</p>
+                                        <p class="note">开启后BP模式按钮将自动隐藏</p>
+                                        <p class="note" style="margin-top: 10px;">选角将无视bp和你在角色管理中的设置</p>
+                                        <p class="note" style="margin-top: 10px;">抽取到的所有角色可以由全队商量给谁使用</p>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="detail-card">
+                            <h5>模式效果</h5>
+                            <div class="feature-list">
+                                <div class="feature-item">
+                                    <span class="feature-icon">🎲</span>
+                                    <div>
+                                        <strong>随机阵容选择</strong>
+                                        <p>系统从预设阵容中随机选择一套完整配置</p>
+                                    </div>
+                                </div>
+                                <div class="feature-item">
+                                    <span class="feature-icon">⚔️</span>
+                                    <div>
+                                        <strong>战术协同保证</strong>
+                                        <p>确保抽取的角色具有良好的团队搭配</p>
+                                    </div>
+                                </div>
+                                <div class="feature-item">
+                                    <span class="feature-icon">🔀</span>
+                                    <div>
+                                        <strong>可替换角色支持</strong>
+                                        <p>支持为某个位置设置一个备选角色</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 阵容管理 -->
+                <div class="algorithm-section">
+                    <h4>📝 阵容编辑管理</h4>
+                    <div class="detail-grid">
+                        <div class="detail-card">
+                            <h5>创建新阵容</h5>
+                            <div class="algorithm-steps">
+                                <div class="step">
+                                    <span class="step-icon">➕</span>
+                                    <div>
+                                        <strong>添加阵容：</strong>
+                                        <p>在阵容列表中点击"添加阵容"按钮</p>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <span class="step-icon">✏️</span>
+                                    <div>
+                                        <strong>命名阵容：</strong>
+                                        <p>为新阵容输入一个描述性的名称</p>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <span class="step-icon">👥</span>
+                                    <div>
+                                        <strong>选择角色：</strong>
+                                        <p>为4个位置选择合适的角色</p>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <span class="step-icon">💾</span>
+                                    <div>
+                                        <strong>保存阵容：</strong>
+                                        <p>点击"保存"按钮完成阵容创建</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="detail-card">
+                            <h5>编辑现有阵容</h5>
+                            <div class="feature-list">
+                                <div class="feature-item">
+                                    <span class="feature-icon">🔧</span>
+                                    <div>
+                                        <strong>编辑功能</strong>
+                                        <p>点击阵容卡片上的"编辑"按钮</p>
+                                        <p>可修改阵容名称和角色配置</p>
+                                    </div>
+                                </div>
+                                <div class="feature-item">
+                                    <span class="feature-icon">🗑️</span>
+                                    <div>
+                                        <strong>删除阵容</strong>
+                                        <p>点击"删除"按钮移除不需要的阵容</p>
+                                        <p class="warning">删除操作不可恢复，请谨慎操作</p>
+                                    </div>
+                                </div>
+                                <div class="feature-item">
+                                    <span class="feature-icon">👀</span>
+                                    <div>
+                                        <strong>预览效果</strong>
+                                        <p>阵容卡片显示所有角色头像</p>
+                                        <p>可替换角色显示为分割头像效果</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 可替换角色系统 -->
+                <div class="algorithm-section">
+                    <h4>🔄 可替换角色系统</h4>
+                    <div class="detail-grid">
+                        <div class="detail-card">
+                            <h5>在一个队伍中，通常一个位置可以上不同的角色，你可以设置此位置为可替换角色</h5>
+                            <div class="algorithm-steps">
+                                <div class="step">
+                                    <span class="step-icon">🖱️</span>
+                                    <div>
+                                        <strong>右键操作：</strong>
+                                        <p>在阵容编辑界面，右键点击已选择的角色</p>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <span class="step-icon">📋</span>
+                                    <div>
+                                        <strong>选择菜单：</strong>
+                                        <p>从弹出的上下文菜单中选择"设为可替换角色"</p>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <span class="step-icon">👤</span>
+                                    <div>
+                                        <strong>选择替代：</strong>
+                                        <p>从角色列表中选择一个替代角色</p>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <span class="step-icon">✅</span>
+                                    <div>
+                                        <strong>确认设置：</strong>
+                                        <p>点击"确认"完成可替换角色设置</p>
+                                        <p>角色显示将变为分割头像效果</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 使用示例 -->
+                <div class="code-example">
+                    <h4>阵容配置示例</h4>
+                    <pre><code>// 示例阵容配置
+{
+    "雷电国家队": {
+        "角色列表": ["雷电将军", "九条裟罗", "班尼特", "香菱"]
+    },
+    "冰元素控制": {
+        "角色列表": ["甘雨", "申鹤", "莫娜/芭芭拉", "迪奥娜"]
+    },
+    "物理暴力": {
+        "角色列表": ["优菈", "雷泽/菲谢尔", "辛焱", "迪奥娜/七七"]
+    }
+}
+
+// 可替换角色格式：使用"/"分隔两个角色名
+// 例如："莫娜/芭芭拉" 表示该位置可以是莫娜或芭芭拉</code></pre>
+                </div>
+
+                <!-- 实际效果 -->
+                <div class="algorithm-section">
+                    <h4>🎯 实际使用效果</h4>
+                    <div class="detail-grid">
+                        <div class="detail-card">
+                            <h5>抽取过程</h5>
+                            <div class="feature-list">
+                                <div class="feature-item">
+                                    <span class="feature-icon">🎯</span>
+                                    <div>
+                                        <strong>阵容提示</strong>
+                                        <p>抽取时界面顶部显示当前选中的阵容名称</p>
+                                        <p>格式："当前阵容：[阵容名称]"</p>
+                                    </div>
+                                </div>
+                                <div class="feature-item">
+                                    <span class="feature-icon">🎭</span>
+                                    <div>
+                                        <strong>角色显示</strong>
+                                        <p>普通角色：显示单一头像和角色名</p>
+                                        <p>可替换角色：显示分割头像和"角色A/角色B"</p>
+                                    </div>
+                                </div>
+                                <div class="feature-item">
+                                    <span class="feature-icon">🔄</span>
+                                    <div>
+                                        <strong>模式切换</strong>
+                                        <p>关闭阵容模式后，阵容提示自动隐藏</p>
+                                        <p>恢复到正常的随机抽取模式</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="detail-card">
+                            <h5>多人游戏兼容</h5>
+                            <div class="feature-list">
+                                <div class="feature-item">
+                                    <span class="feature-icon">🌐</span>
+                                    <div>
+                                        <strong>状态同步</strong>
+                                        <p>主持人的阵容抽取结果实时同步给所有玩家</p>
+                                        <p>包括分割头像的完整显示效果</p>
+                                    </div>
+                                </div>
+                                <div class="feature-item">
+                                    <span class="feature-icon">👥</span>
+                                    <div>
+                                        <strong>一致体验</strong>
+                                        <p>所有玩家看到相同的角色显示效果</p>
+                                        <p>阵容名称和角色配置完全同步</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 个人事件抽取系统 -->
             <div class="feature-detail">
                 <h3>🎯 个人事件抽取系统</h3>
                 

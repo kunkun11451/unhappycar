@@ -20,6 +20,11 @@ settingsButton.addEventListener("click", () => {
     settingsPopup.style.display = "flex";
     document.body.classList.add("no-scroll");
 
+    // 确保团队数据已更新 - 使用loadTeamData重新加载数据
+    if (window.teamManagement && typeof window.teamManagement.loadTeamData === 'function') {
+        window.teamManagement.loadTeamData();
+    }
+
     // 默认加载角色管理界面
     activeFilter = null; 
     const container = window.loadCharacterManagement(); // 获取角色管理内容
@@ -39,6 +44,9 @@ closeSettingsPopup.addEventListener("click", () => {
     settingsOverlay.style.display = "none";
     settingsPopup.style.display = "none";
     document.body.classList.remove("no-scroll");
+    
+    // 确保在下次打开设置弹窗前重置状态
+    document.querySelectorAll(".value").forEach(btn => btn.classList.remove("active"));
 });
 
 // 将关闭按钮添加到设置弹窗
@@ -90,7 +98,31 @@ eventHistory.addEventListener("click", () => {
 });
 
 moreSettings.addEventListener("click", () => {
-    selectOption(moreSettings, "更多玩法设置", "<p> coming soon</p>");
+    // 强制更新团队数据
+    if (window.teamManagement) {
+        // 重新创建内容前先确保团队数据已经准备好
+        window.teamManagement.loadTeamData();
+    }
+    
+    const moreSettingsContent = window.teamManagement.createMoreSettingsContent();
+    selectOption(moreSettings, "更多玩法设置", moreSettingsContent);
+    
+    // 添加延时确保DOM已经更新
+    setTimeout(() => {
+        // 确保阵容列表组件已创建
+        const teamListSection = document.getElementById('teamListSection');
+        const teamList = document.getElementById('teamList');
+        
+        if (teamListSection && teamList) {
+            // 强制重新生成阵容列表内容
+            window.teamManagement.updateTeamList();
+            
+            // 然后根据当前模式状态决定显示或隐藏
+            if (window.teamManagement.isTeamMode()) {
+                teamListSection.style.display = 'block';
+            }
+        }
+    }, 100);
 });
 
 gameSettings.addEventListener("click", () => {

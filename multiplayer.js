@@ -36,42 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 默认禁用按钮
     hostGameButton.disabled = true;
-    joinGameButton.disabled = true;    // 心跳包定时器
-    let heartbeatInterval = null;
-    
-    // // 发送心跳包函数
-    // function sendHeartbeat() {
-    //     if (ws && ws.readyState === WebSocket.OPEN) {
-    //         console.log('发送心跳包...');
-    //         ws.send(JSON.stringify({ 
-    //             type: 'heartbeat', 
-    //             timestamp: Date.now(),
-    //             playerId: currentPlayerId,
-    //             roomId: currentRoomId
-    //         }));
-    //     }
-    // }
-    
-    // // 启动心跳包机制
-    // function startHeartbeat() {
-    //     // 清除现有的心跳包定时器
-    //     if (heartbeatInterval) {
-    //         clearInterval(heartbeatInterval);
-    //     }
-        
-    //     // 每200秒发送一次心跳包
-    //     heartbeatInterval = setInterval(sendHeartbeat, 100000);
-    //     console.log('心跳包机制已启动 (每100秒一次)');
-    // }
-    
-    // // 停止心跳包机制
-    // function stopHeartbeat() {
-    //     if (heartbeatInterval) {
-    //         clearInterval(heartbeatInterval);
-    //         heartbeatInterval = null;
-    //         console.log('心跳包机制已停止');
-    //     }
-    // }
+    joinGameButton.disabled = true;   
 
     // WebSocket 连接成功
     ws.onopen = () => {
@@ -85,8 +50,6 @@ document.addEventListener('DOMContentLoaded', function () {
         hostGameButton.disabled = false;
         joinGameButton.disabled = false;
         
-        // // 启动心跳包机制
-        // startHeartbeat();
     };    // WebSocket 连接错误
     ws.onerror = (error) => {
         console.error('WebSocket 连接错误:', error);
@@ -99,8 +62,6 @@ document.addEventListener('DOMContentLoaded', function () {
         hostGameButton.disabled = true;
         joinGameButton.disabled = true;
         
-        // // 停止心跳包机制
-        // stopHeartbeat();
     };
 
     // WebSocket 连接关闭
@@ -115,8 +76,6 @@ document.addEventListener('DOMContentLoaded', function () {
         hostGameButton.disabled = true;
         joinGameButton.disabled = true;
         
-        // // 停止心跳包机制
-        // stopHeartbeat();
     };
 
     // 主持游戏
@@ -179,13 +138,30 @@ document.addEventListener('DOMContentLoaded', function () {
             if (currentPlayerCount <= 1) {
                 console.log('房间只有主持人，跳过保活同步');
                 return;
-            }
-        }const state = {
+            }        }const state = {
             roundCounter: gameState.roundCounter,
-            characters: Array.from(characterBoxes).map((box) => ({
-                name: box.querySelector('.character-name').textContent,
-                image: box.querySelector('.character-image').src
-            })),
+            characters: Array.from(characterBoxes).map((box) => {
+                const name = box.querySelector('.character-name').textContent;
+                const img = box.querySelector('.character-image');
+                const splitContainer = box.querySelector('.character-image-split');
+                
+                // 检查是否为分割头像（可替换角色）
+                if (splitContainer && name.includes('/')) {
+                    const imgs = splitContainer.querySelectorAll('img');
+                    return {
+                        name: name,
+                        image: img.src, // 保留原始图像作为备用
+                        isSplit: true,
+                        splitImages: imgs.length >= 2 ? [imgs[0].src, imgs[1].src] : []
+                    };
+                } else {
+                    return {
+                        name: name,
+                        image: img.src,
+                        isSplit: false
+                    };
+                }
+            }),
             missions: Array.from(missionBoxes).map((box) => ({
                 title: box.querySelector('.mission-title').textContent,
                 content: box.querySelector('.mission-content').innerHTML // 使用 innerHTML 保留颜色
@@ -219,13 +195,13 @@ document.addEventListener('DOMContentLoaded', function () {
     }    // 优化后的同步机制：事件驱动同步 + 长间隔保活同步
     let lastEventSyncTime = null; // 追踪最后一次事件驱动同步的时间
     
-    // setInterval(() => {
-    //     // 只有主持人发送保活同步，且只在有连接时发送
-    //     if (isHost && ws && ws.readyState === WebSocket.OPEN && currentRoomId) {
-    //         console.log('执行保活同步检查...');
-    //         syncGameState(true); // 传入保活标识
-    //     }
-    // }, 200000); //200秒一次保活同步
+    setInterval(() => {
+        // 只有主持人发送保活同步，且只在有连接时发送
+        if (isHost && ws && ws.readyState === WebSocket.OPEN && currentRoomId) {
+            console.log('执行保活同步检查...');
+            syncGameState(true); // 传入保活标识
+        }
+    }, 30000); //30秒一次保活同步
     
     // 游戏状态缓存，用于检测变化
     let lastGameStateHash = null;
@@ -238,13 +214,30 @@ document.addEventListener('DOMContentLoaded', function () {
     // 检测游戏状态是否发生变化
     function hasGameStateChanged() {
         if (!window.gameState) return false;
-        
-        const currentState = {
+          const currentState = {
             roundCounter: gameState.roundCounter,
-            characters: Array.from(characterBoxes).map((box) => ({
-                name: box.querySelector('.character-name').textContent,
-                image: box.querySelector('.character-image').src
-            })),
+            characters: Array.from(characterBoxes).map((box) => {
+                const name = box.querySelector('.character-name').textContent;
+                const img = box.querySelector('.character-image');
+                const splitContainer = box.querySelector('.character-image-split');
+                
+                // 检查是否为分割头像（可替换角色）
+                if (splitContainer && name.includes('/')) {
+                    const imgs = splitContainer.querySelectorAll('img');
+                    return {
+                        name: name,
+                        image: img.src, // 保留原始图像作为备用
+                        isSplit: true,
+                        splitImages: imgs.length >= 2 ? [imgs[0].src, imgs[1].src] : []
+                    };
+                } else {
+                    return {
+                        name: name,
+                        image: img.src,
+                        isSplit: false
+                    };
+                }
+            }),
             missions: Array.from(missionBoxes).map((box) => ({
                 title: box.querySelector('.mission-title').textContent,
                 content: box.querySelector('.mission-content').innerHTML
@@ -538,14 +531,30 @@ ws.onmessage = (event) => {
         if (!window.gameState) {
             console.error('gameState 未定义');
             return;
-        }
-
-        const state = {
+        }        const state = {
             roundCounter: gameState.roundCounter,
-            characters: Array.from(characterBoxes).map((box) => ({
-                name: box.querySelector('.character-name').textContent,
-                image: box.querySelector('.character-image').src
-            })),
+            characters: Array.from(characterBoxes).map((box) => {
+                const name = box.querySelector('.character-name').textContent;
+                const img = box.querySelector('.character-image');
+                const splitContainer = box.querySelector('.character-image-split');
+                
+                // 检查是否为分割头像（可替换角色）
+                if (splitContainer && name.includes('/')) {
+                    const imgs = splitContainer.querySelectorAll('img');
+                    return {
+                        name: name,
+                        image: img.src, // 保留原始图像作为备用
+                        isSplit: true,
+                        splitImages: imgs.length >= 2 ? [imgs[0].src, imgs[1].src] : []
+                    };
+                } else {
+                    return {
+                        name: name,
+                        image: img.src,
+                        isSplit: false
+                    };
+                }
+            }),
             missions: Array.from(missionBoxes).map((box) => ({
                 title: box.querySelector('.mission-title').textContent,
                 content: box.querySelector('.mission-content').textContent
@@ -561,17 +570,97 @@ ws.onmessage = (event) => {
     // 更新游戏状态（同步角色、事件和轮数）
     function updateGameState(state) {
         // 更新轮数
-        roundCounterDisplay.textContent = `当前轮数：${state.roundCounter}`;
-
-        // 更新角色卡片
+        roundCounterDisplay.textContent = `当前轮数：${state.roundCounter}`;        // 更新角色卡片
         state.characters.forEach((character, index) => {
             const box = characterBoxes[index];
             const img = box.querySelector('.character-image');
             const name = box.querySelector('.character-name');
 
-            img.style.display = 'block';
-            img.src = character.image;
-            name.textContent = character.name;
+            // 检查是否为分割头像（可替换角色）
+            if (character.isSplit && character.splitImages && character.splitImages.length >= 2) {
+                // 隐藏原来的单一头像
+                img.style.display = 'none';
+                
+                // 检查是否已存在分割容器，如果有则移除
+                const existingSplit = box.querySelector('.character-image-split');
+                if (existingSplit) {
+                    existingSplit.remove();
+                }
+                
+                // 创建分割头像容器
+                const splitContainer = document.createElement('div');
+                splitContainer.className = 'character-image-split';
+                splitContainer.style.cssText = `
+                    position: relative;
+                    width: 140px;
+                    height: 140px;
+                    border-radius: 50%;
+                    overflow: hidden;
+                    border: 3px solid #fff;
+                    margin: 0 auto 10px;
+                `;
+                
+                // 创建左侧头像
+                const img1 = document.createElement('img');
+                img1.src = character.splitImages[0];
+                img1.style.cssText = `
+                    position: absolute;
+                    width: 140px;
+                    height: 140px;
+                    object-fit: cover;
+                    top: 0;
+                    left: 0;
+                    clip-path: polygon(0 0, 66% 0, 40% 100%, 0 100%);
+                `;
+                  // 创建右侧头像
+                const img2 = document.createElement('img');
+                img2.src = character.splitImages[1];
+                img2.style.cssText = `
+                    position: absolute;
+                    width: 140px;
+                    height: 140px;
+                    object-fit: cover;
+                    top: 0;
+                    right: 0;
+                    clip-path: polygon(66% 0, 100% 0, 100% 100%, 40% 100%);
+                `;
+                
+                // 添加分割线
+                const divider = document.createElement('div');
+                divider.style.cssText = `
+                    position: absolute;
+                    top: 0;
+                    left: 50%;
+                    width: 8px;
+                    height: 100%;
+                    background: rgba(255, 255, 255, 0.9);
+                    transform: translateX(-50%) skewX(-15deg);
+                    z-index: 1;
+                `;
+                
+                splitContainer.appendChild(img1);
+                splitContainer.appendChild(img2);
+                splitContainer.appendChild(divider);
+                
+                // 插入分割容器
+                img.parentNode.insertBefore(splitContainer, img);
+                
+                // 更新角色名称
+                name.textContent = character.name;
+                name.style.fontSize = '14px';
+            } else {
+                // 普通单一角色头像
+                // 移除可能存在的分割容器
+                const existingSplit = box.querySelector('.character-image-split');
+                if (existingSplit) {
+                    existingSplit.remove();
+                }
+                
+                img.style.display = 'block';
+                img.src = character.image;
+                name.textContent = character.name;
+                name.style.fontSize = ''; // 重置字体大小
+            }
         });
 
         // 更新事件卡片

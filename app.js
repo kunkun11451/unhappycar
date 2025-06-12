@@ -119,9 +119,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // ================= 抽取角色 =================
     startButton.addEventListener('click', () => {
         displayRandomCharacters(); // 抽取角色逻辑
-    });
-
-    function displayRandomCharacters() {
+    });    function displayRandomCharacters() {
         const now = Date.now(); // 当前时间戳
 
         if (!gameState.isGameStarted) {
@@ -154,6 +152,12 @@ document.addEventListener('DOMContentLoaded', function () {
         // 增加轮数
         gameState.roundCounter++;
         roundCounterDisplay.textContent = `当前轮数：${gameState.roundCounter}`;
+
+        // 检查是否为阵容模式
+        if (window.teamManagement && window.teamManagement.isTeamMode()) {
+            displayTeamModeCharacters();
+            return;
+        }
 
         const roundHistory = [];
         characterBoxes.forEach((box, index) => {
@@ -191,6 +195,94 @@ document.addEventListener('DOMContentLoaded', function () {
             animateSelection(box, newChar, 0);
 
             roundHistory.push({ new: newChar });
+        });        // 将本轮抽取的角色存到历史
+        window.historyModule.pushRoundHistory(roundHistory);
+
+        // 禁用按钮 0.5 秒
+        startButton.disabled = true;
+        setTimeout(() => {
+            startButton.disabled = false;
+        }, 500);
+    }
+
+    // ================= 阵容模式抽取 =================
+    function displayTeamModeCharacters() {
+        const teamResult = window.teamManagement.getTeamModeResult();
+        
+        if (!teamResult) {
+            alert('阵容模式已开启，但没有可用的阵容！请在设置中添加阵容。');
+            return;
+        }
+
+        const roundHistory = [];        // 显示阵容名称
+        const teamNameDisplay = document.createElement('div');
+        teamNameDisplay.id = 'teamNameDisplay';
+        teamNameDisplay.style.cssText = `
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 10px;
+            color: #2c3e50;
+        `;
+        teamNameDisplay.textContent = `当前阵容：${teamResult.teamName}`;
+        
+        // 根据阵容模式状态决定是否显示阵容提示
+        const isTeamModeActive = window.teamManagement && typeof window.teamManagement.isTeamMode === 'function' ? 
+            window.teamManagement.isTeamMode() : false;
+        teamNameDisplay.style.display = isTeamModeActive ? 'block' : 'none';
+        
+        // 移除旧的阵容名称显示（如果存在）
+        const oldDisplay = document.getElementById('teamNameDisplay');
+        if (oldDisplay) {
+            oldDisplay.remove();
+        }
+        
+        // 在开始按钮后插入阵容名称
+        const startButtonElement = document.getElementById('startButton');
+        startButtonElement.parentNode.insertBefore(teamNameDisplay, startButtonElement.nextSibling);// 为每个角色位置分配阵容中的角色
+        characterBoxes.forEach((box, index) => {
+            if (index < teamResult.characters.length) {
+                const characterName = teamResult.characters[index];
+                
+                // 检查是否为替代角色（包含"/"）
+                if (characterName.includes('/')) {
+                    const [char1, char2] = characterName.split('/');
+                    // 随机选择其中一个角色
+                    const selectedChar = Math.random() < 0.5 ? char1 : char2;
+                    
+                    if (window.characterData[selectedChar]) {
+                        // 调用动画函数更新角色卡片，但显示替代效果
+                        animateAlternativeSelection(box, char1, char2, selectedChar, index * 100);
+                        roundHistory.push({ new: `${char1}/${char2}`, selected: selectedChar });
+                    } else {
+                        // 如果替代角色都不存在，随机选择一个角色
+                        const availableChars = getCharacterKeys();
+                        const randomChar = availableChars[Math.floor(Math.random() * availableChars.length)];
+                        animateSelection(box, randomChar, index * 100);
+                        roundHistory.push({ new: randomChar });
+                    }
+                } else {
+                    // 普通角色处理
+                    if (window.characterData[characterName]) {
+                        // 调用动画函数更新角色卡片
+                        animateSelection(box, characterName, index * 100);
+                        roundHistory.push({ new: characterName });
+                    } else {
+                        // 如果角色不存在，随机选择一个角色
+                        const availableChars = getCharacterKeys();
+                        const randomChar = availableChars[Math.floor(Math.random() * availableChars.length)];
+                        animateSelection(box, randomChar, index * 100);
+                        roundHistory.push({ new: randomChar });
+                    }
+                }
+            } else {
+                // 如果阵容角色数量少于4个，其余位置随机选择
+                const availableChars = getCharacterKeys();
+                const randomChar = availableChars[Math.floor(Math.random() * availableChars.length)];
+                animateSelection(box, randomChar, index * 100);
+                roundHistory.push({ new: randomChar });
+            }
         });
 
         // 将本轮抽取的角色存到历史
@@ -201,11 +293,14 @@ document.addEventListener('DOMContentLoaded', function () {
         setTimeout(() => {
             startButton.disabled = false;
         }, 500);
-    }
-
-    // ================= 单独切换角色 =================
+    }    // ================= 单独切换角色 =================
     function refreshSingleCharacter(box) {
         if (!gameState.isGameStarted) return; // 禁用单独抽取角色功能
+        
+        // 检查是否为阵容模式，如果是则禁用单独切换
+        if (window.teamManagement && window.teamManagement.isTeamMode()) {
+            return; // 阵容模式下禁用单独切换角色
+        }
 
         const playerIndex = Array.from(characterBoxes).indexOf(box);
         const usedSet = gameState.usedCharacters.players[playerIndex];
@@ -276,20 +371,106 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function getModeName(mode) {
         return { global: '全局', personal: '个人', off: '关闭' }[mode];
-    }
-
-    function animateSelection(box, newChar, delay) {
+    }    function animateSelection(box, newChar, delay) {
         const img = box.querySelector('.character-image');
         const name = box.querySelector('.character-name');
 
         setTimeout(() => {
             box.style.opacity = 0;
             setTimeout(() => {
+                // 检查是否存在分割头像容器并移除
+                const existingSplit = box.querySelector('.character-image-split');
+                if (existingSplit) {
+                    existingSplit.remove();
+                }
+                
                 img.style.display = 'block';
                 img.src = characterData[newChar].头像;
                 name.textContent = newChar;
                 box.style.opacity = 1;
             }, 300);
+        }, delay);
+    }
+
+    // 替代角色动画选择函数
+    function animateAlternativeSelection(box, char1, char2, selectedChar, delay = 0) {
+        setTimeout(() => {
+            const charImg = box.querySelector('.character-image');
+            const charName = box.querySelector('.character-name');
+            
+            // 获取两个角色的数据
+            const character1 = window.characterData[char1];
+            const character2 = window.characterData[char2];
+            const selectedCharData = window.characterData[selectedChar];
+            
+            if (character1 && character2 && selectedCharData) {
+                // 创建分割头像容器
+                charImg.style.display = 'none'; // 隐藏原来的单一头像
+                
+                // 检查是否已存在分割容器，如果有则移除
+                const existingSplit = box.querySelector('.character-image-split');
+                if (existingSplit) {
+                    existingSplit.remove();
+                }
+                
+                const splitContainer = document.createElement('div');
+                splitContainer.className = 'character-image-split';
+                splitContainer.style.cssText = `
+                    position: relative;
+                    width: 140px;
+                    height: 140px;
+                    border-radius: 50%;
+                    overflow: hidden;
+                    border: 3px solid #fff;
+                    margin: 0 auto 10px;
+                `;
+                  const img1 = document.createElement('img');
+                img1.src = character1.头像;
+                img1.style.cssText = `
+                    position: absolute;
+                    width: 140px;
+                    height: 140px;
+                    object-fit: cover;
+                    top: 0;
+                    left: 0;
+                    clip-path: polygon(0 0, 60% 0, 40% 100%, 0 100%);
+                `;                const img2 = document.createElement('img');
+                img2.src = character2.头像;
+                img2.style.cssText = `
+                    position: absolute;
+                    width: 140px;
+                    height: 140px;
+                    object-fit: cover;
+                    top: 0;
+                    right: 0;
+                    clip-path: polygon(66% 0, 100% 0, 100% 100%, 40% 100%);
+                `;
+                
+                // 添加分割线
+                const divider = document.createElement('div');
+                divider.style.cssText = `
+                    position: absolute;
+                    top: 0;
+                    left: 50%;
+                    width: 8px;
+                    height: 100%;
+                    background:  rgba(255, 255, 255, 0.9);
+                    transform: translateX(-50%) skewX(-15deg);
+                    z-index: 1;
+                `;
+                
+                splitContainer.appendChild(img1);
+                splitContainer.appendChild(img2);
+                splitContainer.appendChild(divider);
+                
+                // 插入分割容器
+                charImg.parentNode.insertBefore(splitContainer, charImg);
+                
+                // 更新角色名称，显示选中的角色但标注替代
+                charName.textContent = `${char1}/${char2}`;
+                charName.style.fontSize = '18px';
+            
+            }
         }, delay);
     }
 

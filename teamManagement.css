@@ -1,0 +1,860 @@
+/* 阵容管理样式 */
+
+/* 更多设置容器 */
+.more-settings-container {
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+/* 设置项 */
+.setting-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 20px;
+}
+
+.setting-label {
+    font-size: 25px;
+    font-weight: bold;
+    color: #fff;
+}
+
+/* 开关样式 */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #2196F3;
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+/* 阵容列表区域 */
+.team-list-section {
+    margin-top: 30px;
+}
+
+.team-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #fff;
+}
+
+.add-team-button {
+    background: rgba(76, 175, 80, 0.8);
+    backdrop-filter: blur(10px);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+}
+
+.add-team-button:hover {
+    background: rgba(76, 175, 80, 1);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+}
+
+/* 阵容卡片 */
+.team-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 15px;
+    max-width: 100%;
+}
+
+/* 电脑端限制最大列数，防止重叠 */
+@media (min-width: 769px) {
+    .team-list {
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        max-width: 1400px; /* 限制最大宽度 */
+    }
+}
+
+/* 手机端改为竖向显示，一行一个占满宽度 */
+@media (max-width: 768px) {
+    .team-list {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+}
+
+.team-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    padding: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s;
+}
+
+/* 手机端卡片缩小 */
+@media (max-width: 768px) {
+    .team-card {
+        padding: 8px;
+        border-radius: 10px;
+    }
+}
+
+.team-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.team-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+/* 手机端团队头部优化 */
+@media (max-width: 768px) {
+    .team-header {
+        margin-bottom: 10px;
+    }
+}
+
+.team-name {
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+    flex: 1;
+    margin-right: 10px;
+}
+
+/* 手机端团队名称缩小 */
+@media (max-width: 768px) {
+    .team-name {
+        font-size: 14px;
+    }
+}
+
+.team-actions {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+/* 手机端团队操作按钮优化 */
+@media (max-width: 768px) {
+    .team-actions {
+        gap: 6px;
+    }
+}
+
+.team-action-button {
+    border: none;
+    padding: 5px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    white-space: nowrap;
+}
+
+/* 手机端按钮更紧凑 */
+@media (max-width: 768px) {
+    .team-action-button {
+        padding: 4px 8px;
+        font-size: 10px;
+    }
+}
+
+.team-action-button.edit {
+    background: rgba(33, 150, 243, 0.8);
+    color: white;
+}
+
+.team-action-button.edit:hover {
+    background: rgba(33, 150, 243, 1);
+    transform: translateY(-1px);
+}
+
+.team-action-button.delete {
+    background: rgba(244, 67, 54, 0.8);
+    color: white;
+}
+
+.team-action-button.delete:hover {
+    background: rgba(244, 67, 54, 1);
+    transform: translateY(-1px);
+}
+
+.team-characters {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+/* 手机端角色显示优化 */
+@media (max-width: 768px) {
+    .team-characters {
+        gap: 5px;
+    }
+}
+
+.team-character {
+    text-align: center;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    transition: all 0.3s;
+}
+
+/* 手机端角色卡片优化 */
+@media (max-width: 768px) {
+    .team-character {
+        padding: 5px;
+        border-radius: 8px;
+    }
+}
+
+.team-character:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.team-character-image {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 5px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+/* 分割头像容器 */
+.team-character-image-split {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    margin-bottom: 5px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+/* 分割头像半边显示 */
+.team-character-image-half {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    top: 0;
+}
+
+.team-character-image-half.left {
+    left: 0;
+    clip-path: polygon(0 0, 66% 0, 40% 100%, 0 100%);
+}
+
+.team-character-image-half.right {
+    right: 0;
+    clip-path: polygon(66% 0, 100% 0, 100% 100%, 40% 100%);
+}
+
+/* 倾斜分割线 */
+.team-character-image-split::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.6));
+    transform: translateX(-50%) skewX(-15deg);
+    z-index: 1;
+}
+
+/* 手机端角色图片缩小 */
+@media (max-width: 768px) {
+    .team-character-image {
+        width: 40px;
+        height: 40px;
+        margin-bottom: 3px;
+    }
+    
+    .team-character-image-split {
+        width: 40px;
+        height: 40px;
+        margin-bottom: 3px;
+    }
+    
+    .team-character-image-half {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+.team-character-name {
+    font-size: 12px;
+    color: #fff;
+    word-wrap: break-word;
+    font-weight: 500;
+}
+
+/* 手机端角色名称缩小 */
+@media (max-width: 768px) {
+    .team-character-name {
+        font-size: 10px;
+    }
+}
+
+/* 阵容编辑器弹窗 */
+.team-editor-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.team-editor-popup {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    width: 90%;
+    max-width: 900px;
+    max-height: 90%;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+/* 弹窗内容区域（可滚动） */
+.team-editor-content {
+    flex: 1;
+    overflow-y: auto;
+    /* 隐藏滚动条 */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE 和 Edge */
+}
+
+/* 隐藏 Webkit 浏览器的滚动条 */
+.team-editor-content::-webkit-scrollbar {
+    display: none;
+}
+
+.team-editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px 20px 0 0;
+}
+
+.team-editor-header h3 {
+    margin: 0;
+    font-size: 20px;
+    color: #fff;
+}
+
+.close-team-editor {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 24px;
+    cursor: pointer;
+    color: #fff;
+    padding: 5px;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+}
+
+.close-team-editor:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(90deg);
+}
+
+.team-name-section {
+    padding: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.team-name-section label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: #fff;
+}
+
+.team-name-input {
+    width: 100%;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    font-size: 14px;
+    color: #fff;
+    transition: all 0.3s;
+}
+
+.team-name-input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.team-name-input:focus {
+    border-color: rgba(33, 150, 243, 0.8);
+    outline: none;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.selected-characters-section {
+    padding: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.selected-title {
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #fff;
+    text-align: center;
+    font-size: 16px;
+}
+
+.selected-characters {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    min-height: 120px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.selected-character {
+    text-align: center;
+    padding: 10px;
+    background: rgba(76, 175, 80, 0.2);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(76, 175, 80, 0.8);
+    border-radius: 12px;
+    transition: all 0.3s;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.selected-character:hover {
+    background: rgba(76, 175, 80, 0.3);
+    transform: translateY(-2px);
+}
+
+.selected-character:hover::after {
+    content: '点击移除';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    white-space: nowrap;
+    z-index: 1;
+}
+
+/* 手机端已选择角色优化 */
+@media (max-width: 768px) {
+    .selected-character {
+        padding: 6px;
+    }
+}
+
+.selected-character-image {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 8px;
+}
+
+/* 已选择角色分割头像容器 */
+.selected-character-image-split {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    margin-bottom: 8px;
+    border-radius: 50%;
+    text-align:center;
+    overflow: hidden;
+    border: 2px solid rgba(76, 175, 80, 0.8);
+}
+
+/* 已选择角色分割头像半边显示 */
+.selected-character-image-half {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    top: 0;
+}
+
+.selected-character-image-half.left {
+    left: 0;
+    clip-path: polygon(0 0, 60% 0, 40% 100%, 0 100%);
+}
+
+.selected-character-image-half.right {
+    right: 0;
+    clip-path: polygon(40% 0, 100% 0, 100% 100%, 40% 100%);
+}
+
+/* 已选择角色倾斜分割线 */
+.selected-character-image-split::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.6));
+    transform: translateX(-50%) skewX(-15deg);
+    z-index: 1;
+}
+
+/* 手机端已选择角色图片缩小 */
+@media (max-width: 768px) {
+    .selected-character-image {
+        width: 45px;
+        height: 45px;
+        margin-bottom: 5px;
+    }
+    
+    .selected-character-image-split {
+        width: 45px;
+        height: 45px;
+        margin-bottom: 5px;
+    }
+    
+    .selected-character-image-half {
+        width: 45px;
+        height: 45px;
+    }
+}
+
+.selected-character-name {
+    font-size: 12px;
+    color: #fff;
+    font-weight: bold;
+    margin-top: 5px;
+    word-wrap: break-word;
+}
+
+/* 手机端已选择角色名称缩小 */
+@media (max-width: 768px) {
+    .selected-character-name {
+        font-size: 10px;
+        margin-top: 3px;
+    }
+}
+
+.character-selection-section {
+    padding: 20px;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.character-selection-title {
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #fff;
+    text-align: center;
+    font-size: 16px;
+}
+
+.character-selection-card {
+    position: relative;
+    text-align: center;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.character-selection-card:hover {
+    border-color: rgba(33, 150, 243, 0.8);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(33, 150, 243, 0.2);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.character-selection-card.selected {
+    border-color: rgba(76, 175, 80, 1);
+    background: rgba(76, 175, 80, 0.2);
+    box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3);
+}
+
+.character-selection-image {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 8px;
+}
+
+.character-selection-name {
+    font-size: 12px;
+    color: #fff;
+    word-wrap: break-word;
+    margin-top: 5px;
+    font-weight: 500;
+}
+
+.selection-mask {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(76, 175, 80, 0.4);
+    border-radius: 12px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    /* 移除 backdrop-filter: blur(2px); 避免头像和名字变模糊 */
+}
+
+.character-selection-card.selected .selection-mask {
+    opacity: 1;
+}
+
+.team-editor-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 0 0 20px 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0; /* 防止按钮区域被压缩 */
+}
+
+.team-editor-button {
+    padding: 12px 24px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    backdrop-filter: blur(10px);
+}
+
+.team-editor-button.cancel {
+    background: rgba(108, 117, 125, 0.8);
+    color: white;
+}
+
+.team-editor-button.cancel:hover {
+    background: rgba(108, 117, 125, 1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+}
+
+.team-editor-button.save {
+    background: rgba(40, 167, 69, 0.8);
+    color: white;
+}
+
+.team-editor-button.save:hover {
+    background: rgba(40, 167, 69, 1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+}
+
+/* 角色筛选按钮样式 */
+.character-filter-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.character-filter-button {
+    width: 45px;
+    height: 45px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.character-filter-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+}
+
+.character-filter-button.active {
+    background: rgba(33, 150, 243, 0.8);
+    border-color: rgba(33, 150, 243, 1);
+    box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+}
+
+.filter-element-icon {
+    width: 24px;
+    height: 24px;
+    filter: brightness(0) invert(1);
+}
+
+.characters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 15px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .team-characters {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .selected-characters {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        padding: 10px;
+    }
+    
+    .characters-grid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    }
+    
+    .character-filter-container {
+        gap: 8px;
+        padding: 10px;
+    }
+    
+    .character-filter-button {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .filter-element-icon {
+        width: 18px;
+        height: 18px;
+    }
+      .team-editor-popup {
+        width: 95%;
+        margin: 10px;
+    }
+    
+    .more-settings-container {
+        padding: 15px;
+        margin: 0 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .team-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .team-actions {
+        align-self: flex-end;
+    }
+    
+    .team-name {
+        font-size: 13px;
+    }
+    
+    .team-action-button {
+        padding: 3px 6px;
+        font-size: 9px;
+    }
+}
