@@ -371,17 +371,9 @@ function openTeamEditor(teamName = null) {
     
     // 组装弹窗
     popup.appendChild(content);
-    popup.appendChild(actions);
-    
+    popup.appendChild(actions);    
     overlay.appendChild(popup);
     document.body.appendChild(overlay);
-    
-    // 点击外部关闭
-    overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) {
-            closeTeamEditor();
-        }
-    });
     
     updateCharacterSelection();
     updateSelectedCharacters();
