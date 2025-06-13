@@ -574,9 +574,7 @@ ws.onmessage = (event) => {
         state.characters.forEach((character, index) => {
             const box = characterBoxes[index];
             const img = box.querySelector('.character-image');
-            const name = box.querySelector('.character-name');
-
-            // 检查是否为分割头像（可替换角色）
+            const name = box.querySelector('.character-name');            // 检查是否为分割头像（可替换角色）
             if (character.isSplit && character.splitImages && character.splitImages.length >= 2) {
                 // 隐藏原来的单一头像
                 img.style.display = 'none';
@@ -587,13 +585,17 @@ ws.onmessage = (event) => {
                     existingSplit.remove();
                 }
                 
+                // 判断是否为手机端，与主持人端保持一致
+                const isMobile = window.innerWidth <= 768;
+                const containerSize = isMobile ? '100px' : '140px';
+                
                 // 创建分割头像容器
                 const splitContainer = document.createElement('div');
                 splitContainer.className = 'character-image-split';
                 splitContainer.style.cssText = `
                     position: relative;
-                    width: 140px;
-                    height: 140px;
+                    width: ${containerSize};
+                    height: ${containerSize};
                     border-radius: 50%;
                     overflow: hidden;
                     border: 3px solid #fff;
@@ -605,24 +607,25 @@ ws.onmessage = (event) => {
                 img1.src = character.splitImages[0];
                 img1.style.cssText = `
                     position: absolute;
-                    width: 140px;
-                    height: 140px;
+                    width: ${containerSize};
+                    height: ${containerSize};
                     object-fit: cover;
                     top: 0;
-                    left: 0;
-                    clip-path: polygon(0 0, 66% 0, 40% 100%, 0 100%);
+                    left: -20%;
+                    clip-path: polygon(0 0, 85% 0, 55% 100%, 0 100%);
                 `;
-                  // 创建右侧头像
+                
+                // 创建右侧头像
                 const img2 = document.createElement('img');
                 img2.src = character.splitImages[1];
                 img2.style.cssText = `
                     position: absolute;
-                    width: 140px;
-                    height: 140px;
+                    width: ${containerSize};
+                    height: ${containerSize};
                     object-fit: cover;
                     top: 0;
-                    right: 0;
-                    clip-path: polygon(66% 0, 100% 0, 100% 100%, 40% 100%);
+                    right: -20%;
+                    clip-path: polygon(45% 0, 100% 0, 100% 100%, 20% 100%);
                 `;
                 
                 // 添加分割线
@@ -645,10 +648,21 @@ ws.onmessage = (event) => {
                 // 插入分割容器
                 img.parentNode.insertBefore(splitContainer, img);
                 
-                // 更新角色名称
+                // 更新角色名称，针对手机端优化字体大小
                 name.textContent = character.name;
-                name.style.fontSize = '14px';
-            } else {
+                if (isMobile) {
+                    name.style.cssText = `
+                        font-size: 12px;
+                        line-height: 1.2;
+                        word-break: keep-all;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        max-width: 100%;
+                    `;
+                } else {
+                    name.style.fontSize = '14px';
+                }            } else {
                 // 普通单一角色头像
                 // 移除可能存在的分割容器
                 const existingSplit = box.querySelector('.character-image-split');
@@ -656,10 +670,40 @@ ws.onmessage = (event) => {
                     existingSplit.remove();
                 }
                 
+                // 判断是否为手机端，与主持人端保持一致
+                const isMobile = window.innerWidth <= 768;
+                
                 img.style.display = 'block';
                 img.src = character.image;
+                
+                // 为手机端设置统一的头像样式
+                if (isMobile) {
+                    img.style.cssText = `
+                        display: block;
+                        width: 100px;
+                        height: 100px;
+                        border-radius: 50%;
+                        object-fit: cover;
+                        border: 3px solid #fff;
+                        margin: 0 auto 10px;
+                    `;
+                    name.style.cssText = `
+                        font-size: 14px;
+                        line-height: 1.2;
+                        word-break: keep-all;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        max-width: 100%;
+                        text-align: center;
+                    `;
+                } else {
+                    // 电脑端保持原有样式
+                    img.style.cssText = 'display: block;';
+                    name.style.fontSize = '';
+                }
+                
                 name.textContent = character.name;
-                name.style.fontSize = ''; // 重置字体大小
             }
         });
 

@@ -89,6 +89,22 @@ input:checked + .slider:before {
     color: #fff;
 }
 
+/* 队伍总数显示样式 */
+.team-count {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: normal;
+    margin-left: 10px;
+}
+
+/* 手机端队伍总数样式调整 */
+@media (max-width: 768px) {
+    .team-count {
+        font-size: 12px;
+        margin-left: 8px;
+    }
+}
+
 .add-team-button {
     background: rgba(76, 175, 80, 0.8);
     backdrop-filter: blur(10px);
@@ -174,7 +190,6 @@ input:checked + .slider:before {
     font-size: 16px;
     font-weight: bold;
     color: #fff;
-    flex: 1;
     margin-right: 10px;
 }
 

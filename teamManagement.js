@@ -97,9 +97,9 @@ function createMoreSettingsContent() {
     teamListSection.id = 'teamListSection';
       const teamListHeader = document.createElement('div');
     teamListHeader.className = 'team-list-header';
-    
-    const headerTitle = document.createElement('div');
+      const headerTitle = document.createElement('div');
     headerTitle.textContent = '阵容列表';
+    headerTitle.id = 'teamListTitle'; // 添加ID以便后续更新
     
     const buttonContainer = document.createElement('div');
     buttonContainer.className = 'header-buttons';
@@ -119,7 +119,7 @@ function createMoreSettingsContent() {
     resetButton.addEventListener('click', resetTeamData);
       const addTeamButton = document.createElement('button');
     addTeamButton.className = 'add-team-button';
-    addTeamButton.textContent = '添加阵容';
+    addTeamButton.textContent = '+';
     addTeamButton.addEventListener('click', () => openTeamEditor());
       buttonContainer.appendChild(exportButton);
     buttonContainer.appendChild(importButton);
@@ -161,10 +161,17 @@ function updateTeamListVisibility() {
 // 更新阵容列表
 function updateTeamList() {
     const teamList = document.getElementById('teamList');
+    const teamListTitle = document.getElementById('teamListTitle');
     if (!teamList) return;
     
     // 如果阵容模式关闭，不更新内容
     if (!teamMode) return;
+    
+    // 更新标题显示队伍总数
+    const teamCount = Object.keys(window.teamData).length;
+    if (teamListTitle) {
+        teamListTitle.innerHTML = `阵容列表 <span class="team-count">（总共${teamCount}个队伍）</span>`;
+    }
     
     teamList.innerHTML = '';
     
