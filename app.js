@@ -383,15 +383,44 @@ document.addEventListener('DOMContentLoaded', function () {
                     existingSplit.remove();
                 }
                 
+                // 判断是否为手机端，统一头像大小
+                const isMobile = window.innerWidth <= 768;
+                
                 img.style.display = 'block';
                 img.src = characterData[newChar].头像;
+                
+                // 为手机端设置统一的头像样式
+                if (isMobile) {
+                    img.style.cssText = `
+                        display: block;
+                        width: 100px;
+                        height: 100px;
+                        border-radius: 50%;
+                        object-fit: cover;
+                        border: 3px solid #fff;
+                        margin: 0 auto 10px;
+                    `;
+                    name.style.cssText = `
+                        font-size: 14px;
+                        line-height: 1.2;
+                        word-break: keep-all;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        max-width: 100%;
+                        text-align: center;
+                    `;
+                } else {
+                    // 电脑端保持原有样式
+                    img.style.cssText = 'display: block;';
+                    name.style.cssText = '';
+                }
+                
                 name.textContent = newChar;
                 box.style.opacity = 1;
             }, 300);
         }, delay);
-    }
-
-    // 替代角色动画选择函数
+    }// 替代角色动画选择函数
     function animateAlternativeSelection(box, char1, char2, selectedChar, delay = 0) {
         setTimeout(() => {
             const charImg = box.querySelector('.character-image');
@@ -412,12 +441,16 @@ document.addEventListener('DOMContentLoaded', function () {
                     existingSplit.remove();
                 }
                 
+                // 判断是否为手机端
+                const isMobile = window.innerWidth <= 768;
+                const containerSize = isMobile ? '100px' : '140px';
+                
                 const splitContainer = document.createElement('div');
                 splitContainer.className = 'character-image-split';
                 splitContainer.style.cssText = `
                     position: relative;
-                    width: 140px;
-                    height: 140px;
+                    width: ${containerSize};
+                    height: ${containerSize};
                     border-radius: 50%;
                     overflow: hidden;
                     border: 3px solid #fff;
@@ -427,22 +460,24 @@ document.addEventListener('DOMContentLoaded', function () {
                 img1.src = character1.头像;
                 img1.style.cssText = `
                     position: absolute;
-                    width: 140px;
-                    height: 140px;
+                    width: ${containerSize};
+                    height: ${containerSize};
                     object-fit: cover;
                     top: 0;
-                    left: 0;
-                    clip-path: polygon(0 0, 60% 0, 40% 100%, 0 100%);
-                `;                const img2 = document.createElement('img');
+                    left: -20%;
+                    clip-path: polygon(0 0, 85% 0, 55% 100%, 0 100%);
+                `;
+
+                const img2 = document.createElement('img');
                 img2.src = character2.头像;
                 img2.style.cssText = `
                     position: absolute;
-                    width: 140px;
-                    height: 140px;
+                    width: ${containerSize};
+                    height: ${containerSize};
                     object-fit: cover;
                     top: 0;
-                    right: 0;
-                    clip-path: polygon(66% 0, 100% 0, 100% 100%, 40% 100%);
+                    right: -20%;
+                    clip-path: polygon(45% 0, 100% 0, 100% 100%, 20% 100%);
                 `;
                 
                 // 添加分割线
@@ -465,9 +500,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 // 插入分割容器
                 charImg.parentNode.insertBefore(splitContainer, charImg);
                 
-                // 更新角色名称，显示选中的角色但标注替代
+                // 更新角色名称，针对手机端优化字体大小
                 charName.textContent = `${char1}/${char2}`;
-                charName.style.fontSize = '18px';
+                if (isMobile) {
+                    charName.style.cssText = `
+                        font-size: 12px;
+                        line-height: 1.2;
+                        word-break: keep-all;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        max-width: 100%;
+                    `;
+                } else {
+                    charName.style.fontSize = '18px';
+                }
             
             }
         }, delay);

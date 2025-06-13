@@ -304,13 +304,13 @@ input:checked + .slider:before {
 }
 
 .team-character-image-half.left {
-    left: 0;
-    clip-path: polygon(0 0, 66% 0, 40% 100%, 0 100%);
+    left: -20%;
+    clip-path: polygon(0 0, 85% 0, 55% 100%, 0 100%);
 }
 
 .team-character-image-half.right {
-    right: 0;
-    clip-path: polygon(66% 0, 100% 0, 100% 100%, 40% 100%);
+    right: -20%;
+    clip-path: polygon(45% 0, 100% 0, 100% 100%, 20% 100%);
 }
 
 /* 倾斜分割线 */
@@ -569,13 +569,13 @@ input:checked + .slider:before {
 }
 
 .selected-character-image-half.left {
-    left: 0;
-    clip-path: polygon(0 0, 66% 0, 40% 100%, 0 100%);
+    left: -20%;
+    clip-path: polygon(0 0, 85% 0, 55% 100%, 0 100%);
 }
 
 .selected-character-image-half.right {
-    right: 0;
-    clip-path: polygon(66% 0, 100% 0, 100% 100%, 40% 100%);
+    right: -20%;
+    clip-path: polygon(45% 0, 100% 0, 100% 100%, 20% 100%);
 }
 
 /* 已选择角色倾斜分割线 */
@@ -795,6 +795,75 @@ input:checked + .slider:before {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
     gap: 15px;
+}
+
+.export-button, .import-button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+
+/* 头部按钮容器 */
+.header-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+/* 团队操作按钮基础样式 */
+.team-action-button {
+    background: rgba(76, 175, 80, 0.8);
+    backdrop-filter: blur(10px);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s;
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.team-action-button:hover {
+    background: rgba(76, 175, 80, 1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+}
+
+/* 导出按钮特定样式 */
+.team-action-button.export-button {
+    background: rgba(33, 150, 243, 0.8);
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+}
+
+.team-action-button.export-button:hover {
+    background: rgba(33, 150, 243, 1);
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+}
+
+/* 导入按钮特定样式 */
+.team-action-button.import-button {
+    background: rgba(255, 152, 0, 0.8);
+    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+}
+
+.team-action-button.import-button:hover {
+    background: rgba(255, 152, 0, 1);
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
+}
+
+/* 恢复初始状态按钮特定样式 */
+.team-action-button.reset-button {
+    background: rgba(244, 67, 54, 0.8);
+    box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+}
+
+.team-action-button.reset-button:hover {
+    background: rgba(244, 67, 54, 1);
+    box-shadow: 0 4px 12px rgba(244, 67, 54, 0.4);
 }
 
 /* 响应式设计 */

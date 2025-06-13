@@ -11,6 +11,9 @@ function loadTeamModeSettings() {
     // 控制BP模式按钮显示
     updateBPButtonVisibility();
     
+    // 更新开始抽取按钮文字
+    updateStartButtonText();
+    
     // 确保阵容提示的显示状态与阵容模式一致
     const teamNameDisplay = document.getElementById('teamNameDisplay');
     if (teamNameDisplay) {
@@ -22,6 +25,7 @@ function loadTeamModeSettings() {
 function saveTeamModeSettings() {
     // 不保存状态，但仍需要控制BP按钮显示
     updateBPButtonVisibility();
+    updateStartButtonText(); // 更新开始抽取按钮文字
     
     // 当关闭阵容模式时，隐藏抽取界面上的阵容提示
     const teamNameDisplay = document.getElementById('teamNameDisplay');
@@ -35,6 +39,14 @@ function updateBPButtonVisibility() {
     const bpButton = document.getElementById('bpButton');
     if (bpButton) {
         bpButton.style.display = teamMode ? 'none' : 'inline-block';
+    }
+}
+
+// 更新开始抽取按钮文字
+function updateStartButtonText() {
+    const startButton = document.getElementById('startButton');
+    if (startButton) {
+        startButton.textContent = teamMode ? '阵容抽取' : '开始抽取';
     }
 }
 
@@ -55,8 +67,7 @@ function createMoreSettingsContent() {
     teamModeSwitch.className = 'switch';
       const teamModeInput = document.createElement('input');
     teamModeInput.type = 'checkbox';
-    teamModeInput.checked = teamMode;
-    teamModeInput.addEventListener('change', (e) => {
+    teamModeInput.checked = teamMode;    teamModeInput.addEventListener('change', (e) => {
         teamMode = e.target.checked;
         saveTeamModeSettings();
         updateTeamListVisibility();
@@ -66,6 +77,9 @@ function createMoreSettingsContent() {
         if (teamNameDisplay) {
             teamNameDisplay.style.display = teamMode ? 'block' : 'none';
         }
+        
+        // 更新开始抽取按钮文字
+        updateStartButtonText();
     });
     
     const teamModeSlider = document.createElement('span');
@@ -81,30 +95,52 @@ function createMoreSettingsContent() {
     const teamListSection = document.createElement('div');
     teamListSection.className = 'team-list-section';
     teamListSection.id = 'teamListSection';
-    
-    const teamListHeader = document.createElement('div');
+      const teamListHeader = document.createElement('div');
     teamListHeader.className = 'team-list-header';
-    teamListHeader.textContent = '阵容列表';
     
-    const addTeamButton = document.createElement('button');
+    const headerTitle = document.createElement('div');
+    headerTitle.textContent = '阵容列表';
+    
+    const buttonContainer = document.createElement('div');
+    buttonContainer.className = 'header-buttons';
+    
+    const exportButton = document.createElement('button');
+    exportButton.className = 'team-action-button export-button';
+    exportButton.textContent = '导出';
+    exportButton.addEventListener('click', exportTeamData);
+      const importButton = document.createElement('button');
+    importButton.className = 'team-action-button import-button';
+    importButton.textContent = '导入';
+    importButton.addEventListener('click', importTeamData);
+    
+    const resetButton = document.createElement('button');
+    resetButton.className = 'team-action-button reset-button';
+    resetButton.textContent = '恢复初始状态';
+    resetButton.addEventListener('click', resetTeamData);
+      const addTeamButton = document.createElement('button');
     addTeamButton.className = 'add-team-button';
     addTeamButton.textContent = '添加阵容';
-    addTeamButton.addEventListener('click', openTeamEditor);
+    addTeamButton.addEventListener('click', () => openTeamEditor());
+      buttonContainer.appendChild(exportButton);
+    buttonContainer.appendChild(importButton);
+    buttonContainer.appendChild(resetButton);
+    buttonContainer.appendChild(addTeamButton);
     
-    teamListHeader.appendChild(addTeamButton);
+    teamListHeader.appendChild(headerTitle);
+    teamListHeader.appendChild(buttonContainer);
     
     const teamList = document.createElement('div');
     teamList.className = 'team-list';
     teamList.id = 'teamList';
     
-    teamListSection.appendChild(teamListHeader);
-    teamListSection.appendChild(teamList);
-    
-    container.appendChild(teamModeSection);
+    teamListSection.appendChild(teamListHeader);    teamListSection.appendChild(teamList);    container.appendChild(teamModeSection);
     container.appendChild(teamListSection);
-      // 先更新团队列表内容，再更新显示状态
-    updateTeamList(); // 确保团队列表内容已更新
-    updateTeamListVisibility(); // 然后根据当前模式控制显示
+    
+    // 确保DOM元素创建完成后再控制显示状态
+    setTimeout(() => {
+        updateTeamListVisibility(); // 确保根据当前模式控制显示
+    }, 0);
+
     return container;
 }
 
@@ -112,10 +148,12 @@ function createMoreSettingsContent() {
 function updateTeamListVisibility() {
     const teamListSection = document.getElementById('teamListSection');
     if (teamListSection) {
-        teamListSection.style.display = teamMode ? 'block' : 'none';
-        // 当阵容模式开启时，始终更新阵容列表
+        // 严格根据 teamMode 控制显示
         if (teamMode) {
-            updateTeamList();
+            teamListSection.style.display = 'block';
+            updateTeamList(); // 只有在开启时才更新内容
+        } else {
+            teamListSection.style.display = 'none';
         }
     }
 }
@@ -124,6 +162,9 @@ function updateTeamListVisibility() {
 function updateTeamList() {
     const teamList = document.getElementById('teamList');
     if (!teamList) return;
+    
+    // 如果阵容模式关闭，不更新内容
+    if (!teamMode) return;
     
     teamList.innerHTML = '';
     
@@ -588,20 +629,51 @@ function saveTeam() {
         alert('请选择4个角色');
         return;
     }
-    
-    if (teamName !== editingTeamName && window.teamData[teamName]) {
+      if (teamName !== editingTeamName && window.teamData[teamName]) {
         alert('阵容名称已存在');
         return;
     }
     
-    // 如果是编辑模式且名称改变了，删除旧的
-    if (editingTeamName && teamName !== editingTeamName) {
-        delete window.teamData[editingTeamName];
+    // 确保 window.teamData 存在
+    if (!window.teamData) {
+        window.teamData = {};
     }
-      window.teamData[teamName] = {
+    
+    // 保存阵容数据
+    const teamData = {
         角色列表: Array.from(selectedCharacters),
         描述: `自定义阵容`
     };
+    
+    if (editingTeamName && teamName !== editingTeamName) {
+        // 编辑模式且名称改变了，需要保持位置不变
+        const teamKeys = Object.keys(window.teamData);
+        const oldIndex = teamKeys.indexOf(editingTeamName);
+        
+        if (oldIndex !== -1) {
+            // 重建 teamData 对象，保持原来的位置
+            const newTeamData = {};
+            
+            for (let i = 0; i < teamKeys.length; i++) {
+                const key = teamKeys[i];
+                if (i === oldIndex) {
+                    // 在原位置插入新名称的阵容
+                    newTeamData[teamName] = teamData;
+                } else {
+                    // 保持其他阵容不变
+                    newTeamData[key] = window.teamData[key];
+                }
+            }
+            
+            window.teamData = newTeamData;
+        } else {
+            // 如果找不到原位置，直接保存（兜底逻辑）
+            window.teamData[teamName] = teamData;
+        }
+    } else {
+        // 新增模式或编辑模式且名称未改变，直接保存
+        window.teamData[teamName] = teamData;
+    }
     
     saveTeamData();
     updateTeamList();
@@ -652,6 +724,77 @@ function initTeamManagement() {
     setTimeout(() => {
         updateBPButtonVisibility();
     }, 100);
+}
+
+// 导出阵容数据
+function exportTeamData() {
+    const teamData = JSON.parse(localStorage.getItem('teamData')) || {};
+    const dataStr = "data:text/json;charset=utf-8," + 
+                   encodeURIComponent(JSON.stringify(teamData, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", "team_settings.json");
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+}
+
+// 导入阵容数据
+function importTeamData() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = e => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.readAsText(file, 'UTF-8');
+        reader.onload = readerEvent => {
+            try {
+                const content = readerEvent.target.result;
+                const data = JSON.parse(content);
+                localStorage.setItem('teamData', JSON.stringify(data));
+                alert('阵容数据导入成功！');
+                loadTeamData();
+                updateTeamList();
+            } catch (error) {
+                alert('导入失败：' + error.message);
+            }        }
+    };
+    input.click();
+}
+
+// 恢复初始状态
+function resetTeamData() {
+    // 第一次确认
+    const firstConfirm = confirm('确定要恢复阵容数据到初始状态吗？\n\n这将重置为默认的阵容配置，覆盖所有已保存的修改！');
+    
+    if (!firstConfirm) {
+        return; // 用户取消了第一次确认
+    }
+    
+    try {
+        // 检查是否有 getInitialTeamData 函数
+        if (typeof window.getInitialTeamData !== 'function') {
+            throw new Error('无法找到初始阵容数据函数，请确保 characters.js 已正确加载');
+        }
+        
+        // 从 characters.js 获取初始阵容数据
+        const initialTeamData = window.getInitialTeamData();
+        
+        // 重置 window.teamData 为初始数据的深拷贝
+        window.teamData = JSON.parse(JSON.stringify(initialTeamData));
+        
+        // 保存初始数据到 localStorage
+        localStorage.setItem('teamData', JSON.stringify(window.teamData));
+        
+        // 更新相关UI显示
+        updateTeamList();
+        
+        alert('阵容数据已成功恢复到初始状态！\n\n共恢复了 ' + Object.keys(window.teamData).length + ' 个默认阵容配置。');
+        
+    } catch (error) {
+        alert('恢复初始状态失败：' + error.message);
+    }
 }
 
 // 暴露给全局
