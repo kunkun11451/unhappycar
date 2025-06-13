@@ -454,7 +454,7 @@ input:checked + .slider:before {
 }
 
 .team-name-input {
-    width: 100%;
+    width: 35%;
     padding: 12px;
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
