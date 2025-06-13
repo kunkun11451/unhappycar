@@ -4,7 +4,7 @@ let selectedCharacters = new Set(); // 当前选中的角色
 let editingTeamName = null; // 正在编辑的阵容名称
 let alternativeMode = null; // 替代角色模式：存储正在设置替代角色的原角色名
 
-// 加载阵容模式设置（不再从localStorage读取，始终为false）
+// 加载阵容模式设置
 function loadTeamModeSettings() {
     teamMode = false; // 始终默认关闭
     

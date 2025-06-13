@@ -570,12 +570,12 @@ input:checked + .slider:before {
 
 .selected-character-image-half.left {
     left: 0;
-    clip-path: polygon(0 0, 60% 0, 40% 100%, 0 100%);
+    clip-path: polygon(0 0, 66% 0, 40% 100%, 0 100%);
 }
 
 .selected-character-image-half.right {
     right: 0;
-    clip-path: polygon(40% 0, 100% 0, 100% 100%, 40% 100%);
+    clip-path: polygon(66% 0, 100% 0, 100% 100%, 40% 100%);
 }
 
 /* 已选择角色倾斜分割线 */

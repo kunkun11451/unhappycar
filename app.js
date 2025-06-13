@@ -248,7 +248,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 // 检查是否为替代角色（包含"/"）
                 if (characterName.includes('/')) {
                     const [char1, char2] = characterName.split('/');
-                    // 随机选择其中一个角色
                     const selectedChar = Math.random() < 0.5 ? char1 : char2;
                     
                     if (window.characterData[selectedChar]) {
