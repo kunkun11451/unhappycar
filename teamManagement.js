@@ -80,6 +80,13 @@ function createMoreSettingsContent() {
         
         // 更新开始抽取按钮文字
         updateStartButtonText();
+        
+        // 阵容模式切换时，如果在多人游戏中，触发状态同步
+        if (window.syncGameStateIfChanged) {
+            setTimeout(() => {
+                window.syncGameStateIfChanged();
+            }, 100);
+        }
     });
     
     const teamModeSlider = document.createElement('span');
@@ -728,8 +735,13 @@ function initTeamManagement() {
 // 导出阵容数据
 function exportTeamData() {
     const teamData = JSON.parse(localStorage.getItem('teamData')) || {};
-    const dataStr = "data:text/json;charset=utf-8," + 
-                   encodeURIComponent(JSON.stringify(teamData, null, 2));
+    const formattedData = Object.entries(teamData)
+        .map(([key, value]) => {
+            const roleList = JSON.stringify(value["角色列表"]).replace(/,/g, ' , '); // 格式化角色列表，逗号前后加空格
+            return `"${key}": {\n  "角色列表":${roleList}\n}`;
+        })
+        .join(',\n'); // 每个阵容之间换行
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(`{\n${formattedData}\n}`);
     const downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute("href", dataStr);
     downloadAnchorNode.setAttribute("download", "team_settings.json");
@@ -772,24 +784,29 @@ function resetTeamData() {
     }
     
     try {
+        // 清空 localStorage 中的阵容数据
+        localStorage.removeItem('teamData');
+        
         // 检查是否有 getInitialTeamData 函数
-        if (typeof window.getInitialTeamData !== 'function') {
-            throw new Error('无法找到初始阵容数据函数，请确保 characters.js 已正确加载');
+        if (typeof window.getInitialTeamData === 'function') {
+            // 从 characters.js 获取初始阵容数据
+            const initialTeamData = window.getInitialTeamData();
+            
+            // 重置 window.teamData 为初始数据的深拷贝
+            window.teamData = JSON.parse(JSON.stringify(initialTeamData));
+            
+            // 保存初始数据到 localStorage
+            localStorage.setItem('teamData', JSON.stringify(window.teamData));
+            
+            alert('阵容数据已成功恢复到初始状态！\n\n共恢复了 ' + Object.keys(window.teamData).length + ' 个默认阵容配置。');
+        } else {
+            // 如果没有初始数据函数，则完全清空
+            window.teamData = {};
+            alert('阵容数据已清空！\n\n无法找到初始阵容数据，请确保 characters.js 已正确加载。');
         }
-        
-        // 从 characters.js 获取初始阵容数据
-        const initialTeamData = window.getInitialTeamData();
-        
-        // 重置 window.teamData 为初始数据的深拷贝
-        window.teamData = JSON.parse(JSON.stringify(initialTeamData));
-        
-        // 保存初始数据到 localStorage
-        localStorage.setItem('teamData', JSON.stringify(window.teamData));
         
         // 更新相关UI显示
         updateTeamList();
-        
-        alert('阵容数据已成功恢复到初始状态！\n\n共恢复了 ' + Object.keys(window.teamData).length + ' 个默认阵容配置。');
         
     } catch (error) {
         alert('恢复初始状态失败：' + error.message);

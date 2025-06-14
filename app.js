@@ -192,11 +192,17 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             // 调用动画函数更新角色卡片
-            animateSelection(box, newChar, 0);
-
-            roundHistory.push({ new: newChar });
+            animateSelection(box, newChar, 0);            roundHistory.push({ new: newChar });
         });        // 将本轮抽取的角色存到历史
         window.historyModule.pushRoundHistory(roundHistory);
+
+        // 普通抽取模式完成后，如果在多人游戏中，触发状态同步
+        if (window.syncGameStateIfChanged) {
+            // 延迟同步，确保DOM更新完成
+            setTimeout(() => {
+                window.syncGameStateIfChanged();
+            }, 500);
+        }
 
         // 禁用按钮 0.5 秒
         startButton.disabled = true;
@@ -282,16 +288,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 animateSelection(box, randomChar, index * 100);
                 roundHistory.push({ new: randomChar });
             }
-        });
-
-        // 将本轮抽取的角色存到历史
+        });        // 将本轮抽取的角色存到历史
         window.historyModule.pushRoundHistory(roundHistory);
 
         // 禁用按钮 0.5 秒
         startButton.disabled = true;
         setTimeout(() => {
             startButton.disabled = false;
-        }, 500);
+        }, 500);          // 阵容模式抽取完成后，如果在多人游戏中，触发状态同步
+        if (window.syncGameStateIfChanged) {
+            // 延迟同步，确保DOM更新完成，包括阵容名称显示
+            setTimeout(() => {
+                window.syncGameStateIfChanged();
+            }, 1000);
+        }
     }    // ================= 单独切换角色 =================
     function refreshSingleCharacter(box) {
         if (!gameState.isGameStarted) return; // 禁用单独抽取角色功能

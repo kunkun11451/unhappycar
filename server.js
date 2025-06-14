@@ -5,16 +5,28 @@ const { v4: uuidv4 } = require("uuid");
 
 const PORT = process.env.PORT || 3000;
 
-// 加载 SSL 证书
-const sslOptions = {
-  cert: fs.readFileSync("/etc/letsencrypt/live/socket.unhappycar.games/fullchain.pem"),
-  key: fs.readFileSync("/etc/letsencrypt/live/socket.unhappycar.games/privkey.pem"),
-  ca: fs.readFileSync("/etc/letsencrypt/live/socket.unhappycar.games/chain.pem"),
-};
+// 检查是否为本地测试环境
+const isLocalTest = process.env.NODE_ENV === 'development' || !fs.existsSync('/etc/letsencrypt/live/socket.unhappycar.games/fullchain.pem');
 
-// 创建 HTTPS 服务器
-const server = https.createServer(sslOptions);
-const wss = new WebSocket.Server({ server });
+let server, wss;
+
+if (isLocalTest) {
+  // 本地测试用 HTTP 服务器
+  console.log('使用本地测试模式 (HTTP)');
+  const http = require("http");
+  server = http.createServer();
+  wss = new WebSocket.Server({ server });
+} else {
+  // 生产环境用 HTTPS 服务器
+  console.log('使用生产环境模式 (HTTPS)');
+  const sslOptions = {
+    cert: fs.readFileSync("/etc/letsencrypt/live/socket.unhappycar.games/fullchain.pem"),
+    key: fs.readFileSync("/etc/letsencrypt/live/socket.unhappycar.games/privkey.pem"),
+    ca: fs.readFileSync("/etc/letsencrypt/live/socket.unhappycar.games/chain.pem"),
+  };
+  server = https.createServer(sslOptions);
+  wss = new WebSocket.Server({ server });
+}
 
 const rooms = {}; // 存储房间信息
 

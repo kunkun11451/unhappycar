@@ -1,16 +1,25 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // 在连接WebSocket之前先发送一次HTTP请求唤醒服务器
+// 在连接WebSocket之前先发送一次HTTP请求唤醒服务器
     console.log('发送唤醒请求到服务器...');
-    fetch('https://socket.unhappycar.games:3000', {
-        method: 'GET',
-        mode: 'no-cors'
-    }).then(() => {
-        console.log('服务器唤醒请求已发送');
-    }).catch(err => {
-        console.log('服务器唤醒请求发送（可能失败，但不影响后续连接）:', err.message);
-    });
+    
+    // 检查是否为本地开发环境
+    const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    
+    if (!isLocalDev) {
+        fetch('https://socket.unhappycar.games:3000', {
+            method: 'GET',
+            mode: 'no-cors'
+        }).then(() => {
+            console.log('服务器唤醒请求已发送');
+        }).catch(err => {
+            console.log('服务器唤醒请求发送（可能失败，但不影响后续连接）:', err.message);
+        });
+    }
 
-    const ws = new WebSocket('wss://socket.unhappycar.games:3000');
+    // 根据环境选择WebSocket连接
+    const wsUrl = isLocalDev ? 'ws://127.0.0.1:3000' : 'wss://socket.unhappycar.games:3000';
+    console.log('连接到WebSocket服务器:', wsUrl);
+    const ws = new WebSocket(wsUrl);
 
     // DOM 元素
     const initialScreen = document.getElementById('initialScreen');
@@ -138,7 +147,13 @@ document.addEventListener('DOMContentLoaded', function () {
             if (currentPlayerCount <= 1) {
                 console.log('房间只有主持人，跳过保活同步');
                 return;
-            }        }const state = {
+            }        }        // 获取当前阵容名称
+        const teamNameDisplay = document.getElementById('teamNameDisplay');
+        const currentTeamName = teamNameDisplay ? teamNameDisplay.textContent.replace('当前阵容：', '') : '';
+        const isTeamModeActive = window.teamManagement && typeof window.teamManagement.isTeamMode === 'function' ? 
+            window.teamManagement.isTeamMode() : false;
+
+        const state = {
             roundCounter: gameState.roundCounter,
             characters: Array.from(characterBoxes).map((box) => {
                 const name = box.querySelector('.character-name').textContent;
@@ -184,6 +199,11 @@ document.addEventListener('DOMContentLoaded', function () {
             hardMission: {
                 title: selectedHardMission.querySelector('.mission-title')?.textContent || '',
                 content: selectedHardMission.querySelector('.mission-content')?.innerHTML || ''
+            },
+            // 添加阵容信息同步
+            teamInfo: {
+                teamName: currentTeamName,
+                isTeamModeActive: isTeamModeActive
             }
         };
 
@@ -213,8 +233,7 @@ document.addEventListener('DOMContentLoaded', function () {
     
     // 检测游戏状态是否发生变化
     function hasGameStateChanged() {
-        if (!window.gameState) return false;
-          const currentState = {
+        if (!window.gameState) return false;          const currentState = {
             roundCounter: gameState.roundCounter,
             characters: Array.from(characterBoxes).map((box) => {
                 const name = box.querySelector('.character-name').textContent;
@@ -241,7 +260,14 @@ document.addEventListener('DOMContentLoaded', function () {
             missions: Array.from(missionBoxes).map((box) => ({
                 title: box.querySelector('.mission-title').textContent,
                 content: box.querySelector('.mission-content').innerHTML
-            }))
+            })),
+            // 添加阵容信息用于状态变化检测
+            teamInfo: {
+                teamName: document.getElementById('teamNameDisplay') ? 
+                    document.getElementById('teamNameDisplay').textContent : '',
+                isTeamModeActive: window.teamManagement && typeof window.teamManagement.isTeamMode === 'function' ? 
+                    window.teamManagement.isTeamMode() : false
+            }
         };
         
         const currentHash = calculateGameStateHash(currentState);
@@ -558,7 +584,14 @@ ws.onmessage = (event) => {
             missions: Array.from(missionBoxes).map((box) => ({
                 title: box.querySelector('.mission-title').textContent,
                 content: box.querySelector('.mission-content').textContent
-            }))
+            })),
+            // 添加阵容信息同步
+            teamInfo: {
+                teamName: document.getElementById('teamNameDisplay') ? 
+                    document.getElementById('teamNameDisplay').textContent.replace('当前阵容：', '') : '',
+                isTeamModeActive: window.teamManagement && typeof window.teamManagement.isTeamMode === 'function' ? 
+                    window.teamManagement.isTeamMode() : false
+            }
         };
 
         // 添加日志记录主持人发送的数据
@@ -810,8 +843,7 @@ ws.onmessage = (event) => {
                 window.hardMissionVoting.syncVotingResult(state.votingResult);
             }
         }
-        
-        // 保持向后兼容性 - 更新原有的单个困难事件显示
+          // 保持向后兼容性 - 更新原有的单个困难事件显示
         const hardMissionTitle = selectedHardMission.querySelector('.mission-title');
         const hardMissionContent = selectedHardMission.querySelector('.mission-content');
 
@@ -820,7 +852,43 @@ ws.onmessage = (event) => {
             hardMissionTitle.textContent = state.hardMission.title;
             hardMissionContent.innerHTML = state.hardMission.content; // 使用 innerHTML 恢复颜色
         }
-    }    // 同步投票状态
+
+        // 同步阵容信息
+        if (state.teamInfo) {
+            let teamNameDisplay = document.getElementById('teamNameDisplay');
+            
+            if (state.teamInfo.isTeamModeActive && state.teamInfo.teamName) {
+                // 如果不存在阵容显示元素，创建一个
+                if (!teamNameDisplay) {
+                    teamNameDisplay = document.createElement('div');
+                    teamNameDisplay.id = 'teamNameDisplay';
+                    teamNameDisplay.style.cssText = `
+                        text-align: center;
+                        font-size: 18px;
+                        font-weight: bold;
+                        margin: 10px 0;
+                        padding: 10px;
+                        color: #2c3e50;
+                    `;
+                    
+                    // 在开始按钮后插入阵容名称
+                    const startButtonElement = document.getElementById('startButton');
+                    if (startButtonElement) {
+                        startButtonElement.parentNode.insertBefore(teamNameDisplay, startButtonElement.nextSibling);
+                    }
+                }
+                
+                // 更新阵容名称
+                teamNameDisplay.textContent = `当前阵容：${state.teamInfo.teamName}`;
+                teamNameDisplay.style.display = 'block';
+            } else {
+                // 如果阵容模式未激活，隐藏阵容显示
+                if (teamNameDisplay) {
+                    teamNameDisplay.style.display = 'none';
+                }
+            }
+        }
+    }// 同步投票状态
     function syncVoteState(voteData) {
         if (!ws || ws.readyState !== WebSocket.OPEN) {
             console.error('WebSocket连接未打开，无法同步投票状态');
@@ -999,8 +1067,7 @@ ws.onmessage = (event) => {
             // 强制同步，无论状态是否变化
             syncGameState();
         }
-    }
-      // 导出多人游戏管理器
+    }      // 导出多人游戏管理器
 window.multiplayerManager = {
     syncVoteState,
     syncVotingResult,
@@ -1015,4 +1082,7 @@ window.multiplayerManager = {
         return currentPlayerCount;
     }
 };
+
+// 导出同步函数到全局作用域
+window.syncGameStateIfChanged = syncGameStateIfChanged;
 });
