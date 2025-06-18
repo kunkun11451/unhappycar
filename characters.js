@@ -3,6 +3,18 @@ window.characterData = {
     "角色任选!": {
         "头像": "https://tse4-mm.cn.bing.net/th/id/OIP-C.JyPv5GjyP7I8leDiGxu2hgAAAA?cb=iwc2&rs=1&pid=ImgDetMain",
     },
+    "丝柯克": {
+        "头像": "https://act-upload.mihoyo.com/ys-obc/2025/06/12/73740358/867b0b36bfd629cd5ce88443cc5816c6_8276246094525984208.png",
+        "元素类型": "冰",
+        "武器类型": "单手剑",
+        "星级": "五星"
+    },
+    "塔利雅": {
+        "头像": "https://act-upload.mihoyo.com/ys-obc/2025/06/12/73740358/9508cb49aeb8ab876dc013c5a7e08272_3275238567985865994.png",
+        "元素类型": "水",
+        "武器类型": "长枪",
+        "星级": "四星"
+    },
     "爱可菲": {
         "头像": "https://act-upload.mihoyo.com/ys-obc/2025/04/30/73740358/cc1d0ae2568f3791339a21ff22b43ed9_5999783633252671899.png",
         "元素类型": "冰",
@@ -599,7 +611,7 @@ window.characterData = {
 };
 
 // 阵容数据
-window.teamData = {
+window.teamData = {  
 "胡行钟": {
   "角色列表":["胡桃" , "行秋/芙宁娜" , "钟离" , "夜兰"]
 },
@@ -738,6 +750,9 @@ window.teamData = {
 "三年起步2队": {
   "角色列表":["纳西妲" , "多莉" , "瑶瑶" , "希格雯"]
 },
+"冰水战舰": {
+  "角色列表":["丝柯克" , "芙宁娜" , "爱可菲" , "申鹤"]
+},  
 }
 
 // 保存初始阵容数据的常量（用于重置功能）
