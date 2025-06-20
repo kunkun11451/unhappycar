@@ -1,23 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
-// 在连接WebSocket之前先发送一次HTTP请求唤醒服务器
-    console.log('发送唤醒请求到服务器...');
-    
-    // 检查是否为本地开发环境
-    const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    
-    if (!isLocalDev) {
-        fetch('https://socket.unhappycar.games:3000', {
-            method: 'GET',
-            mode: 'no-cors'
-        }).then(() => {
-            console.log('服务器唤醒请求已发送');
-        }).catch(err => {
-            console.log('服务器唤醒请求发送（可能失败，但不影响后续连接）:', err.message);
-        });
-    }
-
     // 根据环境选择WebSocket连接
-    const wsUrl = isLocalDev ? 'ws://127.0.0.1:3000' : 'wss://socket.unhappycar.games:3000';
+    const wsUrl = isLocalDev ? 'ws://127.0.0.1:3000' : 'wss://unhappycar.tech:3000';
     console.log('连接到WebSocket服务器:', wsUrl);
     const ws = new WebSocket(wsUrl);
 
