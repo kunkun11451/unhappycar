@@ -153,6 +153,12 @@ userDocumentation.addEventListener("click", () => {
     window.open('documentation.html', '_blank');
 });
 
+// 方位抽取按钮点击事件
+document.getElementById("directionExtractor").addEventListener("click", () => {
+    // 在新窗口中打开方位抽取器
+    window.open('方位抽取器.html', '_blank');
+});
+
 // 通用函数：选定设置选项
 function selectOption(button, title, content) {
     // 移除所有按钮的激活状态

@@ -530,7 +530,6 @@ ws.onmessage = (event) => {
             // 更新连接状态显示延迟信息
             if (connectionStatus) {
                 const baseText = connectionStatus.textContent.split('（')[0]; // 保留基础连接信息
-                connectionStatus.textContent = `${baseText}（延迟: ${latency}ms）`;
             }
             break;
 

@@ -1,0 +1,1788 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>方位抽取器</title>
+    <style>
+        /* 方位抽取器样式文件 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .draw-section {
+            margin-bottom: 30px;
+        }
+
+        .draw-button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            margin: 10px;
+        }
+
+        .draw-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .draw-button:active {
+            transform: translateY(0);
+        }
+
+        .result-container {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            border-left: 5px solid #667eea;
+            border-right: 5px solid #667eea;
+        }
+
+        .result-item {
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .result-label {
+            font-weight: bold;
+            color: #666;
+            min-width: 80px;
+            text-align: left;
+        }
+
+        .result-value {
+            flex: 1;
+            text-align: center;
+            font-size: 1.1rem;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .mode-result {
+            color: #e74c3c;
+        }
+
+        .direction-result {
+            color: #3498db;
+        }        .point-result {
+            color: #27ae60;
+        }
+
+        .redraw-button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            margin-left: 10px;
+        }
+
+        .redraw-button:hover {
+            background: linear-gradient(45deg, #5a67d8, #6b46c1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .copy-section {
+            margin-top: 25px;
+            padding: 20px;
+            background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 15px;
+            color: white;
+        }
+
+        .copy-text {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            font-size: 1.1rem;
+            font-weight: bold;
+            word-break: break-all;
+        }
+
+        .copy-button {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 10px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .copy-button:hover {
+            background: white;
+            color: #f5576c;
+        }
+
+        .copy-success {
+            background: #27ae60 !important;
+            border-color: #27ae60 !important;
+        }
+
+        .rules-section {
+            margin-top: 30px;
+            text-align: left;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        .rules-title {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            text-align: center;
+        }
+
+        .rules-content {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .rules-content ul {
+            margin-left: 20px;
+        }
+
+        .rules-content li {
+            margin: 8px 0;
+        }
+
+        /* 历史记录弹窗样式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            padding: 20px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.3rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .modal-body {
+            padding: 20px;
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .history-time {
+            font-size: 0.9rem;
+            color: #999;
+            margin-bottom: 5px;
+        }
+
+        .history-result {
+            font-weight: bold;
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        .modal-footer {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .modal-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }        .modal-button:hover {
+            background: #5a6fd8;
+            transform: translateY(-1px);
+        }
+
+        /* 自定义模式详情弹窗特殊样式 */
+        .custom-detail-section {
+            transition: all 0.3s ease;
+        }
+
+        .custom-detail-input, .custom-detail-textarea, .custom-detail-select {
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .custom-detail-input:focus, .custom-detail-textarea:focus, .custom-detail-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            outline: none;
+        }
+
+        .custom-mode-item {
+            transition: all 0.3s ease;
+        }        .custom-mode-item:hover {
+            background: rgba(102, 126, 234, 0.1) !important;
+            transform: translateY(-1px);
+        }
+
+        /* 自定义模式区域过渡效果 */
+        .custom-mode-section {
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .custom-mode-section.hidden {
+            opacity: 0;
+            max-height: 0;
+            padding: 0;
+            margin: 0;
+            border: none;
+        }
+
+        /* 设置区域样式 */
+        .settings-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid #e9ecef;
+        }
+
+        .settings-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            text-align: center;
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: center;
+        }
+
+        .mode-settings {
+            border-top: 1px solid #e9ecef;
+            padding-top: 15px;
+            margin-top: 15px;
+        }
+
+        .mode-settings h4 {
+            color: #555;
+            margin-bottom: 15px;
+            font-size: 1rem;
+            text-align: center;
+        }
+
+        .mode-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .mode-item {
+            display: flex;
+            justify-content: center;
+        }
+
+        .setting-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: #555;
+            user-select: none;
+            padding: 5px 10px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        .setting-label:hover {
+            background-color: rgba(102, 126, 234, 0.1);
+        }
+
+        .setting-label input[type="checkbox"] {
+            display: none;
+        }
+
+        .checkmark {
+            height: 18px;
+            width: 18px;
+            background-color: #eee;
+            border-radius: 4px;
+            margin-right: 8px;
+            position: relative;
+            transition: all 0.3s ease;
+            border: 2px solid #ddd;
+            flex-shrink: 0;
+        }
+
+        .setting-label:hover .checkmark {
+            background-color: #ccc;
+        }
+
+        .setting-label input:checked ~ .checkmark {
+            background-color: #667eea;
+            border-color: #667eea;
+        }
+
+        .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+        }
+
+        .setting-label input:checked ~ .checkmark:after {
+            display: block;
+        }
+
+        .setting-label .checkmark:after {
+            left: 5px;
+            top: 2px;
+            width: 4px;
+            height: 8px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .test-button {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }        .test-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+
+        /* 自定义模式样式 */
+        .custom-mode-controls input {
+            transition: border-color 0.3s ease;
+        }
+
+        .custom-mode-controls input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+
+        .custom-mode-controls button:hover {
+            background: #5a6fd8;
+            transform: translateY(-1px);
+        }
+
+        .custom-mode-item {
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .draw-button {
+                padding: 12px 24px;
+                font-size: 1rem;
+            }
+
+            .result-item {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .result-label {
+                margin-bottom: 5px;
+                text-align: center;
+            }
+
+            /* 手机端抽取设置一行显示 */
+            .setting-row {
+                flex-direction: row;
+                gap: 20px;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            /* 手机端模式选择一行显示3个 */
+            .mode-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+                max-width: 100%;
+            }
+            
+            /* 手机端缩小勾选框和文字 */
+            .setting-label {
+                font-size: 0.8rem;
+                padding: 3px 6px;
+            }
+            
+            .checkmark {
+                height: 14px;
+                width: 14px;
+                margin-right: 6px;
+                border-width: 1px;
+            }
+            
+            .setting-label .checkmark:after {
+                left: 4px;
+                top: 1px;
+                width: 3px;
+                height: 6px;
+                border-width: 0 1.5px 1.5px 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .draw-button {
+                width: 100%;
+                margin: 5px 0;
+            }
+            
+            .copy-text {
+                font-size: 1rem;
+            }
+
+            .result-container {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 0;
+            margin: 20px 0;
+            border-left: none;
+            border-right: none;
+            }
+
+            .redraw-button {
+            margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>方位抽取器</h1>
+        
+        <!-- 设置选项区域 -->
+        <div class="settings-section">
+            <h3>抽取设置</h3>
+            <div class="setting-row">                <div class="setting-item">
+                    <label class="setting-label">
+                        <input type="checkbox" id="enableMode">
+                        <span class="checkmark"></span>
+                        启用模式抽取
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <label class="setting-label">
+                        <input type="checkbox" id="enablePoint" checked>
+                        <span class="checkmark"></span>
+                        启用点位抽取
+                    </label>
+                </div>
+            </div>
+            
+            <!-- 模式详细设置 -->
+            <div class="mode-settings" id="modeSettings">
+                <h4>模式选择</h4>
+                <div class="mode-grid">                    <div class="mode-item">
+                        <label class="setting-label">
+                            <input type="checkbox" id="modeClone" checked>
+                            <span class="checkmark"></span>
+                            克隆
+                        </label>
+                    </div>
+                    <div class="mode-item">
+                        <label class="setting-label">
+                            <input type="checkbox" id="modeSwap" checked>
+                            <span class="checkmark"></span>
+                            交换
+                        </label>
+                    </div>
+                    <div class="mode-item">
+                        <label class="setting-label">
+                            <input type="checkbox" id="modeSurprise" checked>
+                            <span class="checkmark"></span>
+                            惊喜
+                        </label>
+                    </div>
+                    <div class="mode-item">
+                        <label class="setting-label">
+                            <input type="checkbox" id="modeAudience" checked>
+                            <span class="checkmark"></span>
+                            观众
+                        </label>
+                    </div>    
+                    <div class="mode-item">
+                        <label class="setting-label">
+                            <input type="checkbox" id="modeJushi" checked>
+                            <span class="checkmark"></span>
+                            巨史
+                        </label>
+                    </div>                                    
+                    <div class="mode-item">
+                        <label class="setting-label">
+                            <input type="checkbox" id="modeNormal" checked>
+                            <span class="checkmark"></span>
+                            普通
+                        </label>
+                    </div>
+
+                </div>
+            </div>            <!-- 自定义模式区域 -->
+            <div class="custom-mode-section" style="border-top: 1px solid #e9ecef; padding-top: 15px; margin-top: 15px;">
+                <h4 style="color: #555; margin-bottom: 15px; font-size: 1rem; text-align: center;">🎨 自定义模式</h4>
+                <div class="custom-mode-controls" style="display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
+                    <input type="text" id="customModeName" placeholder="模式名称" style="padding: 5px 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; max-width: 120px;">
+                    <button onclick="showCustomModeDetail()" style="padding: 5px 15px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">详情设置</button>
+                    <button onclick="addCustomMode()" style="padding: 5px 15px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">添加模式</button>
+                </div>
+                <div id="customModesList" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 5px; max-width: 500px; margin: 0 auto;">
+                    <!-- 自定义模式列表 -->
+                </div>
+            </div>
+            
+            <!-- <!== 测试功能区域 ==>
+            <div class="test-section" style="margin-top: 20px; padding: 15px; background: rgba(255, 255, 255, 0.1); border-radius: 10px;">
+                <h4 style="margin-bottom: 10px;">📊 测试功能</h4>
+                <button class="test-button" onclick="runModeTest()">
+                    测试模式分布 (100次)
+                </button>
+                <div id="testResults" style="margin-top: 10px; font-size: 12px; color: #666; display: none;"></div>
+            </div>
+        </div> -->        <div class="draw-section">
+            <button class="draw-button" onclick="drawAll()">🎲开始抽取</button>
+        </div>        <div class="result-container" id="resultContainer">
+            <div class="result-item" id="modeResultItem">
+                <div class="result-label">模式:</div>
+                <div class="result-value mode-result" id="modeResult">-</div>
+                <button class="redraw-button" id="drawModeBtn" onclick="drawMode()" style="display: none;">🔄</button>
+            </div>
+            <div class="result-item">
+                <div class="result-label">类型方位:</div>
+                <div class="result-value direction-result" id="directionResult">-</div>
+                <button class="redraw-button" id="drawDirectionBtn" onclick="drawDirection()">🔄</button>
+            </div>
+            <div class="result-item" id="pointResultItem">
+                <div class="result-label">点位:</div>
+                <div class="result-value point-result" id="pointResult">-</div>
+                <button class="redraw-button" id="drawPointBtn" onclick="drawPoint()" style="display: none;">🔄</button>
+            </div>
+        </div>
+
+        <div class="copy-section" id="copySection" style="display: none;">
+            <div class="copy-text" id="copyText">-</div>
+            <button class="copy-button" id="copyButton" onclick="copyResult()">📋 复制到剪贴板</button>
+        </div>
+
+        <div class="rules-section">
+            <div class="rules-title">📖 抽取规则说明</div>
+            <div class="rules-content">              
+                 <p><strong>模式类型：</strong></p>
+                <ul>                    <li><strong>克隆：</strong>随机选择一个玩家作为克隆对象</li>
+                    <li><strong>交换：</strong>随机抽取交换关系，此外有<math><mfrac><mn>6859</mn><mn>40000</mn></mfrac></math>的概率抽到一位任选交换</li>
+                    <li><strong>惊喜：</strong>随机禁用某个技能或装备</li>
+                    <li><strong>观众：</strong>随机将玩家分配到观众或参战组</li>
+                    <li><strong>巨史：</strong>从7个元素（冰火水雷岩风草）中随机选择3个</li>
+                    <li><strong>普通：</strong>无特殊附加内容的模式</li>
+                    <li><strong>自定义：</strong>用户可以添加自己的模式和描述</li>
+                </ul>
+                <p><strong>类型方位：</strong></p>
+                <ul>
+                    <li><strong>类型：</strong>等级、命座、攻击、生命、防御、精通</li>
+                    <li><strong>方位：</strong>上、下、左、右、左上、左下、右上、右下</li>
+                </ul>
+                <p><strong>点位：</strong>1-6点随机</p>
+                <p><strong>快捷键：</strong>Ctrl+Enter(全部抽取) / Ctrl+C(复制结果)</p>
+            </div>
+        </div>        <!-- 历史记录弹窗 -->
+        <div class="modal-overlay" id="historyModal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>📚 历史记录</h3>
+                    <button class="modal-close" onclick="hideHistory()">✕</button>
+                </div>
+                <div class="modal-body" id="historyContent">
+                    <p style="text-align: center; color: #999;">暂无历史记录</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="modal-button" onclick="clearHistory()">🗑️ 清空历史</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 自定义模式详情弹窗 -->
+        <div class="modal-overlay" id="customDetailModal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>🔧 自定义模式详情</h3>
+                    <button class="modal-close" onclick="hideCustomDetail()">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #555;">模式类型：</label>
+                        <select id="customModeType" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                            <option value="text">固定文本</option>
+                            <option value="random">随机抽取</option>
+                        </select>
+                    </div>
+                    
+                    <div id="textDetailSection" style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #555;">固定文本：</label>
+                        <input type="text" id="customModeText" placeholder="输入固定的模式描述" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px;">
+                    </div>
+                    
+                    <div id="randomDetailSection" style="display: none;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #555;">抽取元素（每行一个）：</label>
+                        <textarea id="customModeElements" placeholder="输入可抽取的元素，每行一个&#10;例如：&#10;元素A&#10;元素B&#10;元素C" style="width: 100%; height: 120px; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; resize: vertical;"></textarea>
+                        <small style="color: #666; font-size: 12px;">每次抽取时会从这些元素中随机选择一个</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="modal-button" onclick="clearCustomDetail()">🗑️ 清空</button>
+                    <button class="modal-button" onclick="hideCustomDetail()">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 方位抽取器增强功能
+        class FangweiDrawer {            constructor() {
+                this.modes = {
+                    clone: { name: '克隆', enabled: true },
+                    swap: { name: '交换', enabled: true },
+                    surprise: { name: '惊喜', enabled: true },
+                    audience: { name: '观众', enabled: true },
+                    normal: { name: '普通', enabled: true },
+                    jushi: { name: '巨史', enabled: true }
+                };
+                this.types = ['等级', '命座', '攻击', '生命', '防御', '精通'];
+                this.directions = ['上', '下', '左', '右', '左上', '左下', '右上', '右下'];
+                this.points = ['1', '2', '3', '4', '5', '6'];
+                this.players = ['1P', '2P', '3P', '4P'];
+                this.surpriseItems = ['禁A', '禁E', '禁Q', '禁五星武器'];
+                this.elements = ['冰', '火', '水', '雷', '岩', '风', '草'];                // 自定义模式
+                this.customModes = [];
+                
+                // 当前编辑的自定义模式详情
+                this.currentCustomDetail = {
+                    type: 'text', // 'text' 或 'random'
+                    text: '',
+                    elements: []
+                };
+                
+                // 当前正在编辑的模式（用于区分新建和编辑）
+                this.currentEditingMode = null;
+                
+                this.currentResults = {
+                    mode: '',
+                    modeDetail: '',
+                    direction: '',
+                    point: ''
+                };
+                  // 设置选项
+                this.settings = {
+                    enableMode: false,
+                    enablePoint: true,
+                    modes: {
+                        clone: true,
+                        swap: true, 
+                        surprise: true,
+                        audience: true,
+                        normal: true,
+                        jushi: true
+                    }
+                };
+                
+                this.history = [];
+                this.maxHistory = 10;
+                
+                this.init();
+            }            init() {
+                this.loadHistory();
+                this.loadCustomModes();
+                this.loadSettings();
+                this.setupEventListeners();
+                this.updateCustomModesList();
+                // 初始化时显示结果容器，显示默认状态
+                this.showResults();
+            }
+
+            randomChoice(array) {
+                if (array.length === 0) return null;
+                return array[Math.floor(Math.random() * array.length)];
+            }
+            
+            // 增强的随机选择，可以带权重
+            weightedRandomChoice(items, weights = null) {
+                if (items.length === 0) return null;
+                
+                if (!weights || weights.length !== items.length) {
+                    // 如果没有权重或权重长度不匹配，使用等权重
+                    return this.randomChoice(items);
+                }
+                
+                const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+                let random = Math.random() * totalWeight;
+                
+                for (let i = 0; i < items.length; i++) {
+                    if (random < weights[i]) {
+                        return items[i];
+                    }
+                    random -= weights[i];
+                }
+                
+                return items[items.length - 1]; // 备用返回
+            }
+
+            generateSwapPairs() {
+                const RANDOM_SWAP_PROBABILITY = 6859 / 40000;
+                
+                if (Math.random() < RANDOM_SWAP_PROBABILITY) {
+                    const selectedPlayer = this.randomChoice(this.players);
+                    return `${selectedPlayer}任选交换`;
+                }
+
+                const swapPatterns = [
+                    '1P⇄2P 3P⇄4P',
+                    '1P⇄3P 2P⇄4P', 
+                    '1P⇄4P 2P⇄3P'
+                ];
+                
+                return this.randomChoice(swapPatterns);
+            }
+
+            generateAudienceGroups() {
+                const audience = [];
+                const participants = [];
+                
+                // 每个玩家一个一个拿出来判断放到哪个组，概率各50%
+                this.players.forEach(player => {
+                    if (Math.random() < 0.5) {
+                        audience.push(player);
+                    } else {
+                        participants.push(player);
+                    }
+                });
+                
+                // 处理全部在一组的情况
+                if (audience.length === 0) {
+                    return '[参战 1P 2P 3P 4P]';
+                }
+                if (participants.length === 0) {
+                    return '[观众 1P 2P 3P 4P]';
+                }
+                  // 小P数的组放在前面（人数少的组在前面）
+                if (audience.length <= participants.length) {
+                    return `[观众 ${audience.join(' ')}] [参战 ${participants.join(' ')}]`;
+                } else {
+                    return `[参战 ${participants.join(' ')}] [观众 ${audience.join(' ')}]`;
+                }
+            }
+            
+            generateJushiElements() {
+                // 从7个元素中随机选择3个（不排列）
+                const shuffled = [...this.elements].sort(() => Math.random() - 0.5);
+                const selectedElements = shuffled.slice(0, 3);
+                return selectedElements.join('');
+            }
+              drawMode() {
+                // 获取启用的模式
+                const enabledModes = Object.keys(this.settings.modes).filter(mode => this.settings.modes[mode]);
+                
+                if (enabledModes.length === 0) {
+                    this.currentResults.mode = '';
+                    this.currentResults.modeDetail = '';
+                    this.updateModeDisplay();
+                    return;
+                }
+                
+                const selectedMode = this.randomChoice(enabledModes);
+                  // 先检查是否是自定义模式
+                const customMode = this.customModes.find(m => m.id === selectedMode);
+                if (customMode) {
+                    this.currentResults.mode = customMode.name;
+                    this.currentResults.modeDetail = this.generateCustomModeDetail(customMode);
+                } else {
+                    // 处理内置模式
+                    switch (selectedMode) {
+                        case 'clone':
+                            this.currentResults.mode = '克隆';
+                            this.currentResults.modeDetail = `克隆 ${this.randomChoice(this.players)}`;
+                            break;
+                        case 'swap':
+                            this.currentResults.mode = '交换';
+                            this.currentResults.modeDetail = this.generateSwapPairs();
+                            break;
+                        case 'surprise':
+                            this.currentResults.mode = '惊喜';
+                            this.currentResults.modeDetail = this.randomChoice(this.surpriseItems);
+                            break;
+                        case 'audience':
+                            this.currentResults.mode = '观众';
+                            this.currentResults.modeDetail = this.generateAudienceGroups();
+                            break;
+                        case 'normal':
+                            this.currentResults.mode = '普通';
+                            this.currentResults.modeDetail = '';
+                            break;                        case 'jushi':
+                            this.currentResults.mode = '巨史';
+                            this.currentResults.modeDetail = this.generateJushiElements();
+                            break;
+                    }
+                }
+                
+                this.updateModeDisplay();
+                this.updateCopyText();
+                this.addAnimation('modeResult');
+            }
+            
+            drawDirection() {
+                const type = this.randomChoice(this.types);
+                const direction = this.randomChoice(this.directions);
+                this.currentResults.direction = `${type}${direction}`;
+                
+                this.updateDirectionDisplay();
+                this.updateCopyText();
+                this.addAnimation('directionResult');
+            }
+            
+            drawPoint() {
+                this.currentResults.point = `${this.randomChoice(this.points)}点`;
+                
+                this.updatePointDisplay();
+                this.updateCopyText();
+                this.addAnimation('pointResult');
+            }
+            
+            drawAll() {
+                // 根据设置决定抽取哪些内容
+                if (this.settings.enableMode) {
+                    this.drawMode();
+                }
+                
+                // 类型方位始终抽取
+                this.drawDirection();
+                
+                if (this.settings.enablePoint) {
+                    this.drawPoint();
+                }
+                
+                this.showResults();
+                this.addToHistory();
+            }
+              showResults() {
+                // 结果容器始终显示
+                document.getElementById('resultContainer').style.display = 'block';
+                
+                // 更新所有显示内容
+                this.updateModeDisplay();
+                this.updateDirectionDisplay();
+                this.updatePointDisplay();
+                this.updateButtonVisibility();
+                
+                // 只有在有实际结果时才显示复制区域
+                if (this.currentResults.direction || this.currentResults.mode || this.currentResults.point) {
+                    document.getElementById('copySection').style.display = 'block';
+                } else {
+                    document.getElementById('copySection').style.display = 'none';
+                }
+            }
+            
+            updateButtonVisibility() {
+                // 模式重抽按钮：只有在启用模式抽取时才显示
+                const modeBtn = document.getElementById('drawModeBtn');
+                if (this.settings.enableMode) {
+                    modeBtn.style.display = 'inline-block';
+                } else {
+                    modeBtn.style.display = 'none';
+                }
+                
+                // 点位重抽按钮：只有在启用点位抽取时才显示
+                const pointBtn = document.getElementById('drawPointBtn');
+                if (this.settings.enablePoint) {
+                    pointBtn.style.display = 'inline-block';
+                } else {
+                    pointBtn.style.display = 'none';
+                }
+                
+                // 方位重抽按钮始终显示（类型方位始终抽取）
+            }            updateModeDisplay() {
+                const modeElement = document.getElementById('modeResult');
+                if (this.settings.enableMode && this.currentResults.mode) {
+                    if (this.currentResults.modeDetail) {
+                        // 使用 "模式：详情" 的格式
+                        modeElement.textContent = `${this.currentResults.mode}：${this.currentResults.modeDetail}`;
+                    } else {
+                        // 只有模式名
+                        modeElement.textContent = this.currentResults.mode;
+                    }
+                } else {
+                    modeElement.textContent = '-';
+                }
+            }
+            
+            updateDirectionDisplay() {
+                const directionElement = document.getElementById('directionResult');
+                if (this.currentResults.direction) {
+                    directionElement.textContent = this.currentResults.direction;
+                } else {
+                    directionElement.textContent = '-';
+                }
+            }
+            
+            updatePointDisplay() {
+                const pointElement = document.getElementById('pointResult');
+                if (this.settings.enablePoint && this.currentResults.point) {
+                    pointElement.textContent = this.currentResults.point;
+                } else {
+                    pointElement.textContent = '-';
+                }
+            }
+
+            updateCopyText() {
+                // 必须有类型方位，其他根据设置决定
+                if (this.currentResults.direction) {
+                    let copyText = '';
+                    
+                    // 如果启用模式且有模式结果
+                    if (this.settings.enableMode && this.currentResults.mode) {
+                        if (this.currentResults.modeDetail) {
+                            // 使用 "模式：详情" 的格式
+                            copyText += `${this.currentResults.mode}：${this.currentResults.modeDetail} `;
+                        } else {
+                            // 只有模式名
+                            copyText += this.currentResults.mode + ' ';
+                        }
+                    }
+                    
+                    // 始终包含类型方位
+                    copyText += this.currentResults.direction;
+                    
+                    // 如果启用点位且有点位结果
+                    if (this.settings.enablePoint && this.currentResults.point) {
+                        copyText += ' ' + this.currentResults.point;
+                    }
+                    
+                    document.getElementById('copyText').textContent = copyText;
+                }
+            }
+            
+            async copyResult() {
+                const copyText = document.getElementById('copyText').textContent;
+                const copyButton = document.getElementById('copyButton');
+                
+                try {
+                    await navigator.clipboard.writeText(copyText);
+                    this.showCopySuccess(copyButton);
+                } catch (err) {
+                    this.fallbackCopy(copyText, copyButton);
+                }
+            }
+            
+            showCopySuccess(button) {
+                const originalText = button.textContent;
+                button.textContent = '✅ 复制成功!';
+                button.classList.add('copy-success');
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('copy-success');
+                }, 2000);
+            }
+            
+            fallbackCopy(text, button) {
+                // 降级复制方案
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-999999px';
+                textArea.style.top = '-999999px';
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                
+                try {
+                    document.execCommand('copy');
+                    this.showCopySuccess(button);
+                } catch (err) {
+                    alert('复制失败，请手动选择文本复制');
+                }
+                
+                document.body.removeChild(textArea);
+            }
+            
+            addAnimation(elementId) {
+                const element = document.getElementById(elementId);
+                element.style.transform = 'scale(1.1)';
+                element.style.transition = 'transform 0.3s ease';
+                
+                setTimeout(() => {
+                    element.style.transform = 'scale(1)';
+                }, 300);
+            }
+            
+            addToHistory() {
+                const copyText = document.getElementById('copyText').textContent;
+                if (copyText && copyText !== '-') {
+                    const timestamp = new Date().toLocaleString();
+                    this.history.unshift({
+                        result: copyText,
+                        time: timestamp
+                    });
+                    
+                    // 限制历史记录数量
+                    if (this.history.length > this.maxHistory) {
+                        this.history = this.history.slice(0, this.maxHistory);
+                    }
+                    
+                    this.saveHistory();
+                }
+            }
+            
+            saveHistory() {
+                try {
+                    localStorage.setItem('fangweiHistory', JSON.stringify(this.history));
+                } catch (e) {
+                    console.warn('无法保存历史记录到本地存储');
+                }
+            }
+            
+            loadHistory() {
+                try {
+                    const saved = localStorage.getItem('fangweiHistory');
+                    if (saved) {
+                        this.history = JSON.parse(saved);
+                    }
+                } catch (e) {
+                    console.warn('无法加载历史记录');
+                    this.history = [];
+                }
+            }
+            
+            showHistory() {
+                const modal = document.getElementById('historyModal');
+                const content = document.getElementById('historyContent');
+                
+                if (this.history.length === 0) {
+                    content.innerHTML = '<p style="text-align: center; color: #999;">暂无历史记录</p>';
+                } else {
+                    let html = '';
+                    this.history.forEach((item, index) => {
+                        html += `
+                            <div class="history-item">
+                                <div class="history-time">${item.time}</div>
+                                <div class="history-result">${item.result}</div>
+                            </div>
+                        `;
+                    });
+                    content.innerHTML = html;
+                }
+                
+                modal.style.display = 'flex';
+            }
+            
+            hideHistory() {
+                document.getElementById('historyModal').style.display = 'none';
+            }
+              clearHistory() {
+                if (confirm('确定要清空所有历史记录吗？')) {
+                    this.history = [];
+                    this.saveHistory();
+                    this.showHistory(); // 刷新显示
+                }
+            }
+              // 自定义模式管理
+            addCustomMode(name, detailConfig = null) {
+                const inputName = name || document.getElementById('customModeName').value;
+                if (!inputName || inputName.trim() === '') {
+                    alert('请输入模式名称');
+                    return;
+                }
+                
+                const id = 'custom_' + Date.now();
+                const customMode = {
+                    id: id,
+                    name: inputName.trim(),
+                    detailConfig: detailConfig || { ...this.currentCustomDetail },
+                    enabled: true
+                };
+                
+                this.customModes.push(customMode);
+                this.settings.modes[id] = true;
+                this.saveCustomModes();
+                this.saveSettings();
+                this.updateCustomModesList();
+                this.updateSettingsUI();
+                      // 清空输入
+            document.getElementById('customModeName').value = '';
+            this.resetCustomDetail();
+            }
+            
+            generateCustomModeDetail(customMode) {
+                if (!customMode.detailConfig) return '';
+                
+                if (customMode.detailConfig.type === 'text') {
+                    return customMode.detailConfig.text || '';
+                } else if (customMode.detailConfig.type === 'random') {
+                    const elements = customMode.detailConfig.elements || [];
+                    if (elements.length === 0) return '';
+                    return this.randomChoice(elements);
+                }
+                
+                return '';
+            }
+              removeCustomMode(id) {
+                if (confirm('确定要删除这个自定义模式吗？')) {
+                    this.customModes = this.customModes.filter(m => m.id !== id);
+                    delete this.settings.modes[id];
+                    this.saveCustomModes();
+                    this.saveSettings();
+                    this.updateCustomModesList();
+                    this.updateSettingsUI();
+                }
+            }
+              editCustomMode(id) {
+                const mode = this.customModes.find(m => m.id === id);
+                if (mode) {
+                    // 通过全局函数调用弹窗
+                    window.showCustomModeDetail(mode);
+                }
+            }
+            
+            resetCustomDetail() {
+                this.currentCustomDetail = {
+                    type: 'text',
+                    text: '',
+                    elements: []
+                };
+            }
+            
+            saveCustomModes() {
+                try {
+                    localStorage.setItem('fangweiCustomModes', JSON.stringify(this.customModes));
+                } catch (e) {
+                    console.warn('无法保存自定义模式到本地存储');
+                }
+            }
+            
+            loadCustomModes() {
+                try {
+                    const saved = localStorage.getItem('fangweiCustomModes');
+                    if (saved) {
+                        this.customModes = JSON.parse(saved);
+                        // 将自定义模式添加到设置中
+                        this.customModes.forEach(mode => {
+                            if (!this.settings.modes.hasOwnProperty(mode.id)) {
+                                this.settings.modes[mode.id] = true;
+                            }
+                        });
+                    }
+                } catch (e) {
+                    console.warn('无法加载自定义模式');
+                    this.customModes = [];
+                }
+            }            updateCustomModesList() {
+                const container = document.getElementById('customModesList');
+                if (!container) return;
+                
+                container.innerHTML = '';
+                  this.customModes.forEach(mode => {
+                    const modeElement = document.createElement('div');
+                    modeElement.className = 'custom-mode-item';
+                    
+                    // 根据启用状态调整样式
+                    const isEnabled = this.settings.modes[mode.id] !== false;
+                    const opacity = isEnabled ? '1' : '0.5';
+                    const borderColor = isEnabled ? 'rgba(102, 126, 234, 0.2)' : 'rgba(128, 128, 128, 0.2)';
+                    
+                    modeElement.style.cssText = `display: flex; align-items: center; justify-content: space-between; padding: 5px 10px; background: rgba(255,255,255,0.6); border-radius: 5px; margin: 2px 0; border: 1px solid ${borderColor}; opacity: ${opacity}; transition: all 0.2s ease;`;
+                    
+                    // 左侧：启用/禁用复选框
+                    const checkboxContainer = document.createElement('div');
+                    checkboxContainer.style.cssText = 'margin-right: 8px;';
+                    
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.checked = isEnabled;
+                    checkbox.style.cssText = 'cursor: pointer; transform: scale(0.9);';
+                    checkbox.onchange = (e) => {
+                        this.settings.modes[mode.id] = e.target.checked;
+                        this.saveSettings();
+                        this.updateCustomModesList(); // 重新渲染以更新样式
+                    };
+                    
+                    checkboxContainer.appendChild(checkbox);
+                    
+                    const modeInfo = document.createElement('div');
+                    modeInfo.style.cssText = 'flex: 1; text-align: left; margin-left: 5px;';
+                    
+                    const modeName = document.createElement('div');
+                    modeName.style.cssText = 'font-size: 13px; font-weight: bold; color: #333; margin-bottom: 2px;';
+                    modeName.textContent = mode.name;
+                    
+                    const modeDesc = document.createElement('div');
+                    modeDesc.style.cssText = 'font-size: 11px; color: #666;';
+                    
+                    if (mode.detailConfig) {
+                        if (mode.detailConfig.type === 'text') {
+                            modeDesc.textContent = mode.detailConfig.text ? `固定: ${mode.detailConfig.text}` : '固定文本模式';
+                        } else if (mode.detailConfig.type === 'random') {
+                            const elemCount = mode.detailConfig.elements ? mode.detailConfig.elements.length : 0;
+                            modeDesc.textContent = `随机: ${elemCount}个元素`;
+                        }
+                    } else {
+                        modeDesc.textContent = '普通模式';
+                    }
+                    
+                    modeInfo.appendChild(modeName);
+                    modeInfo.appendChild(modeDesc);
+                    
+                    const buttonContainer = document.createElement('div');
+                    buttonContainer.style.cssText = 'display: flex; gap: 3px;';
+                    
+                    const editBtn = document.createElement('button');
+                    editBtn.style.cssText = 'background: #ffc107; color: #333; border: none; border-radius: 3px; padding: 2px 6px; cursor: pointer; font-size: 12px; transition: all 0.2s ease;';
+                    editBtn.textContent = '✏️';
+                    editBtn.title = '编辑模式';
+                    editBtn.onclick = () => this.editCustomMode(mode.id);
+                    
+                    const removeBtn = document.createElement('button');
+                    removeBtn.style.cssText = 'background: #ff4757; color: white; border: none; border-radius: 3px; padding: 2px 6px; cursor: pointer; font-size: 12px; transition: all 0.2s ease;';
+                    removeBtn.textContent = '×';
+                    removeBtn.title = '删除此模式';
+                    removeBtn.onclick = () => this.removeCustomMode(mode.id);
+                    removeBtn.onmouseover = () => removeBtn.style.background = '#ff3838';
+                    removeBtn.onmouseout = () => removeBtn.style.background = '#ff4757';
+                    
+                    buttonContainer.appendChild(editBtn);
+                    buttonContainer.appendChild(removeBtn);
+                    
+                    modeElement.appendChild(checkboxContainer);
+                    modeElement.appendChild(modeInfo);
+                    modeElement.appendChild(buttonContainer);
+                    container.appendChild(modeElement);
+                });
+            }
+            
+            saveSettings() {
+                try {
+                    localStorage.setItem('fangweiSettings', JSON.stringify(this.settings));
+                } catch (e) {
+                    console.warn('无法保存设置到本地存储');
+                }
+            }
+            
+            loadSettings() {
+                try {
+                    const saved = localStorage.getItem('fangweiSettings');
+                    if (saved) {
+                        const loadedSettings = JSON.parse(saved);
+                        // 合并设置，确保新增的设置项有默认值
+                        this.settings = { ...this.settings, ...loadedSettings };
+                        this.settings.modes = { ...this.settings.modes, ...loadedSettings.modes };
+                    }
+                } catch (e) {
+                    console.warn('无法加载设置');
+                }
+                
+                // 更新UI
+                this.updateSettingsUI();
+            }
+            
+            updateSettingsUI() {
+                // 更新主要设置
+                document.getElementById('enableMode').checked = this.settings.enableMode;
+                document.getElementById('enablePoint').checked = this.settings.enablePoint;
+                
+                // 更新模式设置
+                Object.keys(this.settings.modes).forEach(mode => {
+                    const checkbox = document.getElementById(`mode${mode.charAt(0).toUpperCase() + mode.slice(1)}`);
+                    if (checkbox) {
+                        checkbox.checked = this.settings.modes[mode];
+                    }
+                });
+                
+                // 更新按钮显示状态
+                this.updateDrawButtonsVisibility();
+            }            updateDrawButtonsVisibility() {
+                const drawModeBtn = document.getElementById('drawModeBtn');
+                const drawPointBtn = document.getElementById('drawPointBtn');
+                const modeSettings = document.getElementById('modeSettings');
+                const customModeSection = document.querySelector('.custom-mode-section');
+                
+                // 获取结果展示元素
+                const modeResultItem = document.getElementById('modeResultItem');
+                const pointResultItem = document.getElementById('pointResultItem');
+                  // 控制模式相关按钮和设置的显示
+                if (this.settings.enableMode) {
+                    drawModeBtn.style.display = 'inline-block';
+                    modeSettings.style.display = 'block';
+                    if (customModeSection) {
+                        customModeSection.style.display = 'block';
+                        customModeSection.classList.remove('hidden');
+                    }
+                    if (modeResultItem) modeResultItem.style.display = 'flex';
+                } else {
+                    drawModeBtn.style.display = 'none';
+                    modeSettings.style.display = 'none';
+                    if (customModeSection) {
+                        customModeSection.classList.add('hidden');
+                        // 延迟隐藏，等待过渡动画完成
+                        setTimeout(() => {
+                            if (customModeSection.classList.contains('hidden')) {
+                                customModeSection.style.display = 'none';
+                            }
+                        }, 300);
+                    }
+                    if (modeResultItem) modeResultItem.style.display = 'none';
+                    // 清空模式结果
+                    this.currentResults.mode = '';
+                    this.currentResults.modeDetail = '';
+                    this.updateModeDisplay();
+                }                // 控制点位按钮的显示
+                if (this.settings.enablePoint) {
+                    drawPointBtn.style.display = 'inline-block';
+                    if (pointResultItem) pointResultItem.style.display = 'flex';
+                } else {
+                    drawPointBtn.style.display = 'none';
+                    if (pointResultItem) pointResultItem.style.display = 'none';
+                    // 清空点位结果
+                    this.currentResults.point = '';
+                    this.updatePointDisplay();
+                }
+                
+                // 更新复制文本
+                this.updateCopyText();
+            }
+              setupEventListeners() {
+                // 主要设置监听
+                document.getElementById('enableMode').addEventListener('change', (e) => {
+                    this.settings.enableMode = e.target.checked;
+                    this.saveSettings();
+                    this.updateDrawButtonsVisibility();
+                });
+                
+                document.getElementById('enablePoint').addEventListener('change', (e) => {
+                    this.settings.enablePoint = e.target.checked;
+                    this.saveSettings();
+                    this.updateDrawButtonsVisibility();
+                });
+                
+                // 模式设置监听
+                Object.keys(this.settings.modes).forEach(mode => {
+                    const checkbox = document.getElementById(`mode${mode.charAt(0).toUpperCase() + mode.slice(1)}`);
+                    if (checkbox) {
+                        checkbox.addEventListener('change', (e) => {
+                            this.settings.modes[mode] = e.target.checked;
+                            this.saveSettings();
+                        });
+                    }
+                });
+                
+                // 快捷键监听
+                document.addEventListener('keydown', (e) => {
+                    if (e.ctrlKey && e.key === 'Enter') {
+                        e.preventDefault();
+                        this.drawAll();
+                    }
+                    if (e.ctrlKey && e.key === 'c' && document.getElementById('copySection').style.display !== 'none') {
+                        // 如果结果区域显示，则复制结果
+                        const copyText = document.getElementById('copyText').textContent;
+                        if (copyText && copyText !== '-') {
+                            e.preventDefault();
+                            this.copyResult();
+                        }
+                    }
+                });
+                
+                // 点击弹窗外部关闭
+                document.getElementById('historyModal').addEventListener('click', (e) => {
+                    if (e.target.id === 'historyModal') {
+                        this.hideHistory();
+                    }
+                });
+            }
+        }
+
+        // 全局实例
+        let fangweiDrawer;
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            fangweiDrawer = new FangweiDrawer();
+            console.log('方位抽取器加载完成');
+        });
+
+        // 全局函数，供HTML调用
+        function drawAll() {
+            fangweiDrawer.drawAll();
+        }
+
+        function drawMode() {
+            fangweiDrawer.drawMode();
+        }
+
+        function drawDirection() {
+            fangweiDrawer.drawDirection();
+        }
+
+        function drawPoint() {
+            fangweiDrawer.drawPoint();
+        }
+
+        function copyResult() {
+            fangweiDrawer.copyResult();
+        }
+
+        function showHistory() {
+            fangweiDrawer.showHistory();
+        }
+
+        function hideHistory() {
+            fangweiDrawer.hideHistory();
+        }        function clearHistory() {
+            fangweiDrawer.clearHistory();
+        }        // 自定义模式管理
+        function addCustomMode() {
+            const name = document.getElementById('customModeName').value;
+            
+            if (fangweiDrawer && name.trim()) {
+                fangweiDrawer.addCustomMode(name);
+                // 清空输入框
+                document.getElementById('customModeName').value = '';
+            } else {
+                alert('请输入模式名称');
+            }
+        }
+
+        // 自定义模式详情弹窗管理
+        function showCustomModeDetail(mode = null) {
+            const modal = document.getElementById('customDetailModal');
+            const typeSelect = document.getElementById('customModeType');
+            const textInput = document.getElementById('customModeText');
+            const elementsTextarea = document.getElementById('customModeElements');
+            
+            // 如果传入了模式对象，则为编辑模式
+            if (mode) {
+                fangweiDrawer.currentEditingMode = mode;
+                // 填充现有数据
+                if (mode.detailConfig) {
+                    typeSelect.value = mode.detailConfig.type || 'text';
+                    if (mode.detailConfig.type === 'text') {
+                        textInput.value = mode.detailConfig.text || '';
+                    } else if (mode.detailConfig.type === 'random') {
+                        elementsTextarea.value = (mode.detailConfig.elements || []).join('\n');
+                    }
+                }
+            } else {
+                fangweiDrawer.currentEditingMode = null;
+                // 使用当前详情配置
+                typeSelect.value = fangweiDrawer.currentCustomDetail.type;
+                textInput.value = fangweiDrawer.currentCustomDetail.text;
+                elementsTextarea.value = fangweiDrawer.currentCustomDetail.elements.join('\n');
+            }
+            
+            // 更新显示
+            updateCustomDetailDisplay();
+            modal.style.display = 'flex';
+        }
+
+        function hideCustomDetail() {
+            const modal = document.getElementById('customDetailModal');
+            const typeSelect = document.getElementById('customModeType');
+            const textInput = document.getElementById('customModeText');
+            const elementsTextarea = document.getElementById('customModeElements');
+            
+            // 保存当前配置
+            const detailConfig = {
+                type: typeSelect.value,
+                text: textInput.value.trim(),
+                elements: elementsTextarea.value.split('\n').map(s => s.trim()).filter(s => s)
+            };
+            
+            // 如果是编辑模式，更新对应的自定义模式
+            if (fangweiDrawer.currentEditingMode) {
+                const mode = fangweiDrawer.currentEditingMode;
+                mode.detailConfig = detailConfig;
+                fangweiDrawer.saveCustomModes();
+                fangweiDrawer.updateCustomModesList();
+                fangweiDrawer.currentEditingMode = null;
+            } else {
+                // 新建模式，保存到临时配置
+                fangweiDrawer.currentCustomDetail = detailConfig;
+            }
+            
+            modal.style.display = 'none';
+        }
+
+        function clearCustomDetail() {
+            document.getElementById('customModeText').value = '';
+            document.getElementById('customModeElements').value = '';
+            
+            // 重置当前详情配置
+            if (!fangweiDrawer.currentEditingMode) {
+                fangweiDrawer.currentCustomDetail = {
+                    type: 'text',
+                    text: '',
+                    elements: []
+                };
+            }
+        }
+
+        function updateCustomDetailDisplay() {
+            const typeSelect = document.getElementById('customModeType');
+            const textSection = document.getElementById('textDetailSection');
+            const randomSection = document.getElementById('randomDetailSection');
+            
+            if (typeSelect.value === 'text') {
+                textSection.style.display = 'block';
+                randomSection.style.display = 'none';
+            } else {
+                textSection.style.display = 'none';
+                randomSection.style.display = 'block';
+            }
+        }
+
+        // 详情类型改变时的处理
+        document.addEventListener('DOMContentLoaded', function() {
+            const typeSelect = document.getElementById('customModeType');
+            if (typeSelect) {
+                typeSelect.addEventListener('change', updateCustomDetailDisplay);
+            }
+        });
+
+        // 测试功能
+        function runModeTest() {
+            if (!fangweiDrawer) return;
+            
+            const testCount = 100;
+            const results = {
+                clone: 0,
+                swap: { total: 0, random: 0, fixed: 0 },
+                surprise: 0,
+                audience: 0,
+                normal: 0
+            };
+            
+            // 临时保存当前结果
+            const originalResults = { ...fangweiDrawer.currentResults };
+            
+            for (let i = 0; i < testCount; i++) {
+                fangweiDrawer.drawMode();
+                const mode = fangweiDrawer.currentResults.mode;
+                const detail = fangweiDrawer.currentResults.modeDetail;
+                
+                switch (mode) {
+                    case '克隆':
+                        results.clone++;
+                        break;
+                    case '交换':
+                        results.swap.total++;
+                        if (detail.includes('任选交换')) {
+                            results.swap.random++;
+                        } else {
+                            results.swap.fixed++;
+                        }
+                        break;
+                    case '惊喜':
+                        results.surprise++;
+                        break;
+                    case '观众':
+                        results.audience++;
+                        break;
+                    case '普通':
+                        results.normal++;
+                        break;
+                }
+            }
+            
+            // 恢复原始结果
+            fangweiDrawer.currentResults = originalResults;
+            fangweiDrawer.updateModeDisplay();
+            
+            // 显示测试结果
+            const testResultsDiv = document.getElementById('testResults');
+            const swapRandomPercent = results.swap.total > 0 ? (results.swap.random / results.swap.total * 100).toFixed(1) : 0;
+            
+            testResultsDiv.innerHTML = `
+                <div style="text-align: left; background: rgba(255,255,255,0.8); padding: 10px; border-radius: 5px; margin-top: 10px;">
+                    <strong>测试结果 (${testCount}次抽取):</strong><br>
+                    克隆: ${results.clone}次 (${(results.clone/testCount*100).toFixed(1)}%)<br>
+                    交换: ${results.swap.total}次 (${(results.swap.total/testCount*100).toFixed(1)}%) 
+                    - 任选: ${results.swap.random}次 (${swapRandomPercent}%)
+                    - 固定: ${results.swap.fixed}次<br>
+                    惊喜: ${results.surprise}次 (${(results.surprise/testCount*100).toFixed(1)}%)<br>
+                    观众: ${results.audience}次 (${(results.audience/testCount*100).toFixed(1)}%)<br>
+                    普通: ${results.normal}次 (${(results.normal/testCount*100).toFixed(1)}%)<br>
+                    <em>交换模式中任选交换理论概率: 17.15%</em>
+                </div>
+            `;
+            testResultsDiv.style.display = 'block';
+            
+            // 8秒后自动隐藏
+            setTimeout(() => {
+                testResultsDiv.style.display = 'none';
+            }, 8000);
+        }
+
+        // 测试观众分组功能
+        function runAudienceTest() {
+            if (!fangweiDrawer) return;
+            
+            const testCount = 50;
+            const groupResults = {};
+            
+            for (let i = 0; i < testCount; i++) {
+                const result = fangweiDrawer.generateAudienceGroups();
+                if (groupResults[result]) {
+                    groupResults[result]++;
+                } else {
+                    groupResults[result] = 1;
+                }
+            }
+            
+            // 显示测试结果
+            // const testResultsDiv = document.getElementById('testResults');
+            // let resultHtml = `<div style="text-align: left; background: rgba(255,255,255,0.8); padding: 10px; border-radius: 5px; margin-top: 10px;">
+            //     <strong>观众分组测试结果 (${testCount}次):</strong><br>`;
+            
+            // // 按频次排序显示
+            // const sortedResults = Object.entries(groupResults).sort((a, b) => b[1] - a[1]);
+            
+            // for (const [group, count] of sortedResults) {
+            //     const percentage = (count / testCount * 100).toFixed(1);
+            //     resultHtml += `${group}: ${count}次 (${percentage}%)<br>`;
+            // }
+            
+            // resultHtml += `<em>注：每个玩家独立随机分组，确保分组多样性</em></div>`;
+            
+            // testResultsDiv.innerHTML = resultHtml;
+            // testResultsDiv.style.display = 'block';
+            
+            // // 10秒后自动隐藏
+            // setTimeout(() => {
+            //     testResultsDiv.style.display = 'none';
+            // }, 10000);
+        }
+    </script>
+</body>
+</html>
