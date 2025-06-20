@@ -3,6 +3,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const wsUrl = isLocalDev ? 'ws://127.0.0.1:3000' : 'wss://unhappycar.tech:3000';
     console.log('连接到WebSocket服务器:', wsUrl);
+    
+    // 记录连接开始时间
+    const connectionStartTime = Date.now();
     const ws = new WebSocket(wsUrl);
 
     // DOM 元素
@@ -26,22 +29,29 @@ document.addEventListener('DOMContentLoaded', function () {
     let currentRoomId = null;
     let currentPlayerId = 'player1'; // 默认玩家ID
     let currentPlayerCount = 1; // 当前房间玩家数量
+    let heartbeatInterval = null; // 心跳包定时器
+    let lastHeartbeatTime = null; // 上次心跳包发送时间
 
     // 默认禁用按钮
     hostGameButton.disabled = true;
-    joinGameButton.disabled = true;   
+    joinGameButton.disabled = true;
 
     // WebSocket 连接成功
     ws.onopen = () => {
         console.log('WebSocket 连接成功');
+        
+        // 计算连接用时
+        const connectionTime = Date.now() - connectionStartTime;
+        
         if (connectionStatus) {
-            connectionStatus.textContent = '多人游戏服务器连接成功！';
+            connectionStatus.textContent = `多人游戏服务器连接成功！ (${connectionTime}ms)`;
             connectionStatus.style.color = 'green'; 
-        }
-
-        // 启用按钮
+        }        // 启用按钮
         hostGameButton.disabled = false;
         joinGameButton.disabled = false;
+        
+        // 开始发送心跳包
+        startHeartbeat();
         
     };    // WebSocket 连接错误
     ws.onerror = (error) => {
@@ -55,9 +65,10 @@ document.addEventListener('DOMContentLoaded', function () {
         hostGameButton.disabled = true;
         joinGameButton.disabled = true;
         
-    };
-
-    // WebSocket 连接关闭
+        // 停止心跳包
+        stopHeartbeat();
+        
+    };    // WebSocket 连接关闭
     ws.onclose = () => {
         console.log('WebSocket 连接已关闭');
         if (connectionStatus) {
@@ -68,6 +79,9 @@ document.addEventListener('DOMContentLoaded', function () {
         // 确保按钮保持禁用状态
         hostGameButton.disabled = true;
         joinGameButton.disabled = true;
+        
+        // 停止心跳包
+        stopHeartbeat();
         
     };
 
@@ -508,12 +522,16 @@ ws.onmessage = (event) => {
             if (window.hardMissionVoting && window.hardMissionVoting.syncVotingState) {
                 window.hardMissionVoting.syncVotingState({ votingState: data.votingState }, 'server');
             }
-            break;
-
-        case 'heartbeatAck':
+            break;        case 'heartbeatAck':
             // 处理心跳包确认消息
             const latency = Date.now() - data.originalTimestamp;
             console.log(`收到心跳包确认 - 延迟: ${latency}ms`);
+            
+            // 更新连接状态显示延迟信息
+            if (connectionStatus) {
+                const baseText = connectionStatus.textContent.split('（')[0]; // 保留基础连接信息
+                connectionStatus.textContent = `${baseText}（延迟: ${latency}ms）`;
+            }
             break;
 
         case 'updateState':
@@ -901,14 +919,51 @@ ws.onmessage = (event) => {
             roomId: currentRoomId, 
             resultData 
         }));
-    }    exploreButton.addEventListener('click', () => {
-        initialScreen.style.display = 'none';
-        gameScreen.style.display = 'block';
+    }    // 心跳包功能
+    function startHeartbeat() {
+        // 清除之前的心跳包定时器
+        if (heartbeatInterval) {
+            clearInterval(heartbeatInterval);
+        }
+        
+        console.log('开始发送心跳包，间隔：60秒');
+        
+        // 每60秒发送一次心跳包
+        heartbeatInterval = setInterval(() => {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                lastHeartbeatTime = Date.now();
+                ws.send(JSON.stringify({
+                    type: 'heartbeat',
+                    timestamp: lastHeartbeatTime,
+                    playerId: currentPlayerId,
+                    roomId: currentRoomId
+                }));
+                console.log('发送心跳包');
+            } else {
+                console.warn('WebSocket未连接，停止发送心跳包');
+                stopHeartbeat();
+            }
+        }, 60000); // 60秒 = 60000毫秒
+    }
+    
+    function stopHeartbeat() {
+        if (heartbeatInterval) {
+            clearInterval(heartbeatInterval);
+            heartbeatInterval = null;
+            console.log('停止发送心跳包');
+        }
+    }
 
-        // 确保断开WebSocket连接，进入单机模式
+    exploreButton.addEventListener('click', () => {
+        initialScreen.style.display = 'none';
+        gameScreen.style.display = 'block';        // 确保断开WebSocket连接，进入单机模式
         if (ws && ws.readyState === WebSocket.OPEN) {
             ws.close();
         }
+        
+        // 停止心跳包
+        stopHeartbeat();
+        
         ws = null;
         isHost = false;
         currentRoomId = null;
