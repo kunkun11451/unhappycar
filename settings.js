@@ -150,13 +150,13 @@ gameSettings.addEventListener("click", () => {
 // 使用文档按钮点击事件
 userDocumentation.addEventListener("click", () => {
     // 在新窗口中打开使用文档
-    window.open('documentation.html', '_blank');
+    window.open('./documentation', '_blank');
 });
 
 // 方位抽取按钮点击事件
 document.getElementById("directionExtractor").addEventListener("click", () => {
     // 在新窗口中打开方位抽取器
-    window.open('方位抽取器.html', '_blank');
+    window.open('./fangwei', '_blank');
 });
 
 // 通用函数：选定设置选项

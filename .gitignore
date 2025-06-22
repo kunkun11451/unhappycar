@@ -3,3 +3,4 @@ package.json
 package-lock.json
 .vscode/
 优化.md
+*.log
