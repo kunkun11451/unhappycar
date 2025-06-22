@@ -14,6 +14,9 @@ const moreSettings = document.getElementById("moreSettings");
 const gameSettings = document.getElementById("gameSettings");
 const userDocumentation = document.getElementById("userDocumentation");
 
+// 跟踪当前活跃的选项
+let currentActiveOption = null;
+
 // 打开设置弹窗
 settingsButton.addEventListener("click", () => {
     settingsOverlay.style.display = "block";
@@ -32,7 +35,8 @@ settingsButton.addEventListener("click", () => {
     settingsDetails.appendChild(container); // 插入角色管理内容
     settingsTitle.textContent = "角色管理"; // 设置标题
     document.querySelectorAll(".value").forEach(btn => btn.classList.remove("active"));
-    characterManagement.classList.add("active"); 
+    characterManagement.classList.add("active");
+    currentActiveOption = characterManagement; // 记录当前活跃选项
 
     settingsDetails.scrollTop = 0;
 });
@@ -47,6 +51,7 @@ closeSettingsPopup.addEventListener("click", () => {
     
     // 确保在下次打开设置弹窗前重置状态
     document.querySelectorAll(".value").forEach(btn => btn.classList.remove("active"));
+    currentActiveOption = null; // 重置当前活跃选项
 });
 
 // 将关闭按钮添加到设置弹窗
@@ -58,24 +63,36 @@ settingsOverlay.addEventListener("click", (event) => {
         settingsOverlay.style.display = "none";
         settingsPopup.style.display = "none";
         document.body.classList.remove("no-scroll");
+        currentActiveOption = null; // 重置当前活跃选项
     }
 });
 
 // 设置选项点击事件
 characterManagement.addEventListener("click", () => {
+    if (currentActiveOption === characterManagement) {
+        return; // 如果当前已经在角色管理界面，则不响应
+    }
     if (window.clearCharacterFilters) {
         window.clearCharacterFilters(); // 清除所有筛选状态
     }
     const container = window.loadCharacterManagement(); // 获取角色管理内容
     selectOption(characterManagement, "角色管理", container);
+    currentActiveOption = characterManagement; // 更新当前活跃选项
 });
 
 characterHistory.addEventListener("click", () => {
+    if (currentActiveOption === characterHistory) {
+        return; // 如果当前已经在角色历史记录界面，则不响应
+    }
     const historyContent = window.historyModule.getHistoryContent(); 
-    selectOption(characterHistory, "角色历史记录", historyContent); 
+    selectOption(characterHistory, "角色历史记录", historyContent);
+    currentActiveOption = characterHistory; // 更新当前活跃选项
 });
 
 eventManagement.addEventListener("click", () => {
+    if (currentActiveOption === eventManagement) {
+        return; // 如果当前已经在事件管理界面，则不响应
+    }
     // 确保在加载内容前隐藏添加事件表单
     if (typeof window.eventManagement.setAddEventFormsVisibility === 'function') {
         window.eventManagement.setAddEventFormsVisibility(false, 0);
@@ -84,6 +101,7 @@ eventManagement.addEventListener("click", () => {
     // 使用 events.js 模块中的事件管理功能
     const eventManagementContent = window.eventManagement.loadEventManagement();
     selectOption(eventManagement, "事件管理", eventManagementContent);
+    currentActiveOption = eventManagement; // 更新当前活跃选项
     
     // 延时确保DOM已经更新，然后触发表格动画
     setTimeout(() => {
@@ -95,11 +113,18 @@ eventManagement.addEventListener("click", () => {
 });
 
 eventHistory.addEventListener("click", () => {
+    if (currentActiveOption === eventHistory) {
+        return; // 如果当前已经在事件历史记录界面，则不响应
+    }
     const eventHistoryContent = window.eventHistoryModule.getEventHistoryContent();
     selectOption(eventHistory, "事件历史记录", eventHistoryContent);
+    currentActiveOption = eventHistory; // 更新当前活跃选项
 });
 
 moreSettings.addEventListener("click", () => {
+    if (currentActiveOption === moreSettings) {
+        return; // 如果当前已经在更多玩法设置界面，则不响应
+    }
     // 强制更新团队数据
     if (window.teamManagement) {
         // 重新创建内容前先确保团队数据已经准备好
@@ -108,6 +133,7 @@ moreSettings.addEventListener("click", () => {
     
     const moreSettingsContent = window.teamManagement.createMoreSettingsContent();
     selectOption(moreSettings, "更多玩法设置", moreSettingsContent);
+    currentActiveOption = moreSettings; // 更新当前活跃选项
     
     // 添加延时确保DOM已经更新
     setTimeout(() => {
@@ -128,6 +154,9 @@ moreSettings.addEventListener("click", () => {
 });
 
 gameSettings.addEventListener("click", () => {
+    if (currentActiveOption === gameSettings) {
+        return; // 如果当前已经在游戏设置界面，则不响应
+    }
     // 创建重置按钮
     const resetButton = document.createElement("button");
     resetButton.textContent = "重置游戏";
@@ -147,6 +176,7 @@ gameSettings.addEventListener("click", () => {
     container.innerHTML = "<p>这里是游戏设置的内容。</p>";
     container.appendChild(resetButton);    // 显示游戏设置内容
     selectOption(gameSettings, "游戏设置", container);
+    currentActiveOption = gameSettings; // 更新当前活跃选项
 });
 
 // 使用文档按钮点击事件
@@ -183,6 +213,9 @@ function selectOption(button, title, content) {
     } else {
         settingsDetails.appendChild(content); // 插入 DOM 节点
     }
+
+    // 更新当前活跃选项
+    currentActiveOption = button;
 }
 
 // 添加菜单按钮到弹窗内部
