@@ -23,10 +23,10 @@ settingsButton.addEventListener("click", () => {
     // 确保团队数据已更新 - 使用loadTeamData重新加载数据
     if (window.teamManagement && typeof window.teamManagement.loadTeamData === 'function') {
         window.teamManagement.loadTeamData();
+    }    // 默认加载角色管理界面
+    if (window.clearCharacterFilters) {
+        window.clearCharacterFilters(); // 清除所有筛选状态
     }
-
-    // 默认加载角色管理界面
-    activeFilter = null; 
     const container = window.loadCharacterManagement(); // 获取角色管理内容
     settingsDetails.innerHTML = ""; // 清空内容
     settingsDetails.appendChild(container); // 插入角色管理内容
@@ -63,7 +63,9 @@ settingsOverlay.addEventListener("click", (event) => {
 
 // 设置选项点击事件
 characterManagement.addEventListener("click", () => {
-    activeFilter = null; 
+    if (window.clearCharacterFilters) {
+        window.clearCharacterFilters(); // 清除所有筛选状态
+    }
     const container = window.loadCharacterManagement(); // 获取角色管理内容
     selectOption(characterManagement, "角色管理", container);
 });

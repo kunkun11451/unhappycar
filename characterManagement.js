@@ -3,6 +3,12 @@ const disabledCharacters = new Set(JSON.parse(localStorage.getItem("disabledChar
 let activeElementFilter = null; // 当前激活的元素筛选
 let activeWeaponFilter = null; // 当前激活的武器筛选
 
+// 清除所有筛选状态的函数
+function clearAllFilters() {
+    activeElementFilter = null;
+    activeWeaponFilter = null;
+}
+
 function initCharacterManagement() {
     const characterData = window.characterData || {}; // 确保角色数据存在
 
@@ -156,10 +162,12 @@ function initCharacterManagement() {
     });    container.appendChild(enabledCountContainer);
     container.appendChild(filterContainer);
     container.appendChild(weaponFilterContainer);
-    container.appendChild(cardContainer);
-
-    // 初始化时检测可见卡片数量
+    container.appendChild(cardContainer);    // 初始化时检测可见卡片数量并清除筛选按钮状态
     setTimeout(() => {
+        // 清除所有筛选按钮的激活状态
+        filterContainer.querySelectorAll('.filter-button').forEach(btn => btn.classList.remove("active"));
+        weaponFilterContainer.querySelectorAll('.filter-button').forEach(btn => btn.classList.remove("active"));
+        
         applyFilters();
     }, 100);
 
@@ -171,4 +179,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const container = initCharacterManagement();
         return container;
     };
+    
+    // 暴露清除筛选函数到全局作用域
+    window.clearCharacterFilters = clearAllFilters;
 });
