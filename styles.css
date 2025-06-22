@@ -1941,7 +1941,10 @@ position: absolute;
         border-bottom: 4px rgba(40, 40, 40, 0.35) solid;
         border-right: 4px rgba(40, 40, 40, 0.35) solid;
     }
-
+    #characterManagement{
+        margin-top: 40px;
+    }
+    
     .input.show {
         display: flex; /* 显示左侧设置选项 */
     }    .character-management-card {
