@@ -1927,15 +1927,15 @@ position: absolute;
     .input {
         display: none; /* 默认隐藏左侧设置选项 */
         position: absolute;
-        top: -45px;
+        top: -105px;
         left: 0;
         height: 100%;
         z-index: 300;
         padding: 20px;
         box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
         overflow-y: auto;
-        backdrop-filter: blur(25px); 
-        background-color: rgba(79, 79, 79, 0.6); 
+        backdrop-filter: blur(10px); 
+        background-color: rgba(79, 79, 79, 0.9); 
         box-shadow: rgba(0, 0, 0, 0.4) 2px 8px 8px; 
         border: 4px rgba(255, 255, 255, 0.4) solid;
         border-bottom: 4px rgba(40, 40, 40, 0.35) solid;
@@ -1944,11 +1944,13 @@ position: absolute;
 
     .input.show {
         display: flex; /* 显示左侧设置选项 */
-    }
-
-    .character-management-card {
+    }    .character-management-card {
         width: 25%; /* 缩小卡片宽度 */
 
+    }    /* 当筛选后角色卡片小于4个时，增加卡片宽度 */
+    .character-card-container.few-cards .character-management-card {
+        width: auto !important;
+        min-width: 94px !important;
     }
 
     .character-management-image {

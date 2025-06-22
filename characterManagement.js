@@ -22,10 +22,10 @@ function initCharacterManagement() {
     enabledCountContainer.textContent = `启用角色数量：${Object.keys(characterData).length - disabledCharacters.size} / ${Object.keys(characterData).length}`;
     // 创建角色卡片容器
     const cardContainer = document.createElement("div");
-    cardContainer.className = "character-card-container"; // 用于存放角色卡片
-
-    // 筛选应用函数
+    cardContainer.className = "character-card-container"; // 用于存放角色卡片    // 筛选应用函数
     function applyFilters() {
+        let visibleCount = 0; // 计算可见卡片数量
+        
         Array.from(cardContainer.children).forEach((card, index) => {
             const elementMatch = !activeElementFilter || card.dataset.element === activeElementFilter;
             const weaponMatch = !activeWeaponFilter || card.dataset.weapon === activeWeaponFilter;
@@ -36,10 +36,18 @@ function initCharacterManagement() {
                 setTimeout(() => {
                     card.classList.add("animate");
                 }, index * 3);
+                visibleCount++; // 增加可见卡片计数
             } else {
                 card.style.display = "none";
             }
         });
+
+        // 根据可见卡片数量添加或移除CSS类
+        if (visibleCount < 4) {
+            cardContainer.classList.add("few-cards");
+        } else {
+            cardContainer.classList.remove("few-cards");
+        }
     }
 
     // 创建元素筛选按钮容器
@@ -145,12 +153,15 @@ function initCharacterManagement() {
         setTimeout(() => {
             card.classList.add("animate");
         }, index * 15);
-    });
-
-    container.appendChild(enabledCountContainer);
+    });    container.appendChild(enabledCountContainer);
     container.appendChild(filterContainer);
     container.appendChild(weaponFilterContainer);
     container.appendChild(cardContainer);
+
+    // 初始化时检测可见卡片数量
+    setTimeout(() => {
+        applyFilters();
+    }, 100);
 
     return container;
 }
