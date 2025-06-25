@@ -157,24 +157,11 @@ gameSettings.addEventListener("click", () => {
     if (currentActiveOption === gameSettings) {
         return; // 如果当前已经在游戏设置界面，则不响应
     }
-    // 创建重置按钮
-    const resetButton = document.createElement("button");
-    resetButton.textContent = "重置游戏";
-    resetButton.className = "reset-button"; // 添加样式类名
-    resetButton.addEventListener("click", () => {
-        if (confirm("确定要重置游戏吗？")) {
-            window.resetGame(); // 调用全局的 resetGame
-            // 关闭设置弹窗
-            settingsOverlay.style.display = "none";
-            settingsPopup.style.display = "none";
-            document.body.classList.remove("no-scroll");
-        }
-    });
-
-    // 创建容器并插入内容
-    const container = document.createElement("div");
-    container.innerHTML = "<p>这里是游戏设置的内容。</p>";
-    container.appendChild(resetButton);    // 显示游戏设置内容
+    
+    // 创建游戏设置内容
+    const container = createGameSettingsContent();
+    
+    // 显示游戏设置内容
     selectOption(gameSettings, "游戏设置", container);
     currentActiveOption = gameSettings; // 更新当前活跃选项
 });
@@ -324,3 +311,365 @@ document.addEventListener('DOMContentLoaded', function() {
         window.eventManagement.initializeEventData();
     }
 });
+
+// 重抽次数设置相关的全局状态
+window.rerollSettings = {
+    enabled: true,           // 是否启用重抽次数功能
+    enableZeroReset: false,  // 是否开启重抽归零（2%概率） - 默认关闭
+    enableNegativeReroll: true  // 是否可抽到"重抽次数-1"
+};
+
+// 创建游戏设置内容
+function createGameSettingsContent() {
+    const container = document.createElement("div");
+    container.className = "game-settings-container";
+    container.style.cssText = `
+        padding: 20px;
+        max-width: 800px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    `;
+
+    // 重抽次数功能设置
+    const rerollSection = createRerollSettingsSection();
+    container.appendChild(rerollSection);
+
+    // 分隔线
+    const divider = document.createElement("div");
+    divider.style.cssText = `
+        height: 1px;
+        background: rgba(255, 255, 255, 0.1);
+        margin: 30px 0;
+    `;
+    container.appendChild(divider);
+
+    // 重置游戏按钮
+    const resetButton = document.createElement("button");
+    resetButton.textContent = "重置游戏";
+    resetButton.className = "reset-button";
+    resetButton.style.cssText = `
+        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        font-size: 16px;
+        font-weight: bold;
+        border-radius: 25px;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(238, 90, 36, 0.3);
+        transition: all 0.3s ease;
+        display: block;
+        margin: 20px auto 0;
+    `;
+    
+    resetButton.addEventListener("mouseover", () => {
+        resetButton.style.transform = "translateY(-2px)";
+        resetButton.style.boxShadow = "0 6px 20px rgba(238, 90, 36, 0.4)";
+    });
+    
+    resetButton.addEventListener("mouseout", () => {
+        resetButton.style.transform = "translateY(0)";
+        resetButton.style.boxShadow = "0 4px 15px rgba(238, 90, 36, 0.3)";
+    });
+    
+    resetButton.addEventListener("click", () => {
+        if (confirm("确定要重置游戏吗？")) {
+            window.resetGame();
+            // 关闭设置弹窗
+            settingsOverlay.style.display = "none";
+            settingsPopup.style.display = "none";
+            document.body.classList.remove("no-scroll");
+        }
+    });
+
+    container.appendChild(resetButton);
+
+    return container;
+}
+
+// 创建重抽次数设置区域
+function createRerollSettingsSection() {
+    const section = document.createElement("div");
+    section.className = "reroll-settings-section";
+
+    // 主开关设置
+    const mainSetting = createMainRerollSetting();
+    section.appendChild(mainSetting);
+
+    // 二级设置菜单
+    const subSettings = createRerollSubSettings();
+    section.appendChild(subSettings);
+
+    return section;
+}
+
+// 创建重抽次数主开关设置
+function createMainRerollSetting() {
+    const settingSection = document.createElement("div");
+    settingSection.style.cssText = `
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        margin-bottom: 20px;
+    `;
+
+    const label = document.createElement("div");
+    label.textContent = "重抽次数功能";
+    label.style.cssText = `
+        font-size: 18px;
+        font-weight: bold;
+        color: #fff;
+        display: flex;
+        align-items: center;
+    `;
+
+    // 添加图标
+    const icon = document.createElement("span");
+    icon.textContent = "🔄";
+    icon.style.marginRight = "10px";
+    label.insertBefore(icon, label.firstChild);
+
+    const switchContainer = document.createElement("label");
+    switchContainer.style.cssText = `
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+    `;
+
+    const switchInput = document.createElement("input");
+    switchInput.type = "checkbox";
+    switchInput.checked = window.rerollSettings.enabled;
+    switchInput.style.cssText = `
+        opacity: 0;
+        width: 0;
+        height: 0;
+    `;
+
+    const slider = document.createElement("span");
+    slider.style.cssText = `
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: ${switchInput.checked ? '#2196F3' : '#ccc'};
+        transition: .4s;
+        border-radius: 34px;
+    `;
+
+    const sliderDot = document.createElement("span");
+    sliderDot.style.cssText = `
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: ${switchInput.checked ? '30px' : '4px'};
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    `;
+
+    slider.appendChild(sliderDot);
+
+    switchInput.addEventListener('change', (e) => {
+        window.rerollSettings.enabled = e.target.checked;
+        updateRerollUI();
+        
+        // 更新开关样式
+        slider.style.backgroundColor = e.target.checked ? '#2196F3' : '#ccc';
+        sliderDot.style.left = e.target.checked ? '30px' : '4px';
+        
+        // 更新二级设置的显示状态
+        const subSettings = document.getElementById('rerollSubSettings');
+        if (subSettings) {
+            if (e.target.checked) {
+                subSettings.style.maxHeight = subSettings.scrollHeight + 'px';
+                subSettings.style.opacity = '1';
+                subSettings.style.marginTop = '15px';
+            } else {
+                subSettings.style.maxHeight = '0';
+                subSettings.style.opacity = '0';
+                subSettings.style.marginTop = '0';
+            }
+        }
+    });
+
+    switchContainer.appendChild(switchInput);
+    switchContainer.appendChild(slider);
+
+    settingSection.appendChild(label);
+    settingSection.appendChild(switchContainer);
+
+    return settingSection;
+}
+
+// 创建重抽次数二级设置
+function createRerollSubSettings() {
+    const subSettings = document.createElement("div");
+    subSettings.id = "rerollSubSettings";
+    subSettings.style.cssText = `
+        overflow: hidden;
+        transition: all 0.3s ease;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        padding: ${window.rerollSettings.enabled ? '15px' : '0'};
+        max-height: ${window.rerollSettings.enabled ? 'none' : '0'};
+        opacity: ${window.rerollSettings.enabled ? '1' : '0'};
+        margin-top: ${window.rerollSettings.enabled ? '15px' : '0'};
+    `;
+
+    // 重抽归零设置
+    const zeroResetSetting = createSubSetting(
+        "🎯", 
+        "可抽到重抽归零", 
+        "概率变为有3%附加重抽归零，97%概率重抽+1/-1",
+        window.rerollSettings.enableZeroReset,
+        (checked) => {
+            window.rerollSettings.enableZeroReset = checked;
+        }
+    );
+
+    // 重抽-1设置  
+    const negativeRerollSetting = createSubSetting(
+        "➖", 
+        "可抽到\"重抽次数-1\"", 
+        "关闭后抽取到的全是+1",
+        window.rerollSettings.enableNegativeReroll,
+        (checked) => {
+            window.rerollSettings.enableNegativeReroll = checked;
+        }
+    );
+
+    subSettings.appendChild(zeroResetSetting);
+    subSettings.appendChild(negativeRerollSetting);
+
+    return subSettings;
+}
+
+// 创建二级设置项
+function createSubSetting(icon, title, description, checked, onChange) {
+    const setting = document.createElement("div");
+    setting.style.cssText = `
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        margin-bottom: 12px;
+    `;
+
+    const leftContent = document.createElement("div");
+    leftContent.style.cssText = `
+        flex: 1;
+        margin-right: 15px;
+    `;
+
+    const titleDiv = document.createElement("div");
+    titleDiv.style.cssText = `
+        font-size: 16px;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 5px;
+        display: flex;
+        align-items: center;
+    `;
+    titleDiv.innerHTML = `<span style="margin-right: 8px;">${icon}</span>${title}`;
+
+    const descDiv = document.createElement("div");
+    descDiv.textContent = description;
+    descDiv.style.cssText = `
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.7);
+        line-height: 1.4;
+        text-align: left;
+    `;
+
+    leftContent.appendChild(titleDiv);
+    leftContent.appendChild(descDiv);
+
+    // 创建小尺寸开关
+    const switchContainer = document.createElement("label");
+    switchContainer.style.cssText = `
+        position: relative;
+        display: inline-block;
+        width: 48px;
+        height: 26px;
+        flex-shrink: 0;
+    `;
+
+    const switchInput = document.createElement("input");
+    switchInput.type = "checkbox";
+    switchInput.checked = checked;
+    switchInput.style.cssText = `
+        opacity: 0;
+        width: 0;
+        height: 0;
+    `;
+
+    const slider = document.createElement("span");
+    slider.style.cssText = `
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: ${switchInput.checked ? '#2196F3' : '#999'};
+        transition: .3s;
+        border-radius: 26px;
+    `;
+
+    const sliderDot = document.createElement("span");
+    sliderDot.style.cssText = `
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: ${switchInput.checked ? '25px' : '3px'};
+        bottom: 3px;
+        background-color: white;
+        transition: .3s;
+        border-radius: 50%;
+    `;
+
+    slider.appendChild(sliderDot);
+
+    switchInput.addEventListener('change', (e) => {
+        onChange(e.target.checked);
+        
+        // 更新开关样式
+        slider.style.backgroundColor = e.target.checked ? '#2196F3' : '#999';
+        sliderDot.style.left = e.target.checked ? '25px' : '3px';
+    });
+
+    switchContainer.appendChild(switchInput);
+    switchContainer.appendChild(slider);
+
+    setting.appendChild(leftContent);
+    setting.appendChild(switchContainer);
+
+    return setting;
+}
+
+// 更新重抽次数相关UI
+function updateRerollUI() {
+    const rerollCounter = document.getElementById('rerollCounter');
+    
+    if (window.rerollSettings.enabled) {
+        if (rerollCounter) rerollCounter.style.display = 'block';
+    } else {
+        if (rerollCounter) rerollCounter.style.display = 'none';
+    }
+}
+
+// 将函数导出到全局作用域
+window.updateRerollUI = updateRerollUI;

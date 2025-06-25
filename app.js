@@ -57,6 +57,11 @@ document.addEventListener('DOMContentLoaded', function () {
             rerollCountDisplay.textContent = window.rerollCount; // 更新显示
         }
 
+        // 更新重抽次数UI状态
+        if (window.updateRerollUI) {
+            window.updateRerollUI();
+        }
+
         // 停止计时器
         if (gameState.timerInterval) {
             clearInterval(gameState.timerInterval);

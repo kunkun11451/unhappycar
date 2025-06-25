@@ -44,7 +44,6 @@ document.addEventListener('DOMContentLoaded', function() {
     let rerollCount = 3; // 初始重抽次数   
     let rerollChance = 0.05; // 初始概率为 5%
     let negativeCount = 0; // 累计 -1 的次数  
-    
     // 初始化动画效果
     missionBoxes.forEach((box, index) => {
         setTimeout(() => {
@@ -88,10 +87,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 刷新单个事件
     function refreshSingleMission(box, index) {
-        // 检查重抽次数是否足够
-        if (rerollCount <= 0) {
-            alert('重抽次数不足！');
-            return;
+        // 检查重抽次数功能是否启用
+        if (window.rerollSettings && !window.rerollSettings.enabled) {
+            // 重抽次数功能关闭时，允许随意重抽个人事件
+        } else {
+            // 检查重抽次数是否足够
+            if (rerollCount <= 0) {
+                alert('重抽次数不足！');
+                return;
+            }
         }        const keys = getMissionKeys();
         if (keys.length === 0) {
             alert('没有可用的事件！请检查事件管理设置。');
@@ -153,35 +157,52 @@ document.addEventListener('DOMContentLoaded', function() {
                     .replace("BB", randomBB || "未知");
             }
 
-            // 添加随机逻辑
+            // 添加随机逻辑 - 根据重抽次数设置决定是否触发
             const randomChance = Math.random();
-            if (randomChance < rerollChance) {
-                // 确定是 +1 还是 -1
-                let rerollResult;
-                if (negativeCount >= 2) {
-                    // 如果累计两次 -1，下一次触发时强制为 +1
-                    rerollResult = "+1";
-                    negativeCount = 0; // 重置计数器
+            if (window.rerollSettings && window.rerollSettings.enabled && randomChance < rerollChance) {
+                // 触发附加后，3%概率是归零，97%概率是重抽+-
+                if (window.rerollSettings.enableZeroReset && Math.random() < 0.03) {
+                    const color = "purple";
+                    modifiedContent += `;<span style="color: ${color};">重抽次数归零</span>`;
+                    
+                    // 直接设置重抽次数为0
+                    rerollCount = 0;
+                    rerollCountDisplay.textContent = rerollCount;
                 } else {
-                    // 正常随机判断 +1 或 -1
-                    rerollResult = Math.random() < 0.5 ? "+1" : "-1";
-                    if (rerollResult === "-1") {
-                        negativeCount++; // 累计 -1 次数
+                    // 确定是 +1 还是 -1
+                    let rerollResult;
+                    if (negativeCount >= 2) {
+                        // 如果累计两次 -1，下一次触发时强制为 +1
+                        rerollResult = "+1";
+                        negativeCount = 0; // 重置计数器
                     } else {
-                        negativeCount = 0; // 如果是 +1，清空 -1 的累计次数
+                        // 根据设置决定是否可以获得-1
+                        if (window.rerollSettings.enableNegativeReroll) {
+                            // 正常随机判断 +1 或 -1
+                            rerollResult = Math.random() < 0.5 ? "+1" : "-1";
+                        } else {
+                            // 关闭负重抽，只能获得+1
+                            rerollResult = "+1";
+                        }
+                        
+                        if (rerollResult === "-1") {
+                            negativeCount++; // 累计 -1 次数
+                        } else {
+                            negativeCount = 0; // 如果是 +1，清空 -1 的累计次数
+                        }
                     }
+
+                    // 添加重抽次数
+                    const color = rerollResult === "+1" ? "green" : "red";
+                    modifiedContent += `;<span style="color: ${color};">重抽次数${rerollResult}</span>`;
+
+                    // 更新重抽次数
+                    updateRerollCount(rerollResult === "+1" ? 1 : -1);
                 }
-
-                // 添加重抽次数
-                const color = rerollResult === "+1" ? "green" : "red";
-                modifiedContent += `;<span style="color: ${color};">重抽次数${rerollResult}</span>`;
-
-                // 更新重抽次数
-                updateRerollCount(rerollResult === "+1" ? 1 : -1);
 
                 // 重置概率
                 rerollChance = 0.05;
-            } else {
+            } else if (window.rerollSettings && window.rerollSettings.enabled) {
                 // 未触发，增加概率
                 rerollChance += 0.05;
             }
@@ -291,35 +312,52 @@ document.addEventListener('DOMContentLoaded', function() {
                     .replace("BB", randomBB || "未知");
             }
 
-            // 添加随机逻辑
+            // 添加随机逻辑 - 根据重抽次数设置决定是否触发
             const randomChance = Math.random();
-            if (randomChance < rerollChance) {
-                // 确定是 +1 还是 -1
-                let rerollResult;
-                if (negativeCount >= 2) {
-                    // 如果累计两次 -1，下一次触发时强制为 +1
-                    rerollResult = "+1";
-                    negativeCount = 0; // 重置计数器
+            if (window.rerollSettings && window.rerollSettings.enabled && randomChance < rerollChance) {
+                // 检查是否触发重抽归零（1%概率）
+                if (window.rerollSettings.enableZeroReset && Math.random() < 0.01) {
+                    const color = "purple";
+                    modifiedContent += `;<span style="color: ${color};">重抽次数归零！</span>`;
+                    
+                    // 直接设置重抽次数为0
+                    rerollCount = 0;
+                    rerollCountDisplay.textContent = rerollCount;
                 } else {
-                    // 正常随机判断 +1 或 -1
-                    rerollResult = Math.random() < 0.5 ? "+1" : "-1";
-                    if (rerollResult === "-1") {
-                        negativeCount++; // 累计 -1 次数
+                    // 确定是 +1 还是 -1
+                    let rerollResult;
+                    if (negativeCount >= 2) {
+                        // 如果累计两次 -1，下一次触发时强制为 +1
+                        rerollResult = "+1";
+                        negativeCount = 0; // 重置计数器
                     } else {
-                        negativeCount = 0; // 如果是 +1，清空 -1 的累计次数
+                        // 根据设置决定是否可以获得-1
+                        if (window.rerollSettings.enableNegativeReroll) {
+                            // 正常随机判断 +1 或 -1
+                            rerollResult = Math.random() < 0.5 ? "+1" : "-1";
+                        } else {
+                            // 关闭负重抽，只能获得+1
+                            rerollResult = "+1";
+                        }
+                        
+                        if (rerollResult === "-1") {
+                            negativeCount++; // 累计 -1 次数
+                        } else {
+                            negativeCount = 0; // 如果是 +1，清空 -1 的累计次数
+                        }
                     }
+
+                    // 添加重抽次数
+                    const color = rerollResult === "+1" ? "green" : "red";
+                    modifiedContent += `;<span style="color: ${color};">重抽次数${rerollResult}</span>`;
+
+                    // 更新重抽次数
+                    updateRerollCount(rerollResult === "+1" ? 1 : -1);
                 }
-
-                // 添加重抽次数
-                const color = rerollResult === "+1" ? "green" : "red";
-                modifiedContent += `;<span style="color: ${color};">重抽次数${rerollResult}</span>`;
-
-                // 更新重抽次数
-                updateRerollCount(rerollResult === "+1" ? 1 : -1);
 
                 // 重置概率
                 rerollChance = 0.05;
-            } else {
+            } else if (window.rerollSettings && window.rerollSettings.enabled) {
                 // 未触发，增加概率
                 rerollChance += 0.05;
             }
@@ -466,3 +504,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+// 初始化重抽次数UI状态
+function initializeRerollUI() {
+    // 确保重抽设置已初始化
+    if (!window.rerollSettings) {
+        window.rerollSettings = {
+            enabled: true,
+            enableZeroReset: true,
+            enableNegativeReroll: true
+        };
+    }
+    
+    // 根据设置更新重抽计数器显示
+    if (window.updateRerollUI) {
+        window.updateRerollUI();
+    }
+}
+
+// 页面加载时初始化重抽UI
+document.addEventListener('DOMContentLoaded', initializeRerollUI);

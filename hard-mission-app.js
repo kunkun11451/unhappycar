@@ -537,6 +537,9 @@ function showVotingResult(selectedIndex, voteCount, wasTie) {
     `;
     
     container.appendChild(result);
+    
+    // 执行特殊事件逻辑
+    executeHardMissionEffect(selectedMission);
 }
 
 // 显示带事件名称的投票结果（用于同步时）
@@ -563,6 +566,9 @@ function showVotingResultWithMissionName(selectedIndex, voteCount, wasTie, missi
     `;
     
     container.appendChild(result);
+    
+    // 执行特殊事件逻辑
+    executeHardMissionEffect(missionName);
 }
 
 // 显示投票确认
@@ -964,76 +970,56 @@ function displayVotingResult(result) {
     showVotingResultWithMissionName(selectedIndex, maxVotes, wasTie, missionName);
 }
 
-// 处理旧格式的客户端投票状态同步（向后兼容）
-function syncVotingStateOldFormat(voteData, senderId) {
-    console.log('处理旧格式投票状态同步');
+// 执行困难事件的特殊效果
+function executeHardMissionEffect(missionName) {
+    console.log('执行困难事件效果:', missionName);
     
-    // 如果是重置操作，清除所有状态和样式
-    if (voteData.reset) {
-        console.log('处理投票重置 - 为普通玩家清除投票状态');
-        votingActive = true;
-        playerVotes = {};
-        votingResults = {0: 0, 1: 0, 2: 0};
-        
-        // 清除所有投票相关样式
-        document.querySelectorAll('.hard-mission-box').forEach(box => {
-            box.classList.remove('voted', 'selected', 'rejected');
-        });
-        
-        // 重置所有投票点数显示
-        document.querySelectorAll('.vote-dots-container').forEach(container => {
-            container.innerHTML = '';
-        });
-        
-        // 移除投票结果显示
-        const existingResult = document.querySelector('.voting-result');
-        if (existingResult) {
-            existingResult.remove();
-        }
-        
-        console.log('投票状态重置完成，普通玩家状态已清除');
-    }
-    
-    // 更新投票状态
-    if (voteData.votingActive !== undefined) {
-        votingActive = voteData.votingActive;
-        console.log('同步投票状态:', votingActive);
-    }
-    
-    // 同步当前困难事件列表
-    if (voteData.currentHardMissions && voteData.currentHardMissions.length > 0) {
-        currentHardMissions = voteData.currentHardMissions;
-        console.log('同步困难事件列表:', currentHardMissions);
-    }
-    
-    if (voteData.votes) {
-        // 合并投票记录，保持当前玩家的投票状态
-        const currentPlayerId = getCurrentPlayerId();
-        const oldPlayerVote = playerVotes[currentPlayerId];
-        
-        Object.assign(playerVotes, voteData.votes);
-        console.log('同步玩家投票记录:', playerVotes);
-        
-        // 更新投票样式 - 持久化显示
-        document.querySelectorAll('.hard-mission-box').forEach((box, index) => {
-            box.classList.remove('voted');
-            if (playerVotes[currentPlayerId] === index) {
-                box.classList.add('voted');
-                console.log(`恢复玩家 ${currentPlayerId} 对事件 ${index} 的voted样式`);
+    switch(missionName) {
+        case '重置bp':
+            // 清除所有BP记录
+            if (window.gameState && window.gameState.usedCharacters) {
+                // 清除全局已选角色
+                window.gameState.usedCharacters.global.clear();
+                
+                // 清除各玩家已选角色
+                window.gameState.usedCharacters.players.forEach(playerSet => {
+                    playerSet.clear();
+                });
+                
+                console.log('BP记录已重置');
+                
+                // 在投票结果中添加重置确认信息
+                const result = document.querySelector('.voting-result');
+                if (result) {
+                    const resetInfo = document.createElement('div');
+                    resetInfo.style.cssText = `
+                        margin-top: 15px;
+                        padding: 10px;
+                        background: #4caf50;
+                        color: white;
+                        border-radius: 5px;
+                        text-align: center;
+                        font-weight: bold;
+                    `;
+                    resetInfo.innerHTML = '✅ BP记录已自动重置！';
+                    result.appendChild(resetInfo);
+                }
+                
+                // 如果在多人游戏中，同步状态
+                if (window.syncGameStateIfChanged) {
+                    setTimeout(() => {
+                        window.syncGameStateIfChanged();
+                    }, 500);
+                }
+            } else {
+                console.error('游戏状态对象未找到，无法重置BP记录');
             }
-        });
-    }
-    
-    if (voteData.results) {
-        votingResults = voteData.results;
-        Object.keys(votingResults).forEach(index => {
-            updateVoteDisplay(parseInt(index));
-        });
-        console.log('同步投票结果显示:', votingResults);
-    }
-    
-    if (voteData.realTimeUpdate) {
-        checkVotingComplete();
+            break;
+            
+        default:
+            // 其他困难事件暂时不需要特殊处理
+            console.log(`困难事件 "${missionName}" 暂无特殊效果处理`);
+            break;
     }
 }
 
