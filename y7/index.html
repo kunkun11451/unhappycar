@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <title>图片随机排列</title>
+    <style>
+        body {
+            background: #000000;
+            font-family: Arial, sans-serif;
+            padding: 40px;
+        }
+        #container {
+            position: relative;
+            width: 100%;
+            min-height: 600px;
+        }
+        .column {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .left-column {
+            left: 100px;
+            top: 0;
+        }
+        .right-column {
+            left: 500px;
+            top: 165px;
+        }
+        .img-box {
+            position: relative;
+        }
+        .image-number {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #000;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 30px;
+            font-weight: bold;
+            z-index: 20;
+        }
+        .arrow {
+            position: absolute;
+            width: 60px;
+            height: 30px;
+            z-index: 10;
+        }
+        .arrow-down-right {
+            bottom: -45px;
+            right: -30px;
+            transform: rotate(45deg);
+        }
+        .arrow-down-left {
+            bottom: -45px;
+            left: -30px;
+            transform: rotate(-45deg);
+        }
+        img {
+            width: 388px;
+            height: 270px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            background: #fff;
+            display: block;
+        }
+        #controls {
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        #output {
+            background: #1a1a1a;
+            color: #e0e0e0;
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 200px;
+            margin-bottom: 40px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            border: 2px solid #333;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 1200px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            position: relative;
+            clear: both;
+        }
+        #showOrderBtn {
+            padding: 10px 30px;
+            font-size: 18px;
+            border: none;
+            border-radius: 6px;
+            background: #28a745;
+            color: #fff;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            display: none;
+        }
+        #showOrderBtn:hover {
+            background: #218838;
+        }
+        #imageCountInput {
+            padding: 8px 12px;
+            font-size: 16px;
+            border: 2px solid #0078d7;
+            border-radius: 6px;
+            background: #fff;
+            color: #000;
+            width: 80px;
+        }
+        label {
+            color: #fff;
+            font-size: 16px;
+        }
+        #randomBtn {
+            padding: 10px 30px;
+            font-size: 18px;
+            border: none;
+            border-radius: 6px;
+            background: #0078d7;
+            color: #fff;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        #randomBtn:hover {
+            background: #005fa3;
+        }
+        
+        .output-header {
+            color: #4CAF50;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 8px;
+        }
+        
+        .container-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #main-content {
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-wrapper">
+        <div id="controls">
+            <label for="imageCountInput">选择抽取数量:</label>
+            <input type="number" id="imageCountInput" min="1" max="46" value="46" />
+            <button id="randomBtn">随机排序</button>
+        </div>
+        <div id="main-content">
+            <div id="container"></div>
+            <div id="output"></div>
+        </div>
+    </div>
+    <script>
+        // 生成图片文件名
+        const imageCount = 46;
+        const images = Array.from({length: imageCount}, (_, i) => `${i+1}.png`);
+        let currentImageOrder = []; // 存储当前图片顺序
+        
+        // qzd.txt的内容
+        const qzdContent = `monster: [9, 1], pos: [2382, 46067], narrow: 5--yxg
+monster: [9, 1], pos: [23561, 20247], narrow: 5--yxg
+monster: [9, 1], pos: [46353, 21845], narrow: 5--yxg
+monster: [9, 1], pos: [45739, 33772], narrow: 5--yxg
+monster: [9, 1], pos: [27223, 46149], narrow: 5--yxg
+monster: [9, 1], pos: [29835, 32419] --yxg
+monster: [8, 3], pos: [35985, 16057]--cy
+monster: [8, 3], pos: [35213, 31231] ,narrow: 5--cy
+monster: [8, 3], pos: [42512, 24550] ,narrow: 5--cy
+monster: [8, 3], pos: [37134, 46641] ,narrow: 5--cy
+monster: [8, 3], pos: [47506, 40534] ,narrow: 5--cy
+monster: [8, 3], pos: [47070, 52133] ,narrow: 5--cy
+monster: [5, 2], pos: [39260, 26353]--fd
+monster: [5, 2], pos: [45611, 57912] ,narrow: 1--fd
+monster: [4, 3], pos: [35644, 48901]--fd
+monster: [4, 3], pos: [39977, 58117]--fd
+monster: [4, 3], pos: [35264, 59428] ,narrow: 1--fd
+monster: [4, 1], pos: [21819, 26476], wait: 120--fd
+monster: [4, 1], pos: [31013, 28730], select: 2--fd
+monster: [5, 3], pos: [44791, 16394]--fd
+monster: [4, 2], pos: [22204, 27952]--ly
+monster: [4, 2], pos: [32896, 39370]--ly
+monster: [4, 2], pos: [48402, 47788]--ly
+monster: [11, 2], pos: [31269, 45370]--ly
+monster: [11, 2], pos: [44484, 45452]--ly
+monster: [8, 2], pos: [43306, 57748] --ly
+monster: [6, 3], pos: [46072, 20902]--xm
+monster: [6, 3], pos: [40540, 12582]--xm
+monster: [6, 3], pos: [36647, 21312], wait: 120--xm
+monster: [7, 1], pos: [41539, 14714]--xm
+monster: [6, 3], pos: [2279, 44264]--xm
+monster: [6, 2], pos: [38875, 40821]--xm
+monster: [6, 2], pos: [54344, 24386], drag: [44000, 44305 ,44381, 44305]--xm
+monster: [6, 2], pos: [46609, 20574], narrow: 1--xm
+monster: [10, 2], pos: [27812, 60371], narrow: 1--dq
+monster: [10, 3], pos: [34138, 52748]--dq
+monster: [9, 3], pos: [4456, 0]--dq
+monster: [9, 2], pos: [32755, 32788]--dq
+monster: [11, 1], pos: [29374, 22829]--dq
+monster: [10, 1], pos: [27710, 33034]--dq
+monster: [2, 3], pos: [14674, 6640]--nt
+monster: [3, 3], pos: [23023, 23525]--nt
+monster: [3, 1], pos: [39516, 17091]--nt
+monster: [3, 1], pos: [43331, 4795], narrow: 1, wait:120--nt
+monster: [2, 1], pos: [7043, 37337]--nt
+monster: [2, 1], pos: [19975, 60412], select: 2--nt`;
+
+        const qzdLines = qzdContent.split('\n');
+
+        function shuffle(arr) {
+            let a = arr.slice();
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        function renderImages() {
+            const container = document.getElementById('container');
+            container.innerHTML = '';
+            
+            // 获取用户输入的图片数量
+            const imageCountInput = document.getElementById('imageCountInput');
+            const selectedCount = parseInt(imageCountInput.value) || 46;
+            
+            // 限制输入范围
+            const actualCount = Math.min(Math.max(selectedCount, 1), 46);
+            imageCountInput.value = actualCount;
+            
+            // 从所有图片中随机选择指定数量
+            const shuffledAll = shuffle(images);
+            const selectedImages = shuffledAll.slice(0, actualCount);
+            
+            // 保存当前图片顺序
+            currentImageOrder = selectedImages.slice();
+            
+            // 创建左列和右列
+            const leftColumn = document.createElement('div');
+            leftColumn.className = 'column left-column';
+            const rightColumn = document.createElement('div');
+            rightColumn.className = 'column right-column';
+            
+            let leftIndex = 0;
+            let rightIndex = 0;
+            
+            // 交替分配图片到左右列
+            for (let i = 0; i < selectedImages.length; i++) {
+                const imgBox = document.createElement('div');
+                imgBox.className = 'img-box';
+                const img = document.createElement('img');
+                img.src = selectedImages[i];
+                img.alt = `图片${i+1}`;
+                imgBox.appendChild(img);
+                
+                // 添加顺序编号
+                const numberLabel = document.createElement('span');
+                numberLabel.className = 'image-number';
+                numberLabel.textContent = i + 1;
+                imgBox.appendChild(numberLabel);
+                
+                if (i % 2 === 0) {
+                    // 左列
+                    if (leftIndex < Math.floor(selectedImages.length / 2) + (selectedImages.length % 2)) {
+                        // 添加向右下箭头（除了最后一张）
+                        if (i < selectedImages.length - 2) {
+                            const arrow = document.createElement('span');
+                            // arrow.className = 'arrow arrow-down-right';
+                            // arrow.innerHTML = `<svg width="60" height="30"><line x1="10" y1="10" x2="40" y2="20" stroke="#ffffff" stroke-width="3"/><polygon points="35,15 45,22 37,25" fill="#ffffff"/></svg>`;
+                            imgBox.appendChild(arrow);
+                        }
+                        leftColumn.appendChild(imgBox);
+                        leftIndex++;
+                    }
+                } else {
+                    // 右列
+                    if (rightIndex < Math.floor(selectedImages.length / 2)) {
+                        // 添加向左下箭头（除了最后一张）
+                        if (i < selectedImages.length - 1 && rightIndex < Math.floor(selectedImages.length / 2) - 1) {
+                            const arrow = document.createElement('span');
+                            // arrow.className = 'arrow arrow-down-left';
+                            // arrow.innerHTML = `<svg width="60" height="30"><line x1="50" y1="10" x2="20" y2="20" stroke="#ffffff" stroke-width="3"/><polygon points="25,15 15,22 23,25" fill="#ffffff"/></svg>`;
+                            imgBox.appendChild(arrow);
+                        }
+                        rightColumn.appendChild(imgBox);
+                        rightIndex++;
+                    }
+                }
+            }
+            
+            container.appendChild(leftColumn);
+            container.appendChild(rightColumn);
+            
+            // 计算两列的最大高度，设置容器高度
+            setTimeout(() => {
+                const leftHeight = leftColumn.offsetHeight;
+                const rightHeight = rightColumn.offsetTop + rightColumn.offsetHeight - leftColumn.offsetTop;
+                const maxHeight = Math.max(leftHeight, rightHeight);
+                
+                // 设置容器的确切高度
+                container.style.height = maxHeight + 'px';
+                container.style.position = 'relative';
+                
+                // 确保输出区域在图片容器之后
+                const output = document.getElementById('output');
+                output.style.position = 'static';
+                output.style.marginTop = '200px';
+            }, 200);
+            
+            // 自动更新qzd.txt内容
+            updateQzdContent();
+        }
+
+        function updateQzdContent() {
+            if (currentImageOrder.length === 0) {
+                return;
+            }
+            
+            const output = document.getElementById('output');
+            let reorderedContent = '';
+            
+            // 根据图片顺序重新排列qzd.txt内容
+            for (let i = 0; i < currentImageOrder.length; i++) {
+                const imageName = currentImageOrder[i]; // 例如 "32.png"
+                const lineNumber = parseInt(imageName.replace('.png', '')) - 1; // 转换为行号 (0-based)
+                
+                if (lineNumber >= 0 && lineNumber < qzdLines.length) {
+                    reorderedContent += `${qzdLines[lineNumber]}\n`;
+                }
+            }
+            
+            output.innerHTML = `<div class="output-header">重排序后的 qzd.txt 内容</div>${reorderedContent}`;
+        }
+
+        function showReorderedQzd() {
+            // 已删除此功能
+        }
+
+        document.getElementById('randomBtn').onclick = renderImages;
+        
+        // 初始渲染
+        renderImages();
+    </script>
+</body>
+</html>
