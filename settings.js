@@ -1008,7 +1008,7 @@ function createRedstoneTechContent() {
         cursor: pointer;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         transition: all 0.3s ease;
-        display: block;
+        display: none;
         margin-left: auto;
         margin-right: auto;
         min-width: 200px;
