@@ -992,6 +992,49 @@ function createRedstoneTechContent() {
     
     container.appendChild(description);
 
+    // 投稿按钮
+    const submitButton = document.createElement("button");
+    submitButton.textContent = "📝 投稿赤石科技";
+    submitButton.style.cssText = `
+        margin-top: 20px;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 15px 30px;
+        font-size: 16px;
+        font-weight: bold;
+        border-radius: 25px;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        min-width: 200px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    `;
+    
+    submitButton.addEventListener("mouseover", () => {
+        submitButton.style.transform = "translateY(-2px)";
+        submitButton.style.boxShadow = "0 6px 20px rgba(0, 0, 0, 0.3)";
+        submitButton.style.background = "rgba(255, 255, 255, 0.25)";
+        submitButton.style.borderColor = "rgba(255, 255, 255, 0.3)";
+    });
+    
+    submitButton.addEventListener("mouseout", () => {
+        submitButton.style.transform = "translateY(0)";
+        submitButton.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.2)";
+        submitButton.style.background = "rgba(255, 255, 255, 0.15)";
+        submitButton.style.borderColor = "rgba(255, 255, 255, 0.2)";
+    });
+    
+    submitButton.addEventListener("click", () => {
+        showSubmissionModal();
+    });
+
+    container.appendChild(submitButton);
+
     return container;
 }
 
@@ -1067,3 +1110,414 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
+
+// 投稿弹窗功能
+function showSubmissionModal() {
+    // 创建遮罩层
+    const overlay = document.createElement("div");
+    overlay.id = "submissionOverlay";
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(5px);
+        z-index: 10000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    `;
+
+    // 创建弹窗
+    const modal = document.createElement("div");
+    modal.style.cssText = `
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 30px;
+        max-width: 500px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transform: scale(0.8);
+        transition: transform 0.3s ease;
+        position: relative;
+    `;
+
+    // 标题
+    const title = document.createElement("h2");
+    title.textContent = "📝 投稿赤石科技";
+    title.style.cssText = `
+        color: white;
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    `;
+    modal.appendChild(title);
+
+    // 关闭按钮
+    const closeButton = document.createElement("button");
+    closeButton.innerHTML = "✕";
+    closeButton.style.cssText = `
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        font-size: 18px;
+        font-weight: bold;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
+
+    closeButton.addEventListener("mouseover", () => {
+        closeButton.style.background = "rgba(255, 255, 255, 0.25)";
+        closeButton.style.transform = "rotate(90deg) scale(1.1)";
+        closeButton.style.borderColor = "rgba(255, 255, 255, 0.3)";
+    });
+
+    closeButton.addEventListener("mouseout", () => {
+        closeButton.style.background = "rgba(255, 255, 255, 0.15)";
+        closeButton.style.transform = "rotate(0deg) scale(1)";
+        closeButton.style.borderColor = "rgba(255, 255, 255, 0.2)";
+    });
+
+    closeButton.addEventListener("click", () => {
+        hideSubmissionModal();
+    });
+
+    modal.appendChild(closeButton);
+
+    // 创建表单
+    const form = document.createElement("form");
+    form.id = "submissionForm";
+
+    // 频道昵称输入
+    const nicknameLabel = document.createElement("label");
+    nicknameLabel.textContent = "频道昵称";
+    nicknameLabel.style.cssText = `
+        display: block;
+        color: white;
+        font-weight: bold;
+        margin-bottom: 8px;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    `;
+
+    const nicknameInput = document.createElement("input");
+    nicknameInput.type = "text";
+    nicknameInput.id = "channelNickname";
+    nicknameInput.required = true;
+    nicknameInput.placeholder = "请输入您的频道昵称";
+    nicknameInput.style.cssText = `
+        width: 100%;
+        padding: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        color: white;
+        font-size: 14px;
+        margin-bottom: 20px;
+        box-sizing: border-box;
+        transition: all 0.3s ease;
+    `;
+
+    nicknameInput.addEventListener("focus", () => {
+        nicknameInput.style.borderColor = "rgba(255, 255, 255, 0.4)";
+        nicknameInput.style.background = "rgba(255, 255, 255, 0.15)";
+        nicknameInput.style.boxShadow = "0 4px 15px rgba(255, 255, 255, 0.1)";
+    });
+
+    nicknameInput.addEventListener("blur", () => {
+        nicknameInput.style.borderColor = "rgba(255, 255, 255, 0.2)";
+        nicknameInput.style.background = "rgba(255, 255, 255, 0.1)";
+        nicknameInput.style.boxShadow = "none";
+    });
+
+    // 想法输入
+    const thoughtLabel = document.createElement("label");
+    thoughtLabel.textContent = "你的想法";
+    thoughtLabel.style.cssText = `
+        display: block;
+        color: white;
+        font-weight: bold;
+        margin-bottom: 8px;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    `;
+
+    const thoughtTextarea = document.createElement("textarea");
+    thoughtTextarea.id = "userThought";
+    thoughtTextarea.required = true;
+    thoughtTextarea.placeholder = "请分享您的抽象想法，我们会尽量实现并添加到此处";
+    thoughtTextarea.style.cssText = `
+        width: 100%;
+        height: 120px;
+        padding: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        color: white;
+        font-size: 14px;
+        margin-bottom: 25px;
+        box-sizing: border-box;
+        resize: vertical;
+        min-height: 80px;
+        transition: all 0.3s ease;
+        font-family: inherit;
+    `;
+
+    thoughtTextarea.addEventListener("focus", () => {
+        thoughtTextarea.style.borderColor = "rgba(255, 255, 255, 0.4)";
+        thoughtTextarea.style.background = "rgba(255, 255, 255, 0.15)";
+        thoughtTextarea.style.boxShadow = "0 4px 15px rgba(255, 255, 255, 0.1)";
+    });
+
+    thoughtTextarea.addEventListener("blur", () => {
+        thoughtTextarea.style.borderColor = "rgba(255, 255, 255, 0.2)";
+        thoughtTextarea.style.background = "rgba(255, 255, 255, 0.1)";
+        thoughtTextarea.style.boxShadow = "none";
+    });
+
+    // 按钮容器
+    const buttonContainer = document.createElement("div");
+    buttonContainer.style.cssText = `
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+    `;
+
+    // 提交按钮
+    const submitBtn = document.createElement("button");
+    submitBtn.type = "submit";
+    submitBtn.textContent = "🚀 提交投稿";
+    submitBtn.style.cssText = `
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 12px 25px;
+        font-size: 16px;
+        font-weight: bold;
+        border-radius: 25px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        min-width: 140px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    `;
+
+    submitBtn.addEventListener("mouseover", () => {
+        submitBtn.style.background = "rgba(255, 255, 255, 0.25)";
+        submitBtn.style.transform = "translateY(-2px)";
+        submitBtn.style.boxShadow = "0 6px 20px rgba(0, 0, 0, 0.3)";
+        submitBtn.style.borderColor = "rgba(255, 255, 255, 0.3)";
+    });
+
+    submitBtn.addEventListener("mouseout", () => {
+        submitBtn.style.background = "rgba(255, 255, 255, 0.15)";
+        submitBtn.style.transform = "translateY(0)";
+        submitBtn.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.2)";
+        submitBtn.style.borderColor = "rgba(255, 255, 255, 0.2)";
+    });
+
+    // 取消按钮
+    const cancelBtn = document.createElement("button");
+    cancelBtn.type = "button";
+    cancelBtn.textContent = "❌ 取消";
+    cancelBtn.style.cssText = `
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 12px 25px;
+        font-size: 16px;
+        font-weight: bold;
+        border-radius: 25px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        min-width: 140px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    `;
+
+    cancelBtn.addEventListener("mouseover", () => {
+        cancelBtn.style.background = "rgba(255, 255, 255, 0.2)";
+        cancelBtn.style.transform = "translateY(-2px)";
+        cancelBtn.style.boxShadow = "0 6px 20px rgba(0, 0, 0, 0.2)";
+        cancelBtn.style.borderColor = "rgba(255, 255, 255, 0.3)";
+    });
+
+    cancelBtn.addEventListener("mouseout", () => {
+        cancelBtn.style.background = "rgba(255, 255, 255, 0.1)";
+        cancelBtn.style.transform = "translateY(0)";
+        cancelBtn.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.1)";
+        cancelBtn.style.borderColor = "rgba(255, 255, 255, 0.2)";
+    });
+
+    cancelBtn.addEventListener("click", () => {
+        hideSubmissionModal();
+    });
+
+    // 组装表单
+    form.appendChild(nicknameLabel);
+    form.appendChild(nicknameInput);
+    form.appendChild(thoughtLabel);
+    form.appendChild(thoughtTextarea);
+    
+    buttonContainer.appendChild(submitBtn);
+    buttonContainer.appendChild(cancelBtn);
+    form.appendChild(buttonContainer);
+
+    modal.appendChild(form);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    // 动画显示
+    setTimeout(() => {
+        overlay.style.opacity = "1";
+        modal.style.transform = "scale(1)";
+    }, 10);
+
+    // 表单提交处理
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        
+        const nickname = nicknameInput.value.trim();
+        const thought = thoughtTextarea.value.trim();
+
+        if (!nickname || !thought) {
+            showMessage("请填写完整信息", "error");
+            return;
+        }
+
+        // 提交数据到服务器
+        try {
+            submitBtn.textContent = "⏳ 提交中...";
+            submitBtn.disabled = true;
+
+            // 检测投稿服务器地址
+            const submissionServerUrl = window.location.hostname === 'localhost' 
+                ? 'http://localhost:3001' 
+                : `${window.location.protocol}//${window.location.hostname}:3001`;
+
+            const response = await fetch(`${submissionServerUrl}/api/submit-redstone-tech`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    nickname: nickname,
+                    thought: thought,
+                    timestamp: new Date().toISOString()
+                })
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                showMessage(result.message || "投稿提交成功！感谢您的分享！", "success");
+                hideSubmissionModal();
+            } else {
+                throw new Error(result.error || '提交失败');
+            }
+        } catch (error) {
+            console.error('提交投稿时出错:', error);
+            showMessage("提交失败，请稍后重试", "error");
+        } finally {
+            submitBtn.textContent = "🚀 提交投稿";
+            submitBtn.disabled = false;
+        }
+    });
+
+    // 点击遮罩层关闭
+    overlay.addEventListener("click", (e) => {
+        if (e.target === overlay) {
+            hideSubmissionModal();
+        }
+    });
+
+    // ESC键关闭
+    const handleEsc = (e) => {
+        if (e.key === "Escape") {
+            hideSubmissionModal();
+            document.removeEventListener("keydown", handleEsc);
+        }
+    };
+    document.addEventListener("keydown", handleEsc);
+}
+
+function hideSubmissionModal() {
+    const overlay = document.getElementById("submissionOverlay");
+    if (overlay) {
+        const modal = overlay.querySelector("div");
+        overlay.style.opacity = "0";
+        modal.style.transform = "scale(0.8)";
+        
+        setTimeout(() => {
+            overlay.remove();
+        }, 300);
+    }
+}
+
+// 消息提示函数
+function showMessage(message, type = "info") {
+    const messageDiv = document.createElement("div");
+    messageDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 25px;
+        border-radius: 15px;
+        color: white;
+        font-weight: bold;
+        z-index: 10001;
+        backdrop-filter: blur(15px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        transform: translateX(400px);
+        transition: transform 0.3s ease;
+        max-width: 300px;
+        word-wrap: break-word;
+    `;
+
+    if (type === "success") {
+        messageDiv.style.background = "rgba(100, 255, 100, 0.2)";
+        messageDiv.style.border = "1px solid rgba(100, 255, 100, 0.3)";
+    } else if (type === "error") {
+        messageDiv.style.background = "rgba(255, 100, 100, 0.2)";
+        messageDiv.style.border = "1px solid rgba(255, 100, 100, 0.3)";
+    } else {
+        messageDiv.style.background = "rgba(100, 150, 255, 0.2)";
+        messageDiv.style.border = "1px solid rgba(100, 150, 255, 0.3)";
+    }
+
+    messageDiv.textContent = message;
+    document.body.appendChild(messageDiv);
+
+    // 动画显示
+    setTimeout(() => {
+        messageDiv.style.transform = "translateX(0)";
+    }, 10);
+
+    // 自动隐藏
+    setTimeout(() => {
+        messageDiv.style.transform = "translateX(400px)";
+        setTimeout(() => {
+            messageDiv.remove();
+        }, 300);
+    }, 3000);
+}
