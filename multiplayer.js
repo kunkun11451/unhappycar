@@ -97,23 +97,528 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 加入游戏
     joinGameButton.addEventListener('click', () => {
-        let roomId = localStorage.getItem('roomId'); // 从 localStorage 获取房间代码
-        if (!roomId) {
-            roomId = prompt('请输入地主提供的房间代码：');
-            if (roomId) {
-                localStorage.setItem('roomId', roomId); // 保存房间代码到 localStorage
-            }
-        }
-
-        if (roomId) {
-            ws.send(JSON.stringify({ type: 'joinRoom', roomId }));
-        }
-
+        showRoomCodeInput();
+        
         isHost = false;
         if (timeCounter) {
             timeCounter.style.display = 'none';
         }
-    });    // 同步数据函数 - 仅主持人可调用
+    });
+
+    // 显示房间码输入对话框
+    function showRoomCodeInput() {
+        const cachedRoomId = localStorage.getItem('roomId');
+        
+        // 创建遮罩层
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0);
+            backdrop-filter: blur(0px);
+            z-index: 10000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        `;
+
+        // 创建对话框
+        const dialog = document.createElement('div');
+        dialog.style.cssText = `
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(15px);
+            border-radius: 15px;
+            padding: 30px;
+            width: 380px;
+            max-width: 90vw;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transform: scale(0.7) translateY(-30px);
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-sizing: border-box;
+        `;
+
+        // 标题
+        const title = document.createElement('h3');
+        title.textContent = '加入游戏';
+        title.style.cssText = `
+            margin: 0 0 25px 0;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        `;
+
+        // 输入框
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = '请输入房间代码';
+        input.maxLength = 6; // 限制最大长度为6个字符
+        input.style.cssText = `
+            width: 100%;
+            padding: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            color: white;
+            font-size: 18px;
+            margin-bottom: 25px;
+            box-sizing: border-box;
+            text-align: center;
+            transition: all 0.3s ease;
+            outline: none;
+        `;
+
+        // 输入框焦点样式
+        input.addEventListener('focus', () => {
+            input.style.borderColor = 'rgba(255, 255, 255, 0.6)';
+            input.style.background = 'rgba(255, 255, 255, 0.2)';
+            input.style.boxShadow = '0 0 20px rgba(255, 255, 255, 0.2)';
+        });
+
+        input.addEventListener('blur', () => {
+            input.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+            input.style.background = 'rgba(255, 255, 255, 0.1)';
+            input.style.boxShadow = 'none';
+        });
+
+        // 自动转换小写字母为大写，并限制只能输入字母和数字
+        input.addEventListener('input', () => {
+            const cursorPosition = input.selectionStart;
+            let value = input.value;
+            
+            // 过滤掉非字母数字字符
+            value = value.replace(/[^a-zA-Z0-9]/g, '');
+            
+            // 限制长度为6个字符
+            if (value.length > 6) {
+                value = value.slice(0, 6);
+            }
+            
+            // 转换为大写
+            const upperCaseValue = value.toUpperCase();
+            
+            if (input.value !== upperCaseValue) {
+                input.value = upperCaseValue;
+                // 保持光标位置，但不能超过新值的长度
+                const newCursorPosition = Math.min(cursorPosition, upperCaseValue.length);
+                input.setSelectionRange(newCursorPosition, newCursorPosition);
+            }
+        });
+
+        // 设置输入框占位符颜色和添加动画
+        const style = document.createElement('style');
+        style.textContent = `
+            input::placeholder {
+                color: rgba(255, 255, 255, 0.6);
+            }
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
+                20%, 40%, 60%, 80% { transform: translateX(8px); }
+            }
+            @keyframes errorGlow {
+                0% { 
+                    background: rgba(255, 120, 120, 0.25);
+                    border-color: rgba(255, 100, 100, 0.8);
+                    box-shadow: 0 0 20px rgba(255, 100, 100, 0.4);
+                }
+                50% { 
+                    background: rgba(255, 120, 120, 0.35);
+                    border-color: rgba(255, 100, 100, 1);
+                    box-shadow: 0 0 30px rgba(255, 100, 100, 0.6);
+                }
+                100% { 
+                    background: rgba(255, 120, 120, 0.25);
+                    border-color: rgba(255, 100, 100, 0.8);
+                    box-shadow: 0 0 20px rgba(255, 100, 100, 0.4);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // 主按钮容器
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.cssText = `
+            display: flex;
+            gap: 15px;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        `;
+
+        // 确认按钮
+        const confirmButton = document.createElement('button');
+        confirmButton.textContent = '加入';
+        confirmButton.style.cssText = `
+            background: rgba(100, 255, 150, 0.15);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(100, 255, 150, 0.4);
+            color: white;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            box-shadow: 0 4px 15px rgba(100, 255, 150, 0.1);
+            outline: none;
+        `;
+
+        // 取消按钮
+        const cancelButton = document.createElement('button');
+        cancelButton.textContent = '取消';
+        cancelButton.style.cssText = `
+            background: rgba(255, 120, 120, 0.15);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 120, 120, 0.4);
+            color: white;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            box-shadow: 0 4px 15px rgba(255, 120, 120, 0.1);
+            outline: none;
+        `;
+
+        // 按钮悬停效果
+        confirmButton.addEventListener('mouseover', () => {
+            confirmButton.style.background = 'rgba(100, 255, 150, 0.25)';
+            confirmButton.style.transform = 'translateY(-3px)';
+            confirmButton.style.boxShadow = '0 8px 25px rgba(100, 255, 150, 0.2)';
+            confirmButton.style.borderColor = 'rgba(100, 255, 150, 0.6)';
+        });
+
+        confirmButton.addEventListener('mouseout', () => {
+            confirmButton.style.background = 'rgba(100, 255, 150, 0.15)';
+            confirmButton.style.transform = 'translateY(0)';
+            confirmButton.style.boxShadow = '0 4px 15px rgba(100, 255, 150, 0.1)';
+            confirmButton.style.borderColor = 'rgba(100, 255, 150, 0.4)';
+        });
+
+        cancelButton.addEventListener('mouseover', () => {
+            cancelButton.style.background = 'rgba(255, 120, 120, 0.25)';
+            cancelButton.style.transform = 'translateY(-3px)';
+            cancelButton.style.boxShadow = '0 8px 25px rgba(255, 120, 120, 0.2)';
+            cancelButton.style.borderColor = 'rgba(255, 120, 120, 0.6)';
+        });
+
+        cancelButton.addEventListener('mouseout', () => {
+            cancelButton.style.background = 'rgba(255, 120, 120, 0.15)';
+            cancelButton.style.transform = 'translateY(0)';
+            cancelButton.style.boxShadow = '0 4px 15px rgba(255, 120, 120, 0.1)';
+            cancelButton.style.borderColor = 'rgba(255, 120, 120, 0.4)';
+        });
+
+        buttonContainer.appendChild(cancelButton);
+        buttonContainer.appendChild(confirmButton);
+
+        // 组装对话框内容
+        dialog.appendChild(title);
+        dialog.appendChild(input);
+        dialog.appendChild(buttonContainer);
+
+        // 如果有缓存的房间码，添加返回按钮（与上面按钮对齐）
+        if (cachedRoomId) {
+            const returnButtonContainer = document.createElement('div');
+            returnButtonContainer.style.cssText = `
+                display: flex;
+                gap: 15px;
+                justify-content: center;
+                margin-bottom: 0px;
+                transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            `;
+
+            const returnButton = document.createElement('button');
+            returnButton.textContent = `返回"${cachedRoomId}"`;
+            returnButton.style.cssText = `
+                background: rgba(255, 255, 255, 0.2);
+                backdrop-filter: blur(10px);
+                border: 2px solid rgba(255, 255, 255, 0.4);
+                color: white;
+                padding: 15px 30px;
+                font-size: 18px;
+                font-weight: bold;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                width: 100%;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2), 0 0 15px rgba(255, 255, 255, 0.3);
+                outline: none;
+            `;
+            
+            returnButton.addEventListener('mouseover', () => {
+                returnButton.style.background = 'rgba(255, 255, 255, 0.3)';
+                returnButton.style.transform = 'translateY(-3px)';
+                returnButton.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 255, 255, 0.4)';
+                returnButton.style.borderColor = 'rgba(255, 255, 255, 0.6)';
+            });
+
+            returnButton.addEventListener('mouseout', () => {
+                returnButton.style.background = 'rgba(255, 255, 255, 0.2)';
+                returnButton.style.transform = 'translateY(0)';
+                returnButton.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.2), 0 0 15px rgba(255, 255, 255, 0.3)';
+                returnButton.style.borderColor = 'rgba(255, 255, 255, 0.4)';
+            });
+            
+            returnButton.addEventListener('click', () => {
+                // 不立即关闭弹窗，让错误处理决定是否关闭
+                joinRoomWithErrorHandling(cachedRoomId, 'return', returnButton, hideDialog);
+            });
+            
+            returnButtonContainer.appendChild(returnButton);
+            dialog.appendChild(returnButtonContainer);
+        }
+
+        // 确认按钮事件
+        confirmButton.addEventListener('click', () => {
+            const roomId = input.value.trim();
+            if (roomId) {
+                hideDialog();
+                joinRoomWithErrorHandling(roomId, 'input', null, null); // 输入框来源不需要保持弹窗打开
+            } else {
+                // 显示输入框错误动画（无文字提示）
+                input.style.borderColor = 'rgba(255, 100, 100, 0.8)';
+                input.style.background = 'rgba(255, 100, 100, 0.1)';
+                input.style.animation = 'shake 0.6s ease-in-out, errorGlow 2s ease-in-out';
+                
+                // 2秒后恢复样式
+                setTimeout(() => {
+                    input.style.animation = '';
+                    input.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                    input.style.background = 'rgba(255, 255, 255, 0.1)';
+                }, 2000);
+            }
+        });
+
+        // 取消按钮事件
+        cancelButton.addEventListener('click', () => {
+            hideDialog();
+        });
+
+        // 点击遮罩层关闭
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                hideDialog();
+            }
+        });
+
+        // 回车键确认
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                confirmButton.click();
+            }
+        });
+
+        // ESC键关闭
+        const handleEsc = (e) => {
+            if (e.key === 'Escape') {
+                hideDialog();
+                document.removeEventListener('keydown', handleEsc);
+            }
+        };
+        document.addEventListener('keydown', handleEsc);
+
+        // 隐藏对话框的函数
+        function hideDialog() {
+            overlay.style.opacity = '0';
+            overlay.style.background = 'rgba(0, 0, 0, 0)';
+            overlay.style.backdropFilter = 'blur(0px)';
+            dialog.style.opacity = '0';
+            dialog.style.transform = 'scale(0.8) translateY(30px)';
+            
+            setTimeout(() => {
+                if (document.body.contains(overlay)) {
+                    document.body.removeChild(overlay);
+                }
+                if (document.head.contains(style)) {
+                    document.head.removeChild(style);
+                }
+            }, 300);
+        }
+
+        overlay.appendChild(dialog);
+        document.body.appendChild(overlay);
+        
+        // 开场动画
+        requestAnimationFrame(() => {
+            overlay.style.opacity = '1';
+            overlay.style.background = 'rgba(0, 0, 0, 0.5)';
+            overlay.style.backdropFilter = 'blur(10px)';
+            dialog.style.opacity = '1';
+            dialog.style.transform = 'scale(1) translateY(0)';
+        });
+        
+        // 自动聚焦到输入框
+        setTimeout(() => input.focus(), 300);
+    }
+
+    // 消息提示函数（如果不存在的话）
+    function showMessage(message, type = "info") {
+        const messageDiv = document.createElement("div");
+        messageDiv.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 15px;
+            color: white;
+            font-weight: bold;
+            z-index: 10001;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            max-width: 300px;
+            word-wrap: break-word;
+        `;
+
+        if (type === "success") {
+            messageDiv.style.background = "rgba(100, 255, 100, 0.2)";
+            messageDiv.style.border = "1px solid rgba(100, 255, 100, 0.3)";
+        } else if (type === "error") {
+            messageDiv.style.background = "rgba(255, 100, 100, 0.2)";
+            messageDiv.style.border = "1px solid rgba(255, 100, 100, 0.3)";
+        } else {
+            messageDiv.style.background = "rgba(100, 150, 255, 0.2)";
+            messageDiv.style.border = "1px solid rgba(100, 150, 255, 0.3)";
+        }
+
+        messageDiv.textContent = message;
+        document.body.appendChild(messageDiv);
+
+        // 动画显示
+        setTimeout(() => {
+            messageDiv.style.transform = "translateX(0)";
+        }, 10);
+
+        // 自动隐藏
+        setTimeout(() => {
+            messageDiv.style.transform = "translateX(400px)";
+            setTimeout(() => {
+                if (document.body.contains(messageDiv)) {
+                    messageDiv.remove();
+                }
+            }, 300);
+        }, 3000);
+    }
+
+    // 输入框错误提示函数
+    function showInputError(inputElement, message) {
+        // 添加摇晃动画和红色辉光
+        inputElement.style.borderColor = 'rgba(255, 100, 100, 0.8)';
+        inputElement.style.background = 'rgba(255, 100, 100, 0.1)';
+        inputElement.style.boxShadow = '0 0 20px rgba(255, 100, 100, 0.5)';
+        inputElement.style.animation = 'shake 0.5s ease-in-out';
+
+        // 创建错误提示
+        const errorText = document.createElement('div');
+        errorText.textContent = message;
+        errorText.style.cssText = `
+            color: rgba(255, 100, 100, 0.9);
+            font-size: 14px;
+            text-align: center;
+            margin-top: 10px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease;
+        `;
+
+        // 插入到输入框容器后面
+        const inputContainer = inputElement.parentElement;
+        if (inputContainer && inputContainer.nextSibling) {
+            inputContainer.parentElement.insertBefore(errorText, inputContainer.nextSibling);
+        }
+
+        // 5秒后恢复样式并移除错误提示
+        setTimeout(() => {
+            inputElement.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+            inputElement.style.background = 'rgba(255, 255, 255, 0.1)';
+            inputElement.style.boxShadow = 'none';
+            inputElement.style.animation = '';
+            if (errorText.parentElement) {
+                errorText.remove();
+            }
+        }, 5000);
+    }
+
+    // 按钮错误提示函数
+    function showButtonError(buttonElement, message) {
+        const originalBg = buttonElement.style.background;
+        const originalBorder = buttonElement.style.borderColor;
+        const originalShadow = buttonElement.style.boxShadow;
+
+        // 添加摇晃动画和红色样式
+        buttonElement.style.background = 'rgba(255, 120, 120, 0.25)';
+        buttonElement.style.borderColor = 'rgba(255, 120, 120, 0.5)';
+        buttonElement.style.boxShadow = '0 0 20px rgba(255, 120, 120, 0.4)';
+        buttonElement.style.animation = 'shake 0.6s ease-in-out, errorGlow 2s ease-in-out';
+
+        // 2秒后处理按钮状态
+        setTimeout(() => {
+            if (message.includes('已解散') || message.includes('房间已解散')) {
+                // 如果是房间已解散，则让按钮摇晃后隐藏，但不关闭弹窗
+                // 先让按钮淡出
+                buttonElement.style.opacity = '0';
+                buttonElement.style.transform = 'scale(0.8)';
+                
+                // 210ms后开始收缩容器高度
+                setTimeout(() => {
+                    const buttonContainer = buttonElement.parentElement;
+                    if (buttonContainer) {
+                        // 添加高度过渡动画
+                        buttonContainer.style.transition = 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                        buttonContainer.style.height = buttonContainer.offsetHeight + 'px'; // 设置当前高度
+                        buttonContainer.style.overflow = 'hidden';
+                        
+                        // 触发高度变化
+                        requestAnimationFrame(() => {
+                            buttonContainer.style.height = '0px';
+                            buttonContainer.style.marginBottom = '0px';
+                            buttonContainer.style.paddingTop = '0px';
+                            buttonContainer.style.paddingBottom = '0px';
+                            buttonContainer.style.opacity = '0';
+                        });
+                        
+                        // 动画完成后移除容器
+                        setTimeout(() => {
+                            if (buttonContainer.parentElement) {
+                                buttonContainer.remove();
+                            }
+                        }, 400);
+                    }
+                }, 210);
+            } else {
+                // 其他情况恢复原样
+                buttonElement.style.background = originalBg;
+                buttonElement.style.borderColor = originalBorder;
+                buttonElement.style.boxShadow = originalShadow;
+                buttonElement.style.animation = '';
+            }
+        }, 2000); // 与输入框错误动画时长保持一致
+    }
+
+    // 加入房间的错误处理函数
+    function joinRoomWithErrorHandling(roomId, source, buttonElement = null, hideDialogCallback = null) {
+        // 存储当前尝试的信息，用于错误处理
+        window.currentJoinAttempt = {
+            source: source,
+            buttonElement: buttonElement,
+            roomId: roomId,
+            hideDialogCallback: hideDialogCallback
+        };
+        
+        ws.send(JSON.stringify({ type: 'joinRoom', roomId: roomId }));
+    }    // 同步数据函数 - 仅主持人可调用
     function syncGameState(isKeepAlive = false) {
         if (!window.gameState) {
             console.error('gameState 未定义');
@@ -410,10 +915,21 @@ ws.onmessage = (event) => {
             setupEventDrivenSync();
             break;        case 'roomJoined':
             currentRoomId = data.roomId;
+            // 成功加入房间后才将房间码写入缓存
+            localStorage.setItem('roomId', data.roomId);
             // 设置唯一的玩家ID
             currentPlayerId = data.playerId || 'player_' + Math.random().toString(36).substr(2, 9);
             console.log('加入房间，玩家ID:', currentPlayerId);
             showTemporaryMessage('成功加入房间！地主会帮你完成所有操作，等着就行。'); // 使用临时提示框
+            
+            // 如果有弹窗关闭回调，则关闭弹窗
+            if (window.currentJoinAttempt && window.currentJoinAttempt.hideDialogCallback) {
+                window.currentJoinAttempt.hideDialogCallback();
+            }
+            
+            // 清理尝试信息
+            window.currentJoinAttempt = null;
+            
             initialScreen.style.display = 'none';
             gameScreen.style.display = 'block';
             
@@ -489,8 +1005,39 @@ ws.onmessage = (event) => {
             break;
 
         case 'error':
-            alert(`错误：${data.message}`);
-            localStorage.removeItem('roomId'); // 出现错误时清除房间代码
+            // 根据错误来源进行不同处理
+            const currentAttempt = window.currentJoinAttempt;
+            
+            if (currentAttempt) {
+                if (currentAttempt.source === 'input') {
+                    // 如果是从输入框加入，关闭弹窗并重新显示，然后显示错误
+                    if (currentAttempt.hideDialogCallback) {
+                        currentAttempt.hideDialogCallback();
+                    }
+                    showRoomCodeInput();
+                    setTimeout(() => {
+                        const input = document.querySelector('input[placeholder="请输入房间代码"]');
+                        if (input) {
+                            input.value = currentAttempt.roomId;
+                            showInputError(input, `房间码错误：${data.message}`);
+                        }
+                    }, 350);
+                    localStorage.removeItem('roomId'); // 输入框错误时清除房间代码
+                } else if (currentAttempt.source === 'return' && currentAttempt.buttonElement) {
+                    // 如果是从返回按钮加入，则显示按钮错误，但不关闭弹窗
+                    showButtonError(currentAttempt.buttonElement, `房间已解散：${data.message}`);
+                    localStorage.removeItem('roomId'); // 返回房间失败时也清除房间代码
+                    // 注意：这里不调用 hideDialogCallback，保持弹窗打开
+                }
+                
+                // 清理尝试信息
+                window.currentJoinAttempt = null;
+            } else {
+                // 传统的alert方式，作为后备
+                alert(`错误：${data.message}`);
+                localStorage.removeItem('roomId'); // 出现错误时清除房间代码
+            }
+            
             break;        case 'playerCount':
             // 使用顶部提示框显示当前人数
             currentPlayerCount = data.count;
@@ -1118,6 +1665,17 @@ window.multiplayerManager = {
     getPlayerCount: () => {
         // 返回实际的玩家数量，包含主机和所有玩家
         return currentPlayerCount;
+    },
+    // 添加发送消息的方法，供其他模块使用现有的WebSocket连接
+    sendMessage: (data) => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify(data));
+            console.log('通过多人游戏WebSocket发送消息:', data);
+            return true;
+        } else {
+            console.error('多人游戏WebSocket连接不可用');
+            return false;
+        }
     }
 };
 

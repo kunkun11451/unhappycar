@@ -20,6 +20,9 @@ let currentActiveOption = null;
 
 // 打开设置弹窗
 settingsButton.addEventListener("click", () => {
+    // 进入设置时断开多人游戏WebSocket连接
+    disconnectMultiplayerWebSocket();
+    
     settingsOverlay.style.display = "block";
     settingsPopup.style.display = "flex";
     document.body.classList.add("no-scroll");
@@ -1008,7 +1011,7 @@ function createRedstoneTechContent() {
         cursor: pointer;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         transition: all 0.3s ease;
-        display: none;
+        display: block;
         margin-left: auto;
         margin-right: auto;
         min-width: 200px;
@@ -1405,36 +1408,52 @@ function showSubmissionModal() {
             return;
         }
 
-        // 提交数据到服务器
+        // 通过WebSocket提交数据到服务器日志
         try {
             submitBtn.textContent = "⏳ 提交中...";
             submitBtn.disabled = true;
 
-            // 检测投稿服务器地址
-            const submissionServerUrl = window.location.hostname === 'localhost' 
-                ? 'http://localhost:3001' 
-                : `${window.location.protocol}//${window.location.hostname}:3001`;
+            // 检查并重新连接WebSocket（如果需要）
+            await ensureWebSocketConnection();
 
-            const response = await fetch(`${submissionServerUrl}/api/submit-redstone-tech`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
+            // 通过WebSocket发送投稿数据
+            const submissionData = {
+                type: 'redstone_tech_submission',
+                data: {
                     nickname: nickname,
                     thought: thought,
-                    timestamp: new Date().toISOString()
-                })
-            });
+                    timestamp: new Date().toISOString(),
+                    userAgent: navigator.userAgent,
+                    url: window.location.href
+                }
+            };
 
-            const result = await response.json();
-
-            if (response.ok && result.success) {
-                showMessage(result.message || "投稿提交成功！感谢您的分享！", "success");
+            // 优先使用现有的多人游戏WebSocket连接
+            if (window.multiplayerManager && window.multiplayerManager.isConnected()) {
+                console.log('通过多人游戏WebSocket连接发送投稿');
+                // 需要访问multiplayer.js中的ws变量，这里我们通过multiplayerManager发送
+                // 由于multiplayerManager没有直接暴露发送方法，我们需要在multiplayer.js中添加一个发送方法
+                if (window.multiplayerManager.sendMessage) {
+                    window.multiplayerManager.sendMessage(submissionData);
+                } else {
+                    // 如果没有sendMessage方法，回退到专门的投稿连接
+                    if (window.submissionWebSocket && window.submissionWebSocket.readyState === WebSocket.OPEN) {
+                        window.submissionWebSocket.send(JSON.stringify(submissionData));
+                    } else {
+                        throw new Error('无法发送投稿，WebSocket连接不可用');
+                    }
+                }
+                showMessage("投稿提交成功！感谢您的分享！", "success");
+                hideSubmissionModal();
+            } else if (window.submissionWebSocket && window.submissionWebSocket.readyState === WebSocket.OPEN) {
+                console.log('通过专门的投稿WebSocket连接发送投稿');
+                window.submissionWebSocket.send(JSON.stringify(submissionData));
+                showMessage("投稿提交成功！感谢您的分享！", "success");
                 hideSubmissionModal();
             } else {
-                throw new Error(result.error || '提交失败');
+                throw new Error('WebSocket连接未建立');
             }
+
         } catch (error) {
             console.error('提交投稿时出错:', error);
             showMessage("提交失败，请稍后重试", "error");
@@ -1520,4 +1539,91 @@ function showMessage(message, type = "info") {
             messageDiv.remove();
         }, 300);
     }, 3000);
+}
+
+// WebSocket连接管理函数
+async function ensureWebSocketConnection() {
+    return new Promise((resolve, reject) => {
+        // 首先检查是否有现有的多人游戏WebSocket连接可用
+        if (window.multiplayerManager && window.multiplayerManager.isConnected()) {
+            console.log('使用现有的多人游戏WebSocket连接进行投稿');
+            window.submissionWebSocket = null; // 不需要独立的投稿连接
+            resolve();
+            return;
+        }
+
+        // 检查是否已有专门的投稿WebSocket连接
+        if (window.submissionWebSocket && window.submissionWebSocket.readyState === WebSocket.OPEN) {
+            resolve();
+            return;
+        }
+
+        // 如果没有可用连接，创建新的WebSocket连接用于投稿
+        const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const wsUrl = isLocalDev ? 'ws://127.0.0.1:3000' : 'wss://unhappycar.tech:3000';
+        
+        console.log('为投稿创建WebSocket连接:', wsUrl);
+        
+        window.submissionWebSocket = new WebSocket(wsUrl);
+        
+        // 设置连接超时
+        const connectionTimeout = setTimeout(() => {
+            window.submissionWebSocket.close();
+            reject(new Error('WebSocket连接超时'));
+        }, 5000); // 5秒超时
+
+        window.submissionWebSocket.onopen = () => {
+            clearTimeout(connectionTimeout);
+            console.log('投稿WebSocket连接成功');
+            resolve();
+        };
+
+        window.submissionWebSocket.onerror = (error) => {
+            clearTimeout(connectionTimeout);
+            console.error('投稿WebSocket连接错误:', error);
+            reject(error);
+        };
+
+        window.submissionWebSocket.onclose = () => {
+            console.log('投稿WebSocket连接已关闭');
+        };
+
+        // 处理服务器返回的消息
+        window.submissionWebSocket.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.type === 'submission_received') {
+                    console.log('服务器确认收到投稿:', data);
+                    // 投稿成功后立即关闭连接（只针对专门创建的投稿连接）
+                    setTimeout(() => {
+                        if (window.submissionWebSocket && window.submissionWebSocket.readyState === WebSocket.OPEN) {
+                            window.submissionWebSocket.close();
+                            console.log('投稿完成，已关闭WebSocket连接');
+                        }
+                    }, 1000); // 延迟1秒关闭，确保消息处理完成
+                }
+            } catch (error) {
+                console.log('收到服务器消息:', event.data);
+            }
+        };
+    });
+}
+
+// 页面卸载时关闭投稿WebSocket连接（只关闭专门创建的投稿连接）
+window.addEventListener('beforeunload', () => {
+    if (window.submissionWebSocket && window.submissionWebSocket.readyState === WebSocket.OPEN) {
+        console.log('页面卸载，关闭专门的投稿WebSocket连接');
+        window.submissionWebSocket.close();
+    }
+    // 注意：不关闭多人游戏的WebSocket连接，由multiplayer.js自己管理
+});
+
+// 进入设置页面时的处理（现在不需要断开连接，因为投稿会复用现有连接）
+function disconnectMultiplayerWebSocket() {
+    if (window.multiplayerManager && typeof window.multiplayerManager.isConnected === 'function' && window.multiplayerManager.isConnected()) {
+        // console.log('进入设置页面，保持多人游戏WebSocket连接以供投稿功能使用');
+        
+        // 不再断开连接，因为投稿功能需要复用这个连接
+        // 这样可以减少不必要的连接创建和销毁
+    }
 }
