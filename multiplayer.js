@@ -580,7 +580,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // 自定义输入框（初始隐藏）
         const customInput = document.createElement('input');
         customInput.type = 'text';
-        customInput.placeholder = '输入任意房间码（20字符）';
+        customInput.placeholder = '输入任意房间码（20字符内）';
         customInput.maxLength = 20; // 修改最大长度为20
         customInput.style.cssText = `
             width: 100%;
