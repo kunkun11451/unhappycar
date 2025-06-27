@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>拼好图</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>拼好图</h1>
+        </header>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="pointCount">选择点位数量:</label>
+                <div class="input-container">
+                    <input type="number" id="pointCount" min="1" max="20" value="5" class="number-input">
+                    <div class="input-hint">
+                        当前筛选状态下可抽取最大点数: <span id="maxPointsHint">20</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>选择类型:</label>
+                <div class="checkbox-grid" id="typeCheckboxes">
+                    <!-- 动态生成复选框 -->
+                </div>
+                <div class="checkbox-actions">
+                    <button type="button" id="selectAll">全选</button>
+                    <button type="button" id="clearAll">清空</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>
+                    <input type="checkbox" id="regionPriority">
+                    地区优先排序（将相同地区的点位放在一起）
+                </label>
+            </div>
+
+            <div class="control-group">
+                <button id="generateRoute" class="generate-btn">生成拼好图</button>
+            </div>
+        </div>
+
+        <div class="results" id="results">
+            <div class="results-header">
+                <h2>拼好图结果</h2>
+                <button id="saveImage" class="save-btn" style="display: inline-block;">保存为图片</button>
+            </div>
+            <div class="route-grid" id="routeGrid">
+                <!-- 动态生成线路图片 -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="route-config.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

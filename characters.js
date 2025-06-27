@@ -1,8 +1,5 @@
 // 角色数据
 window.characterData = {
-    "角色任选!": {
-        "头像": "https://tse4-mm.cn.bing.net/th/id/OIP-C.JyPv5GjyP7I8leDiGxu2hgAAAA?cb=iwc2&rs=1&pid=ImgDetMain",
-    },
     "丝柯克": {
         "头像": "https://act-upload.mihoyo.com/ys-obc/2025/06/12/73740358/867b0b36bfd629cd5ce88443cc5816c6_8276246094525984208.png",
         "元素类型": "冰",

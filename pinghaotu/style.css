@@ -1,0 +1,548 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1e1e1e, #2d2d2d, #1a1a1a);
+    color: #e0e0e0;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 30px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.header h1 {
+    font-size: 2.5em;
+    font-weight: 300;
+    margin-bottom: 10px;
+    background: linear-gradient(135deg, #64b5f6, #42a5f5, #1976d2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.header p {
+    font-size: 1.1em;
+    opacity: 0.8;
+}
+
+.controls {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.control-group {
+    margin-bottom: 25px;
+}
+
+.control-group label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 500;
+    font-size: 1.1em;
+}
+
+select {
+    width: 100%;
+    max-width: 300px;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    color: #e0e0e0;
+    font-size: 1em;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+select:focus {
+    border-color: #42a5f5;
+    box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.3);
+}
+
+select option {
+    background: #2d2d2d;
+    color: #e0e0e0;
+}
+
+.checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.checkbox-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+.checkbox-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-right: 10px;
+    accent-color: #42a5f5;
+    cursor: pointer;
+}
+
+.checkbox-item label {
+    margin: 0;
+    cursor: pointer;
+    font-size: 0.95em;
+}
+
+.checkbox-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.checkbox-actions button {
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: #e0e0e0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9em;
+}
+
+.checkbox-actions button:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.control-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-right: 10px;
+    accent-color: #42a5f5;
+}
+
+.generate-btn {
+    width: 100%;
+    max-width: 400px;
+    padding: 15px 30px;
+    background: linear-gradient(135deg, #42a5f5, #1976d2);
+    border: none;
+    border-radius: 15px;
+    color: white;
+    font-size: 1.2em;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(66, 165, 245, 0.4);
+}
+
+.generate-btn:hover {
+    background: linear-gradient(135deg, #1976d2, #1565c0);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(66, 165, 245, 0.6);
+}
+
+.generate-btn:active {
+    transform: translateY(0);
+}
+
+.results {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    min-height: 200px;
+}
+
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.results-header h2 {
+    margin: 0;
+    font-size: 1.8em;
+    font-weight: 300;
+    color: #42a5f5;
+}
+
+.save-btn {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #4caf50, #45a049);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 1em;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+}
+
+.save-btn:hover {
+    background: linear-gradient(135deg, #45a049, #3d8b40);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+}
+
+.save-btn:active {
+    transform: translateY(0);
+}
+
+.save-btn:disabled {
+    background: rgba(255, 255, 255, 0.1);
+    color: #666;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+
+
+.route-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    justify-items: center;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.route-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    padding: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.route-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.route-item img {
+    width: 640px;
+    height: 420px;
+    object-fit: cover;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    display: block;
+}
+
+.point-index {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: rgba(255, 255, 255, 0.85); /* 15%透明的白色背景 */
+    color: #000000; /* 黑色数字 */
+    min-width: 50px; /* 稍微放大，使用最小宽度 */
+    height: 45px; /* 稍微放大高度 */
+    padding: 0 8px; /* 添加内边距适应不同数字宽度 */
+    border-radius: 8px; /* 圆角矩形 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.3em; /* 稍微放大字体 */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); /* 调整阴影 */
+    z-index: 10;
+}
+
+.empty-results {
+    text-align: center;
+    color: #888;
+    font-size: 1.1em;
+    margin: 50px 0;
+}
+
+/* 数字输入框样式 */
+.input-container {
+    margin-top: 10px;
+}
+
+.number-input {
+    width: 100%;
+    max-width: 200px;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    color: #e0e0e0;
+    font-size: 1.1em;
+    font-weight: 500;
+    outline: none;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.number-input:focus {
+    border-color: #42a5f5;
+    box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.3);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.number-input:invalid {
+    border-color: #f44336;
+    box-shadow: 0 0 0 3px rgba(244, 67, 54, 0.3);
+}
+
+.input-hint {
+    margin-top: 8px;
+    font-size: 0.9em;
+    color: #b0b0b0;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.input-hint span {
+    color: #42a5f5;
+    font-weight: 600;
+}
+
+.number-input:disabled {
+    background: rgba(255, 255, 255, 0.05);
+    color: #666;
+    cursor: not-allowed;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* 错误消息样式 */
+.error-message {
+    text-align: center;
+    padding: 40px;
+    background: rgba(244, 67, 54, 0.1);
+    border: 1px solid rgba(244, 67, 54, 0.3);
+    border-radius: 15px;
+    color: #f44336;
+    margin: 20px 0;
+}
+
+.error-message h3 {
+    margin-bottom: 15px;
+    font-size: 1.5em;
+}
+
+.error-message p {
+    margin: 10px 0;
+    line-height: 1.6;
+}
+
+/* 响应式设计 */
+@media (max-width: 1400px) {
+    .route-item img {
+        width: 480px;
+        height: 315px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .route-item img {
+        width: 400px;
+        height: 262px;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+    
+    .header h1 {
+        font-size: 2em;
+    }
+    
+    .checkbox-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .route-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .route-item img {
+        width: 100%;
+        max-width: 480px;
+        height: auto;
+        aspect-ratio: 640 / 420;
+    }
+    
+    .point-index {
+        min-width: 40px; /* 响应式时稍小一些 */
+        height: 35px;
+        font-size: 1.1em; /* 响应式时字体稍小 */
+        top: 10px;
+        left: 10px;
+        padding: 0 6px; /* 调整内边距 */
+    }
+}
+
+/* Lua配置样式 */
+.lua-config {
+    margin-top: 30px;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 25px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.lua-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.lua-header h3 {
+    margin: 0;
+    font-size: 1.5em;
+    font-weight: 300;
+    color: #42a5f5;
+}
+
+.lua-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.copy-btn, .download-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9em;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.copy-btn {
+    background: linear-gradient(135deg, #ff9800, #f57c00);
+    color: white;
+    box-shadow: 0 3px 12px rgba(255, 152, 0, 0.3);
+}
+
+.copy-btn:hover {
+    background: linear-gradient(135deg, #f57c00, #ef6c00);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 16px rgba(255, 152, 0, 0.4);
+}
+
+.download-btn {
+    background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+    color: white;
+    box-shadow: 0 3px 12px rgba(156, 39, 176, 0.3);
+}
+
+.download-btn:hover {
+    background: linear-gradient(135deg, #7b1fa2, #6a1b9a);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 16px rgba(156, 39, 176, 0.4);
+}
+
+.lua-content {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 20px;
+    color: #e0e0e0;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 0.9em;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    max-height: 400px;
+    overflow-y: auto;
+    margin: 0;
+}
+
+.lua-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.lua-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.lua-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+}
+
+.lua-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+@media (max-width: 768px) {
+    .lua-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .lua-actions {
+        width: 100%;
+        justify-content: stretch;
+    }
+    
+    .copy-btn, .download-btn {
+        flex: 1;
+        text-align: center;
+    }
+    
+    .lua-content {
+        font-size: 0.8em;
+        padding: 15px;
+    }
+}

@@ -1,0 +1,9 @@
+monster: [9,1], pos: [27325, 42174]
+monster: [9,1], pos: [17747, 12336]
+monster: [9,1], pos: [9885, 16189]
+monster: [13,3], pos: [41411, 62830],wait:120
+monster: [13,3], pos: [40873, 35657]
+monster: [13,3], pos: [31961, 40247]
+monster: [13,3], pos: [31961, 40247]
+monster: [13,3], pos: [10551, 45780]
+monster: [13,3], pos: [5941, 59223],wait:120
