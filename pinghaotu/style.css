@@ -426,6 +426,7 @@ select option {
 
 /* Lua配置样式 */
 .lua-config {
+    display: none; /* 默认隐藏，只能通过控制台显示 */
     margin-top: 30px;
     background: rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(20px);
