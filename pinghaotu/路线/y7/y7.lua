@@ -30,7 +30,7 @@ monster: [6, 3], pos: [36647, 21312], wait: 120--xm
 monster: [7, 1], pos: [41539, 14714]--xm
 monster: [6, 3], pos: [2279, 44264]--xm
 monster: [6, 2], pos: [38875, 40821]--xm
-monster: [6, 2], pos: [54344, 24386], drag: [44000, 44305 ,44381, 44305]--xm
+monster: [6, 2], pos: [54497, 25042], gb: true --xm
 monster: [6, 2], pos: [46609, 20574], narrow: 1--xm
 monster: [10, 2], pos: [27812, 60371], narrow: 1--dq
 monster: [10, 3], pos: [34138, 52748]--dq

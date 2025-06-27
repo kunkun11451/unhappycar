@@ -23,5 +23,6 @@ window.RouteConfig = {
         '镀金旅团': ['镀金旅团1 xm.jpg', '镀金旅团2 xm.jpg', '镀金旅团3 xm.jpg', '镀金旅团4 xm.jpg', '镀金旅团5 xm.jpg', '镀金旅团6 xm.jpg', '镀金旅团7 xm.jpg'],
         '骗骗花': ['骗骗花1 ly.jpg', '骗骗花2 dq.jpg', '骗骗花3 fd.jpg', '骗骗花4 fd.jpg', '骗骗花5 xm.jpg'],
         '龙哨': ['龙哨1 nt.jpg', '龙哨2 nt.jpg', '龙哨3 nt.jpg', '龙哨4 nt.jpg'],
+        '+6': ['+61 nt.jpg', '+62 md.jpg', '+63 ly.jpg', '+64 ly.jpg', '+65 ly.jpg', '+66 ly.jpg', '+67 ly.jpg', '+68 ly.jpg', '+69 ly.jpg', '+610 ly.jpg', '+611 ly.jpg', '+612 ly.jpg', '+613 ly.jpg', '+614 xm.jpg', '+615 xm.jpg', '+616 xm.jpg', '+617 xm.jpg', '+618 xm.jpg', '+619 xm.jpg', '+620 xm.jpg', '+621 xm.jpg', '+622 xm.jpg', '+623 xm.jpg', '+624 xm.jpg', '+625 xm.jpg', '+626 xm.jpg', '+627 ly.jpg', '+628 ly.jpg', '+629 ly.jpg', '+630 ly.jpg', '+631 dq.jpg', '+632 dq.jpg', '+633 dq.jpg', '+634 dq.jpg', '+635 dq.jpg', '+636 fd.jpg', '+637 fd.jpg', '+638 fd.jpg', '+639 fd.jpg', '+640 fd.jpg', '+641 fd.jpg', '+642 fd.jpg', '+643 cy.jpg', '+644 cy.jpg', '+645 cy.jpg', '+646 cy.jpg', '+647 cy.jpg', '+648 yxg.jpg', '+649 yxg.jpg'],
     },
 };
