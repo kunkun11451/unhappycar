@@ -37,12 +37,25 @@
             <div class="control-group">
                 <label>
                     <input type="checkbox" id="regionPriority">
-                    国家优先排序（将相同国家的点位放在一起）
+                    国家优先模式（将相同国家的点位放在一起）
                 </label>
                 <div class="sub-option" id="advancedRegionSortContainer" style="margin-left: 24px; margin-top: 8px; display: none;">
                     <label>
                         <input type="checkbox" id="advancedRegionSort">
                         更进一步的地区优先排序（将相近的地区排在一起）（beta）
+                    </label>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>
+                    <input type="checkbox" id="xyMode">
+                    XY模式（相邻点位不会是同一个国家）（beta:大部分时候有bug）
+                </label>
+                <div class="sub-option" id="douMContainer" style="margin-left: 24px; margin-top: 8px; display: none;">
+                    <label>
+                        <input type="checkbox" id="douMMode">
+                        抖M模式（生成类似蒙德-渊下宫-须弥-层岩地下-纳塔....类似的究极跨图路线，非常适合禁传）（beta）
                     </label>
                 </div>
             </div>

@@ -83,6 +83,8 @@ class RouteGenerator {
                 pointCount: parseInt(document.getElementById('pointCount').value) || 30,
                 regionPriority: document.getElementById('regionPriority').checked,
                 advancedRegionSort: document.getElementById('advancedRegionSort').checked,
+                xyMode: document.getElementById('xyMode').checked,
+                douMMode: document.getElementById('douMMode').checked,
                 timestamp: Date.now()
             };
             
@@ -129,6 +131,19 @@ class RouteGenerator {
             if (preferences.advancedRegionSort !== undefined) {
                 const advancedRegionSortCheckbox = document.getElementById('advancedRegionSort');
                 advancedRegionSortCheckbox.checked = preferences.advancedRegionSort;
+            }
+
+            // 恢复XY模式选项
+            if (preferences.xyMode !== undefined) {
+                const xyModeCheckbox = document.getElementById('xyMode');
+                xyModeCheckbox.checked = preferences.xyMode;
+                this.toggleDouMMode(preferences.xyMode);
+            }
+
+            // 恢复抖M模式选项
+            if (preferences.douMMode !== undefined) {
+                const douMModeCheckbox = document.getElementById('douMMode');
+                douMModeCheckbox.checked = preferences.douMMode;
             }
 
             // 恢复选中的类型（需要在类型复选框创建后执行）
@@ -178,6 +193,13 @@ class RouteGenerator {
             
             const advancedRegionSortCheckbox = document.getElementById('advancedRegionSort');
             advancedRegionSortCheckbox.checked = false;
+            
+            const xyModeCheckbox = document.getElementById('xyMode');
+            xyModeCheckbox.checked = false;
+            this.toggleDouMMode(false);
+            
+            const douMModeCheckbox = document.getElementById('douMMode');
+            douMModeCheckbox.checked = false;
             
             // 重置所有类型为选中状态
             const checkboxes = document.querySelectorAll('#typeCheckboxes input[type="checkbox"]');
@@ -313,6 +335,11 @@ class RouteGenerator {
         // 地区优先排序控制
         document.getElementById('regionPriority').addEventListener('change', (e) => {
             this.toggleAdvancedRegionSort(e.target.checked);
+            // 如果启用地区优先，则禁用xy模式和抖M模式
+            if (e.target.checked) {
+                document.getElementById('xyMode').checked = false;
+                this.toggleDouMMode(false);
+            }
             this.saveUserPreferences();
         });
 
@@ -321,11 +348,41 @@ class RouteGenerator {
             // 保存用户偏好
             this.saveUserPreferences();
         });
+
+        // XY模式控制
+        document.getElementById('xyMode').addEventListener('change', (e) => {
+            // 如果启用xy模式，则禁用地区优先排序
+            if (e.target.checked) {
+                const regionPriorityCheckbox = document.getElementById('regionPriority');
+                regionPriorityCheckbox.checked = false;
+                this.toggleAdvancedRegionSort(false);
+            }
+            // 控制抖M模式的显示
+            this.toggleDouMMode(e.target.checked);
+            this.saveUserPreferences();
+        });
+
+        // 抖M模式控制
+        document.getElementById('douMMode').addEventListener('change', () => {
+            this.saveUserPreferences();
+        });
     }
 
     toggleAdvancedRegionSort(enabled) {
         const container = document.getElementById('advancedRegionSortContainer');
         const checkbox = document.getElementById('advancedRegionSort');
+        
+        if (enabled) {
+            container.style.display = 'block';
+        } else {
+            container.style.display = 'none';
+            checkbox.checked = false; // 清除子选项的选中状态
+        }
+    }
+
+    toggleDouMMode(enabled) {
+        const container = document.getElementById('douMContainer');
+        const checkbox = document.getElementById('douMMode');
         
         if (enabled) {
             container.style.display = 'block';
@@ -418,6 +475,8 @@ class RouteGenerator {
         const selectedTypes = this.getSelectedTypes();
         const regionPriority = document.getElementById('regionPriority').checked;
         const advancedRegionSort = document.getElementById('advancedRegionSort').checked;
+        const xyMode = document.getElementById('xyMode').checked;
+        const douMMode = document.getElementById('douMMode').checked;
 
         if (selectedTypes.length === 0) {
             alert('请至少选择一个类型！');
@@ -434,13 +493,29 @@ class RouteGenerator {
             return;
         }
 
-        // 随机选择指定数量的图片
-        const selectedImages = this.selectRandomImages(availableImages, pointCount);
+        // 根据是否启用抖M模式选择不同的图片选择策略
+        let selectedImages;
+        if (xyMode && douMMode) {
+            // 抖M模式：特殊的图片选择逻辑
+            selectedImages = this.selectImagesForDouMMode(availableImages, pointCount);
+        } else {
+            // 普通模式：随机选择指定数量的图片
+            selectedImages = this.selectRandomImages(availableImages, pointCount);
+        }
 
-        // 根据地区优先选项进行排序
-        const sortedImages = regionPriority 
-            ? await this.sortByRegion(selectedImages, advancedRegionSort)
-            : this.shuffleArray(selectedImages);
+        // 根据排序选项进行排序
+        let sortedImages;
+        if (regionPriority) {
+            sortedImages = await this.sortByRegion(selectedImages, advancedRegionSort);
+        } else if (xyMode) {
+            if (douMMode) {
+                sortedImages = this.sortByDouMMode(selectedImages);
+            } else {
+                sortedImages = this.sortByXYMode(selectedImages);
+            }
+        } else {
+            sortedImages = this.shuffleArray(selectedImages);
+        }
 
         // 显示结果
         this.displayResults(sortedImages);
@@ -464,6 +539,70 @@ class RouteGenerator {
             [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
         }
         return shuffled;
+    }
+
+    sortByXYMode(images) {
+        // XY模式：强制确保相邻的点位来自不同国家
+        
+        if (images.length <= 1) {
+            return images;
+        }
+        
+        // 先按地区分组
+        const grouped = {};
+        images.forEach(img => {
+            if (!grouped[img.region]) {
+                grouped[img.region] = [];
+            }
+            grouped[img.region].push(img);
+        });
+        
+        const regions = Object.keys(grouped);
+        
+        // 如果只有一个地区，直接返回随机排序
+        if (regions.length === 1) {
+            return this.shuffleArray(images);
+        }
+        
+        // 初始化每个地区的队列并随机打乱
+        const regionQueues = {};
+        regions.forEach(region => {
+            regionQueues[region] = this.shuffleArray([...grouped[region]]);
+        });
+        
+        const result = [];
+        
+        // 先添加第一个点位（随机选择一个地区）
+        const firstRegion = regions[Math.floor(Math.random() * regions.length)];
+        result.push(regionQueues[firstRegion].shift());
+        
+        // 逐个添加剩余点位，确保与前一个不同地区
+        while (result.length < images.length) {
+            const lastRegion = result[result.length - 1].region;
+            let foundDifferent = false;
+            
+            // 优先尝试从不同地区中选择
+            for (const region of regions) {
+                if (region !== lastRegion && regionQueues[region].length > 0) {
+                    result.push(regionQueues[region].shift());
+                    foundDifferent = true;
+                    break;
+                }
+            }
+            
+            // 如果没找到不同地区的点位，说明只剩下相同地区的了
+            if (!foundDifferent) {
+                // 找到任何还有剩余点位的地区
+                for (const region of regions) {
+                    if (regionQueues[region].length > 0) {
+                        result.push(regionQueues[region].shift());
+                        break;
+                    }
+                }
+            }
+        }
+        
+        return result;
     }
 
     async sortByRegion(images, useAdvancedSort = false) {
@@ -919,6 +1058,109 @@ class RouteGenerator {
         });
         
         await Promise.all(promises);
+    }
+
+    sortByDouMMode(images) {
+        // 抖M模式：传入的images已经保证了抖M和非抖M点位的数量
+        // 直接按照奇数位非抖M、偶数位抖M的顺序排列
+        const douMRegions = ['yxg', 'cy', 'jr', 'ss'];
+        
+        // 分离抖M点位和非抖M点位
+        const douMImages = images.filter(img => douMRegions.includes(img.region));
+        const nonDouMImages = images.filter(img => !douMRegions.includes(img.region));
+        
+        console.log(`抖M排序: 抖M点位 ${douMImages.length} 个, 非抖M点位 ${nonDouMImages.length} 个`);
+        
+        // 随机打乱两组点位
+        const shuffledDouM = this.shuffleArray([...douMImages]);
+        const shuffledNonDouM = this.shuffleArray([...nonDouMImages]);
+        
+        const result = [];
+        const totalPoints = images.length;
+        
+        // 计算偶数位置的数量（抖M点位的数量）
+        const evenPositions = Math.floor(totalPoints / 2);
+        
+        // 按位置排列：奇数位放非抖M，偶数位放抖M
+        let douMIndex = 0;
+        let nonDouMIndex = 0;
+        
+        for (let position = 1; position <= totalPoints; position++) {
+            if (position % 2 === 1) {
+                // 奇数位置：非抖M点位
+                if (nonDouMIndex < shuffledNonDouM.length) {
+                    result.push(shuffledNonDouM[nonDouMIndex]);
+                    nonDouMIndex++;
+                } else {
+                    // 非抖M点位用完了，用抖M点位填充
+                    result.push(shuffledDouM[douMIndex]);
+                    douMIndex++;
+                }
+            } else {
+                // 偶数位置：抖M点位
+                if (douMIndex < shuffledDouM.length) {
+                    result.push(shuffledDouM[douMIndex]);
+                    douMIndex++;
+                } else {
+                    // 抖M点位用完了，用非抖M点位填充
+                    result.push(shuffledNonDouM[nonDouMIndex]);
+                    nonDouMIndex++;
+                }
+            }
+        }
+        
+        // // 验证结果
+        // console.log('抖M模式最终结果:');
+        // result.forEach((img, idx) => {
+        //     const position = idx + 1;
+        //     const isDouM = douMRegions.includes(img.region);
+        //     const isEvenPosition = position % 2 === 0;
+        //     const isCorrect = (isEvenPosition && isDouM) || (!isEvenPosition && !isDouM) || 
+        //                      douMIndex >= shuffledDouM.length || nonDouMIndex >= shuffledNonDouM.length;
+        //     console.log(`${position}: ${img.fileName}(${img.region}) - ${isDouM ? '抖M' : '非抖M'} ${isCorrect ? '✓' : '✗'}`);
+        // });
+        
+        return result;
+    }
+
+    selectImagesForDouMMode(availableImages, pointCount) {
+        // 抖M模式专用图片选择：确保有足够的抖M点位用于偶数位置
+        const douMRegions = ['yxg', 'cy', 'jr', 'ss'];
+        
+        // 分离抖M点位和非抖M点位
+        const douMImages = availableImages.filter(img => douMRegions.includes(img.region));
+        const nonDouMImages = availableImages.filter(img => !douMRegions.includes(img.region));
+        
+        // 计算需要的抖M点位数量（偶数位置的数量）
+        const neededDouMCount = Math.floor(pointCount / 2);
+        // 计算需要的非抖M点位数量（奇数位置的数量 + 可能的剩余）
+        const neededNonDouMCount = pointCount - neededDouMCount;
+        
+        // console.log(`抖M模式选择: 总需要${pointCount}个点位，其中抖M${neededDouMCount}个，非抖M${neededNonDouMCount}个`);
+        console.log(`可用抖M点位${douMImages.length}个，可用非抖M点位${nonDouMImages.length}个`);
+        
+        // 检查是否有足够的抖M点位
+        if (douMImages.length < neededDouMCount) {
+            console.warn(`抖M点位不足！需要${neededDouMCount}个，只有${douMImages.length}个`);
+            // 抖M点位不足时，降级为普通随机选择
+            return this.selectRandomImages(availableImages, pointCount);
+        }
+        
+        // 检查是否有足够的非抖M点位
+        if (nonDouMImages.length < neededNonDouMCount) {
+            console.warn(`非抖M点位不足！需要${neededNonDouMCount}个，只有${nonDouMImages.length}个`);
+            // 非抖M点位不足时，降级为普通随机选择
+            return this.selectRandomImages(availableImages, pointCount);
+        }
+        
+        // 随机选择足够数量的两种点位
+        const selectedDouM = this.selectRandomImages(douMImages, neededDouMCount);
+        const selectedNonDouM = this.selectRandomImages(nonDouMImages, neededNonDouMCount);
+        
+        // console.log(`成功选择: 抖M${selectedDouM.length}个，非抖M${selectedNonDouM.length}个`);
+        
+        // 合并并返回
+        return [...selectedDouM, ...selectedNonDouM];
     }
 }
 
