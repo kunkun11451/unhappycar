@@ -498,6 +498,9 @@ class RouteGenerator {
         if (xyMode && douMMode) {
             // 抖M模式：特殊的图片选择逻辑
             selectedImages = this.selectImagesForDouMMode(availableImages, pointCount);
+        } else if (xyMode) {
+            // XY模式：智能选择不同地区的图片
+            selectedImages = this.selectImagesForXYMode(availableImages, pointCount);
         } else {
             // 普通模式：随机选择指定数量的图片
             selectedImages = this.selectRandomImages(availableImages, pointCount);
@@ -558,9 +561,14 @@ class RouteGenerator {
         });
         
         const regions = Object.keys(grouped);
+        console.log(`XY排序: 需要排序${images.length}个点位，来自${regions.length}个地区`);
+        regions.forEach(region => {
+            console.log(`  地区${region}: ${grouped[region].length}个点位`);
+        });
         
         // 如果只有一个地区，直接返回随机排序
         if (regions.length === 1) {
+            console.log('XY排序: 只有一个地区，返回随机排序');
             return this.shuffleArray(images);
         }
         
@@ -575,6 +583,7 @@ class RouteGenerator {
         // 先添加第一个点位（随机选择一个地区）
         const firstRegion = regions[Math.floor(Math.random() * regions.length)];
         result.push(regionQueues[firstRegion].shift());
+        console.log(`XY排序: 第1个点位来自地区${firstRegion}`);
         
         // 逐个添加剩余点位，确保与前一个不同地区
         while (result.length < images.length) {
@@ -585,6 +594,7 @@ class RouteGenerator {
             for (const region of regions) {
                 if (region !== lastRegion && regionQueues[region].length > 0) {
                     result.push(regionQueues[region].shift());
+                    console.log(`XY排序: 第${result.length}个点位来自地区${region} (与前一个${lastRegion}不同)`);
                     foundDifferent = true;
                     break;
                 }
@@ -596,11 +606,28 @@ class RouteGenerator {
                 for (const region of regions) {
                     if (regionQueues[region].length > 0) {
                         result.push(regionQueues[region].shift());
+                        console.log(`XY排序: 第${result.length}个点位来自地区${region} (被迫与前一个${lastRegion}相同)`);
                         break;
                     }
                 }
             }
         }
+        
+        // 统计最终结果
+        const finalStats = {};
+        let consecutiveCount = 0;
+        result.forEach((img, index) => {
+            finalStats[img.region] = (finalStats[img.region] || 0) + 1;
+            if (index > 0 && img.region === result[index - 1].region) {
+                consecutiveCount++;
+            }
+        });
+        
+        console.log('XY排序完成统计:');
+        Object.entries(finalStats).forEach(([region, count]) => {
+            console.log(`  地区${region}: ${count}个点位`);
+        });
+        console.log(`  相邻重复地区次数: ${consecutiveCount}`);
         
         return result;
     }
@@ -1161,6 +1188,82 @@ class RouteGenerator {
         
         // 合并并返回
         return [...selectedDouM, ...selectedNonDouM];
+    }
+
+    selectImagesForXYMode(availableImages, pointCount) {
+        // XY模式专用图片选择：确保有足够的不同地区点位以实现交替效果
+        
+        // 按地区分组
+        const regionGroups = {};
+        availableImages.forEach(img => {
+            if (!regionGroups[img.region]) {
+                regionGroups[img.region] = [];
+            }
+            regionGroups[img.region].push(img);
+        });
+        
+        const regions = Object.keys(regionGroups);
+        console.log(`XY模式选择: 找到${regions.length}个地区，需要${pointCount}个点位`);
+        
+        // 如果只有一个地区，XY模式无效，降级为普通随机选择
+        if (regions.length <= 1) {
+            console.warn('XY模式需要至少2个不同地区的点位，降级为普通随机选择');
+            return this.selectRandomImages(availableImages, pointCount);
+        }
+        
+        // 计算每个地区理想分配的点位数量
+        const basePerRegion = Math.floor(pointCount / regions.length);
+        const remainder = pointCount % regions.length;
+        
+        console.log(`XY模式分配: 每个地区基础${basePerRegion}个点位，${remainder}个地区额外分配1个`);
+        
+        const selectedImages = [];
+        const shuffledRegions = this.shuffleArray([...regions]);
+        
+        // 为每个地区分配点位
+        shuffledRegions.forEach((region, index) => {
+            const regionImages = this.shuffleArray([...regionGroups[region]]);
+            // 前remainder个地区多分配1个点位
+            const allocatedCount = basePerRegion + (index < remainder ? 1 : 0);
+            
+            // 取该地区可用的点位数量和分配数量的最小值
+            const actualCount = Math.min(allocatedCount, regionImages.length);
+            selectedImages.push(...regionImages.slice(0, actualCount));
+            
+            console.log(`地区${region}: 分配${allocatedCount}个，实际选择${actualCount}个`);
+        });
+        
+        // 如果因为某些地区点位不足导致总数不够，从有余量的地区补充
+        if (selectedImages.length < pointCount) {
+            const needed = pointCount - selectedImages.length;
+            console.log(`还需要${needed}个点位，从有余量的地区补充`);
+            
+            // 找到还有余量的地区
+            const regionUsage = {};
+            selectedImages.forEach(img => {
+                regionUsage[img.region] = (regionUsage[img.region] || 0) + 1;
+            });
+            
+            const remainingImages = [];
+            regions.forEach(region => {
+                const used = regionUsage[region] || 0;
+                const available = regionGroups[region].slice(used);
+                remainingImages.push(...available);
+            });
+            
+            // 随机选择需要的数量来补充
+            const shuffledRemaining = this.shuffleArray(remainingImages);
+            selectedImages.push(...shuffledRemaining.slice(0, needed));
+        }
+        
+        // 如果选择的图片超过了需要的数量，随机删除多余的
+        if (selectedImages.length > pointCount) {
+            const shuffledSelected = this.shuffleArray([...selectedImages]);
+            return shuffledSelected.slice(0, pointCount);
+        }
+        
+        console.log(`XY模式最终选择: ${selectedImages.length}个点位，来自${new Set(selectedImages.map(img => img.region)).size}个地区`);
+        return selectedImages;
     }
 }
 

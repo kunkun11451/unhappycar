@@ -8,7 +8,7 @@ window.RouteConfig = {
         'JTY': ['JTY1 md.jpg', 'JTY2 md.jpg', 'JTY3 md.jpg', 'JTY4 ly.jpg', 'JTY5 dq.jpg'],
         'RXM': ['RXM1 nt.jpg', 'RXM2 nt.jpg', 'RXM3 nt.jpg'],
         'y7': ['y71 yxg.jpg', 'y72 yxg.jpg', 'y73 yxg.jpg', 'y74 yxg.jpg', 'y75 yxg.jpg', 'y76 yxg.jpg', 'y77 cy.jpg', 'y78 cy.jpg', 'y79 cy.jpg', 'y710 cy.jpg', 'y711 cy.jpg', 'y712 cy.jpg', 'y713 fd.jpg', 'y714 fd.jpg', 'y715 fd.jpg', 'y716 fd.jpg', 'y717 fd.jpg', 'y718 fd.jpg', 'y719 fd.jpg', 'y720 fd.jpg', 'y721 ly.jpg', 'y722 ly.jpg', 'y723 ly.jpg', 'y724 ly.jpg', 'y725 ly.jpg', 'y726 ly.jpg', 'y727 xm.jpg', 'y728 sm.jpg', 'y729 sm.jpg', 'y730 xm.jpg', 'y731 sm.jpg', 'y732 sm.jpg', 'y733 sm.jpg', 'y734 sm.jpg', 'y735 dq.jpg', 'y736 dq.jpg', 'y737 dq.jpg', 'y738 dq.jpg', 'y739 dq.jpg', 'y740 dq.jpg', 'y741 nt.jpg', 'y742 nt.jpg', 'y743 nt.jpg', 'y744 nt.jpg', 'y745 nt.jpg', 'y746 nt.jpg'],
-        '传奇': ['传奇1 fd.jpg', '传奇2 fd.jpg', '传奇3 fd.jpg', '传奇4 fd.jpg'],
+        '传奇': ['传奇1 fd.jpg', '传奇2 fd.jpg', '传奇3 fd.jpg', '传奇4 fd.jpg', '传奇5 fd.jpg', '传奇6 fd.jpg', '传奇7 fd.jpg', '传奇8 fd.jpg', '传奇9 fd.jpg', '传奇10 fd.jpg', '传奇11 fd.jpg', '传奇12 nt.jpg', '传奇13 nt.jpg', '传奇14 nt.jpg', '传奇15 nt.jpg', '传奇16 nt.jpg', '传奇17 nt.jpg', '传奇18 nt.jpg', '传奇19 nt.jpg', '传奇20 ly.jpg'],
         '发条': ['发条1 fd.jpg', '发条2 fd.jpg', '发条3 fd.jpg', '发条4 fd.jpg'],
         '小怪A': ['小怪A1 yxg.jpg', '小怪A2 yxg.jpg', '小怪A3 yxg.jpg', '小怪A4 md.jpg', '小怪A5 md.jpg', '小怪A6 md.jpg', '小怪A7 md.jpg', '小怪A8 md.jpg', '小怪A9 md.jpg'],
         '役人': ['役人1 fd.jpg', '役人2 fd.jpg', '役人3 fd.jpg'],
