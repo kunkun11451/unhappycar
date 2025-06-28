@@ -580,7 +580,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // 自定义输入框（初始隐藏）
         const customInput = document.createElement('input');
         customInput.type = 'text';
-        customInput.placeholder = '输入任意房间码（20字符内）';
+        customInput.placeholder = '输入任意房间码（支持中文,20字符内）';
         customInput.maxLength = 20; // 修改最大长度为20
         customInput.style.cssText = `
             width: 100%;
@@ -590,7 +590,7 @@ document.addEventListener('DOMContentLoaded', function () {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             color: white;
-            font-size: 18px;
+            font-size: 15px;
             box-sizing: border-box;
             text-align: center;
             transition: all 0.3s ease;
