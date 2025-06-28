@@ -16,7 +16,7 @@
             <div class="control-group">
                 <label for="pointCount">选择点位数量:</label>
                 <div class="input-container">
-                    <input type="number" id="pointCount" min="1" max="20" value="5" class="number-input">
+                    <input type="number" id="pointCount" min="1" max="20" value="30" class="number-input">
                     <div class="input-hint">
                         当前筛选状态下可抽取最大点数: <span id="maxPointsHint">20</span>
                     </div>
@@ -37,13 +37,24 @@
             <div class="control-group">
                 <label>
                     <input type="checkbox" id="regionPriority">
-                    地区优先排序（将相同地区的点位放在一起）
+                    国家优先排序（将相同国家的点位放在一起）
                 </label>
+                <div class="sub-option" id="advancedRegionSortContainer" style="margin-left: 24px; margin-top: 8px; display: none;">
+                    <label>
+                        <input type="checkbox" id="advancedRegionSort">
+                        更进一步的地区优先排序（将相近的地区排在一起）（beta）
+                    </label>
+                </div>
             </div>
 
             <div class="control-group">
                 <button id="generateRoute" class="generate-btn">生成拼好图</button>
             </div>
+                <div style="text-align: center; margin-top: 10px;">
+                    <small style="color: #888; cursor: pointer;" ondblclick="if(window.routeGenerator) { window.routeGenerator.clearUserPreferences(); }" title="双击清除缓存">
+                        最近生成的设置会自动写入缓存，双击此处可清除缓存
+                    </small>
+                </div>            
         </div>
 
         <div class="results" id="results">
@@ -54,7 +65,7 @@
             <div class="route-grid" id="routeGrid">
                 <!-- 动态生成线路图片 -->
             </div>
-            <a style="text-align: center; display: block ; font-size: 20px;">点位说明：点位来自各材料线路的部分点位和Y7全图</a>
+            <a style="text-align: center; display: block ; font-size: 20px;">点位说明：点位来自各材料线路的部分点位和Y7、+6全图</a>
         </div>
     </div>
 

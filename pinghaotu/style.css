@@ -154,6 +154,30 @@ select option {
     accent-color: #42a5f5;
 }
 
+/* 子选项样式 */
+.sub-option {
+    opacity: 0.8;
+    transition: all 0.3s ease;
+}
+
+.sub-option label {
+    font-size: 1em;
+    font-weight: 400;
+    color: #c0c0c0;
+    margin-bottom: 5px;
+}
+
+.sub-option input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+}
+
+.sub-option.disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
 .generate-btn {
     width: 100%;
     max-width: 400px;

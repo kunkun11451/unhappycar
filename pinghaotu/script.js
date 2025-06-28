@@ -12,6 +12,7 @@ class RouteGenerator {
         // 确保DOM元素完全加载后再更新
         setTimeout(() => {
             this.updateInputMax(); // 初始化输入框最大值
+            this.loadUserPreferences(); // 加载用户偏好设置
         }, 0);
     }
 
@@ -74,6 +75,121 @@ class RouteGenerator {
         return type;
     }
 
+    // 缓存相关方法
+    saveUserPreferences() {
+        try {
+            const preferences = {
+                selectedTypes: this.getSelectedTypes(),
+                pointCount: parseInt(document.getElementById('pointCount').value) || 30,
+                regionPriority: document.getElementById('regionPriority').checked,
+                advancedRegionSort: document.getElementById('advancedRegionSort').checked,
+                timestamp: Date.now()
+            };
+            
+            localStorage.setItem('pinghaotu_preferences', JSON.stringify(preferences));
+            console.log('用户偏好已保存:', preferences);
+        } catch (error) {
+            console.warn('保存用户偏好失败:', error);
+        }
+    }
+
+    loadUserPreferences() {
+        try {
+            const saved = localStorage.getItem('pinghaotu_preferences');
+            if (!saved) {
+                console.log('未找到保存的用户偏好');
+                return;
+            }
+
+            const preferences = JSON.parse(saved);
+            console.log('加载用户偏好:', preferences);
+
+            // 检查保存时间，如果超过7天则不加载（避免过期数据）
+            const daysPassed = (Date.now() - preferences.timestamp) / (1000 * 60 * 60 * 24);
+            if (daysPassed > 7) {
+                console.log('用户偏好已过期，清除缓存');
+                localStorage.removeItem('pinghaotu_preferences');
+                return;
+            }
+
+            // 恢复点位数量
+            if (preferences.pointCount) {
+                const pointCountInput = document.getElementById('pointCount');
+                pointCountInput.value = preferences.pointCount;
+            }
+
+            // 恢复地区优先排序选项
+            if (preferences.regionPriority !== undefined) {
+                const regionPriorityCheckbox = document.getElementById('regionPriority');
+                regionPriorityCheckbox.checked = preferences.regionPriority;
+                this.toggleAdvancedRegionSort(preferences.regionPriority);
+            }
+
+            // 恢复高级地区排序选项
+            if (preferences.advancedRegionSort !== undefined) {
+                const advancedRegionSortCheckbox = document.getElementById('advancedRegionSort');
+                advancedRegionSortCheckbox.checked = preferences.advancedRegionSort;
+            }
+
+            // 恢复选中的类型（需要在类型复选框创建后执行）
+            if (preferences.selectedTypes && preferences.selectedTypes.length > 0) {
+                setTimeout(() => {
+                    this.restoreSelectedTypes(preferences.selectedTypes);
+                }, 100);
+            }
+
+        } catch (error) {
+            console.warn('加载用户偏好失败:', error);
+            localStorage.removeItem('pinghaotu_preferences');
+        }
+    }
+
+    restoreSelectedTypes(selectedTypes) {
+        // 先清除所有选中状态
+        const checkboxes = document.querySelectorAll('#typeCheckboxes input[type="checkbox"]');
+        checkboxes.forEach(cb => cb.checked = false);
+
+        // 恢复保存的选中状态
+        selectedTypes.forEach(type => {
+            const checkbox = document.getElementById(`type-${type}`);
+            if (checkbox) {
+                checkbox.checked = true;
+            }
+        });
+
+        // 更新输入框最大值
+        this.updateInputMax();
+        console.log(`已恢复 ${selectedTypes.length} 个类型的选中状态:`, selectedTypes);
+    }
+
+    // 清除用户偏好缓存
+    clearUserPreferences() {
+        try {
+            localStorage.removeItem('pinghaotu_preferences');
+            console.log('用户偏好缓存已清除');
+            
+            // 重置为默认状态
+            const pointCountInput = document.getElementById('pointCount');
+            pointCountInput.value = 30;
+            
+            const regionPriorityCheckbox = document.getElementById('regionPriority');
+            regionPriorityCheckbox.checked = false;
+            this.toggleAdvancedRegionSort(false);
+            
+            const advancedRegionSortCheckbox = document.getElementById('advancedRegionSort');
+            advancedRegionSortCheckbox.checked = false;
+            
+            // 重置所有类型为选中状态
+            const checkboxes = document.querySelectorAll('#typeCheckboxes input[type="checkbox"]');
+            checkboxes.forEach(cb => cb.checked = true);
+            this.updateInputMax();
+            
+            alert('缓存已清除，设置已重置为默认状态');
+        } catch (error) {
+            console.warn('清除用户偏好失败:', error);
+        }
+    }
+
     async loadLuaContent(type) {
         try {
             const response = await fetch(`路线/${type}/${type}.lua`);
@@ -116,6 +232,13 @@ class RouteGenerator {
             // 为checkbox添加直接的change事件监听器
             checkbox.addEventListener('change', () => {
                 this.updateInputMax();
+                // 延迟保存，避免频繁操作
+                if (this.saveTimeout) {
+                    clearTimeout(this.saveTimeout);
+                }
+                this.saveTimeout = setTimeout(() => {
+                    this.saveUserPreferences();
+                }, 300);
             });
 
             const label = document.createElement('label');
@@ -135,6 +258,13 @@ class RouteGenerator {
                     checkbox.dispatchEvent(changeEvent);
                     // 直接调用更新方法确保执行
                     this.updateInputMax();
+                    // 延迟保存，避免频繁操作
+                    if (this.saveTimeout) {
+                        clearTimeout(this.saveTimeout);
+                    }
+                    this.saveTimeout = setTimeout(() => {
+                        this.saveUserPreferences();
+                    }, 300);
                 }
             });
         });
@@ -146,6 +276,8 @@ class RouteGenerator {
             const checkboxes = document.querySelectorAll('#typeCheckboxes input[type="checkbox"]');
             checkboxes.forEach(cb => cb.checked = true);
             this.updateInputMax(); // 只调用一次
+            // 延迟保存，确保DOM更新完成
+            setTimeout(() => this.saveUserPreferences(), 100);
         });
 
         // 清空按钮
@@ -153,19 +285,19 @@ class RouteGenerator {
             const checkboxes = document.querySelectorAll('#typeCheckboxes input[type="checkbox"]');
             checkboxes.forEach(cb => cb.checked = false);
             this.updateInputMax(); // 只调用一次
+            // 延迟保存，确保DOM更新完成
+            setTimeout(() => this.saveUserPreferences(), 100);
         });
 
         // 数字输入框事件
         const numberInput = document.getElementById('pointCount');
         
-        // 输入验证
-        numberInput.addEventListener('input', (e) => {
-            this.validateInput(e.target);
-        });
-
-        // 失去焦点时验证
+        // 移除实时输入验证，允许用户自由输入
+        // 只在失去焦点时验证
         numberInput.addEventListener('blur', (e) => {
             this.validateInput(e.target, true);
+            // 保存用户偏好
+            this.saveUserPreferences();
         });
 
         // 生成线路按钮
@@ -177,6 +309,30 @@ class RouteGenerator {
         document.getElementById('saveImage').addEventListener('click', () => {
             this.saveResultsAsImage();
         });
+
+        // 地区优先排序控制
+        document.getElementById('regionPriority').addEventListener('change', (e) => {
+            this.toggleAdvancedRegionSort(e.target.checked);
+            this.saveUserPreferences();
+        });
+
+        // 更进一步的地区优先排序
+        document.getElementById('advancedRegionSort').addEventListener('change', () => {
+            // 保存用户偏好
+            this.saveUserPreferences();
+        });
+    }
+
+    toggleAdvancedRegionSort(enabled) {
+        const container = document.getElementById('advancedRegionSortContainer');
+        const checkbox = document.getElementById('advancedRegionSort');
+        
+        if (enabled) {
+            container.style.display = 'block';
+        } else {
+            container.style.display = 'none';
+            checkbox.checked = false; // 清除子选项的选中状态
+        }
     }
 
     getSelectedTypes() {
@@ -204,7 +360,12 @@ class RouteGenerator {
         
         // 如果当前值超过最大值，调整当前值
         if (parseInt(input.value) > maxPoints) {
-            input.value = maxPoints;
+            input.value = Math.min(30, maxPoints); // 默认30个点位，但不能超过最大值
+        }
+        
+        // 如果输入框为空或无值，设置默认值
+        if (!input.value || input.value === '' || isNaN(parseInt(input.value))) {
+            input.value = Math.min(30, maxPoints); // 默认30个点位
         }
         
         // 如果没有选择任何类型，禁用输入框
@@ -216,8 +377,8 @@ class RouteGenerator {
             input.disabled = false;
         }
         
-        // 验证当前输入
-        this.validateInput(input);
+        // 移除自动验证，让用户可以自由输入
+        // this.validateInput(input);
     }
 
     validateInput(input, showAlert = false) {
@@ -225,8 +386,14 @@ class RouteGenerator {
         const min = parseInt(input.min);
         const max = parseInt(input.max);
         
-        // 检查是否为有效数字
-        if (isNaN(value) || value < min) {
+        // 如果输入为空，设置默认值30（但不能超过最大值）
+        if (!input.value || input.value === '' || isNaN(value)) {
+            input.value = Math.min(30, max);
+            return true;
+        }
+        
+        // 检查是否小于最小值
+        if (value < min) {
             input.value = min;
             if (showAlert) {
                 alert(`点位数量不能少于 ${min}！`);
@@ -246,10 +413,11 @@ class RouteGenerator {
         return true;
     }
 
-    generateRandomRoute() {
+    async generateRandomRoute() {
         const pointCount = parseInt(document.getElementById('pointCount').value);
         const selectedTypes = this.getSelectedTypes();
         const regionPriority = document.getElementById('regionPriority').checked;
+        const advancedRegionSort = document.getElementById('advancedRegionSort').checked;
 
         if (selectedTypes.length === 0) {
             alert('请至少选择一个类型！');
@@ -271,14 +439,17 @@ class RouteGenerator {
 
         // 根据地区优先选项进行排序
         const sortedImages = regionPriority 
-            ? this.sortByRegion(selectedImages)
+            ? await this.sortByRegion(selectedImages, advancedRegionSort)
             : this.shuffleArray(selectedImages);
 
-        // 昚示结果
+        // 显示结果
         this.displayResults(sortedImages);
         
         // 生成对应的lua配置
         this.generateLuaConfig(sortedImages);
+
+        // 保存用户偏好设置
+        this.saveUserPreferences();
     }
 
     selectRandomImages(images, count) {
@@ -295,7 +466,7 @@ class RouteGenerator {
         return shuffled;
     }
 
-    sortByRegion(images) {
+    async sortByRegion(images, useAdvancedSort = false) {
         // 先随机排序，然后按地区分组
         const shuffled = this.shuffleArray(images);
         const grouped = {};
@@ -315,11 +486,78 @@ class RouteGenerator {
         // 随机排序地区
         const shuffledRegions = this.shuffleArray(regions);
         
-        shuffledRegions.forEach(region => {
-            result.push(...grouped[region]);
-        });
+        // 使用 for...of 循环来正确处理异步操作
+        for (const region of shuffledRegions) {
+            // 根据是否启用高级排序选择不同的排序方法
+            const sortedRegionImages = useAdvancedSort 
+                ? await this.sortByMonsterValues(grouped[region])
+                : this.shuffleArray(grouped[region]);
+            result.push(...sortedRegionImages);
+        }
 
         return result;
+    }
+
+    // 新增方法：根据monster值对地区内图片进行排序
+    async sortByMonsterValues(images) {
+        // 为每个图片获取对应的monster值
+        const imagesWithMonster = [];
+        
+        for (const img of images) {
+            const monsterValue = await this.getMonsterValue(img);
+            imagesWithMonster.push({
+                ...img,
+                monsterValue: monsterValue
+            });
+        }
+        
+        // 按monster值进行排序
+        return imagesWithMonster.sort((a, b) => {
+            const monsterA = a.monsterValue;
+            const monsterB = b.monsterValue;
+            
+            // 如果任一monster值无效，将无效值排到后面
+            if (!monsterA && !monsterB) return 0;
+            if (!monsterA) return 1;
+            if (!monsterB) return -1;
+            
+            const [firstA, secondA] = monsterA;
+            const [firstB, secondB] = monsterB;
+            
+            // 1. 优先级1：monster值完全相同（保持原顺序）
+            if (firstA === firstB && secondA === secondB) {
+                return 0;
+            }
+            
+            // 2. 优先级2：第一个数字相同，按第二个数字排序
+            if (firstA === firstB) {
+                return secondA - secondB;
+            }
+            
+            // 3. 优先级3：第一个数字不同，按第一个数字的差值排序（差值越小越前）
+            // 为了实现这个，我们需要计算每个数字与其他所有数字的平均距离
+            return firstA - firstB;
+        });
+    }
+
+    // 新增方法：从lua文件中获取指定图片的monster值
+    async getMonsterValue(img) {
+        try {
+            const luaLines = await this.loadLuaContent(img.type);
+            if (luaLines && luaLines[img.imageIndex]) {
+                const luaLine = luaLines[img.imageIndex].trim();
+                
+                // 解析monster值，格式如: monster: [9, 1]
+                const monsterMatch = luaLine.match(/monster:\s*\[(\d+),\s*(\d+)\]/);
+                if (monsterMatch) {
+                    return [parseInt(monsterMatch[1]), parseInt(monsterMatch[2])];
+                }
+            }
+        } catch (error) {
+            console.warn(`获取 ${img.fileName} 的monster值失败:`, error);
+        }
+        
+        return null; // 如果无法获取monster值，返回null
     }
 
     async generateLuaConfig(selectedImages) {
@@ -338,34 +576,87 @@ class RouteGenerator {
         
         // 生成排序后的lua配置
         const sortedLuaLines = [];
+        const maxLength = 60; // 设置对齐基准长度
+        
+        // 先收集所有注释信息，用于计算对齐
+        const commentInfo = [];
+        
+        selectedImages.forEach((img, index) => {
+            const regionName = this.getRegionDisplayName(img.region);
+            
+            // 生成带实际索引的类型文本（imageIndex是从0开始，所以+1）
+            const typeTextWithIndex = `${img.type}[${img.imageIndex + 1}]`;
+            
+            commentInfo.push({
+                pointText: `第${index + 1}点`,
+                typeText: typeTextWithIndex,
+                regionText: regionName
+            });
+        });
+        
+        // 计算各部分的最大长度用于对齐（考虑中文字符宽度）
+        const getDisplayWidth = (text) => {
+            let width = 0;
+            for (let i = 0; i < text.length; i++) {
+                // 中文字符计为2个宽度，英文字符计为1个宽度
+                width += text.charCodeAt(i) > 127 ? 2 : 1;
+            }
+            return width;
+        };
+        
+        const maxPointWidth = Math.max(...commentInfo.map(info => getDisplayWidth(info.pointText)));
+        const maxTypeWidth = Math.max(...commentInfo.map(info => getDisplayWidth(info.typeText)));
+        const maxRegionWidth = Math.max(...commentInfo.map(info => getDisplayWidth(info.regionText)));
+        
         selectedImages.forEach((img, index) => {
             const luaLines = luaTypeMap.get(img.type);
             if (luaLines && luaLines[img.imageIndex]) {
                 let luaLine = luaLines[img.imageIndex].trim();
                 
-                // 检查是否包含 monster 配置
-                if (luaLine.includes('monster:')) {
-                    // 移除原有的注释（如果存在）
-                    const commentIndex = luaLine.indexOf('--');
-                    if (commentIndex !== -1) {
-                        luaLine = luaLine.substring(0, commentIndex).trim();
-                    }
-                    // 将新注释添加到lua行的末尾
-                    const lineWithComment = `${luaLine}-- 点位 ${index + 1}: ${img.fileName}`;
-                    sortedLuaLines.push(lineWithComment);
-                } else {
-                    // 如果不包含monster配置，可能是纯注释行，跳过或生成默认配置
-                    console.warn(`${img.type} 第 ${img.imageIndex + 1} 行不包含有效的monster配置: "${luaLine}"`);
-                    sortedLuaLines.push(`-- monster: [0,0], pos: [0, 0] -- 配置格式异常 -- 点位 ${index + 1}: ${img.fileName}`);
+                // 移除原有注释
+                const commentIndex = luaLine.indexOf('--');
+                if (commentIndex !== -1) {
+                    luaLine = luaLine.substring(0, commentIndex).trim();
                 }
+                
+                // 获取地区名称
+                const regionName = this.getRegionDisplayName(img.region);
+                
+                // 计算需要的空格数量来对齐注释起始位置
+                const currentLength = luaLine.length;
+                const spacesNeeded = Math.max(1, maxLength - currentLength);
+                const spaces = ' '.repeat(spacesNeeded);
+                
+                // 生成对齐的注释，考虑中文字符宽度
+                const padToWidth = (text, targetWidth) => {
+                    const currentWidth = getDisplayWidth(text);
+                    const spacesNeeded = Math.max(0, targetWidth - currentWidth);
+                    return text + ' '.repeat(spacesNeeded);
+                };
+                
+                const pointText = padToWidth(commentInfo[index].pointText, maxPointWidth);
+                const typeText = padToWidth(commentInfo[index].typeText, maxTypeWidth);
+                const regionText = padToWidth(commentInfo[index].regionText, maxRegionWidth);
+                
+                const comment = `--${pointText}  ${typeText}  ${regionText}`;
+                const lineWithComment = `${luaLine}${spaces}${comment}`;
+                sortedLuaLines.push(lineWithComment);
             } else {
                 console.warn(`找不到 ${img.type} 类型第 ${img.imageIndex + 1} 行的lua配置`);
-                sortedLuaLines.push(`-- monster: [0,0], pos: [0, 0] -- 配置缺失 -- 点位 ${index + 1}: ${img.fileName}`);
+                sortedLuaLines.push(`-- 配置缺失 -- 点位 ${index + 1}: ${img.fileName}`);
             }
         });
         
         // 显示lua配置
         this.displayLuaConfig(sortedLuaLines);
+    }
+    
+    // 获取地区显示名称
+    getRegionDisplayName(regionCode) {
+        if (window.RouteConfig && window.RouteConfig.regionMapping) {
+            return window.RouteConfig.regionMapping[regionCode] || regionCode;
+        }
+        return regionCode;
     }
 
     displayLuaConfig(luaLines) {
@@ -392,7 +683,8 @@ class RouteGenerator {
                 <div style="width: 100%; text-align: center; color: #888; font-size: 0.9em; margin-top: 5px;">
                     <p>根据图片点位排序的全自动传送配置文件,适用于16:10屏幕。</p>
                     <p>monster:F1追踪的boss行列; pos:追踪后点击的位置; narrow:地图缩(+)放(-)次数;</p>
-                    <p> select:多选时第几个(从下至上); try:重试(用于有地脉的点位); gb:true 追踪boss后关闭右侧菜单 ; wait:(ms):等待时间(传送副本时等待延迟)</p>
+                    <p> select:多选时第几个(从下至上); try:重试(用于有地脉的点位); wait:(ms):等待时间(传送副本时等待延迟)</p>
+                    <p> area:地区代码; areawait:等待（用于单独地图加载）; resnar:重置地图大小;</p>
                 </div>
             </div>
             <pre class="lua-content">${luaContent}</pre>
@@ -632,5 +924,5 @@ class RouteGenerator {
 
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', () => {
-    new RouteGenerator();
+    window.routeGenerator = new RouteGenerator();
 });

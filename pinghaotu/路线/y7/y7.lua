@@ -30,7 +30,7 @@ monster: [6, 3], pos: [36647, 21312], wait: 120--xm
 monster: [7, 1], pos: [41539, 14714]--xm
 monster: [6, 3], pos: [2279, 44264]--xm
 monster: [6, 2], pos: [38875, 40821]--xm
-monster: [6, 2], pos: [54497, 25042], gb: true --xm
+monster: [6, 2], pos: [54497, 25042] --xm
 monster: [6, 2], pos: [46609, 20574], narrow: 1--xm
 monster: [10, 2], pos: [27812, 60371], narrow: 1--dq
 monster: [10, 3], pos: [34138, 52748]--dq
@@ -43,4 +43,4 @@ monster: [3, 3], pos: [23023, 23525]--nt
 monster: [3, 1], pos: [39516, 17091]--nt
 monster: [3, 1], pos: [43331, 4795], narrow: 1, wait:120--nt
 monster: [2, 1], pos: [7043, 37337]--nt
-monster: [2, 1], pos: [19975, 60412], select: 2--nt
+area:ss,pos: [45585, 30616],resnar: 2 ,areawait: true --nt
