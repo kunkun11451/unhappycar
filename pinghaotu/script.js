@@ -952,15 +952,126 @@ class RouteGenerator {
         `;
     }
 
+    // 显示操作选择对话框
+    // 压缩图片 - 优化版本
+    async compressImage(canvas, format = 'image/png', quality = 0.9) {
+        return new Promise((resolve, reject) => {
+            // 根据格式使用不同的压缩策略
+            if (format === 'image/jpeg') {
+                // JPEG格式可以调整质量
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        resolve(blob);
+                    } else {
+                        reject(new Error('JPEG压缩失败'));
+                    }
+                }, format, quality);
+            } else {
+                // PNG格式不支持质量参数，但文件通常更小且无损
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        resolve(blob);
+                    } else {
+                        reject(new Error('PNG压缩失败'));
+                    }
+                }, format);
+            }
+        });
+    }
+
+
+
+
+
+
+
+    // 显示成功提示
+    showSuccessMessage(message) {
+        // 创建提示元素
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(45deg, #4CAF50, #66BB6A);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(76, 175, 80, 0.3);
+            z-index: 10001;
+            font-size: 16px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideInRight 0.3s ease-out;
+        `;
+        
+        toast.innerHTML = `
+            <span style="font-size: 20px;">✅</span>
+            ${message}
+        `;
+        
+        // 添加动画样式
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInRight {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            @keyframes slideOutRight {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        document.body.appendChild(toast);
+        
+        // 3秒后自动消失
+        setTimeout(() => {
+            toast.style.animation = 'slideOutRight 0.3s ease-in';
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    document.body.removeChild(toast);
+                }
+                if (style.parentNode) {
+                    document.head.removeChild(style);
+                }
+            }, 300);
+        }, 3000);
+        
+        // 点击关闭
+        toast.onclick = () => {
+            toast.style.animation = 'slideOutRight 0.3s ease-in';
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    document.body.removeChild(toast);
+                }
+                if (style.parentNode) {
+                    document.head.removeChild(style);
+                }
+            }, 300);
+        };
+    }
+
+    // ...existing code...
+
     async saveResultsAsImage() {
         const saveBtn = document.getElementById('saveImage');
         const resultsContainer = document.getElementById('results');
-        
-        // 显示提示信息
-        const confirmMessage = '图片体积较大，压缩算法配置中，建议使用浏览器截图。\n\n是否继续保存？';
-        if (!confirm(confirmMessage)) {
-            return; // 用户选择取消
-        }
         
         // 禁用按钮并显示加载状态
         saveBtn.disabled = true;
@@ -999,47 +1110,30 @@ class RouteGenerator {
                 }
             });
             
-            // 尝试生成图片数据URL
-            let dataURL;
-            try {
-                dataURL = canvas.toDataURL('image/png');
-            } catch (securityError) {
-                console.warn('Canvas被污染，尝试使用备用方法:', securityError);
-                // 备用方法：使用toBlob
-                return new Promise((resolve) => {
-                    canvas.toBlob((blob) => {
-                        if (blob) {
-                            const url = URL.createObjectURL(blob);
-                            const link = document.createElement('a');
-                            link.download = `拼好图线路_${new Date().toISOString().split('T')[0]}.png`;
-                            link.href = url;
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                            URL.revokeObjectURL(url);
-                            
-                            // 恢复lua配置区域的显示
-                            if (luaConfig) {
-                                luaConfig.style.display = originalDisplay || '';
-                            }
-                            
-                            resolve();
-                        } else {
-                            throw new Error('生成Blob失败');
-                        }
-                    }, 'image/png');
-                });
+            // 显示压缩进度
+            saveBtn.textContent = '正在压缩图片...';
+            
+            // 转换为Blob并压缩 - 使用JPEG格式以获得更好的压缩率
+            const blob = await this.compressImage(canvas, 'image/jpeg', 0.8);
+            
+            if (!blob) {
+                throw new Error('生成图片失败');
             }
             
-            // 创建下载链接
-            const link = document.createElement('a');
-            link.download = `拼好图线路_${new Date().toISOString().split('T')[0]}.png`;
-            link.href = dataURL;
+            // 创建下载链接并自动下载
+            const imageUrl = URL.createObjectURL(blob);
+            const fileName = `拼好图线路_${new Date().toISOString().split('T')[0]}.jpg`;
             
-            // 触发下载
+            const link = document.createElement('a');
+            link.download = fileName;
+            link.href = imageUrl;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            URL.revokeObjectURL(imageUrl);
+            
+            // 显示成功提示
+            this.showSuccessMessage('压缩图片已下载完成！');
             
             // 恢复lua配置区域的显示
             if (luaConfig) {
@@ -1047,7 +1141,7 @@ class RouteGenerator {
             }
             
         } catch (error) {
-            console.error('保存图片失败:', error);
+            console.error('生成图片失败:', error);
             
             // 恢复lua配置区域的显示（即使出错也要恢复）
             const luaConfig = document.getElementById('luaConfig');
@@ -1056,10 +1150,10 @@ class RouteGenerator {
             }
             
             // 根据错误类型提供不同的提示
-            let errorMessage = '保存图片失败，请重试';
+            let errorMessage = '生成图片失败，请重试';
             if (error.name === 'SecurityError' || error.message.includes('Tainted')) {
-                errorMessage = '由于浏览器安全限制，无法直接保存图片。建议：\n1. 使用浏览器的截图功能\n2. 或者通过本地服务器运行此页面';
-            } else if (error.message.includes('生成Blob失败')) {
+                errorMessage = '由于浏览器安全限制，无法生成图片。建议：\n1. 使用浏览器的截图功能\n2. 或者通过本地服务器运行此页面';
+            } else if (error.message.includes('生成图片失败')) {
                 errorMessage = '图片生成失败，请确保所有图片都已加载完成';
             }
             
@@ -1067,7 +1161,7 @@ class RouteGenerator {
         } finally {
             // 恢复按钮状态
             saveBtn.disabled = false;
-            saveBtn.textContent = '保存为图片';
+            saveBtn.textContent = '📷 保存为图片';
         }
     }
 
@@ -1136,17 +1230,6 @@ class RouteGenerator {
             }
         }
         
-        // // 验证结果
-        // console.log('抖M模式最终结果:');
-        // result.forEach((img, idx) => {
-        //     const position = idx + 1;
-        //     const isDouM = douMRegions.includes(img.region);
-        //     const isEvenPosition = position % 2 === 0;
-        //     const isCorrect = (isEvenPosition && isDouM) || (!isEvenPosition && !isDouM) || 
-        //                      douMIndex >= shuffledDouM.length || nonDouMIndex >= shuffledNonDouM.length;
-        //     console.log(`${position}: ${img.fileName}(${img.region}) - ${isDouM ? '抖M' : '非抖M'} ${isCorrect ? '✓' : '✗'}`);
-        // });
-        
         return result;
     }
 
@@ -1163,7 +1246,6 @@ class RouteGenerator {
         // 计算需要的非抖M点位数量（奇数位置的数量 + 可能的剩余）
         const neededNonDouMCount = pointCount - neededDouMCount;
         
-        // console.log(`抖M模式选择: 总需要${pointCount}个点位，其中抖M${neededDouMCount}个，非抖M${neededNonDouMCount}个`);
         console.log(`可用抖M点位${douMImages.length}个，可用非抖M点位${nonDouMImages.length}个`);
         
         // 检查是否有足够的抖M点位
@@ -1183,8 +1265,6 @@ class RouteGenerator {
         // 随机选择足够数量的两种点位
         const selectedDouM = this.selectRandomImages(douMImages, neededDouMCount);
         const selectedNonDouM = this.selectRandomImages(nonDouMImages, neededNonDouMCount);
-        
-        // console.log(`成功选择: 抖M${selectedDouM.length}个，非抖M${selectedNonDouM.length}个`);
         
         // 合并并返回
         return [...selectedDouM, ...selectedNonDouM];
