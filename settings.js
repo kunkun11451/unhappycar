@@ -731,7 +731,7 @@ function createRedstoneTechContent() {
 
     // 创建跳转到unhappycar文件夹下其他项目的按钮
     const projects = [
-        { name: "拼好图", file: "pinghaotu" },
+        { name: "拼好图", file: "pinhaotu" },
         { name: "拼好车", file: "pinhaoche" },
         { name: "赤石3",},
         { name: "赤石4", },
