@@ -326,7 +326,7 @@
 
         /* 收集列表样式 */
         .collection-modal {
-            max-width: 800px;
+            max-width: 900px;
             width: 90%;
             max-height: 80vh;
             overflow-y: auto;
@@ -345,11 +345,18 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
             gap: 30px;
+            padding: 30px;
             margin: 20px auto 0 auto;
             justify-content: center;
+            justify-items: center;
             max-width: 100%;
             touch-action: pan-y;
             overscroll-behavior-x: none;
+            transition: filter 0.3s ease, backdrop-filter 0.3s ease;
+        }
+
+        .collection-grid.focus-mode {
+            filter: blur(6px) brightness(0.3);
         }
 
         .collection-item {
@@ -361,16 +368,27 @@
             height: 120px;
             perspective: 1200px;
             cursor: pointer;
-            transition: transform 0.3s ease;
+            transition: transform 0.3s ease, filter 0.3s ease, z-index 0.3s ease;
+        }
+
+        .collection-item.focused {
+            filter: none !important;
+            z-index: 100;
+            transform: scale(2);
+        }
+
+        .collection-item.dimmed {
+            filter: blur(4px) brightness(0.4);
+            z-index: 1;
         }
 
         .collection-item:hover {
-            transform: scale(1.5);
+            transform: scale(2);
             z-index: 10;
         }
 
         .collection-item.dragging {
-            transform: scale(1.5) !important;
+            transform: scale(2) !important;
             z-index: 10;
             transition: transform 0.1s ease;
         }
@@ -392,13 +410,24 @@
             width: 100%;
             height: 100%;
             border-radius: 15px;
-            border: 1px solid rgb(102 102 102 / 29%);
+            border: 1px solid rgba(100, 100, 100, 0.5);
             /* background: rgba(255, 255, 255, 0.1); */
             display: flex;
             align-items: center;
             justify-content: center;
-            /* overflow: hidden;
-            backdrop-filter: blur(10px); */
+            /* backdrop-filter: blur(10px); */
+        }
+
+        .collection-item-highlight-container {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 15px;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 2;
         }
 
         .collection-item-shadow {
@@ -422,7 +451,6 @@
             width: 200%;
             height: 200%;
             background-image: radial-gradient(circle at 50%, rgba(255, 255, 255, 0.25), transparent 50%);
-            z-index: 2;
             transform: translate3d(calc(var(--rotateY) / var(--maxRotate) * -25%), calc(var(--rotateX) / var(--maxRotate) * -25%), 0px);
             transition: 300ms ease-out;
             pointer-events: none;
@@ -430,19 +458,20 @@
 
         .collection-item img {
             position: absolute;
-            left: -5%;
-            top: -5%;
-            width: 110%;
-            height: 110%;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
             object-fit: cover;
             border-radius: 13px;
             transition: 300ms ease-out;
-            transform: translate3d(calc(var(--parallaxOffset, 5) * var(--rotateY) / var(--maxRotate) * 1%), calc(var(--parallaxOffset, 5) * var(--rotateX) / var(--maxRotate) * -1%), 0);
             pointer-events: none;
+            transform: translate3d(calc(var(--parallaxOffset, 5) * var(--rotateY) / var(--maxRotate) * 1%), calc(var(--parallaxOffset, 5) * var(--rotateX) / var(--maxRotate) * -1%), 0);
         }
 
         .collection-item.locked {
             background: rgba(255, 255, 255, 0.05);
+            
         }
 
         .collection-item.locked .collection-item-inner {
@@ -542,13 +571,15 @@
 
         .detail-image-inner {
             position: relative;
-            width: 100%;
-            height: 100%;
-            /* border-radius: 15px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            background: rgba(255, 255, 255, 0.1);
+            left: -6.5%;
+            top: -2.5%;
+            width: 110%;
+            height: 110%;
+            border-radius: 15px;
+            /* border: 2px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1); */
             overflow: hidden;
-            backdrop-filter: blur(10px); */
+            /* backdrop-filter: blur(10px); */
         }
 
         .detail-image-shadow {
@@ -580,15 +611,15 @@
 
         .detail-content img {
             position: absolute;
-            left: -5%;
-            top: -5%;
-            width: 110%;
-            height: 110%;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
             object-fit: cover;
             border-radius: 13px;
             transition: 300ms ease-out;
-            transform: translate3d(calc(var(--parallaxOffset, 5) * var(--rotateY) / var(--maxRotate) * 1%), calc(var(--parallaxOffset, 5) * var(--rotateX) / var(--maxRotate) * -1%), 0);
             pointer-events: none;
+            /* transform: translate3d(calc(var(--parallaxOffset, 5) * var(--rotateY) / var(--maxRotate) * 1%), calc(var(--parallaxOffset, 5) * var(--rotateX) / var(--maxRotate) * -1%), 0); */
         }
 
         .detail-content h3 {
@@ -1153,6 +1184,10 @@
                 const shadow = document.createElement('div');
                 shadow.className = 'collection-item-shadow';
                 
+                // 创建高光容器和高光元素
+                const highlightContainer = document.createElement('div');
+                highlightContainer.className = 'collection-item-highlight-container';
+                
                 const highlight = document.createElement('div');
                 highlight.className = 'collection-item-highlight';
                 
@@ -1178,8 +1213,9 @@
                 
                 // 组装结构
                 itemElement.appendChild(shadow);
-                inner.appendChild(highlight);
+                highlightContainer.appendChild(highlight);
                 rotator.appendChild(inner);
+                rotator.appendChild(highlightContainer);
                 itemElement.appendChild(rotator);
                 
                 grid.appendChild(itemElement);
@@ -1244,7 +1280,7 @@
             
             // 添加点击事件返回首页
             buttonElement.addEventListener('click', function() {
-                window.location.href = 'index.html';
+                window.location.href = '/index.html';
             });
             
             // 添加到内容容器
@@ -1412,6 +1448,35 @@
             let isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
                           ('ontouchstart' in window) || (window.innerWidth <= 768);
             
+            // 检查是否为收集列表中的元素
+            const isCollectionItem = element.classList.contains('collection-item');
+            
+            // 聚焦效果函数
+            function setFocusMode(focused) {
+                if (!isCollectionItem) return;
+                
+                const collectionGrid = document.getElementById('collectionGrid');
+                const allItems = collectionGrid.querySelectorAll('.collection-item');
+                
+                if (focused) {
+                    // 设置聚焦模式
+                    allItems.forEach(item => {
+                        if (item === element) {
+                            item.classList.add('focused');
+                            item.classList.remove('dimmed');
+                        } else {
+                            item.classList.add('dimmed');
+                            item.classList.remove('focused');
+                        }
+                    });
+                } else {
+                    // 取消聚焦模式
+                    allItems.forEach(item => {
+                        item.classList.remove('focused', 'dimmed');
+                    });
+                }
+            }
+            
             // 通用的视差计算函数
             function calculateParallax(clientX, clientY, rect) {
                 const centerX = rect.width / 2;
@@ -1459,6 +1524,8 @@
                         element.classList.add('no-scroll');
                         // 禁用页面滚动
                         document.body.classList.add('no-scroll');
+                        // 设置聚焦效果
+                        setFocusMode(true);
                         // 触发震动反馈（如果支持）
                         if (navigator.vibrate) {
                             navigator.vibrate(50);
@@ -1485,6 +1552,8 @@
                         element.classList.remove('no-scroll');
                         // 恢复页面滚动
                         document.body.classList.remove('no-scroll');
+                        // 取消聚焦效果
+                        setFocusMode(false);
                     }
                     
                     isLongPressing = false;
@@ -1498,10 +1567,17 @@
                     element.classList.remove('no-scroll');
                     // 恢复页面滚动
                     document.body.classList.remove('no-scroll');
+                    // 取消聚焦效果
+                    setFocusMode(false);
                 }, { passive: true });
                 
             } else {
                 // 桌面端：鼠标事件
+                element.addEventListener('mouseenter', function (e) {
+                    // 设置聚焦效果
+                    setFocusMode(true);
+                });
+                
                 element.addEventListener('mousemove', function (e) {
                     const rect = this.getBoundingClientRect();
                     const { rotateX, rotateY } = calculateParallax(e.clientX, e.clientY, rect);
@@ -1510,6 +1586,8 @@
                 
                 element.addEventListener('mouseleave', function (e) {
                     resetRotation();
+                    // 取消聚焦效果
+                    setFocusMode(false);
                 });
             }
         }
