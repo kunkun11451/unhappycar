@@ -16,6 +16,12 @@ class DiceSimulator {
         this.resultLines = [];
         this.result3DObjects = [];
         
+        // 场地相关对象
+        this.tableObjects = [];
+        this.wallObjects = [];
+        this.tableBodies = [];
+        this.wallBodies = [];
+        
         this.init();
     }
 
@@ -43,12 +49,12 @@ class DiceSimulator {
 
         // 设置相机
         this.camera = new THREE.PerspectiveCamera(
-            75,
+            75, // 调整视野角度，让视野更宽
             window.innerWidth / window.innerHeight,
             0.1,
             1000
         );
-        this.camera.position.set(0, 8, 12);
+        this.camera.position.set(0, 12, 18); // 调整摄像机位置，更高更远以观察更多骰子
 
         // 设置渲染器
         this.renderer = new THREE.WebGLRenderer({
@@ -133,6 +139,9 @@ class DiceSimulator {
     createDice(count = 1) {
         // 清空现有骰子
         this.clearDice();
+        
+        // 重新创建场地（根据骰子数量调整大小）
+        this.recreateSurfaces(count);
         
         if (this.currentDiceType === 6) {
             this.create6SidedDice(count);
@@ -410,7 +419,7 @@ class DiceSimulator {
 
     calculateDicePositions(count) {
         const positions = [];
-        const spacing = 3; // 骰子之间的间距
+        const spacing = 4; // 骰子之间的间距
         const baseHeight = this.currentDiceType === 20 ? 3.0 : 2.5;
         
         switch (count) {
@@ -439,8 +448,58 @@ class DiceSimulator {
                 positions.push([-spacing, baseHeight, spacing]);
                 positions.push([spacing, baseHeight, spacing]);
                 break;
+            case 6:
+                // 2x3 排列
+                positions.push([-spacing/2, baseHeight, -spacing]);
+                positions.push([spacing/2, baseHeight, -spacing]);
+                positions.push([-spacing/2, baseHeight, 0]);
+                positions.push([spacing/2, baseHeight, 0]);
+                positions.push([-spacing/2, baseHeight, spacing]);
+                positions.push([spacing/2, baseHeight, spacing]);
+                break;
+            case 7:
+                // 中心1个 + 周围6个
+                positions.push([0, baseHeight, 0]); // 中心
+                positions.push([-spacing, baseHeight, -spacing]);
+                positions.push([0, baseHeight, -spacing]);
+                positions.push([spacing, baseHeight, -spacing]);
+                positions.push([-spacing, baseHeight, spacing]);
+                positions.push([0, baseHeight, spacing]);
+                positions.push([spacing, baseHeight, spacing]);
+                break;
+            case 8:
+                // 2x4 排列
+                positions.push([-spacing/2, baseHeight, -spacing * 1.5]);
+                positions.push([spacing/2, baseHeight, -spacing * 1.5]);
+                positions.push([-spacing/2, baseHeight, -spacing/2]);
+                positions.push([spacing/2, baseHeight, -spacing/2]);
+                positions.push([-spacing/2, baseHeight, spacing/2]);
+                positions.push([spacing/2, baseHeight, spacing/2]);
+                positions.push([-spacing/2, baseHeight, spacing * 1.5]);
+                positions.push([spacing/2, baseHeight, spacing * 1.5]);
+                break;
+            case 9:
+                // 3x3 排列
+                for (let row = 0; row < 3; row++) {
+                    for (let col = 0; col < 3; col++) {
+                        const x = (col - 1) * spacing;
+                        const z = (row - 1) * spacing;
+                        positions.push([x, baseHeight, z]);
+                    }
+                }
+                break;
+            case 10:
+                // 2x5 排列
+                for (let row = 0; row < 2; row++) {
+                    for (let col = 0; col < 5; col++) {
+                        const x = (col - 2) * spacing;
+                        const z = (row - 0.5) * spacing;
+                        positions.push([x, baseHeight, z]);
+                    }
+                }
+                break;
             default:
-                // 对于更多骰子，排列成网格
+                // 对于其他数量，使用网格布局
                 const cols = Math.ceil(Math.sqrt(count));
                 for (let i = 0; i < count; i++) {
                     const row = Math.floor(i / cols);
@@ -539,9 +598,12 @@ class DiceSimulator {
         });
     }
 
-    createSurfaces() {
+    createSurfaces(diceCount = 1) {
+        // 根据骰子数量计算场地大小
+        const tableSize = this.calculateTableSize(diceCount);
+        
         // 创建桌面
-        const tableGeometry = new THREE.BoxGeometry(20, 0.5, 20);
+        const tableGeometry = new THREE.BoxGeometry(tableSize, 0.5, tableSize);
         const tableMaterial = new THREE.MeshPhysicalMaterial({
             color: 0x8B4513,
             metalness: 0.1,
@@ -552,22 +614,72 @@ class DiceSimulator {
         table.position.set(0, -0.25, 0);
         table.receiveShadow = true;
         this.scene.add(table);
+        this.tableObjects.push(table);
 
         // 创建桌面物理体
-        const tableShape = new CANNON.Box(new CANNON.Vec3(10, 0.25, 10));
+        const tableShape = new CANNON.Box(new CANNON.Vec3(tableSize/2, 0.25, tableSize/2));
         const tableBody = new CANNON.Body({ mass: 0 });
         tableBody.addShape(tableShape);
         tableBody.position.set(0, -0.25, 0);
         this.world.add(tableBody);
+        this.tableBodies.push(tableBody);
 
         // 创建围栏
-        this.createWalls();
+        this.createWalls(tableSize);
     }
 
-    createWalls() {
-        const wallHeight = 114.514; 
+    calculateTableSize(diceCount) {
+        // 根据骰子数量计算合适的桌面大小
+        if (diceCount <= 4) {
+            return 20;  // 小场地
+        } else if (diceCount <= 10) {
+            return 30;  // 中等场地
+        } else if (diceCount <= 15) {
+            return 40;  // 大场地
+        } else {
+            return 50;  // 超大场地
+        }
+    }
+
+    recreateSurfaces(diceCount) {
+        // 清除现有场地
+        this.clearSurfaces();
+        // 创建新场地
+        this.createSurfaces(diceCount);
+    }
+
+    clearSurfaces() {
+        // 清除桌面对象
+        this.tableObjects.forEach(obj => {
+            this.scene.remove(obj);
+            if (obj.geometry) obj.geometry.dispose();
+            if (obj.material) obj.material.dispose();
+        });
+        this.tableObjects = [];
+
+        // 清除墙体对象
+        this.wallObjects.forEach(obj => {
+            this.scene.remove(obj);
+            if (obj.geometry) obj.geometry.dispose();
+            if (obj.material) obj.material.dispose();
+        });
+        this.wallObjects = [];
+
+        // 清除物理体
+        this.tableBodies.forEach(body => {
+            this.world.remove(body);
+        });
+        this.tableBodies = [];
+
+        this.wallBodies.forEach(body => {
+            this.world.remove(body);
+        });
+        this.wallBodies = [];
+    }
+
+    createWalls(tableSize = 20) {
+        const wallHeight = 1145.14; 
         const wallThickness = 0.5;
-        const tableSize = 20;
         
         // 完全透明的空气墙材质
         const wallMaterial = new THREE.MeshBasicMaterial({
@@ -589,6 +701,7 @@ class DiceSimulator {
             mesh.position.set(...wall.pos);
             mesh.visible = false; // 确保网格不可见
             this.scene.add(mesh);
+            this.wallObjects.push(mesh);
 
             // 物理墙体保持不变，只是视觉上完全透明
             const shape = new CANNON.Box(new CANNON.Vec3(
@@ -598,6 +711,7 @@ class DiceSimulator {
             body.addShape(shape);
             body.position.set(...wall.pos);
             this.world.add(body);
+            this.wallBodies.push(body);
         });
     }
 
@@ -608,8 +722,8 @@ class DiceSimulator {
         this.controls.enableZoom = true;
         this.controls.autoRotate = false;
         this.controls.maxPolarAngle = Math.PI / 2.2;
-        this.controls.minDistance = 5;
-        this.controls.maxDistance = 25;
+        this.controls.minDistance = 8;  // 增加最小距离
+        this.controls.maxDistance = 40; // 增加最大距离，支持观察更多骰子
     }
 
     setupEventListeners() {
@@ -686,7 +800,7 @@ class DiceSimulator {
         rollBtn.disabled = true;
         resetBtn.disabled = true;
         
-        // 生成平滑的随机动量（使用正态分布近似）
+        // 生成随机动量的函数（可以修改这里改变随机性）
         const generateSmoothRandom = (min, max) => {
             // 使用多个随机数的平均值来近似正态分布
             let sum = 0;
@@ -695,6 +809,25 @@ class DiceSimulator {
             }
             const normalized = (sum - 3) / 3; // 标准化到约-1到1
             return min + (max - min) * (normalized * 0.5 + 0.5);
+        };
+        
+        // 🎛️ 可调整的力度参数
+        const FORCE_SETTINGS = {
+            // 水平力度范围 (X和Z方向)
+            horizontalForceMin: -8,
+            horizontalForceMax: 8,
+            
+            // 向上力度范围 (Y方向)
+            upwardForceMin: 8,
+            upwardForceMax: 22,
+            
+            // 旋转力度范围
+            rotationForceMin: -50,
+            rotationForceMax: 50,
+            
+            // 额外旋转力度范围
+            extraSpinMin: -24,
+            extraSpinMax: 24
         };
         
         // 为每个骰子应用力和扭矩
@@ -709,24 +842,24 @@ class DiceSimulator {
             
             // 应用平滑的随机力（在原地施加向上和水平的力）
             const force = new CANNON.Vec3(
-                generateSmoothRandom(-8, 8) * forceMultiplier,    // 水平X方向力
-                generateSmoothRandom(15, 22) * forceMultiplier,   // 向上的力（确保骰子跳起）
-                generateSmoothRandom(-8, 8) * forceMultiplier     // 水平Z方向力
+                generateSmoothRandom(FORCE_SETTINGS.horizontalForceMin, FORCE_SETTINGS.horizontalForceMax) * forceMultiplier,    // 水平X方向力
+                generateSmoothRandom(FORCE_SETTINGS.upwardForceMin, FORCE_SETTINGS.upwardForceMax) * forceMultiplier,   // 向上的力（确保骰子跳起）
+                generateSmoothRandom(FORCE_SETTINGS.horizontalForceMin, FORCE_SETTINGS.horizontalForceMax) * forceMultiplier     // 水平Z方向力
             );
             body.applyImpulse(force, body.position);
             
             // 应用更丰富的随机扭矩
             const torque = new CANNON.Vec3(
-                generateSmoothRandom(-30, 30) * torqueMultiplier,  // X轴旋转
-                generateSmoothRandom(-30, 30) * torqueMultiplier,  // Y轴旋转
-                generateSmoothRandom(-30, 30) * torqueMultiplier   // Z轴旋转
+                generateSmoothRandom(FORCE_SETTINGS.rotationForceMin, FORCE_SETTINGS.rotationForceMax) * torqueMultiplier,  // X轴旋转
+                generateSmoothRandom(FORCE_SETTINGS.rotationForceMin, FORCE_SETTINGS.rotationForceMax) * torqueMultiplier,  // Y轴旋转
+                generateSmoothRandom(FORCE_SETTINGS.rotationForceMin, FORCE_SETTINGS.rotationForceMax) * torqueMultiplier   // Z轴旋转
             );
             
             // 添加额外的旋转变化
             const extraSpin = new CANNON.Vec3(
-                generateSmoothRandom(-12, 12) * torqueMultiplier,
-                generateSmoothRandom(-12, 12) * torqueMultiplier,
-                generateSmoothRandom(-12, 12) * torqueMultiplier
+                generateSmoothRandom(FORCE_SETTINGS.extraSpinMin, FORCE_SETTINGS.extraSpinMax) * torqueMultiplier,
+                generateSmoothRandom(FORCE_SETTINGS.extraSpinMin, FORCE_SETTINGS.extraSpinMax) * torqueMultiplier,
+                generateSmoothRandom(FORCE_SETTINGS.extraSpinMin, FORCE_SETTINGS.extraSpinMax) * torqueMultiplier
             );
             
             // 组合基础扭矩和额外旋转
@@ -748,16 +881,19 @@ class DiceSimulator {
         
         const results = [];
         let totalSum = 0;
+        const diceCount = this.dice.length;
         
-        // 获取每个骰子的结果并创建提示框
+        // 获取每个骰子的结果
         this.dice.forEach((dice, index) => {
             const result = this.getDiceValue(dice);
             results.push(result);
             totalSum += result;
-            
-            // 为每个骰子创建提示框
-            const tooltipData = this.createResultTooltip(dice, index, result);
-            this.resultTooltips.push(tooltipData);
+
+            // 只有在骰子数量少于20时才创建提示框
+            if (diceCount < 20) {
+                const tooltipData = this.createResultTooltip(dice, index, result);
+                this.resultTooltips.push(tooltipData);
+            }
         });
         
         this.lastResult = results;
@@ -772,19 +908,29 @@ class DiceSimulator {
         rollBtn.disabled = false;
         resetBtn.disabled = false;
         
-        // 更新结果表格
-        this.updateCurrentResultsTable(results);
+        // 只有在骰子数量少于20时才更新结果表格
+        if (diceCount < 20) {
+            this.updateCurrentResultsTable(results);
+        } else {
+            // 对于20个骰子，清空结果表格
+            this.clearCurrentResultsTable();
+        }
         
         // 在控制台输出结果
         if (results.length === 1) {
             console.log(`🎯 骰子结果: ${results[0]} 点`);
-        } else {
+        } else if (diceCount < 20) {
             const resultsList = results.map((r, i) => `骰子${i+1}: ${r}`).join(' | ');
             console.log(`🎯 骰子结果: ${resultsList} | 总和: ${totalSum} 点`);
+        } else {
+            // 对于20个骰子，只输出总和
+            console.log(`🎯 20个骰子投掷完成，总和: ${totalSum} 点`);
         }
         
-        // 添加闪烁效果
-        this.addResultEffect();
+        // 只有在骰子数量少于20时才添加闪烁效果
+        if (diceCount < 20) {
+            this.addResultEffect();
+        }
         
         // 提示框将保持显示直到下一次投掷或重置
     }
@@ -1049,46 +1195,70 @@ class DiceSimulator {
         canvas.height = 128;
         const ctx = canvas.getContext('2d');
 
-        // 绘制毛玻璃效果背景
-        // 先绘制基础背景
-        ctx.fillStyle = 'rgba(45, 45, 45, 0.95)'; // 更不透明的背景
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // 绘制圆角矩形背景
+        const radius = 20; // 圆角半径
+        const x = 10;
+        const y = 10;
+        const width = canvas.width - 20;
+        const height = canvas.height - 20;
+
+        // 绘制圆角矩形函数
+        function roundRect(ctx, x, y, width, height, radius) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+        }
+
+        // 清除画布
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // 添加渐变效果增强毛玻璃感
-        const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-        gradient.addColorStop(0, 'rgba(70, 70, 70, 0.4)');
-        gradient.addColorStop(0.5, 'rgba(40, 40, 40, 0.9)');
-        gradient.addColorStop(1, 'rgba(25, 25, 25, 0.95)');
+        // 绘制半透明圆角背景
+        roundRect(ctx, x, y, width, height, radius);
+        
+        // 半透明渐变背景
+        const gradient = ctx.createLinearGradient(x, y, x, y + height);
+        gradient.addColorStop(0, 'rgba(45, 45, 45, 0.9)');
+        gradient.addColorStop(0.5, 'rgba(35, 35, 35, 0.95)');
+        gradient.addColorStop(1, 'rgba(25, 25, 25, 0.9)');
         ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fill();
         
-        // 添加细微的高光效果
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-        ctx.fillRect(0, 0, canvas.width, 3);
-        ctx.fillRect(0, 0, 3, canvas.height);
+        // 添加圆角边框
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.lineWidth = 3;
+        ctx.stroke();
         
-        // 添加边框
-        ctx.strokeStyle = 'rgba(180, 180, 180, 0.8)'; // 更亮的边框
-        ctx.lineWidth = 2;
-        ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
+        // 添加内部高光效果
+        roundRect(ctx, x + 2, y + 2, width - 4, height/3, radius - 2);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+        ctx.fill();
 
         // 绘制文本
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 28px Arial'; // 更大的字体
+        ctx.font = 'bold 24px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
         // 添加文本阴影以增强可读性
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
         ctx.shadowOffsetX = 2;
         ctx.shadowOffsetY = 2;
-        ctx.shadowBlur = 4;
+        ctx.shadowBlur = 3;
         
         ctx.fillText(`骰子${index + 1}`, canvas.width / 2, canvas.height / 2 - 15);
         
         // 结果数字用更大更醒目的字体
-        ctx.font = 'bold 32px Arial';
-        ctx.fillStyle = '#ffff00'; // 黄色突出显示结果
+        ctx.font = 'bold 28px Arial';
+        ctx.fillStyle = '#ffdd44'; // 金黄色突出显示结果
+        ctx.shadowBlur = 4;
         ctx.fillText(`${result}点`, canvas.width / 2, canvas.height / 2 + 15);
 
         // 创建纹理和材质
@@ -1103,16 +1273,20 @@ class DiceSimulator {
             transparent: true,
             alphaTest: 0.1,
             side: THREE.DoubleSide,
-            depthWrite: false, // 避免深度冲突
-            depthTest: true
+            depthWrite: false,
+            depthTest: false // 禁用深度测试，确保始终显示在前面
         });
 
-        // 创建平面几何体，稍微大一点以提高可见性
-        const geometry = new THREE.PlaneGeometry(2.2, 1.1);
+        // 创建平面几何体 - 固定大小，不受透视影响
+        const geometry = new THREE.PlaneGeometry(2.0, 1.0);
         const mesh = new THREE.Mesh(geometry, material);
         
-        // 设置渲染顺序，确保提示框在前面显示
-        mesh.renderOrder = 999;
+        // 设置渲染顺序，确保提示框在最前面显示
+        mesh.renderOrder = 1000;
+        
+        // 添加自定义属性来标记这是一个固定大小的提示框
+        mesh.userData.isTooltip = true;
+        mesh.userData.originalScale = new THREE.Vector3(1, 1, 1);
         
         return mesh;
     }
@@ -1142,30 +1316,30 @@ class DiceSimulator {
     }
 
     updateTooltipOrientation() {
-        // 更新所有3D提示框的朝向，让它们始终面向摄像机
+        // 更新所有3D提示框的朝向和大小，让它们始终面向摄像机且保持固定大小
         if (this.resultTooltips && this.resultTooltips.length > 0 && this.camera) {
             this.resultTooltips.forEach(item => {
-                if (item && item.tooltip && item.tooltip.parent) {
+                if (item && item.tooltip && item.tooltip.parent && item.tooltip.userData.isTooltip) {
                     // 获取摄像机位置
                     const cameraPosition = this.camera.position.clone();
-                    
-                    // 计算从提示框到摄像机的方向，但保持Y轴垂直
                     const tooltipPosition = item.tooltip.position.clone();
-                    const direction = new THREE.Vector3();
-                    direction.subVectors(cameraPosition, tooltipPosition);
                     
-                    // 只在XZ平面上旋转，保持提示框水平
-                    direction.y = 0;
-                    direction.normalize();
-                    
-                    // 计算目标位置（稍微偏移以面向摄像机）
-                    const targetPosition = tooltipPosition.clone().add(direction);
-                    
-                    // 让提示框朝向摄像机
+                    // 让提示框始终朝向摄像机
                     item.tooltip.lookAt(cameraPosition);
                     
                     // 确保上方向正确
                     item.tooltip.up.set(0, 1, 0);
+                    
+                    // 计算到摄像机的距离
+                    const distance = cameraPosition.distanceTo(tooltipPosition);
+                    
+                    // 根据距离调整缩放，让提示框看起来大小固定
+                    // 基准距离设为18（摄像机新的初始距离），基准缩放为1
+                    const baseDistance = 18;
+                    const scaleFactor = distance / baseDistance;
+                    
+                    // 应用缩放，让提示框在视觉上保持相同大小
+                    item.tooltip.scale.setScalar(scaleFactor);
                 }
             });
         }
