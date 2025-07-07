@@ -9,46 +9,53 @@
 </head>
 <body>
     <div id="gameContainer">
-        <div class="loading" id="loading">正在加载 3D 场景...</div>
+        <div class="loading" id="loading">正在加载 3D 场景...<br>Developed by kunkun11451</div>
         <canvas id="canvas"></canvas>
         <div class="controls">
-            <div class="dice-type-selector">
-                <label for="diceType">骰子类型:</label>
-                <select id="diceType">
-                    <option value="6" selected>🎲 6面</option>
-                    <option value="20">🎲 20面</option>
-                </select>
-            </div>
-            <div class="dice-count-selector">
-                <label for="diceCount">骰子数量:</label>
-                <select id="diceCount">
-                    <option value="1" selected>1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                    <option value="6">6</option>
-                    <option value="7">7</option>
-                    <option value="8">8</option>
-                    <option value="9">9</option>
-                    <option value="10">10</option>
-                    <option value="15">15</option>
-                    <option value="20">20</option>
-                    <option value="50">50</option>
-                    <option value="100">100</option>
-                    <option>不给你更多了</option>
-                    <option>想要可以调源码</option>
-                </select>
+            <div class="selectors-container">
+                <div class="dice-type-selector">
+                    <label for="diceType">骰子类型:</label>
+                    <select id="diceType">
+                        <option value="6" selected>🎲 6面</option>
+                        <option value="20">🎲 20面</option>
+                    </select>
+                </div>
+                <div class="dice-count-selector">
+                    <label for="diceCount">骰子数量:</label>
+                    <select id="diceCount">
+                        <option value="1" selected>1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                        <option>不给你更多了</option>
+                    </select>
+                </div>
             </div>
             <button class="btn" id="rollBtn">🎲 投掷骰子</button>
-            <button class="btn" id="resetBtn">🔄 重置位置</button>
+            <div class="settings-container">
+                <div class="toggle-switch">
+                    <label for="showResultsToggle">显示结果:</label>
+                    <input type="checkbox" id="showResultsToggle" checked>
+                </div>
+                <button class="btn" id="resetBtn">🔄 重置位置</button>
+            </div>
         </div>
         <div class="info">
             <div>🖱️ 鼠标拖拽旋转视角</div>
             <div>🖱️ 滚轮缩放</div>
             <div>⌨️ 空格键投掷</div>
-            
-            <!-- 当前投掷结果表格 -->
+            <div>⌨️ F2隐藏/显示UI</div>
+            <div>⌨️ F3性能监测</div>
             <div class="current-results">
                 <h4>🎲 当前结果</h4>
                 <table id="currentResultsTable" class="current-results-table">
