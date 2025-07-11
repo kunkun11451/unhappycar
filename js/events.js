@@ -3,7 +3,183 @@ window.eventManagement = (() => {
     // 事件管理相关变量
     let isShowingPersonal = true;
     let currentEventKey = null;
-    let currentEventType = null;    // 填充任务表格
+    let currentEventType = null;
+
+    // 设置搜索功能 - 支持多音字拼音搜索和精确高亮
+    function setupEventSearch(inputId, tableSelector) {
+        const searchInput = document.getElementById(inputId);
+        if (!searchInput) return;
+        
+        // 检查pinyinPro库是否已加载
+        const hasPinyinSupport = typeof window.pinyinPro !== 'undefined' && 
+                                typeof window.pinyinPro.pinyin === 'function';
+        
+        if (!hasPinyinSupport) {
+            console.warn('pinyinPro库未加载，拼音搜索功能将不可用');
+        }
+
+        searchInput.addEventListener('input', () => {
+            const searchTerm = searchInput.value.toLowerCase();
+            const table = document.querySelector(tableSelector);
+            if (!table) return;
+
+            const tbody = table.querySelector('tbody');
+            if (!tbody) return;
+
+            const rows = tbody.querySelectorAll('tr');
+
+            rows.forEach(row => {
+                // 跳过统计行
+                if (row.textContent.includes('启用：')) {
+                    return;
+                }
+
+                const titleCell = row.querySelector('td:nth-child(2)'); // 事件标题列
+                const contentCell = row.querySelector('td:nth-child(3)'); // 事件内容列
+                
+                if (!titleCell || !contentCell) return;
+
+                const title = titleCell.textContent || '';
+                const content = contentCell.textContent || '';
+                const combinedText = title + ' ' + content;
+
+                // Reset highlight
+                titleCell.innerHTML = title;
+                contentCell.innerHTML = content;
+                
+                let match = false;
+
+                if (searchTerm === '') {
+                    match = true;
+                } else if (combinedText.toLowerCase().includes(searchTerm)) {
+                    match = true;
+                    // 高亮标题
+                    if (title.toLowerCase().includes(searchTerm)) {
+                        const regex = new RegExp(searchTerm.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'gi');
+                        titleCell.innerHTML = title.replace(regex, '<span style="background-color: yellow; color: black; font-weight: bold;">$&</span>');
+                    }
+                    // 高亮内容
+                    if (content.toLowerCase().includes(searchTerm)) {
+                        const regex = new RegExp(searchTerm.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'gi');
+                        contentCell.innerHTML = content.replace(regex, '<span style="background-color: yellow; color: black; font-weight: bold;">$&</span>');
+                    }
+                } else if (hasPinyinSupport) {
+                    // 使用安全的方式访问pinyin函数
+                    const { pinyin } = window.pinyinPro;
+                    
+                    // 检查标题的拼音匹配
+                    const titleMatchResult = matchPinyinInitials(title, searchTerm, pinyin);
+                    const contentMatchResult = matchPinyinInitials(content, searchTerm, pinyin);
+                    
+                    if (titleMatchResult.match || contentMatchResult.match) {
+                        match = true;
+                        
+                        // 高亮标题中匹配的字符
+                        if (titleMatchResult.match) {
+                            let highlightedTitle = '';
+                            for (let i = 0; i < title.length; i++) {
+                                if (titleMatchResult.matchedPositions.includes(i)) {
+                                    highlightedTitle += `<span style="background-color: yellow; color: black; font-weight: bold;">${title[i]}</span>`;
+                                } else {
+                                    highlightedTitle += title[i];
+                                }
+                            }
+                            titleCell.innerHTML = highlightedTitle;
+                        }
+                        
+                        // 高亮内容中匹配的字符
+                        if (contentMatchResult.match) {
+                            let highlightedContent = '';
+                            for (let i = 0; i < content.length; i++) {
+                                if (contentMatchResult.matchedPositions.includes(i)) {
+                                    highlightedContent += `<span style="background-color: yellow; color: black; font-weight: bold;">${content[i]}</span>`;
+                                } else {
+                                    highlightedContent += content[i];
+                                }
+                            }
+                            contentCell.innerHTML = highlightedContent;
+                        }
+                    }
+                }
+
+                row.style.display = match ? '' : 'none';
+            });
+        });
+
+        // 支持多音字的拼音首字母匹配函数
+        function matchPinyinInitials(name, searchTerm, pinyinFunc) {
+            if (!pinyinFunc || !name) return { match: false, matchedPositions: [] };
+            
+            // 获取所有可能的拼音首字母组合
+            const { initialsMatrix, matchedPositions } = getAllPossibleInitials(name, searchTerm, pinyinFunc);
+            
+            // 检查是否有任何组合匹配搜索词
+            const match = initialsMatrix.some(initials => {
+                const combinedInitials = initials.join('');
+                const startIndex = combinedInitials.indexOf(searchTerm);
+                
+                if (startIndex !== -1) {
+                    // 记录匹配的字符位置
+                    matchedPositions.length = 0; // 清空之前的结果
+                    for (let i = 0; i < searchTerm.length; i++) {
+                        matchedPositions.push(startIndex + i);
+                    }
+                    return true;
+                }
+                return false;
+            });
+            
+            return { match, matchedPositions };
+        }
+
+        // 获取名字所有可能的拼音首字母组合，并尝试匹配搜索词
+        function getAllPossibleInitials(name, searchTerm, pinyinFunc) {
+            // 存储每个字符的所有可能首字母
+            const charInitialsList = [];
+            
+            // 遍历名字中的每个字符
+            for (let i = 0; i < name.length; i++) {
+                const char = name[i];
+                // 获取字符的所有可能拼音
+                const pinyinOptions = pinyinFunc(char, { 
+                    pattern: 'pinyin', 
+                    toneType: 'none',
+                    multiple: true // 获取多音字的所有拼音
+                });
+                
+                // 提取每个拼音的首字母
+                const initials = pinyinOptions
+                    .split(' ')
+                    .map(py => py.charAt(0).toLowerCase());
+                
+                charInitialsList.push(initials);
+            }
+            
+            // 生成所有可能的组合矩阵（每个组合是一个首字母数组）
+            const initialsMatrix = generateInitialsMatrix(charInitialsList);
+            
+            return { initialsMatrix, matchedPositions: [] };
+        }
+
+        // 生成所有可能的首字母组合矩阵
+        function generateInitialsMatrix(charInitialsList) {
+            let result = [[]];
+            
+            charInitialsList.forEach(initials => {
+                const temp = [];
+                result.forEach(prefix => {
+                    initials.forEach(initial => {
+                        temp.push([...prefix, initial]);
+                    });
+                });
+                result = temp;
+            });
+            
+            return result;
+        }
+    }
+
+    // 填充任务表格
     function populateTable(table, tasks, tableId, skipAnimation = false) {
         table.innerHTML = '';
 
@@ -591,7 +767,54 @@ window.eventManagement = (() => {
         radioInputs.appendChild(teamLabel);
         header.appendChild(radioInputs);
         
-        container.appendChild(header);
+        // 创建搜索输入框
+        const searchContainer = document.createElement('div');
+        searchContainer.style.marginBottom = '15px';
+        searchContainer.style.textAlign = 'center';
+
+        const searchInput = document.createElement('input');
+        searchInput.type = 'text';
+        searchInput.id = 'eventSearchInput';
+        searchInput.placeholder = '搜索事件 (支持拼音首字母)';
+        searchInput.style.width = '300px';
+        searchInput.style.padding = '8px 12px';
+        searchInput.style.border = '1px solid rgba(255, 255, 255, 0.2)';
+        searchInput.style.backgroundColor = 'rgba(128, 128, 128, 0.3)';
+        searchInput.style.backdropFilter = 'blur(10px)';
+        searchInput.style.webkitBackdropFilter = 'blur(10px)';
+        searchInput.style.color = '#fff';
+        searchInput.style.borderRadius = '8px';
+        searchInput.style.fontSize = '14px';
+        searchInput.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+        searchInput.style.transition = 'all 0.3s ease';
+
+        // 设置placeholder为纯白色
+        const style = document.createElement('style');
+        style.innerHTML = `
+        #eventSearchInput::placeholder {
+            color: #fff !important;
+            opacity: 1 !important;
+        }
+        #eventSearchInput::-webkit-input-placeholder {
+            color: #fff !important;
+            opacity: 1 !important;
+        }
+        #eventSearchInput:-ms-input-placeholder {
+            color: #fff !important;
+            opacity: 1 !important;
+        }
+        #eventSearchInput::-ms-input-placeholder {
+            color: #fff !important;
+            opacity: 1 !important;
+        }
+        `;
+
+    document.head.appendChild(style);
+
+    searchContainer.appendChild(searchInput);
+    header.appendChild(searchContainer);
+
+    container.appendChild(header);
         
         // 添加事件按钮区域
         const addEventContainer = document.createElement('div');
@@ -947,6 +1170,29 @@ window.eventManagement = (() => {
             
             // 弹窗相关事件绑定
             setupModalControls();
+            
+            // 初始化搜索功能
+            setupEventSearch('eventSearchInput', '#personalEventsInSettings table');
+            
+            // 监听标签页切换，重新绑定搜索功能
+            const personalRadio = document.getElementById('personalEventsRadioInSettings');
+            const teamRadio = document.getElementById('teamEventsRadioInSettings');
+            
+            if (personalRadio) {
+                personalRadio.addEventListener('change', () => {
+                    if (personalRadio.checked) {
+                        setupEventSearch('eventSearchInput', '#personalEventsInSettings table');
+                    }
+                });
+            }
+            
+            if (teamRadio) {
+                teamRadio.addEventListener('change', () => {
+                    if (teamRadio.checked) {
+                        setupEventSearch('eventSearchInput', '#teamEventsInSettings table');
+                    }
+                });
+            }
             
             // 右键菜单事件
             const contextMenuInSettings = container.querySelector('.context-menu');
@@ -1588,6 +1834,7 @@ window.eventManagement = (() => {
         // 新的占位符功能
         editPlaceholder: openPlaceholderEditModal,
         deletePlaceholder: deletePlaceholder,
-        removePlaceholderValue: removePlaceholderValue
+        removePlaceholderValue: removePlaceholderValue,
+        setupEventSearch
     };
 })();
