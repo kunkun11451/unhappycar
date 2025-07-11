@@ -85,6 +85,25 @@ document.addEventListener('DOMContentLoaded', function() {
         updateRerollCount(-1);
     });
 
+    // 占位符处理函数
+    function processPlaceholders(title, missionData) {
+        let processedTitle = title;
+        let processedContent = missionData.内容;
+
+        if (missionData.placeholders) {
+            for (const placeholder in missionData.placeholders) {
+                const values = missionData.placeholders[placeholder];
+                if (values && values.length > 0) {
+                    const randomValue = values[Math.floor(Math.random() * values.length)];
+                    const regex = new RegExp(`\\[${placeholder}\\]`, 'g');
+                    processedTitle = processedTitle.replace(regex, randomValue);
+                    processedContent = processedContent.replace(regex, randomValue);
+                }
+            }
+        }
+        return { title: processedTitle, content: processedContent };
+    }
+
     // 刷新单个事件
     function refreshSingleMission(box, index) {
         // 检查重抽次数功能是否启用
@@ -103,16 +122,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         const randomIndex = Math.floor(Math.random() * keys.length);
-        const missionKey = keys[randomIndex];
+        const originalMissionKey = keys[randomIndex];
         
         // 确保能够访问mission对象
         const missionObj = window.mission || mission;
-        if (!missionObj || !missionObj[missionKey]) {
-            console.error('无法找到事件数据:', missionKey);
+        if (!missionObj || !missionObj[originalMissionKey]) {
+            console.error('无法找到事件数据:', originalMissionKey);
             alert('事件数据加载失败，请刷新页面重试。');
             return;
         }
-        const missionData = missionObj[missionKey];
+        const missionData = missionObj[originalMissionKey];
+
+        // 处理占位符
+        const { title: missionKey, content: baseContent } = processPlaceholders(originalMissionKey, missionData);
 
         // 重置动画
         box.classList.remove('active');
@@ -139,23 +161,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // 设置新内容
             titleElement.textContent = missionKey;
 
-            let modifiedContent = typeof missionData.内容 === 'function'
-                ? missionData.内容()
-                : missionData.内容;
-
-            // 检查是否为“方位车？给我干哪来了？”事件
-            if (missionKey === "方位车？给我干哪来了？") {
-                const AAOptions = ["等级", "命座", "攻击", "生命", "防御", "精通"];
-                const BBOptions = ["上", "下", "左", "右", "左上", "左下", "右上", "右下"];
-
-                const randomAA = AAOptions[Math.floor(Math.random() * AAOptions.length)];
-                const randomBB = BBOptions[Math.floor(Math.random() * BBOptions.length)];
-
-                // 确保替换后的内容不为空
-                modifiedContent = modifiedContent
-                    .replace("AA", randomAA || "未知")
-                    .replace("BB", randomBB || "未知");
-            }
+            let modifiedContent = baseContent;
 
             // 添加随机逻辑 - 根据重抽次数设置决定是否触发
             const randomChance = Math.random();
@@ -267,13 +273,16 @@ document.addEventListener('DOMContentLoaded', function() {
         displayHardMissions();
         
         missionBoxes.forEach((box, index) => {
-            const missionKey = randomMissions[index];
-            const missionData = missionObj[missionKey];
+            const originalMissionKey = randomMissions[index];
+            const missionData = missionObj[originalMissionKey];
             
             if (!missionData) {
-                console.error('无法找到事件数据:', missionKey);
+                console.error('无法找到事件数据:', originalMissionKey);
                 return;
             }
+
+            // 处理占位符
+            const { title: missionKey, content: baseContent } = processPlaceholders(originalMissionKey, missionData);
 
             // 重置动画
             box.classList.remove('active');
@@ -294,23 +303,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // 设置新内容
                 titleElement.textContent = missionKey;
 
-                let modifiedContent = typeof missionData.内容 === 'function' 
-                    ? missionData.内容() 
-                    : missionData.内容;
-
-            // 检查是否为“方位车？给我干哪来了？”事件
-            if (missionKey === "方位车？给我干哪来了？") {
-                const AAOptions = ["等级", "命座", "攻击", "生命", "防御", "精通"];
-                const BBOptions = ["上", "下", "左", "右", "左上", "左下", "右上", "右下"];
-
-                const randomAA = AAOptions[Math.floor(Math.random() * AAOptions.length)];
-                const randomBB = BBOptions[Math.floor(Math.random() * BBOptions.length)];
-
-                // 确保替换后的内容不为空
-                modifiedContent = modifiedContent
-                    .replace("AA", randomAA || "未知")
-                    .replace("BB", randomBB || "未知");
-            }
+                let modifiedContent = baseContent;
 
             // 添加随机逻辑 - 根据重抽次数设置决定是否触发
             const randomChance = Math.random();

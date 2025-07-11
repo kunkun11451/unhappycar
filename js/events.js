@@ -151,24 +151,45 @@ window.eventManagement = (() => {
 
     // 从 localStorage 加载事件数据
     function loadEventsFromStorage() {
-        if (typeof window.mission === 'undefined') {
-            console.warn('mission变量未定义，使用空对象');
-            window.mission = {};
+        // 确保使用全局的mission和hardmission对象作为默认值
+        if (typeof window.mission === 'undefined' || Object.keys(window.mission).length === 0) {
+            console.log('初始化mission事件数据');
+            // 如果window.mission不存在，尝试从其他来源获取
+            if (typeof mission !== 'undefined') {
+                window.mission = mission;
+            } else {
+                window.mission = {};
+                console.warn('mission变量完全未找到，使用空对象');
+            }
         }
-        if (typeof window.hardmission === 'undefined') {
-            console.warn('hardmission变量未定义，使用空对象');
-            window.hardmission = {};
+        if (typeof window.hardmission === 'undefined' || Object.keys(window.hardmission).length === 0) {
+            console.log('初始化hardmission事件数据');
+            // 如果window.hardmission不存在，尝试从其他来源获取
+            if (typeof hardmission !== 'undefined') {
+                window.hardmission = hardmission;
+            } else {
+                window.hardmission = {};
+                console.warn('hardmission变量完全未找到，使用空对象');
+            }
         }
 
         const savedMissions = localStorage.getItem('missions');
         const savedHardMissions = localStorage.getItem('hardmissions');
 
         if (savedMissions) {
-            Object.assign(window.mission, JSON.parse(savedMissions));
+            // 如果有本地存储数据，完全替换而不是合并
+            window.mission = JSON.parse(savedMissions);
+        } else {
+            // 如果没有本地存储数据，保存当前的默认数据到本地存储
+            saveEventsToStorage();
         }
 
         if (savedHardMissions) {
-            Object.assign(window.hardmission, JSON.parse(savedHardMissions));
+            // 如果有本地存储数据，完全替换而不是合并
+            window.hardmission = JSON.parse(savedHardMissions);
+        } else {
+            // 如果没有本地存储数据，保存当前的默认数据到本地存储
+            saveEventsToStorage();
         }
     }
 
@@ -299,32 +320,8 @@ window.eventManagement = (() => {
     function editEvent() {
         if (!currentEventKey || !currentEventType) return;
 
-        const isPersonal = currentEventType === 'personal';
-        
-        const missionObj = window.mission || {};
-        const hardmissionObj = window.hardmission || {};
-        
-        const eventData = isPersonal ? missionObj[currentEventKey] : hardmissionObj[currentEventKey];
-
-        const newContent = prompt('编辑事件内容：', eventData.内容);
-        if (newContent) {
-            if (isPersonal) {
-                missionObj[currentEventKey].内容 = newContent;
-                if (window.mission && window.mission[currentEventKey]) {
-                    window.mission[currentEventKey].内容 = newContent;
-                }
-            } else {
-                hardmissionObj[currentEventKey].内容 = newContent;
-                if (window.hardmission && window.hardmission[currentEventKey]) {
-                    window.hardmission[currentEventKey].内容 = newContent;
-                }
-            }            saveEventsToStorage();
-
-            const table = document.getElementById(isPersonal ? 'personalEventsTable' : 'teamEventsTable');
-            if (table) {
-                populateTable(table, isPersonal ? missionObj : hardmissionObj, isPersonal ? 'personalEventsTable' : 'teamEventsTable', true);
-            }
-        }
+        // 使用新的弹窗进行编辑
+        openEventModal(currentEventType, currentEventKey);
 
         hideContextMenu();
     }
@@ -540,7 +537,7 @@ window.eventManagement = (() => {
         instructionText.style.fontSize = '14px';
         instructionText.style.color = 'rgb(197, 197, 197)';
         instructionText.style.marginBottom = '10px';
-        instructionText.textContent = '最下方可添加事件，右键/长按可删除或编辑事件，无法右键请关闭Simple Allow Copy等插件';
+        instructionText.textContent = '右键/长按可删除或编辑事件，无法右键请关闭Simple Allow Copy等插件';
         header.appendChild(instructionText);
         
         // 创建单选按钮
@@ -596,6 +593,158 @@ window.eventManagement = (() => {
         
         container.appendChild(header);
         
+        // 添加事件按钮区域
+        const addEventContainer = document.createElement('div');
+        addEventContainer.id = 'addEventContainer';
+        addEventContainer.style.marginBottom = '20px';
+        addEventContainer.style.display = 'flex';
+        addEventContainer.style.justifyContent = 'center';
+        addEventContainer.style.alignItems = 'center';
+        addEventContainer.style.gap = '15px';
+        
+        // 创建按钮样式函数
+        function createStyledButton(id, text, bgColor, hoverColor) {
+            const button = document.createElement('button');
+            button.id = id;
+            button.textContent = text;
+            button.className = 'add-event-btn';
+            
+            // 基础样式
+            button.style.cssText = `
+                padding: 12px 24px;
+                background: linear-gradient(135deg, ${bgColor}, ${hoverColor});
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
+                min-width: 140px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                position: relative;
+                overflow: hidden;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            `;
+            
+            // 添加动画效果
+            button.addEventListener('mouseenter', () => {
+                button.style.transform = 'translateY(-2px) scale(1.02)';
+                button.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.15)';
+                button.style.background = `linear-gradient(135deg, ${hoverColor}, ${bgColor})`;
+            });
+            
+            button.addEventListener('mouseleave', () => {
+                button.style.transform = 'translateY(0) scale(1)';
+                button.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.1)';
+                button.style.background = `linear-gradient(135deg, ${bgColor}, ${hoverColor})`;
+            });
+            
+            button.addEventListener('mousedown', () => {
+                button.style.transform = 'translateY(1px) scale(0.98)';
+            });
+            
+            button.addEventListener('mouseup', () => {
+                button.style.transform = 'translateY(-2px) scale(1.02)';
+            });
+            
+            // 添加点击波纹效果
+            button.addEventListener('click', (e) => {
+                const ripple = document.createElement('span');
+                const rect = button.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+                
+                ripple.style.cssText = `
+                    position: absolute;
+                    width: ${size}px;
+                    height: ${size}px;
+                    left: ${x}px;
+                    top: ${y}px;
+                    background: rgba(255, 255, 255, 0.3);
+                    border-radius: 50%;
+                    transform: scale(0);
+                    animation: ripple 0.6s ease-out;
+                    pointer-events: none;
+                `;
+                
+                button.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            });
+            
+            return button;
+        }
+        
+        // 添加波纹动画样式
+        if (!document.querySelector('#ripple-animation')) {
+            const style = document.createElement('style');
+            style.id = 'ripple-animation';
+            style.textContent = `
+                @keyframes ripple {
+                    to {
+                        transform: scale(2);
+                        opacity: 0;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        const addPersonalButton = createStyledButton(
+            'addPersonalButton', 
+            '添加个人事件', 
+            '#2ecc71', 
+            '#27ae60'
+        );
+        addPersonalButton.style.display = 'block'; // 默认显示个人事件按钮
+        addPersonalButton.addEventListener('click', () => openEventModal('personal'));
+        addEventContainer.appendChild(addPersonalButton);
+        
+        const addTeamButton = createStyledButton(
+            'addTeamButton', 
+            '添加团队事件', 
+            '#2ecc71', 
+            '#27ae60'
+        );
+        addTeamButton.style.display = 'none'; // 默认隐藏团队事件按钮
+        addTeamButton.addEventListener('click', () => openEventModal('team'));
+        addEventContainer.appendChild(addTeamButton);
+        
+        container.appendChild(addEventContainer);
+                
+        // 添加导出导入按钮
+        const exportAllContainer = document.createElement('div');
+        exportAllContainer.style.marginBottom = '20px';
+        exportAllContainer.style.display = 'flex';
+        exportAllContainer.style.justifyContent = 'center';
+        exportAllContainer.style.alignItems = 'center';
+        exportAllContainer.style.gap = '15px';
+        
+        const exportAllButton = createStyledButton(
+            'exportAllButton',
+            '📤 导出事件',
+            '#3498db',
+            '#2980b9'
+        );
+        exportAllButton.addEventListener('click', exportAllEvents);
+        exportAllContainer.appendChild(exportAllButton);
+        
+        const importAllButton = createStyledButton(
+            'importAllButton',
+            '📥 导入事件',
+            '#9b59b6',
+            '#8e44ad'
+        );
+        importAllButton.addEventListener('click', importAllEvents);
+        exportAllContainer.appendChild(importAllButton);
+        
+        header.appendChild(exportAllContainer);
+
         // 创建个人事件内容区域
         const personalEvents = document.createElement('div');
         personalEvents.id = 'personalEventsInSettings';
@@ -640,49 +789,6 @@ window.eventManagement = (() => {
         personalTable.appendChild(personalTbody);
         
         personalEvents.appendChild(personalTable);
-          // 添加个人事件表单
-        const personalForm = document.createElement('div');
-        personalForm.className = 'add-event-form';
-        personalForm.style.display = 'flex';
-        personalForm.style.flexDirection = 'column';
-        personalForm.style.gap = '10px';
-        personalForm.style.marginBottom = '20px';
-        personalForm.style.opacity = '0'; // 初始设置为不可见
-        personalForm.style.transition = 'opacity 0.3s ease'; // 添加平滑过渡
-        
-        const personalTitleInput = document.createElement('input');
-        personalTitleInput.type = 'text';
-        personalTitleInput.id = 'newEventTitle';
-        personalTitleInput.placeholder = '添加个人事件: 标题';
-        personalTitleInput.className = 'input-field';
-        personalTitleInput.style.padding = '8px';
-        personalTitleInput.style.border = '1px solid #ddd';
-        personalTitleInput.style.borderRadius = '4px';
-        
-        const personalContentTextarea = document.createElement('textarea');
-        personalContentTextarea.id = 'newEventContent';
-        personalContentTextarea.placeholder = '添加个人事件: 内容';
-        personalContentTextarea.className = 'textarea-field';
-        personalContentTextarea.style.padding = '8px';
-        personalContentTextarea.style.border = '1px solid #ddd';
-        personalContentTextarea.style.borderRadius = '4px';
-        personalContentTextarea.style.minHeight = '60px';
-        personalContentTextarea.style.resize = 'vertical';
-        
-        const personalAddButton = document.createElement('button');
-        personalAddButton.id = 'addEventButton';
-        personalAddButton.textContent = '添加事件';
-        personalAddButton.className = 'add-event-btn';
-        personalAddButton.style.padding = '8px 16px';
-        personalAddButton.style.color = 'white';
-        personalAddButton.style.border = 'none';
-        personalAddButton.style.borderRadius = '4px';
-        personalAddButton.style.cursor = 'pointer';
-        
-        personalForm.appendChild(personalTitleInput);
-        personalForm.appendChild(personalContentTextarea);
-        personalForm.appendChild(personalAddButton);
-        personalEvents.appendChild(personalForm);
         
         container.appendChild(personalEvents);
         
@@ -730,49 +836,6 @@ window.eventManagement = (() => {
         teamTable.appendChild(teamTbody);
         
         teamEvents.appendChild(teamTable);
-          // 添加团队事件表单
-        const teamForm = document.createElement('div');
-        teamForm.className = 'add-event-form';
-        teamForm.style.display = 'flex';
-        teamForm.style.flexDirection = 'column';
-        teamForm.style.gap = '10px';
-        teamForm.style.marginBottom = '20px';
-        teamForm.style.opacity = '0'; // 初始设置为不可见
-        teamForm.style.transition = 'opacity 0.3s ease'; // 添加平滑过渡
-        
-        const teamTitleInput = document.createElement('input');
-        teamTitleInput.type = 'text';
-        teamTitleInput.id = 'newTeamEventTitle';
-        teamTitleInput.placeholder = '添加团队事件: 标题';
-        teamTitleInput.className = 'input-field';
-        teamTitleInput.style.padding = '8px';
-        teamTitleInput.style.border = '1px solid #ddd';
-        teamTitleInput.style.borderRadius = '4px';
-        
-        const teamContentTextarea = document.createElement('textarea');
-        teamContentTextarea.id = 'newTeamEventContent';
-        teamContentTextarea.placeholder = '添加团队事件: 内容';
-        teamContentTextarea.className = 'textarea-field';
-        teamContentTextarea.style.padding = '8px';
-        teamContentTextarea.style.border = '1px solid #ddd';
-        teamContentTextarea.style.borderRadius = '4px';
-        teamContentTextarea.style.minHeight = '60px';
-        teamContentTextarea.style.resize = 'vertical';
-        
-        const teamAddButton = document.createElement('button');
-        teamAddButton.id = 'addTeamEventButton';
-        teamAddButton.textContent = '添加事件';
-        teamAddButton.className = 'add-event-btn';
-        teamAddButton.style.padding = '8px 16px';
-        teamAddButton.style.color = 'white';
-        teamAddButton.style.border = 'none';
-        teamAddButton.style.borderRadius = '4px';
-        teamAddButton.style.cursor = 'pointer';
-        
-        teamForm.appendChild(teamTitleInput);
-        teamForm.appendChild(teamContentTextarea);
-        teamForm.appendChild(teamAddButton);
-        teamEvents.appendChild(teamForm);
         
         container.appendChild(teamEvents);
         
@@ -848,6 +911,14 @@ window.eventManagement = (() => {
                         personalEventsInSettings.style.display = 'block';
                         teamEventsInSettings.style.display = 'none';
                         
+                        // 控制添加按钮显示
+                        const addPersonalButton = document.getElementById('addPersonalButton');
+                        const addTeamButton = document.getElementById('addTeamButton');
+                        if (addPersonalButton && addTeamButton) {
+                            addPersonalButton.style.display = 'block';
+                            addTeamButton.style.display = 'none';
+                        }
+                        
                         // 触发个人事件表格的动画效果
                         const personalTableBody = document.getElementById('personalEventsTable');
                         triggerTableAnimation(personalTableBody);
@@ -859,6 +930,14 @@ window.eventManagement = (() => {
                         personalEventsInSettings.style.display = 'none';
                         teamEventsInSettings.style.display = 'block';
                         
+                        // 控制添加按钮显示
+                        const addPersonalButton = document.getElementById('addPersonalButton');
+                        const addTeamButton = document.getElementById('addTeamButton');
+                        if (addPersonalButton && addTeamButton) {
+                            addPersonalButton.style.display = 'none';
+                            addTeamButton.style.display = 'block';
+                        }
+                        
                         // 触发团队事件表格的动画效果
                         const teamTableBody = document.getElementById('teamEventsTable');
                         triggerTableAnimation(teamTableBody);
@@ -866,83 +945,8 @@ window.eventManagement = (() => {
                 });
             }
             
-            // 添加个人事件按钮事件
-            const addEventButtonInSettings = document.getElementById('addEventButton');
-            const newEventTitleInSettings = document.getElementById('newEventTitle');
-            const newEventContentInSettings = document.getElementById('newEventContent');
-            
-            if (addEventButtonInSettings && newEventTitleInSettings && newEventContentInSettings) {
-                addEventButtonInSettings.addEventListener('click', () => {
-                    const title = newEventTitleInSettings.value.trim();
-                    const content = newEventContentInSettings.value.trim();
-
-                    if (!title || !content) {
-                        alert('事件标题和内容不能为空！');
-                        return;
-                    }
-
-                    const missionObj = window.mission || {};
-                    if (!window.mission) window.mission = missionObj;
-
-                    if (missionObj[title]) {
-                        alert('事件标题已存在，请使用其他标题！');
-                        return;
-                    }
-
-                    missionObj[title] = { 内容: content };
-                    if (window.mission) {
-                        window.mission[title] = { 内容: content };
-                    }
-
-                    const savedState = JSON.parse(localStorage.getItem('personalEventsTable-checkedState')) || {};
-                    savedState[title] = true;
-                    localStorage.setItem('personalEventsTable-checkedState', JSON.stringify(savedState));                    saveEventsToStorage();
-
-                    populateTable(personalTableBody, missionObj, 'personalEventsTable', true); // 跳过动画
-
-                    newEventTitleInSettings.value = '';
-                    newEventContentInSettings.value = '';
-                });
-            }
-            
-            // 添加团队事件按钮事件
-            const addTeamEventButtonInSettings = document.getElementById('addTeamEventButton');
-            const newTeamEventTitleInSettings = document.getElementById('newTeamEventTitle');
-            const newTeamEventContentInSettings = document.getElementById('newTeamEventContent');
-            
-            if (addTeamEventButtonInSettings && newTeamEventTitleInSettings && newTeamEventContentInSettings) {
-                addTeamEventButtonInSettings.addEventListener('click', () => {
-                    const title = newTeamEventTitleInSettings.value.trim();
-                    const content = newTeamEventContentInSettings.value.trim();
-
-                    if (!title || !content) {
-                        alert('事件标题和内容不能为空！');
-                        return;
-                    }
-
-                    const hardmissionObj = window.hardmission || {};
-                    if (!window.hardmission) window.hardmission = hardmissionObj;
-
-                    if (hardmissionObj[title]) {
-                        alert('事件标题已存在，请使用其他标题！');
-                        return;
-                    }
-
-                    hardmissionObj[title] = { 内容: content };
-                    if (window.hardmission) {
-                        window.hardmission[title] = { 内容: content };
-                    }
-
-                    const savedState = JSON.parse(localStorage.getItem('teamEventsTable-checkedState')) || {};
-                    savedState[title] = true;
-                    localStorage.setItem('teamEventsTable-checkedState', JSON.stringify(savedState));                    saveEventsToStorage();
-
-                    populateTable(teamTableBody, hardmissionObj, 'teamEventsTable', true); // 跳过动画
-
-                    newTeamEventTitleInSettings.value = '';
-                    newTeamEventContentInSettings.value = '';
-                });
-            }
+            // 弹窗相关事件绑定
+            setupModalControls();
             
             // 右键菜单事件
             const contextMenuInSettings = container.querySelector('.context-menu');
@@ -1054,7 +1058,522 @@ window.eventManagement = (() => {
                 localStorage.setItem('teamEventsTable-checkedState', JSON.stringify(savedState));
             }
         }
-    }    // 公共接口
+    }
+
+    // --- 弹窗相关函数 ---
+
+    let currentEditingType = 'personal'; // 'personal' or 'team'
+    let currentEditingKey = null;
+
+    function openEventModal(type, key = null) {
+        const modal = document.getElementById('eventModal');
+        const overlay = document.getElementById('eventModalOverlay');
+        const titleInput = document.getElementById('eventTitle');
+        const contentInput = document.getElementById('eventContent');
+        const placeholdersContainer = document.getElementById('placeholdersContainer');
+
+        currentEditingType = type;
+        currentEditingKey = key;
+
+        // 重置表单
+        titleInput.value = '';
+        contentInput.value = '';
+        placeholderData = {}; // 重置占位符数据
+
+        if (key) {
+            // 编辑模式
+            const eventData = (type === 'personal' ? window.mission : window.hardmission)[key];
+            if (eventData) {
+                titleInput.value = key;
+                contentInput.value = eventData.内容;
+                if (eventData.placeholders) {
+                    placeholderData = { ...eventData.placeholders };
+                }
+            }
+        }
+
+        // 渲染占位符卡片
+        renderPlaceholderCards();
+
+        modal.style.display = 'block';
+        overlay.style.display = 'block';
+    }
+
+    function closeEventModal() {
+        const modal = document.getElementById('eventModal');
+        const overlay = document.getElementById('eventModalOverlay');
+        modal.style.display = 'none';
+        overlay.style.display = 'none';
+    }
+
+    function addPlaceholderInput(name = '', values = '') {
+        // 旧的函数保留用于兼容性，但不再使用
+        console.log('addPlaceholderInput called with legacy parameters');
+    }
+
+    // 新的占位符管理系统
+    let currentEditingPlaceholder = null;
+    let placeholderData = {};
+
+    function renderPlaceholderCards() {
+        const container = document.getElementById('placeholdersContainer');
+        container.innerHTML = '';
+
+        // 渲染现有的占位符卡片
+        Object.entries(placeholderData).forEach(([name, values]) => {
+            const card = createPlaceholderCard(name, values);
+            container.appendChild(card);
+        });
+
+        // 添加新增卡片
+        const addCard = createAddPlaceholderCard();
+        container.appendChild(addCard);
+    }
+
+    function createPlaceholderCard(name, values) {
+        const card = document.createElement('div');
+        card.className = 'placeholder-card';
+        card.innerHTML = `
+            <div class="placeholder-card-header">
+                <div class="placeholder-card-name">${name}</div>
+                <div class="placeholder-card-actions">
+                    <button class="placeholder-card-btn placeholder-edit-btn" onclick="window.eventManagement.editPlaceholder('${name}')" title="编辑">
+                        ✏️
+                    </button>
+                    <button class="placeholder-card-btn placeholder-delete-btn" onclick="window.eventManagement.deletePlaceholder('${name}')" title="删除">
+                        🗑️
+                    </button>
+                </div>
+            </div>
+            <div class="placeholder-card-values">
+                ${values.map(value => `<span class="placeholder-value-tag">${value}</span>`).join('')}
+            </div>
+            <div class="placeholder-copy-hint">点击卡片复制引用标签</div>
+        `;
+        
+        // 添加点击复制功能
+        card.addEventListener('click', (e) => {
+            // 如果点击的是按钮，不执行复制
+            if (e.target.closest('.placeholder-card-btn')) {
+                return;
+            }
+            
+            const referenceTag = `[${name}]`;
+            copyToClipboard(referenceTag, name);
+        });
+        
+        return card;
+    }
+
+    function createAddPlaceholderCard() {
+        const card = document.createElement('div');
+        card.className = 'placeholder-add-card';
+        card.innerHTML = `
+            <div class="placeholder-add-icon">+</div>
+            <div class="placeholder-add-text">添加新的随机词条</div>
+        `;
+        card.onclick = () => openPlaceholderEditModal();
+        return card;
+    }
+
+    function openPlaceholderEditModal(placeholderName = null) {
+        const modal = document.getElementById('placeholderEditModal');
+        const titleElement = document.getElementById('placeholderEditTitle');
+        const nameInput = document.getElementById('placeholderNameInput');
+        const valuesList = document.getElementById('placeholderValuesList');
+
+        currentEditingPlaceholder = placeholderName;
+        
+        if (placeholderName) {
+            titleElement.textContent = '编辑随机词条';
+            nameInput.value = placeholderName;
+            nameInput.disabled = true; // 编辑时不允许修改名称
+            renderPlaceholderValues(placeholderData[placeholderName] || []);
+        } else {
+            titleElement.textContent = '添加随机词条';
+            nameInput.value = '';
+            nameInput.disabled = false;
+            renderPlaceholderValues([]);
+        }
+
+        clearPlaceholderErrors();
+        modal.style.display = 'flex';
+    }
+
+    function closePlaceholderEditModal() {
+        const modal = document.getElementById('placeholderEditModal');
+        modal.style.display = 'none';
+        currentEditingPlaceholder = null;
+    }
+
+    function renderPlaceholderValues(values) {
+        const valuesList = document.getElementById('placeholderValuesList');
+        valuesList.innerHTML = '';
+
+        values.forEach((value, index) => {
+            const valueItem = createPlaceholderValueItem(value, index);
+            valuesList.appendChild(valueItem);
+        });
+
+        // 如果没有值，添加一个空的输入框
+        if (values.length === 0) {
+            addPlaceholderValueInput('');
+        }
+    }
+
+    function createPlaceholderValueItem(value, index) {
+        const item = document.createElement('div');
+        item.className = 'placeholder-value-item';
+        item.innerHTML = `
+            <input type="text" class="placeholder-value-input" value="${value}" data-index="${index}" placeholder="一个框一个词条，需要多个请点击”添加值“">
+            <button type="button" class="placeholder-value-delete" onclick="window.eventManagement.removePlaceholderValue(${index})">×</button>
+        `;
+        return item;
+    }
+
+    function addPlaceholderValueInput(value = '') {
+        const valuesList = document.getElementById('placeholderValuesList');
+        const index = valuesList.children.length;
+        const valueItem = createPlaceholderValueItem(value, index);
+        valuesList.appendChild(valueItem);
+    }
+
+    function removePlaceholderValue(index) {
+        const valuesList = document.getElementById('placeholderValuesList');
+        const item = valuesList.children[index];
+        if (item) {
+            item.remove();
+            // 重新编号
+            Array.from(valuesList.children).forEach((child, newIndex) => {
+                const input = child.querySelector('.placeholder-value-input');
+                const deleteBtn = child.querySelector('.placeholder-value-delete');
+                input.setAttribute('data-index', newIndex);
+                deleteBtn.setAttribute('onclick', `window.eventManagement.removePlaceholderValue(${newIndex})`);
+            });
+        }
+    }
+
+    function savePlaceholder() {
+        const nameInput = document.getElementById('placeholderNameInput');
+        const valuesList = document.getElementById('placeholderValuesList');
+        
+        const name = nameInput.value.trim();
+        if (!name) {
+            showPlaceholderError('placeholderNameError', '词条名称不能为空');
+            return;
+        }
+
+        // 检查名称是否重复（仅在新增时检查）
+        if (!currentEditingPlaceholder && placeholderData.hasOwnProperty(name)) {
+            showPlaceholderError('placeholderNameError', '词条名称已存在');
+            return;
+        }
+
+        // 收集所有值
+        const values = [];
+        const valueInputs = valuesList.querySelectorAll('.placeholder-value-input');
+        valueInputs.forEach(input => {
+            const value = input.value.trim();
+            if (value) {
+                // 检查值是否重复
+                if (values.includes(value)) {
+                    showPlaceholderError('placeholderNameError', `值 "${value}" 重复了`);
+                    return;
+                }
+                values.push(value);
+            }
+        });
+
+        if (values.length === 0) {
+            showPlaceholderError('placeholderNameError', '至少需要添加一个值');
+            return;
+        }
+
+        // 如果是编辑现有占位符且名称改变了，删除旧的
+        if (currentEditingPlaceholder && currentEditingPlaceholder !== name) {
+            delete placeholderData[currentEditingPlaceholder];
+        }
+
+        // 保存数据
+        placeholderData[name] = values;
+        
+        // 重新渲染卡片
+        renderPlaceholderCards();
+        
+        // 关闭模态框
+        closePlaceholderEditModal();
+    }
+
+    function deletePlaceholder(name) {
+        if (confirm(`确定要删除随机词条 "${name}" 吗？`)) {
+            delete placeholderData[name];
+            renderPlaceholderCards();
+        }
+    }
+
+    function showPlaceholderError(elementId, message) {
+        const errorElement = document.getElementById(elementId);
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
+    }
+
+    function clearPlaceholderErrors() {
+        const errorElement = document.getElementById('placeholderNameError');
+        errorElement.style.display = 'none';
+    }
+
+    // 复制到剪贴板的函数
+    function copyToClipboard(text, placeholderName) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            // 使用现代 Clipboard API
+            navigator.clipboard.writeText(text).then(() => {
+                showCopySuccessMessage(placeholderName);
+            }).catch(() => {
+                // 如果失败，使用备用方法
+                fallbackCopyToClipboard(text, placeholderName);
+            });
+        } else {
+            // 备用方法
+            fallbackCopyToClipboard(text, placeholderName);
+        }
+    }
+
+    function fallbackCopyToClipboard(text, placeholderName) {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+            document.execCommand('copy');
+            showCopySuccessMessage(placeholderName);
+        } catch (err) {
+            console.error('复制失败:', err);
+            alert('复制失败，请手动复制：' + text);
+        }
+        
+        document.body.removeChild(textArea);
+    }
+
+    function showCopySuccessMessage(placeholderName) {
+        // 创建临时提示消息
+        const message = document.createElement('div');
+        message.className = 'copy-success-message';
+        message.textContent = `已复制引用标签 [${placeholderName}]`;
+        message.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(46, 204, 113, 0.9);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 10000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(10px);
+            animation: slideInRight 0.3s ease-out;
+        `;
+        
+        document.body.appendChild(message);
+        
+        // 3秒后移除消息
+        setTimeout(() => {
+            if (message.parentNode) {
+                message.style.animation = 'slideOutRight 0.3s ease-in';
+                setTimeout(() => {
+                    document.body.removeChild(message);
+                }, 300);
+            }
+        }, 3000);
+    }
+
+    function saveEvent() {
+        const title = document.getElementById('eventTitle').value.trim();
+        const content = document.getElementById('eventContent').value.trim();
+
+        if (!title || !content) {
+            alert('事件标题和内容不能为空！');
+            return;
+        }
+
+        const eventPool = currentEditingType === 'personal' ? window.mission : window.hardmission;
+        
+        // 检查标题是否重复（仅在新增或编辑时标题有变化的情况下）
+        if ((!currentEditingKey || currentEditingKey !== title) && eventPool.hasOwnProperty(title)) {
+            alert(`事件标题 "${title}" 已存在，请使用不同的标题！`);
+            return;
+        }
+
+        // 使用新的占位符系统数据
+        const eventData = {
+            '内容': content
+        };
+
+        if (Object.keys(placeholderData).length > 0) {
+            eventData.placeholders = { ...placeholderData };
+        }
+        
+        // 如果是编辑模式且标题已更改，则删除旧条目
+        if (currentEditingKey && currentEditingKey !== title) {
+            delete eventPool[currentEditingKey];
+        }
+
+        eventPool[title] = eventData;
+        saveEventsToStorage();
+
+        // 刷新表格
+        const tableId = currentEditingType === 'personal' ? 'personalEventsTable' : 'teamEventsTable';
+        const table = document.getElementById(tableId);
+        populateTable(table, eventPool, tableId, true);
+
+        closeEventModal();
+    }
+
+    let modalControlsInitialized = false;
+    function setupModalControls() {
+        if (modalControlsInitialized) return;
+
+        // 移除旧的添加占位符按钮事件（因为现在使用卡片系统）
+        document.getElementById('saveEventBtn').addEventListener('click', saveEvent);
+        document.getElementById('cancelEventBtn').addEventListener('click', closeEventModal);
+        document.getElementById('eventModalOverlay').addEventListener('click', closeEventModal);
+
+        // 新的占位符编辑模态框事件监听器
+        document.getElementById('placeholderEditClose').addEventListener('click', closePlaceholderEditModal);
+        document.getElementById('placeholderCancelBtn').addEventListener('click', closePlaceholderEditModal);
+        document.getElementById('placeholderSaveBtn').addEventListener('click', savePlaceholder);
+        document.getElementById('addPlaceholderValue').addEventListener('click', () => addPlaceholderValueInput());
+        
+        // 点击模态框外部关闭
+        document.getElementById('placeholderEditModal').addEventListener('click', (e) => {
+            if (e.target.id === 'placeholderEditModal') {
+                closePlaceholderEditModal();
+            }
+        });
+
+        const helpBtn = document.getElementById('placeholderHelpBtn');
+        const tooltip = document.getElementById('placeholderTooltip');
+        helpBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            tooltip.style.display = tooltip.style.display === 'block' ? 'none' : 'block';
+        });
+
+        document.addEventListener('click', (e) => {
+            if (tooltip.style.display === 'block' && !tooltip.contains(e.target) && e.target !== helpBtn) {
+                tooltip.style.display = 'none';
+            }
+        });
+
+        modalControlsInitialized = true;
+    }
+
+    // 导出所有事件
+    function exportAllEvents() {
+        try {
+            const allEvents = {
+                personalEvents: window.mission || {},
+                teamEvents: window.hardmission || {},
+                exportTime: new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }),
+            };
+            
+            const dataStr = JSON.stringify(allEvents, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `unhappycar事件导出_${new Date().toISOString().slice(0, 10)}.json`;
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            alert('事件导出成功！');
+        } catch (error) {
+            console.error('导出失败：', error);
+            alert('导出失败，请稍后重试');
+        }
+    }
+    
+    // 导入所有事件
+    function importAllEvents() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        
+        input.onchange = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    // 验证数据格式
+                    if (!importedData.personalEvents || !importedData.teamEvents) {
+                        alert('文件格式不正确，请选择正确的事件导出文件');
+                        return;
+                    }
+                    
+                    // 确认导入操作
+                    const confirmMessage = `将要导入：
+- 个人事件：${Object.keys(importedData.personalEvents).length} 个
+- 团队事件：${Object.keys(importedData.teamEvents).length} 个
+
+注意：这将覆盖当前所有事件数据，是否继续？`;
+                    
+                    if (!confirm(confirmMessage)) {
+                        return;
+                    }
+                    
+                    // 导入数据
+                    window.mission = importedData.personalEvents;
+                    window.hardmission = importedData.teamEvents;
+                    
+                    // 保存到本地存储
+                    saveEventsToStorage();
+                    
+                    // 刷新事件管理界面
+                    refreshEventManagement();
+                    
+                    alert('事件导入成功！');
+                } catch (error) {
+                    console.error('导入失败：', error);
+                    alert('文件格式错误或损坏，导入失败');
+                }
+            };
+            
+            reader.readAsText(file);
+        };
+        
+        input.click();
+    }
+    
+    // 刷新事件管理界面
+    function refreshEventManagement() {
+        // 重新填充个人事件表格
+        const personalTable = document.getElementById('personalEventsTable');
+        if (personalTable) {
+            populateTable(personalTable, window.mission || {}, 'personalEventsTable', true);
+        }
+        
+        // 重新填充团队事件表格
+        const teamTable = document.getElementById('teamEventsTable');
+        if (teamTable) {
+            populateTable(teamTable, window.hardmission || {}, 'teamEventsTable', true);
+        }
+        
+        // 清除勾选状态缓存，重新计算
+        localStorage.removeItem('personalEventsTable-checkedState');
+        localStorage.removeItem('teamEventsTable-checkedState');
+    }
+
+    // 公共接口
     return {
         loadEventManagement,
         populateTable,
@@ -1065,6 +1584,10 @@ window.eventManagement = (() => {
         bindTableRowContextMenu,
         initializeEventData,
         triggerTableAnimation,
-        setAddEventFormsVisibility
+        setAddEventFormsVisibility,
+        // 新的占位符功能
+        editPlaceholder: openPlaceholderEditModal,
+        deletePlaceholder: deletePlaceholder,
+        removePlaceholderValue: removePlaceholderValue
     };
 })();

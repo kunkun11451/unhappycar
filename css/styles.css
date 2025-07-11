@@ -1213,8 +1213,9 @@ position: absolute;
 
 .settings-content h2 {
     margin-bottom: 10px;
-    font-size: 20px;
+    font-size: 30px;
     color: #fff;
+    text-align: center;
 }
 
 .value.active {
@@ -1976,6 +1977,9 @@ position: absolute;
     .character-management-container {
         padding: 0px;
     }
+        .placeholder-tooltip {
+            width: 100% !important;
+        }
 }
 
     /* 大屏幕默认显示菜单选项栏 */

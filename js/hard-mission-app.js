@@ -8,16 +8,26 @@ function getHardMissionKeys() {
     
     // 如果表格不存在（用户还没打开事件管理），从localStorage读取勾选状态
     if (checkboxes.length === 0) {
+        // 确保事件数据已从localStorage加载
+        if (window.eventManagement && typeof window.eventManagement.loadEventsFromStorage === 'function') {
+            window.eventManagement.loadEventsFromStorage();
+        }
+        
         // 确保hardmission对象存在
-        const hardmissionObj = window.hardmission || hardmission;
-        if (!hardmissionObj) {
-            console.error('hardmission对象未找到');
+        const hardmissionObj = window.hardmission || (typeof hardmission !== 'undefined' ? hardmission : {});
+        if (!hardmissionObj || Object.keys(hardmissionObj).length === 0) {
+            console.error('hardmission对象未找到或为空');
             return [];
         }
         
         // 从localStorage读取保存的勾选状态
         const savedState = JSON.parse(localStorage.getItem('teamEventsTable-checkedState')) || {};
         const allKeys = Object.keys(hardmissionObj);
+        
+        console.log('从localStorage加载困难事件:', {
+            totalEvents: allKeys.length,
+            savedState: Object.keys(savedState).length > 0 ? '有保存状态' : '无保存状态'
+        });
         
         // 如果没有保存的状态，默认所有事件都启用
         if (Object.keys(savedState).length === 0) {
@@ -34,6 +44,25 @@ function getHardMissionKeys() {
         }
     });
     return enabledKeys;
+}
+
+// 处理困难事件占位符
+function processHardMissionPlaceholders(title, missionData) {
+    let processedTitle = title;
+    let processedContent = missionData.内容;
+
+    if (missionData.placeholders) {
+        for (const placeholder in missionData.placeholders) {
+            const values = missionData.placeholders[placeholder];
+            if (values && values.length > 0) {
+                const randomValue = values[Math.floor(Math.random() * values.length)];
+                const regex = new RegExp(`\\[${placeholder}\\]`, 'g');
+                processedTitle = processedTitle.replace(regex, randomValue);
+                processedContent = processedContent.replace(regex, randomValue);
+            }
+        }
+    }
+    return { title: processedTitle, content: processedContent };
 }
 
 // 投票系统全局变量
@@ -53,10 +82,15 @@ function displayHardMissionsWithVoting(hardMissionKeys) {
         return;
     }
     
+    // 确保事件数据已从localStorage加载
+    if (window.eventManagement && typeof window.eventManagement.loadEventsFromStorage === 'function') {
+        window.eventManagement.loadEventsFromStorage();
+    }
+    
     // 确保能够访问hardmission对象
-    const hardmissionObj = window.hardmission || hardmission;
-    if (!hardmissionObj) {
-        console.error('hardmission对象未找到');
+    const hardmissionObj = window.hardmission || (typeof hardmission !== 'undefined' ? hardmission : {});
+    if (!hardmissionObj || Object.keys(hardmissionObj).length === 0) {
+        console.error('hardmission对象未找到或为空');
         return;
     }
     
@@ -135,31 +169,14 @@ function createHardMissionUI(hardMissionsContainer, hardMissionsGrid, hardmissio
         
         const titleElement = document.createElement('div');
         titleElement.className = 'hard-mission-title';
-        titleElement.textContent = missionKey;
         
         const contentElement = document.createElement('div');
         contentElement.className = 'hard-mission-content';
         
-        // 处理"谁？"事件的NPC替换
-        if (missionKey === "谁？" && window.npc) {
-            const npcNames = Object.keys(window.npc);
-            if (npcNames.length > 0) {
-                const randomIndex = Math.floor(Math.random() * npcNames.length);
-                const randomNpcName = npcNames[randomIndex];
-                const npcData = window.npc[randomNpcName];
-                
-                let modifiedContent = missionData.内容
-                    .replace("AA", randomNpcName)
-                    .replace("BB", npcData.国家)
-                    .replace("CC", npcData.职业);
-                
-                contentElement.textContent = modifiedContent;
-            } else {
-                contentElement.textContent = missionData.内容;
-            }
-        } else {
-            contentElement.textContent = missionData.内容;
-        }
+        // 处理通用占位符
+        const { title: processedTitle, content: processedContent } = processHardMissionPlaceholders(missionKey, missionData);
+        titleElement.textContent = processedTitle;
+        contentElement.textContent = processedContent;
         
         // 创建投票点数显示容器
         const voteDotsContainer = document.createElement('div');
@@ -526,19 +543,25 @@ function showVotingResult(selectedIndex, voteCount, wasTie) {
         return;
     }
     
-    console.log('显示投票结果:', { selectedMission, voteCount, wasTie });
+    // 从DOM中获取已处理占位符的标题
+    const selectedMissionBox = document.querySelector(`[data-mission-index="${selectedIndex}"]`);
+    const processedTitle = selectedMissionBox ? 
+        selectedMissionBox.querySelector('.hard-mission-title')?.textContent || selectedMission : 
+        selectedMission;
+    
+    console.log('显示投票结果:', { selectedMission, processedTitle, voteCount, wasTie });
     
     const result = document.createElement('div');
     result.className = 'voting-result';
     result.innerHTML = `
         <h3>投票结果</h3>
-        <p><strong>"${selectedMission}"</strong> 获得 ${voteCount} 票${wasTie ? ' (平票随机选择)' : ''}</p>
+        <p><strong>"${processedTitle}"</strong> 获得 ${voteCount} 票${wasTie ? ' (平票随机选择)' : ''}</p>
         <p>该团体事件已被选定为本轮任务！</p>
     `;
     
     container.appendChild(result);
     
-    // 执行特殊事件逻辑
+    // 执行特殊事件逻辑（使用原始事件名称）
     executeHardMissionEffect(selectedMission);
 }
 
@@ -555,19 +578,25 @@ function showVotingResultWithMissionName(selectedIndex, voteCount, wasTie, missi
         instructions.remove();
     }
     
-    console.log('显示投票结果（带事件名称）:', { selectedIndex, voteCount, wasTie, missionName });
+    // 优先从DOM中获取已处理占位符的标题，如果没有则使用传入的名称
+    const selectedMissionBox = document.querySelector(`[data-mission-index="${selectedIndex}"]`);
+    const processedTitle = selectedMissionBox ? 
+        selectedMissionBox.querySelector('.hard-mission-title')?.textContent || missionName : 
+        missionName;
+    
+    console.log('显示投票结果（带事件名称）:', { selectedIndex, voteCount, wasTie, missionName, processedTitle });
     
     const result = document.createElement('div');
     result.className = 'voting-result';
     result.innerHTML = `
         <h3>投票结果</h3>
-        <p><strong>"${missionName}"</strong> 获得 ${voteCount} 票${wasTie ? ' (平票随机选择)' : ''}</p>
+        <p><strong>"${processedTitle}"</strong> 获得 ${voteCount} 票${wasTie ? ' (平票随机选择)' : ''}</p>
         <p>该团体事件已被选定为本轮任务！</p>
     `;
     
     container.appendChild(result);
     
-    // 执行特殊事件逻辑
+    // 执行特殊事件逻辑（使用原始事件名称）
     executeHardMissionEffect(missionName);
 }
 
@@ -594,13 +623,18 @@ function showVoteConfirmation(playerId, missionIndex, voteWeight) {
         animation: slideIn 0.3s ease;
     `;
       const playerName = isHost() ? '主持人' : '玩家';
-    const missionTitle = currentHardMissions[missionIndex] || `团体事件${missionIndex + 1}`;
     
-    console.log('显示投票确认:', { playerId, missionIndex, missionTitle, voteWeight });
+    // 从DOM中获取已处理占位符的标题
+    const selectedMissionBox = document.querySelector(`[data-mission-index="${missionIndex}"]`);
+    const processedTitle = selectedMissionBox ? 
+        selectedMissionBox.querySelector('.hard-mission-title')?.textContent || currentHardMissions[missionIndex] : 
+        currentHardMissions[missionIndex] || `团体事件${missionIndex + 1}`;
+    
+    console.log('显示投票确认:', { playerId, missionIndex, processedTitle, voteWeight });
     
     confirmation.innerHTML = `
         <strong>${playerName}已投票</strong><br>
-        选择: ${missionTitle}<br>
+        选择: ${processedTitle}<br>
         票数: ${voteWeight}票
     `;
     
@@ -928,10 +962,15 @@ function createHardMissionUIFromServer(missions) {
         return;
     }
     
+    // 确保事件数据已从localStorage加载
+    if (window.eventManagement && typeof window.eventManagement.loadEventsFromStorage === 'function') {
+        window.eventManagement.loadEventsFromStorage();
+    }
+    
     // 确保能够访问hardmission对象
-    const hardmissionObj = window.hardmission || hardmission;
-    if (!hardmissionObj) {
-        console.error('hardmission对象未找到');
+    const hardmissionObj = window.hardmission || (typeof hardmission !== 'undefined' ? hardmission : {});
+    if (!hardmissionObj || Object.keys(hardmissionObj).length === 0) {
+        console.error('hardmission对象未找到或为空');
         return;
     }
     

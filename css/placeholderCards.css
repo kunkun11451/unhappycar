@@ -1,0 +1,612 @@
+/* 随机词条卡片样式 */
+.placeholders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 15px;
+    margin: 15px 0;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+/* 滚动条样式 */
+.placeholders-grid::-webkit-scrollbar {
+    width: 8px;
+}
+
+.placeholders-grid::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.placeholders-grid::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    transition: background 0.3s ease;
+}
+
+.placeholders-grid::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.placeholder-card {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 12px;
+    padding: 15px;
+    position: relative;
+    backdrop-filter: blur(20px);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    user-select: none;
+}
+
+.placeholder-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border-color: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.placeholder-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.placeholder-card-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+    max-width: calc(100% - 80px);
+    word-break: break-word;
+}
+
+.placeholder-card-actions {
+    display: flex;
+    gap: 5px;
+    flex-shrink: 0;
+}
+
+.placeholder-card-btn {
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.placeholder-edit-btn {
+    background: rgba(44,134,193, 1);
+    color: white;
+}
+
+.placeholder-edit-btn:hover {
+    background: rgba(44,134,193, 0.8);
+    transform: scale(1.1);
+}
+
+.placeholder-delete-btn {
+    background: rgba(203,62,51, 1);
+    color: white;
+}
+
+.placeholder-delete-btn:hover {
+    background: rgba(203,62,51, 0.8);
+    transform: scale(1.1);
+}
+
+.placeholder-card-values {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.placeholder-value-tag {
+    background: rgba(255, 255, 255, 0.2);
+    color: #bfbfbf;
+    padding: 4px 8px;
+    border-radius: 15px;
+    font-size: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.3);
+}
+
+.placeholder-add-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px dashed rgba(100, 100, 100, 0.5);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-height: 120px;
+    backdrop-filter: blur(10px);
+}
+
+.placeholder-add-card:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(100, 100, 100, 0.8);
+    transform: translateY(-2px);
+}
+
+.placeholder-add-icon {
+    font-size: 24px;
+    color: rgba(76,175,80, 0.8);
+    margin-bottom: 8px;
+}
+
+.placeholder-add-text {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    text-align: center;
+}
+
+/* 编辑模态框样式 */
+.placeholder-edit-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1001;
+}
+
+.placeholder-edit-content {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 15px;
+    padding: 25px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(20px);
+}
+
+.placeholder-edit-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.placeholder-edit-title {
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.placeholder-edit-close {
+    background: none;
+    border: none;
+    color: #666666;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s ease;
+}
+
+.placeholder-edit-close:hover {
+    background: rgba(0, 0, 0, 0.1);
+    color: #333333;
+}
+
+.placeholder-edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.placeholder-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.placeholder-form-label {
+    color: #dbdbdb;
+    font-size: 14px;
+    font-weight: 500;
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.3);
+}
+
+.placeholder-form-input {
+    padding: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.5);
+    color: #ffffff;
+    font-size: 14px;
+    backdrop-filter: blur(5px);
+}
+
+.placeholder-form-input::placeholder {
+    color: rgba(100, 100, 100, 0.8);
+}
+
+.placeholder-values-section {
+    margin-top: 10px;
+}
+
+.placeholder-values-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 10px 0;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.placeholder-value-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(5px);
+}
+
+.placeholder-value-input {
+    flex: 1;
+    padding: 6px 8px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    font-size: 13px;
+    backdrop-filter: blur(3px);
+}
+
+.placeholder-value-delete {
+    background: rgba(203,62,51, 1);
+    border: none;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: background 0.2s ease;
+}
+
+.placeholder-value-delete:hover {
+    background: rgba(203,62,51, 0.8);
+}
+
+.placeholder-add-value-btn {
+    background: rgba(69,148,72, 1);
+    border: none;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s ease;
+    align-self: flex-start;
+}
+
+.placeholder-add-value-btn:hover {
+    background: rgba(69,148,72, 0.8);
+}
+
+.placeholder-edit-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.placeholder-save-btn {
+    background: rgba(76,175,80, 0.8);
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s ease;
+}
+
+.placeholder-save-btn:hover {
+    background: rgba(69,148,72, 0.8);
+}
+
+.placeholder-cancel-btn {
+    background: rgba(244,67,54, 0.8);
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s ease;
+}
+
+.placeholder-cancel-btn:hover {
+    background: rgba(203,62,51, 0.8);
+}
+
+/* 错误提示样式 */
+.placeholder-error {
+    background: rgba(231, 76, 60, 0.1);
+    border: 1px solid rgba(231, 76, 60, 0.5);
+    color: #c0392b;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    margin-top: 5px;
+    backdrop-filter: blur(5px);
+}
+
+/* 复制提示样式 */
+.placeholder-copy-hint {
+    font-size: 11px;
+    color: rgba(205, 205, 205, 0.6);
+    text-align: center;
+    margin-top: 8px;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.placeholder-card {
+    cursor: pointer;
+    user-select: none;
+}
+
+.placeholder-card-btn {
+    cursor: pointer;
+}
+
+/* 弹窗样式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            display: none; /* 默认隐藏 */
+        }
+
+        .modal-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(50, 50, 50, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 1001;
+            width: 90%;
+            max-width: 600px;
+            max-height: 75vh;
+            overflow-y: auto;
+            color: white;
+            display: none; /* 默认隐藏 */
+        }
+
+        .modal-popup h2 {
+            margin-top: 0;
+            text-align: center;
+            color: #eee;
+        }
+
+        .modal-popup .form-group {
+            margin-bottom: 15px;
+        }
+
+        .modal-popup .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #ccc;
+        }
+
+        .modal-popup .form-group input,
+        .modal-popup .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #555;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            box-sizing: border-box;
+        }
+
+        .modal-popup .placeholder-section {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #555;
+            position: relative;
+        }
+
+        .placeholder-help {
+            display: inline-block;
+            margin-left: 10px;
+            cursor: pointer;
+            border: 1px solid #fff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            text-align: center;
+            line-height: 20px;
+            font-weight: bold;
+        }
+
+        .placeholder-tooltip {
+            display: none;
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #222;
+            color: #eee;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #444;
+            width: 435px;
+            z-index: 1002;
+            margin-bottom: -50%;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .placeholder-tooltip p {
+            margin: 5px 0;
+        }
+
+        .modal-popup .placeholder-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .modal-popup .placeholder-item input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #555;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            box-sizing: border-box;
+            flex-grow: 1;
+        }
+
+        .modal-popup .placeholder-item button {
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: 1px solid #888;
+            background-color: rgba(255, 0, 0, 0.5);
+            color: white;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        #addPlaceholderBtn {
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: none;
+            background-color: #555;
+            color: white;
+            cursor: pointer;
+        }
+
+        .modal-popup .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-popup .modal-buttons button {
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .modal-popup .modal-buttons button.cancel {
+            background-color: #f44336;
+        }
+        
+        .modal-popup::-webkit-scrollbar {
+            width: 8px;
+        }
+
+                .modal-popup::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+                .modal-popup::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            transition: background 0.3s ease;
+        }
+
+        
+        .modal-popup::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+/* 复制成功动画 */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+.copy-success-message {
+    animation: slideInRight 0.3s ease-out;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .placeholders-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        max-height: 300px;
+    }
+    
+    .placeholder-edit-content {
+        width: 95%;
+        padding: 20px;
+    }
+    
+    .placeholder-card-name {
+        font-size: 14px;
+    }
+}
