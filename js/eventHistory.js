@@ -1,10 +1,31 @@
 window.eventHistoryModule = (() => {
   const eventHistoryData = [];
 
+  // 查找事件内容的函数，支持多个事件源
+  function findEventContent(eventKey) {
+    // 按优先级搜索不同的事件源
+    const sources = [
+      window.mission,
+      typeof mission !== 'undefined' ? mission : null,
+      window.hardmission,
+      typeof hardmission !== 'undefined' ? hardmission : null
+    ];
+    
+    for (const source of sources) {
+      if (source && source[eventKey]) {
+        return source[eventKey].内容 || source[eventKey].content || '';
+      }
+    }
+    
+    return null;
+  }
+
   function pushEventRoundHistory(roundEvents) {
     const initializedRound = roundEvents.map(event => ({
       original: event.event,
-      replaced: [] 
+      originalContent: event.content || '', // 保存实际生成的内容
+      replaced: [], // 替换的事件名称
+      replacedContents: [] // 替换事件对应的内容
     }));
     eventHistoryData.push(initializedRound);
   }
@@ -78,8 +99,30 @@ window.eventHistoryModule = (() => {
                         allEvents.length - 1
                     ); // 确保索引不超出范围
                     const eventKey = allEvents[hoverIndex];
-                    if (mission[eventKey]) {
-                        tooltip.textContent = mission[eventKey].内容; 
+                    
+                    // 根据鼠标位置确定显示哪个事件的内容
+                    let eventContent = null;
+                    if (hoverIndex === 0) {
+                        // 原始事件，使用保存的原始内容
+                        eventContent = player.originalContent;
+                    } else {
+                        // 替换事件，使用对应的替换内容
+                        const replacedIndex = hoverIndex - 1;
+                        if (player.replacedContents && player.replacedContents[replacedIndex]) {
+                            eventContent = player.replacedContents[replacedIndex];
+                        } else {
+                            // 如果没有保存的替换内容，从事件源中查找
+                            eventContent = findEventContent(eventKey);
+                        }
+                    }
+                    
+                    // 如果仍然没有内容，尝试从事件源查找
+                    if (!eventContent) {
+                        eventContent = findEventContent(eventKey);
+                    }
+                    
+                    if (eventContent) {
+                        tooltip.textContent = eventContent; 
                         tooltip.style.display = "block";
                         tooltip.style.left = `${e.pageX + 10}px`;
                         tooltip.style.top = `${e.pageY + 10}px`;

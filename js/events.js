@@ -1333,7 +1333,22 @@ window.eventManagement = (() => {
                 titleInput.value = key;
                 contentInput.value = eventData.内容;
                 if (eventData.placeholders) {
-                    placeholderData = { ...eventData.placeholders };
+                    // 安全地复制占位符数据，确保每个值都是数组格式
+                    placeholderData = {};
+                    Object.entries(eventData.placeholders).forEach(([name, values]) => {
+                        // 确保 values 是数组格式，防止类型错误
+                        if (Array.isArray(values)) {
+                            placeholderData[name] = [...values];
+                        } else if (values != null) {
+                            // 如果不是数组但有值，转换为数组
+                            placeholderData[name] = [String(values)];
+                        } else {
+                            // 如果是 null 或 undefined，使用空数组
+                            placeholderData[name] = [];
+                        }
+                    });
+                } else {
+                    placeholderData = {};
                 }
             }
         }
@@ -1363,13 +1378,31 @@ window.eventManagement = (() => {
 
     function renderPlaceholderCards() {
         const container = document.getElementById('placeholdersContainer');
+        if (!container) {
+            console.warn('placeholdersContainer 未找到');
+            return;
+        }
+        
         container.innerHTML = '';
 
+        // 确保 placeholderData 是有效对象
+        if (!placeholderData || typeof placeholderData !== 'object') {
+            placeholderData = {};
+        }
+
         // 渲染现有的占位符卡片
-        Object.entries(placeholderData).forEach(([name, values]) => {
-            const card = createPlaceholderCard(name, values);
-            container.appendChild(card);
-        });
+        try {
+            Object.entries(placeholderData).forEach(([name, values]) => {
+                // 额外的安全检查
+                if (name && values !== undefined) {
+                    const card = createPlaceholderCard(name, values);
+                    container.appendChild(card);
+                }
+            });
+        } catch (error) {
+            console.error('渲染占位符卡片时出错:', error);
+            console.log('placeholderData 内容:', placeholderData);
+        }
 
         // 添加新增卡片
         const addCard = createAddPlaceholderCard();
@@ -1379,6 +1412,10 @@ window.eventManagement = (() => {
     function createPlaceholderCard(name, values) {
         const card = document.createElement('div');
         card.className = 'placeholder-card';
+        
+        // 确保 values 是数组格式
+        const valuesArray = Array.isArray(values) ? values : (values ? [values] : []);
+        
         card.innerHTML = `
             <div class="placeholder-card-header">
                 <div class="placeholder-card-name">${name}</div>
@@ -1392,7 +1429,7 @@ window.eventManagement = (() => {
                 </div>
             </div>
             <div class="placeholder-card-values">
-                ${values.map(value => `<span class="placeholder-value-tag">${value}</span>`).join('')}
+                ${valuesArray.map(value => `<span class="placeholder-value-tag">${value}</span>`).join('')}
             </div>
             <div class="placeholder-copy-hint">点击卡片复制引用标签</div>
         `;
@@ -1471,7 +1508,7 @@ window.eventManagement = (() => {
         const item = document.createElement('div');
         item.className = 'placeholder-value-item';
         item.innerHTML = `
-            <input type="text" class="placeholder-value-input" value="${value}" data-index="${index}" placeholder="一个框一个词条，需要多个请点击”添加值“">
+            <input type="text" class="placeholder-value-input" value="${value}" data-index="${index}" placeholder="输入一个词条，高级功能:使用[*xx,yy,zz*]格式可在抽取时随机替换为其中一个">
             <button type="button" class="placeholder-value-delete" onclick="window.eventManagement.removePlaceholderValue(${index})">×</button>
         `;
         return item;
@@ -1687,7 +1724,7 @@ window.eventManagement = (() => {
         // 移除旧的添加占位符按钮事件（因为现在使用卡片系统）
         document.getElementById('saveEventBtn').addEventListener('click', saveEvent);
         document.getElementById('cancelEventBtn').addEventListener('click', closeEventModal);
-        document.getElementById('eventModalOverlay').addEventListener('click', closeEventModal);
+        // 移除了 eventModalOverlay 的点击关闭逻辑
 
         // 新的占位符编辑模态框事件监听器
         document.getElementById('placeholderEditClose').addEventListener('click', closePlaceholderEditModal);
@@ -1695,12 +1732,7 @@ window.eventManagement = (() => {
         document.getElementById('placeholderSaveBtn').addEventListener('click', savePlaceholder);
         document.getElementById('addPlaceholderValue').addEventListener('click', () => addPlaceholderValueInput());
         
-        // 点击模态框外部关闭
-        document.getElementById('placeholderEditModal').addEventListener('click', (e) => {
-            if (e.target.id === 'placeholderEditModal') {
-                closePlaceholderEditModal();
-            }
-        });
+        // 移除了 placeholderEditModal 的点击外部关闭逻辑
 
         const helpBtn = document.getElementById('placeholderHelpBtn');
         const tooltip = document.getElementById('placeholderTooltip');

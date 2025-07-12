@@ -5,16 +5,26 @@ function getMissionKeys() {
     
     // 如果表格不存在（用户还没打开事件管理），从localStorage读取勾选状态
     if (checkboxes.length === 0) {
+        // 确保事件数据已从localStorage加载
+        if (window.eventManagement && typeof window.eventManagement.loadEventsFromStorage === 'function') {
+            window.eventManagement.loadEventsFromStorage();
+        }
+        
         // 确保mission对象存在
-        const missionObj = window.mission || mission;
-        if (!missionObj) {
-            console.error('mission对象未找到');
+        const missionObj = window.mission || (typeof mission !== 'undefined' ? mission : {});
+        if (!missionObj || Object.keys(missionObj).length === 0) {
+            console.error('mission对象未找到或为空');
             return [];
         }
         
         // 从localStorage读取保存的勾选状态
         const savedState = JSON.parse(localStorage.getItem('personalEventsTable-checkedState')) || {};
         const allKeys = Object.keys(missionObj);
+        
+        console.log('从localStorage加载个人事件:', {
+            totalEvents: allKeys.length,
+            savedState: Object.keys(savedState).length > 0 ? '有保存状态' : '无保存状态'
+        });
         
         // 如果没有保存的状态，默认所有事件都启用
         if (Object.keys(savedState).length === 0) {
@@ -85,6 +95,26 @@ document.addEventListener('DOMContentLoaded', function() {
         updateRerollCount(-1);
     });
 
+    // 处理值中的内嵌随机格式 [*xx,yy,zz*]
+    function processInlineRandomValues(text) {
+        // 匹配 [*内容*] 格式的模式
+        const inlineRandomPattern = /\[\*([^*]+)\*\]/g;
+        
+        return text.replace(inlineRandomPattern, (match, content) => {
+            // 按逗号分割内容
+            const options = content.split(',').map(item => item.trim()).filter(item => item.length > 0);
+            
+            if (options.length > 0) {
+                // 随机选择一个选项
+                const randomOption = options[Math.floor(Math.random() * options.length)];
+                return randomOption;
+            } else {
+                // 如果没有有效选项，返回原始文本
+                return match;
+            }
+        });
+    }
+
     // 占位符处理函数
     function processPlaceholders(title, missionData) {
         let processedTitle = title;
@@ -94,7 +124,12 @@ document.addEventListener('DOMContentLoaded', function() {
             for (const placeholder in missionData.placeholders) {
                 const values = missionData.placeholders[placeholder];
                 if (values && values.length > 0) {
-                    const randomValue = values[Math.floor(Math.random() * values.length)];
+                    // 随机选择一个值
+                    let randomValue = values[Math.floor(Math.random() * values.length)];
+                    
+                    // 处理选中值中的内嵌随机格式
+                    randomValue = processInlineRandomValues(randomValue);
+                    
                     const regex = new RegExp(`\\[${placeholder}\\]`, 'g');
                     processedTitle = processedTitle.replace(regex, randomValue);
                     processedContent = processedContent.replace(regex, randomValue);
@@ -124,8 +159,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const randomIndex = Math.floor(Math.random() * keys.length);
         const originalMissionKey = keys[randomIndex];
         
+        // 确保事件数据已从localStorage加载
+        if (window.eventManagement && typeof window.eventManagement.loadEventsFromStorage === 'function') {
+            window.eventManagement.loadEventsFromStorage();
+        }
+        
         // 确保能够访问mission对象
-        const missionObj = window.mission || mission;
+        const missionObj = window.mission || (typeof mission !== 'undefined' ? mission : {});
         if (!missionObj || !missionObj[originalMissionKey]) {
             console.error('无法找到事件数据:', originalMissionKey);
             alert('事件数据加载失败，请刷新页面重试。');
@@ -235,8 +275,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 ];
                 const currentEvent = lastRound[index];
                 if (currentEvent) {
-                    // 将当前事件添加到切换链条
+                    // 将当前事件添加到切换链条，并保存实际内容
                     currentEvent.replaced.push(missionKey);
+                    // 保存实际生成的内容到最新替换的事件
+                    if (!currentEvent.replacedContents) {
+                        currentEvent.replacedContents = [];
+                    }
+                    currentEvent.replacedContents.push(modifiedContent);
                 }
             }
         }, 300);
@@ -252,17 +297,23 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
+        // 确保事件数据已从localStorage加载
+        if (window.eventManagement && typeof window.eventManagement.loadEventsFromStorage === 'function') {
+            window.eventManagement.loadEventsFromStorage();
+        }
+        
         // 确保能够访问mission对象
-        const missionObj = window.mission || mission;
-        if (!missionObj) {
+        const missionObj = window.mission || (typeof mission !== 'undefined' ? mission : {});
+        if (!missionObj || Object.keys(missionObj).length === 0) {
             alert('事件数据未加载，请刷新页面重试。');
             return;
         }
         
-        // 记录本轮事件
-        const roundEvents = randomMissions.map(key => ({ event: key }));
-        // 将事件存入事件历史
-        window.eventHistoryModule.pushEventRoundHistory(roundEvents);
+        // 记录本轮事件（需要在处理完占位符后记录）
+        const roundEvents = [];
+        
+        // 将事件存入事件历史（先不调用，稍后在循环中处理完占位符后再调用）
+        // window.eventHistoryModule.pushEventRoundHistory(roundEvents);
 
         // 隐藏所有玩家标识
         document.querySelectorAll('.player-tag').forEach(tag => {
@@ -359,6 +410,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 contentElement.textContent = modifiedContent;
                 contentElement.innerHTML = modifiedContent;
 
+                // 记录处理后的事件到历史记录
+                roundEvents.push({
+                    event: missionKey, // 使用处理后的标题
+                    content: modifiedContent // 保存处理后的完整内容
+                });
+
                 // 添加淡入效果
                 box.style.opacity = 1;
                 box.classList.add('active');
@@ -371,6 +428,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }, 300);
         });
+        
+        // 在所有任务处理完成后，记录到历史
+        setTimeout(() => {
+            if (roundEvents.length > 0) {
+                window.eventHistoryModule.pushEventRoundHistory(roundEvents);
+            }
+        }, 350); // 确保在内容设置完成后再记录
         
         // 不再显示困难模式按钮，因为困难事件会自动显示
         // hardModeButton.style.display = 'inline-block';
@@ -517,3 +581,26 @@ function initializeRerollUI() {
 
 // 页面加载时初始化重抽UI
 document.addEventListener('DOMContentLoaded', initializeRerollUI);
+
+// 暴露一些函数用于测试（可以在浏览器控制台中使用）
+function testInlineRandomValues(text) {
+    // 匹配 [*内容*] 格式的模式
+    const inlineRandomPattern = /\[\*([^*]+)\*\]/g;
+    
+    return text.replace(inlineRandomPattern, (match, content) => {
+        // 按逗号分割内容
+        const options = content.split(',').map(item => item.trim()).filter(item => item.length > 0);
+        
+        if (options.length > 0) {
+            // 随机选择一个选项
+            const randomOption = options[Math.floor(Math.random() * options.length)];
+            return randomOption;
+        } else {
+            // 如果没有有效选项，返回原始文本
+            return match;
+        }
+    });
+}
+
+// 暴露测试函数到全局作用域以便在控制台测试
+window.testInlineRandom = testInlineRandomValues;

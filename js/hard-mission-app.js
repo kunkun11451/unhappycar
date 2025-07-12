@@ -46,6 +46,26 @@ function getHardMissionKeys() {
     return enabledKeys;
 }
 
+// 处理值中的内嵌随机格式 [*xx,yy,zz*]
+function processInlineRandomValues(text) {
+    // 匹配 [*内容*] 格式的模式
+    const inlineRandomPattern = /\[\*([^*]+)\*\]/g;
+    
+    return text.replace(inlineRandomPattern, (match, content) => {
+        // 按逗号分割内容
+        const options = content.split(',').map(item => item.trim()).filter(item => item.length > 0);
+        
+        if (options.length > 0) {
+            // 随机选择一个选项
+            const randomOption = options[Math.floor(Math.random() * options.length)];
+            return randomOption;
+        } else {
+            // 如果没有有效选项，返回原始文本
+            return match;
+        }
+    });
+}
+
 // 处理困难事件占位符
 function processHardMissionPlaceholders(title, missionData) {
     let processedTitle = title;
@@ -55,7 +75,12 @@ function processHardMissionPlaceholders(title, missionData) {
         for (const placeholder in missionData.placeholders) {
             const values = missionData.placeholders[placeholder];
             if (values && values.length > 0) {
-                const randomValue = values[Math.floor(Math.random() * values.length)];
+                // 随机选择一个值
+                let randomValue = values[Math.floor(Math.random() * values.length)];
+                
+                // 处理选中值中的内嵌随机格式
+                randomValue = processInlineRandomValues(randomValue);
+                
                 const regex = new RegExp(`\\[${placeholder}\\]`, 'g');
                 processedTitle = processedTitle.replace(regex, randomValue);
                 processedContent = processedContent.replace(regex, randomValue);

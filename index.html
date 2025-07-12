@@ -301,7 +301,7 @@
             <h3>随机词条 <span class="placeholder-help" id="placeholderHelpBtn">?</span></h3>
             <div class="placeholder-tooltip" id="placeholderTooltip">
                 <h3>随机词条的使用方法</h3>
-                <h4>作用：在抽取到该事件时，会随机填充一个值到事件内容中。</h4>
+                <h4>作用：在抽取到该事件时，会随机填充一个“值”到事件内容中。</h4>
                 <p>1. 添加随机词条的名称和对应的值。</p>
                 <p>2. 在事件标题或内容中引用随机词条到需要位置。</p>
                 <p>例如：</p>
@@ -311,7 +311,8 @@
                     <li>示例：“禁[技能]”：“禁用[技能]技能”。</li>
                     <li>抽取结果示例：“禁Q”：“禁用Q技能”。</li>
                 </ul>
-                <h4>不添加随机词条即为正常事件</h4>
+                <h4>不添加随机词条即为正常事件</h4>                
+                <p>（套娃：在”值“中使用<strong>[*xx,yy,zz*]</strong>格式，可实现在“值”内容中，再次随机选择一次指定的元素）</p>
             </div>
             <div id="placeholdersContainer" class="placeholders-grid">
                 <!-- 占位符卡片将动态添加到这里 -->
