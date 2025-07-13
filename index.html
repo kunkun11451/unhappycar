@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="css/teamManagement.css">
     <link rel="stylesheet" href="css/updateLog.css">
     <link rel="stylesheet" href="css/placeholderCards.css">
+    <link rel="stylesheet" href="css/historyModal.css">
     <script src="https://unpkg.com/pinyin-pro"></script>
 </head>
 <body>
@@ -51,6 +52,7 @@
         
         <div style="text-align: center; margin-bottom: 20px; margin-top: 20px">
             <button class="start-button" id="settingsButton">设置</button>
+            <button class="start-button" id="viewHistoryButton" style="display: none;">查看历史</button>
         </div>
         <h1>抽取角色</h1>
         <button class="bp-button" id="bpButton">BP模式：关闭</button>
@@ -145,6 +147,40 @@
         </div>
     </div>
         
+    <!-- 历史记录弹窗 -->
+    <div class="history-overlay" id="historyOverlay"></div>
+    <div class="history-modal" id="historyModal">
+        <div class="history-modal-header">
+            <h2 class="history-modal-title">游戏历史记录</h2>
+            <button class="history-modal-close" id="closeHistoryModal">×</button>
+        </div>
+        <div class="history-tabs">
+            <button class="history-tab active" id="characterHistoryTab">
+                <svg data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                    <path d="m1.5 13v1a.5.5 0 0 0 .3379.4731 18.9718 18.9718 0 0 0 6.1621 1.0269 18.9629 18.9629 0 0 0 6.1621-1.0269.5.5 0 0 0 .3379-.4731v-1a6.5083 6.5083 0 0 0 -4.461-6.1676 3.5 3.5 0 1 0 -4.078 0 6.5083 6.5083 0 0 0 -4.461 6.1676zm4-9a2.5 2.5 0 1 1 2.5 2.5 2.5026 2.5026 0 0 1 -2.5-2.5zm2.5 3.5a5.5066 5.5066 0 0 1 5.5 5.5v.6392a18.08 18.08 0 0 1 -11 0v-.6392a5.5066 5.5066 0 0 1 5.5-5.5z" fill="currentColor"></path>
+                </svg>
+                角色历史
+            </button>
+            <button class="history-tab" id="eventHistoryTab">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                    <line x1="12" y1="12" x2="12" y2="7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="12" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                事件历史
+            </button>
+        </div>
+        <div class="history-modal-content">
+            <div class="history-list active" id="characterHistoryList">
+                <!-- 角色历史记录内容 -->
+            </div>
+            <div class="history-list" id="eventHistoryList">
+                <!-- 事件历史记录内容 -->
+            </div>
+        </div>
+        <h4 style="color: whitesmoke; justify-content: center; display: flex;">鼠标悬停/点击 可查看事件内容</h4>
+    </div>
+
     <!-- 引入JS文件 -->
     <script src="js/characters.js"></script>
     <script src="js/characterManagement.js"></script>
@@ -154,6 +190,7 @@
     <script src="js/multiplayer.js"></script>
     <script src="js/history.js"></script>      
     <script src="js/eventHistory.js"></script>
+    <script src="js/historyModalManager.js"></script>
     <script src="js/events.js"></script>
     <script src="js/app.js"></script>
     <script src="js/mission-app.js"></script>

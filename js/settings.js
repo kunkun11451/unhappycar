@@ -7,6 +7,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const settingsTitle = document.getElementById("settingsTitle");
     const settingsDetails = document.getElementById("settingsDetails");
 
+    const viewHistoryButton = document.getElementById("viewHistoryButton");
+
     // 设置选项按钮
     const characterManagement = document.getElementById("characterManagement");
     const characterHistory = document.getElementById("characterHistory");
@@ -143,6 +145,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const eventHistoryContent = window.eventHistoryModule.getEventHistoryContent();
             selectOption(eventHistory, "事件历史记录", eventHistoryContent);
             currentActiveOption = eventHistory; // 更新当前活跃选项
+        });
+    }
+
+    if (viewHistoryButton) {
+        viewHistoryButton.addEventListener("click", () => {
+            // 使用新的历史记录弹窗管理器
+            if (window.historyModalManager) {
+                window.historyModalManager.show();
+            }
         });
     }
 

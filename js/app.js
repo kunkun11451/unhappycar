@@ -124,7 +124,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // ================= 抽取角色 =================
     startButton.addEventListener('click', () => {
         displayRandomCharacters(); // 抽取角色逻辑
-    });    function displayRandomCharacters() {
+    });    
+    
+    function displayRandomCharacters() {
         const now = Date.now(); // 当前时间戳
 
         if (!gameState.isGameStarted) {
@@ -164,7 +166,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        const roundHistory = [];
+        const roundHistory = { characters: [] };
         characterBoxes.forEach((box, index) => {
             const unavailableSet = gameState.unavailableCharacters[index];
             let availableChars = getCharacterKeys();
@@ -197,17 +199,11 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             // 调用动画函数更新角色卡片
-            animateSelection(box, newChar, 0);            roundHistory.push({ new: newChar });
+            const isLastCharacter = index === characterBoxes.length - 1;
+            animateSelection(box, newChar, 0, isLastCharacter ? window.syncGameStateIfChanged : null);
+            roundHistory.characters.push({ new: newChar });
         });        // 将本轮抽取的角色存到历史
         window.historyModule.pushRoundHistory(roundHistory);
-
-        // 普通抽取模式完成后，如果在多人游戏中，触发状态同步
-        if (window.syncGameStateIfChanged) {
-            // 延迟同步，确保DOM更新完成
-            setTimeout(() => {
-                window.syncGameStateIfChanged();
-            }, 500);
-        }
 
         // 禁用按钮 0.5 秒
         startButton.disabled = true;
@@ -225,7 +221,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        const roundHistory = [];        // 显示阵容名称
+        const roundHistory = { characters: [] };        // 显示阵容名称
         const teamNameDisplay = document.createElement('div');
         teamNameDisplay.id = 'teamNameDisplay';
         teamNameDisplay.style.cssText = `
@@ -238,10 +234,8 @@ document.addEventListener('DOMContentLoaded', function () {
         `;
         teamNameDisplay.textContent = `当前阵容：${teamResult.teamName}`;
         
-        // 根据阵容模式状态决定是否显示阵容提示
-        const isTeamModeActive = window.teamManagement && typeof window.teamManagement.isTeamMode === 'function' ? 
-            window.teamManagement.isTeamMode() : false;
-        teamNameDisplay.style.display = isTeamModeActive ? 'block' : 'none';
+        // 既然进入了阵容模式函数，直接显示阵容名称
+        teamNameDisplay.style.display = 'block';
         
         // 移除旧的阵容名称显示（如果存在）
         const oldDisplay = document.getElementById('teamNameDisplay');
@@ -256,6 +250,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (index < teamResult.characters.length) {
                 const characterName = teamResult.characters[index];
                 
+                const isLastCharacter = index === characterBoxes.length - 1;
                 // 检查是否为替代角色（包含"/"）
                 if (characterName.includes('/')) {
                     const [char1, char2] = characterName.split('/');
@@ -263,35 +258,36 @@ document.addEventListener('DOMContentLoaded', function () {
                     
                     if (window.characterData[selectedChar]) {
                         // 调用动画函数更新角色卡片，但显示替代效果
-                        animateAlternativeSelection(box, char1, char2, selectedChar, index * 100);
-                        roundHistory.push({ new: `${char1}/${char2}`, selected: selectedChar });
+                        animateAlternativeSelection(box, char1, char2, selectedChar, index * 100, isLastCharacter ? window.syncGameStateIfChanged : null);
+                        roundHistory.characters.push({ new: `${char1}/${char2}`, selected: selectedChar });
                     } else {
                         // 如果替代角色都不存在，随机选择一个角色
                         const availableChars = getCharacterKeys();
                         const randomChar = availableChars[Math.floor(Math.random() * availableChars.length)];
-                        animateSelection(box, randomChar, index * 100);
-                        roundHistory.push({ new: randomChar });
+                        animateSelection(box, randomChar, index * 100, isLastCharacter ? window.syncGameStateIfChanged : null);
+                        roundHistory.characters.push({ new: randomChar });
                     }
                 } else {
                     // 普通角色处理
                     if (window.characterData[characterName]) {
                         // 调用动画函数更新角色卡片
-                        animateSelection(box, characterName, index * 100);
-                        roundHistory.push({ new: characterName });
+                        animateSelection(box, characterName, index * 100, isLastCharacter ? window.syncGameStateIfChanged : null);
+                        roundHistory.characters.push({ new: characterName });
                     } else {
                         // 如果角色不存在，随机选择一个角色
                         const availableChars = getCharacterKeys();
                         const randomChar = availableChars[Math.floor(Math.random() * availableChars.length)];
-                        animateSelection(box, randomChar, index * 100);
-                        roundHistory.push({ new: randomChar });
+                        animateSelection(box, randomChar, index * 100, isLastCharacter ? window.syncGameStateIfChanged : null);
+                        roundHistory.characters.push({ new: randomChar });
                     }
                 }
             } else {
                 // 如果阵容角色数量少于4个，其余位置随机选择
                 const availableChars = getCharacterKeys();
                 const randomChar = availableChars[Math.floor(Math.random() * availableChars.length)];
-                animateSelection(box, randomChar, index * 100);
-                roundHistory.push({ new: randomChar });
+                const isLastCharacter = index === characterBoxes.length - 1;
+                animateSelection(box, randomChar, index * 100, isLastCharacter ? window.syncGameStateIfChanged : null);
+                roundHistory.characters.push({ new: randomChar });
             }
         });        // 将本轮抽取的角色存到历史
         window.historyModule.pushRoundHistory(roundHistory);
@@ -300,13 +296,7 @@ document.addEventListener('DOMContentLoaded', function () {
         startButton.disabled = true;
         setTimeout(() => {
             startButton.disabled = false;
-        }, 500);          // 阵容模式抽取完成后，如果在多人游戏中，触发状态同步
-        if (window.syncGameStateIfChanged) {
-            // 延迟同步，确保DOM更新完成，包括阵容名称显示
-            setTimeout(() => {
-                window.syncGameStateIfChanged();
-            }, 1000);
-        }
+        }, 500);
     }    // ================= 单独切换角色 =================
     function refreshSingleCharacter(box) {
         if (!gameState.isGameStarted) return; // 禁用单独抽取角色功能
@@ -385,7 +375,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function getModeName(mode) {
         return { global: '全局', personal: '个人', off: '关闭' }[mode];
-    }    function animateSelection(box, newChar, delay) {
+    }
+
+    function animateSelection(box, newChar, delay, callback) {
         const img = box.querySelector('.character-image');
         const name = box.querySelector('.character-name');
 
@@ -433,10 +425,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 
                 name.textContent = newChar;
                 box.style.opacity = 1;
+                // 如果有回调函数，则在动画完成后执行
+                if (callback && typeof callback === 'function') {
+                    // 延迟一小段时间确保DOM完全更新
+                    setTimeout(callback, 100);
+                }
             }, 300);
         }, delay);
-    }// 替代角色动画选择函数
-    function animateAlternativeSelection(box, char1, char2, selectedChar, delay = 0) {
+    }
+
+    // 替代角色动画选择函数
+    function animateAlternativeSelection(box, char1, char2, selectedChar, delay = 0, callback) {
         setTimeout(() => {
             const charImg = box.querySelector('.character-image');
             const charName = box.querySelector('.character-name');
@@ -531,6 +530,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     charName.style.fontSize = '18px';
                 }
             
+                // 如果有回调函数，则在动画完成后执行
+                if (callback && typeof callback === 'function') {
+                    // 延迟一小段时间确保DOM完全更新
+                    setTimeout(callback, 100);
+                }
             }
         }, delay);
     }

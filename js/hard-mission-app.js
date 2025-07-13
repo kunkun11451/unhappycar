@@ -440,35 +440,50 @@ function checkVotingComplete() {
 // 完成投票，显示结果（仅单人游戏模式使用）
 function finishVoting() {
     console.log('开始处理投票结果');
-    
+
     // 在多人游戏模式下，投票结果由服务器处理
     if (window.multiplayerManager && window.multiplayerManager.isConnected()) {
         console.log('多人游戏模式：投票结果由服务器处理');
         return;
     }
-    
+
     // 确保只在投票激活状态时处理
     if (!votingActive) {
         console.log('投票已结束，忽略重复处理');
         return;
     }
-    
+
     votingActive = false;
-    
+
     console.log('完成投票，当前投票结果:', votingResults);
     console.log('当前困难事件列表:', currentHardMissions);
-    
+
     // 检查是否有有效的投票结果
     const voteValues = Object.values(votingResults).filter(v => v > 0);
     if (voteValues.length === 0) {
         console.error('没有有效的投票结果');
+        if (window.eventHistoryModule && window.eventHistoryModule.addTeamEventToHistory) {
+            const roundIndex = window.eventHistoryModule.eventHistoryData.length - 1;
+            if (roundIndex >= 0) {
+                const teamEvent = {
+                    title: "团队事件投票",
+                    result: "-"
+                };
+                window.eventHistoryModule.addTeamEventToHistory(roundIndex, teamEvent);
+            }
+        }
+        const container = document.getElementById('hardMissionsContainer');
+        const resultDiv = document.createElement('div');
+        resultDiv.className = 'voting-result';
+        resultDiv.innerHTML = `<h3>投票结果</h3><p>无人投票，无事发生。</p>`;
+        container.appendChild(resultDiv);
         return;
     }
-    
+
     // 找出票数最多的事件
     const maxVotes = Math.max(...voteValues);
     const winners = Object.keys(votingResults).filter(index => votingResults[index] === maxVotes);
-    
+
     let selectedIndex;
     if (winners.length === 1) {
         selectedIndex = parseInt(winners[0]);
@@ -476,25 +491,17 @@ function finishVoting() {
         // 平票时随机选择
         selectedIndex = parseInt(winners[Math.floor(Math.random() * winners.length)]);
     }
-    
+
     console.log('选中的困难事件索引:', selectedIndex, '事件名称:', currentHardMissions[selectedIndex]);
-    
-    // 高亮选中的事件，其他变灰
-    currentHardMissions.forEach((_, index) => {
-        const missionBox = document.querySelector(`[data-mission-index="${index}"]`);
-        if (missionBox) {
-            if (index === selectedIndex) {
-                missionBox.classList.add('selected');
-                missionBox.classList.remove('voted');
-            } else {
-                missionBox.classList.add('rejected');
-                missionBox.classList.remove('voted');
-            }
-        }
-    });
-      // 显示投票结果
-    showVotingResult(selectedIndex, maxVotes, winners.length > 1);
-    
+
+    const result = {
+        selectedIndex: selectedIndex,
+        maxVotes: maxVotes,
+        wasTie: winners.length > 1,
+        selectedMission: currentHardMissions[selectedIndex]
+    };
+    displayVotingResult(result);
+
     // 标记投票结果已显示，启动保护期
     votingResultShown = true;
     votingResultTime = Date.now();
@@ -1032,6 +1039,28 @@ function displayVotingResult(result) {
     // 显示投票结果
     const missionName = selectedMission || currentHardMissions[selectedIndex];
     showVotingResultWithMissionName(selectedIndex, maxVotes, wasTie, missionName);
+
+    // 从DOM中获取已处理占位符的标题和内容
+    const selectedMissionBox = document.querySelector(`[data-mission-index="${selectedIndex}"]`);
+    const processedTitle = selectedMissionBox ? 
+        selectedMissionBox.querySelector('.hard-mission-title')?.textContent || missionName : 
+        missionName;
+    const processedContent = selectedMissionBox ?
+        selectedMissionBox.querySelector('.hard-mission-content')?.textContent || '' :
+        '';
+
+    // 添加到事件历史
+    if (window.eventHistoryModule && window.eventHistoryModule.addTeamEventToHistory) {
+        const roundIndex = window.eventHistoryModule.eventHistoryData.length - 1;
+        if (roundIndex >= 0) {
+            const teamEvent = {
+                title: processedTitle,
+                result: `获得 ${maxVotes} 票`,
+                content: processedContent
+            };
+            window.eventHistoryModule.addTeamEventToHistory(roundIndex, teamEvent);
+        }
+    }
 }
 
 // 执行困难事件的特殊效果

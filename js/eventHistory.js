@@ -22,12 +22,22 @@ window.eventHistoryModule = (() => {
 
   function pushEventRoundHistory(roundEvents) {
     const initializedRound = roundEvents.map(event => ({
+      type: 'personal',
       original: event.event,
       originalContent: event.content || '', // 保存实际生成的内容
       replaced: [], // 替换的事件名称
       replacedContents: [] // 替换事件对应的内容
     }));
     eventHistoryData.push(initializedRound);
+  }
+
+  function addTeamEventToHistory(roundIndex, teamEvent) {
+    if (roundIndex >= 0 && roundIndex < eventHistoryData.length) {
+      eventHistoryData[roundIndex].push({
+        type: 'team',
+        ...teamEvent
+      });
+    }
   }
 
   function getEventHistoryContent() {
@@ -66,6 +76,9 @@ window.eventHistoryModule = (() => {
     } else {
         // 循环生成每一轮的行
         eventHistoryData.forEach((round, index) => {
+            const personalEvents = round.filter(event => event.type === 'personal');
+            const teamEvent = round.find(event => event.type === 'team');
+
             const row = document.createElement("tr");
             row.style.textAlign = "center";
 
@@ -74,23 +87,26 @@ window.eventHistoryModule = (() => {
             roundCell.textContent = `${index + 1}`;
             roundCell.style.border = "1px solid #ddd";
             roundCell.style.padding = "8px";
+            if (teamEvent) {
+                roundCell.rowSpan = 2;
+            }
             row.appendChild(roundCell);
 
             // 接下来4列：4位玩家的事件标题
-            round.forEach(player => {
+            personalEvents.forEach(player => {
                 const playerCell = document.createElement("td");
                 playerCell.style.border = "1px solid #ddd";
                 playerCell.style.padding = "8px";
 
                 // 显示切换链条
-                if (player.replaced.length > 0) {
+                if (player.replaced && player.replaced.length > 0) {
                     playerCell.textContent = `${player.original} → ${player.replaced.join(" → ")}`;
                 } else {
                     playerCell.textContent = player.original || "（无）";
                 }
 
                 // 设置鼠标悬停时显示的内容
-                const allEvents = [player.original, ...player.replaced];
+                const allEvents = [player.original, ...(player.replaced || [])];
                 playerCell.addEventListener("mousemove", (e) => {
                     const cellWidth = playerCell.offsetWidth;
                     const segmentWidth = cellWidth / allEvents.length; 
@@ -141,7 +157,49 @@ window.eventHistoryModule = (() => {
                 row.appendChild(playerCell);
             });
 
-            table.appendChild(row);            // 添加动画类名，延迟依次排开
+            table.appendChild(row);
+
+            if (teamEvent) {
+                const teamEventRow = document.createElement("tr");
+                teamEventRow.className = "team-event-row";
+                teamEventRow.style.textAlign = "center";
+
+                const teamEventCell = document.createElement("td");
+                teamEventCell.className = "team-event-cell";
+                teamEventCell.colSpan = 4;
+                teamEventCell.style.border = "1px solid #ddd";
+                teamEventCell.style.padding = "8px";
+                teamEventCell.textContent = `团队事件—— ${teamEvent.title || '(无标题)'} —— ${teamEvent.result || '-'}`;
+
+                // 添加悬停提示
+                teamEventCell.addEventListener("mousemove", (e) => {
+                    if (teamEvent.content) {
+                        tooltip.textContent = teamEvent.content;
+                        tooltip.style.display = "block";
+                        tooltip.style.left = `${e.pageX + 10}px`;
+                        tooltip.style.top = `${e.pageY + 10}px`;
+                    } else {
+                        tooltip.textContent = "没有找到这个事件的内容";
+                        tooltip.style.display = "block";
+                        tooltip.style.left = `${e.pageX + 10}px`;
+                        tooltip.style.top = `${e.pageY + 10}px`;
+                    }
+                });
+
+                teamEventCell.addEventListener("mouseleave", () => {
+                    tooltip.style.display = "none";
+                });
+
+                teamEventRow.appendChild(teamEventCell);
+                table.appendChild(teamEventRow);
+                
+                // 为团队事件行也添加动画
+                setTimeout(() => {
+                    teamEventRow.classList.add("animate");
+                }, index * 15 + 5); // 稍微延迟一点，让它在个人事件行之后出现
+            }
+
+            // 添加动画类名，延迟依次排开
             setTimeout(() => {
                 row.classList.add("animate");
             }, index * 15); // 每一行延迟15ms（加快速度）
@@ -159,6 +217,7 @@ window.eventHistoryModule = (() => {
   // 在这里暴露 eventHistoryData
   return {
     pushEventRoundHistory,
+    addTeamEventToHistory,
     getEventHistoryContent,
     clearEventHistory,
     eventHistoryData 

@@ -1208,10 +1208,11 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         };
 
-        const history = window.historyData || [];
+        const eventHistory = window.eventHistoryModule ? window.eventHistoryModule.eventHistoryData : [];
+        const characterHistory = window.historyModule ? window.historyModule.historyData : [];
 
-        console.log('同步的游戏状态:', state, '历史记录:', history);
-        ws.send(JSON.stringify({ type: 'updateState', roomId: currentRoomId, state, history }));
+        console.log('同步的游戏状态:', state, '事件历史:', eventHistory, '角色历史:', characterHistory);
+        ws.send(JSON.stringify({ type: 'updateState', roomId: currentRoomId, state, history: eventHistory, characterHistory: characterHistory }));
 
     }    // 优化后的同步机制：事件驱动同步 + 长间隔保活同步
     let lastEventSyncTime = null; // 追踪最后一次事件驱动同步的时间
@@ -1470,9 +1471,9 @@ ws.onmessage = (event) => {
                 }
                 
                 // 历史记录按钮
-                const historyButton = document.querySelector('.history-button');
+                const historyButton = document.getElementById('viewHistoryButton');
                 if (historyButton) {
-                    historyButton.style.display = 'none'; 
+                    historyButton.style.display = 'block';
                 }
             }
             break;
@@ -1481,17 +1482,29 @@ ws.onmessage = (event) => {
             console.log('收到最新游戏状态:', data.state);
             updateGameState(data.state); // 更新界面
 
-            // 同步历史记录数据
+            // 同步事件历史记录数据
             if (data.history) {
-                window.historyData = data.history;
-                console.log('同步历史记录:', data.history);
+                if (window.eventHistoryModule && window.eventHistoryModule.eventHistoryData) {
+                    window.eventHistoryModule.eventHistoryData.length = 0;
+                    Array.prototype.push.apply(window.eventHistoryModule.eventHistoryData, data.history);
+                }
+                console.log('同步事件历史:', data.history);
+            }
+
+            // 同步角色历史记录数据
+            if (data.characterHistory) {
+                if (window.historyModule && window.historyModule.historyData) {
+                    window.historyModule.historyData.length = 0;
+                    Array.prototype.push.apply(window.historyModule.historyData, data.characterHistory);
+                }
+                console.log('同步角色历史:', data.characterHistory);
             }
 
             // 确保其他玩家的历史记录按钮可见
             if (!isHost) {
-                const historyButton = document.querySelector('.history-button');
+                const historyButton = document.getElementById('viewHistoryButton');
                 if (historyButton) {
-                    historyButton.style.display = 'none'; 
+                    historyButton.style.display = 'block';
                 }
             }
             break;

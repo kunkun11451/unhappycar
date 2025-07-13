@@ -71,7 +71,7 @@ window.historyModule = (() => {
                 row.appendChild(timeCell);
 
                 // 玩家角色
-                round.forEach(player => {
+                round.characters.forEach(player => {
                     const playerCell = document.createElement('td');
                     playerCell.style.border = '1px solid #ddd';
                     playerCell.style.padding = '8px';
@@ -130,14 +130,14 @@ window.historyModule = (() => {
     // 更新替换角色记录
     function updateSingleCharacter(playerIndex, oldChar, newChar) {
         const lastRound = historyData[historyData.length - 1];
-        if (lastRound) {
-            if (!lastRound[playerIndex].replaced) {
-                lastRound[playerIndex].replaced = [oldChar, newChar];
+        if (lastRound && lastRound.characters && lastRound.characters[playerIndex]) {
+            if (!lastRound.characters[playerIndex].replaced) {
+                lastRound.characters[playerIndex].replaced = [oldChar, newChar];
             } else {
-                const lastCharacter = lastRound[playerIndex]
-                    .replaced[lastRound[playerIndex].replaced.length - 1];
+                const lastCharacter = lastRound.characters[playerIndex]
+                    .replaced[lastRound.characters[playerIndex].replaced.length - 1];
                 if (lastCharacter !== newChar) {
-                    lastRound[playerIndex].replaced.push(newChar);
+                    lastRound.characters[playerIndex].replaced.push(newChar);
                 }
             }
         }
@@ -190,7 +190,7 @@ window.historyModule = (() => {
                 timeCell.style.padding = "8px";
                 row.appendChild(timeCell);
 
-                round.forEach(player => {
+                round.characters.forEach(player => {
                     const playerCell = document.createElement("td");
                     playerCell.style.border = "1px solid #ddd";
                     playerCell.style.padding = "8px";
@@ -230,6 +230,7 @@ window.historyModule = (() => {
         updateLastRoundTime,
         updateSingleCharacter,
         getHistoryContent,
-        clearHistory
+        clearHistory,
+        historyData // 暴露 historyData 以便同步
     };
 })();

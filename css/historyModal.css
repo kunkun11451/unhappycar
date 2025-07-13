@@ -1,0 +1,447 @@
+#viewHistoryButton[style*="display: block"] {
+    display: inline-block !important;
+    margin: 20px auto;
+}
+
+/* 历史记录弹窗样式 */
+
+/* 历史记录遮罩层 */
+.history-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1998;
+    backdrop-filter: blur(8px);
+    display: none;
+}
+
+/* 历史记录弹窗主容器 */
+.history-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 95%;
+    max-width: 1000px;
+    max-height: 90vh;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    z-index: 1999;
+    display: none;
+    overflow: hidden;
+}
+
+/* 历史记录弹窗头部 */
+.history-modal-header {
+    position: relative;
+    padding: 25px 30px 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.history-modal-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+    margin: 0;
+    text-align: center;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.history-modal-close {
+    position: absolute;
+    top: 20px;
+    right: 25px;
+    width: 35px;
+    height: 35px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.history-modal-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+/* 历史记录标签栏 */
+.history-tabs {
+    display: flex;
+    background: rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.history-tab {
+    flex: 1;
+    padding: 15px 20px;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.history-tab:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.history-tab.active {
+    color: white;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.history-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+    border-radius: 2px;
+}
+
+.history-tab svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* 历史记录内容区域 */
+.history-modal-content {
+    padding: 25px 30px;
+    max-height: 60vh;
+    overflow-y: auto;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* 自定义滚动条 */
+.history-modal-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.history-modal-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.history-modal-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+}
+
+.history-modal-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* 历史记录列表 */
+.history-list {
+    display: none;
+}
+
+.history-list.active {
+    display: block;
+}
+
+/* 表格样式 */
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+}
+
+.history-table.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.history-table th,
+.history-table td {
+    padding: 12px 15px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    font-size: 14px;
+}
+
+.history-table th {
+    background: rgba(255, 255, 255, 0.2);
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    opacity: 1 !important;
+    transform: none !important;
+}
+
+.history-table tr {
+    transition: background-color 0.3s ease;
+}
+
+.history-table tbody tr {
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.history-table tbody tr.animate {
+    animation: slideInFromBottom 0.5s ease-out forwards;
+}
+
+.history-table tr:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.history-table tr.team-event-row {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.history-table tr.team-event-row td {
+    color: #ffffff;
+    font-weight: bold;
+    border-top: 2px solid rgba(79, 172, 254, 0.3);
+}
+
+/* 动画效果 */
+@keyframes slideInFromBottom {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 鼠标悬停提示框 */
+.history-tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    max-width: 300px;
+    word-wrap: break-word;
+    z-index: 2000;
+    display: none;
+    pointer-events: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* 空状态样式 */
+.history-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.history-empty-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    opacity: 0.5;
+}
+
+.history-empty-text {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.history-empty-subtext {
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .history-modal {
+        width: 98%;
+        max-height: 95vh;
+        border-radius: 15px;
+    }
+    
+    .history-modal-header {
+        padding: 20px 20px 15px;
+    }
+    
+    .history-modal-title {
+        font-size: 20px;
+    }
+    
+    .history-modal-close {
+        width: 30px;
+        height: 30px;
+        top: 15px;
+        right: 20px;
+        font-size: 18px;
+    }
+    
+    .history-tabs {
+        flex-direction: row;
+    }
+    
+    .history-tab {
+        padding: 12px 15px;
+        font-size: 14px;
+    }
+    
+    .history-modal-content {
+        padding: 20px;
+        max-height: 65vh;
+    }
+    
+    .history-table th,
+    .history-table td {
+        padding: 8px 6px;
+        font-size: 12px;
+    }
+    
+    .history-table th:first-child,
+    .history-table td:first-child {
+        min-width: 40px;
+    }
+    
+    .history-table th:nth-child(2),
+    .history-table td:nth-child(2) {
+        min-width: 60px;
+    }
+}
+
+@media (max-width: 480px) {
+    .history-modal {
+        width: 100%;
+        height: 80vh;
+        max-height: 75vh;
+        border-radius: 0;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+    
+    .history-modal-content {
+        padding: 15px;
+        max-height: calc(70vh - 180px);
+    }
+    
+    .history-table th,
+    .history-table td {
+        padding: 6px 4px;
+        font-size: 11px;
+    }
+    
+    .history-modal-title {
+        font-size: 18px;
+    }
+}
+
+/* 动画效果 */
+@keyframes historyModalFadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -60%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+@keyframes historyModalFadeInMobile {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+@keyframes historyModalFadeOut {
+    from {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+    to {
+        opacity: 0;
+        transform: translate(-50%, -60%);
+    }
+}
+
+@keyframes historyModalFadeOutMobile {
+    from {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.9);
+    }
+}
+
+.history-overlay.show {
+    display: block !important;
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+.history-overlay.hide {
+    animation: fadeOut 0.3s ease-out forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+.history-modal.show {
+    display: block !important;
+    animation: historyModalFadeIn 0.3s ease-out forwards;
+}
+
+.history-modal.hide {
+    animation: historyModalFadeOut 0.3s ease-out forwards;
+}
+
+@media (max-width: 480px) {
+    .history-modal.show {
+        animation: historyModalFadeInMobile 0.3s ease-out forwards;
+    }
+    
+    .history-modal.hide {
+        animation: historyModalFadeOutMobile 0.3s ease-out forwards;
+    }
+}
