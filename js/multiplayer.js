@@ -29,8 +29,8 @@ document.addEventListener('DOMContentLoaded', function () {
     let currentRoomId = null;
     let currentPlayerId = 'player1'; // 默认玩家ID
     let currentPlayerCount = 1; // 当前房间玩家数量
-    let heartbeatInterval = null; // 心跳包定时器
-    let lastHeartbeatTime = null; // 上次心跳包发送时间
+    // let heartbeatInterval = null; // 心跳包定时器 - 已注释
+    // let lastHeartbeatTime = null; // 上次心跳包发送时间 - 已注释
 
     // 默认禁用按钮
     hostGameButton.disabled = true;
@@ -50,8 +50,8 @@ document.addEventListener('DOMContentLoaded', function () {
         hostGameButton.disabled = false;
         joinGameButton.disabled = false;
         
-        // 开始发送心跳包
-        startHeartbeat();
+        // 开始发送心跳包 - 已注释
+        // startHeartbeat();
         
     };    // WebSocket 连接错误
     ws.onerror = (error) => {
@@ -65,8 +65,8 @@ document.addEventListener('DOMContentLoaded', function () {
         hostGameButton.disabled = true;
         joinGameButton.disabled = true;
         
-        // 停止心跳包
-        stopHeartbeat();
+        // 停止心跳包 - 已注释
+        // stopHeartbeat();
         
     };    // WebSocket 连接关闭
     ws.onclose = () => {
@@ -80,8 +80,8 @@ document.addEventListener('DOMContentLoaded', function () {
         hostGameButton.disabled = true;
         joinGameButton.disabled = true;
         
-        // 停止心跳包
-        stopHeartbeat();
+        // 停止心跳包 - 已注释
+        // stopHeartbeat();
         
     };
 
@@ -1135,6 +1135,8 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
         
+        // 注释掉保活同步检查逻辑
+        /*
         // 如果是保活同步，检查是否真的需要发送
         if (isKeepAlive) {
             // 如果最近有过事件驱动的同步，则跳过保活同步
@@ -1148,7 +1150,8 @@ document.addEventListener('DOMContentLoaded', function () {
             if (currentPlayerCount <= 1) {
                 console.log('房间只有主持人，跳过保活同步');
                 return;
-            }        }        // 获取当前阵容名称
+            }        }        
+        */// 获取当前阵容名称
         const teamNameDisplay = document.getElementById('teamNameDisplay');
         const currentTeamName = teamNameDisplay ? teamNameDisplay.textContent.replace('当前阵容：', '') : '';
         const isTeamModeActive = window.teamManagement && typeof window.teamManagement.isTeamMode === 'function' ? 
@@ -1217,6 +1220,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }    // 优化后的同步机制：事件驱动同步 + 长间隔保活同步
     let lastEventSyncTime = null; // 追踪最后一次事件驱动同步的时间
     
+    // 注释掉保活同步机制
+    /*
     setInterval(() => {
         // 只有主持人发送保活同步，且只在有连接时发送
         if (isHost && ws && ws.readyState === WebSocket.OPEN && currentRoomId) {
@@ -1224,6 +1229,7 @@ document.addEventListener('DOMContentLoaded', function () {
             syncGameState(true); // 传入保活标识
         }
     }, 30000); //30秒一次保活同步
+    */
     
     // 游戏状态缓存，用于检测变化
     let lastGameStateHash = null;
@@ -1288,7 +1294,7 @@ document.addEventListener('DOMContentLoaded', function () {
         
         if (hasGameStateChanged()) {
             console.log('检测到游戏状态变化，触发事件驱动同步');
-            lastEventSyncTime = Date.now(); // 记录事件同步时间
+            // lastEventSyncTime = Date.now(); // 记录事件同步时间 - 已注释
             syncGameState(false); // 事件驱动同步，非保活
         }
     }    // 在主界面顶部动态显示当前人数和房间码
@@ -1580,8 +1586,11 @@ ws.onmessage = (event) => {
             if (window.hardMissionVoting && window.hardMissionVoting.syncVotingState) {
                 window.hardMissionVoting.syncVotingState({ votingState: data.votingState }, 'server');
             }
-            break;        case 'heartbeatAck':
-            // 处理心跳包确认消息
+            break;        
+            
+        /*
+        case 'heartbeatAck':
+            // 处理心跳包确认消息 - 已注释
             const latency = Date.now() - data.originalTimestamp;
             console.log(`收到心跳包确认 - 延迟: ${latency}ms`);
             
@@ -1590,6 +1599,7 @@ ws.onmessage = (event) => {
                 const baseText = connectionStatus.textContent.split('（')[0]; // 保留基础连接信息
             }
             break;
+        */
 
         case 'updateState':
             console.log(`更新状态请求，房间ID: ${data.roomId}`);
@@ -1984,7 +1994,10 @@ ws.onmessage = (event) => {
             roomId: currentRoomId, 
             resultData 
         }));
-    }    // 心跳包功能
+    }    
+    
+    /*
+    // 心跳包功能 - 已注释
     function startHeartbeat() {
         // 清除之前的心跳包定时器
         if (heartbeatInterval) {
@@ -2018,6 +2031,7 @@ ws.onmessage = (event) => {
             console.log('停止发送心跳包');
         }
     }
+    */
 
     exploreButton.addEventListener('click', () => {
         initialScreen.style.display = 'none';
