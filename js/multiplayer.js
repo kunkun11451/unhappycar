@@ -1135,23 +1135,23 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
         
-        // 注释掉保活同步检查逻辑
-        /*
-        // 如果是保活同步，检查是否真的需要发送
-        if (isKeepAlive) {
-            // 如果最近有过事件驱动的同步，则跳过保活同步
-            const now = Date.now();
-            if (lastEventSyncTime && (now - lastEventSyncTime) < 60000) {
-                console.log('最近有事件同步，跳过保活同步');
-                return;
-            }
+        // // 如果是保活同步，检查是否真的需要发送
+        // if (isKeepAlive) {
+        //     // 如果最近有过事件驱动的同步，则跳过保活同步
+        //     const now = Date.now();
+        //     if (lastEventSyncTime && (now - lastEventSyncTime) < 60000) {
+        //         console.log('最近有事件同步，跳过保活同步');
+        //         return;
+        //     }
             
-            // 如果房间只有主持人一个人，也跳过保活同步
-            if (currentPlayerCount <= 1) {
-                console.log('房间只有主持人，跳过保活同步');
-                return;
-            }        }        
-        */// 获取当前阵容名称
+        //     // 如果房间只有主持人一个人，也跳过保活同步
+        //     if (currentPlayerCount <= 1) {
+        //         console.log('房间只有主持人，跳过保活同步');
+        //         return;
+        //     }
+        // }
+
+        // 获取当前阵容名称
         const teamNameDisplay = document.getElementById('teamNameDisplay');
         const currentTeamName = teamNameDisplay ? teamNameDisplay.textContent.replace('当前阵容：', '') : '';
         const isTeamModeActive = window.teamManagement && typeof window.teamManagement.isTeamMode === 'function' ? 
@@ -1220,16 +1220,13 @@ document.addEventListener('DOMContentLoaded', function () {
     }    // 优化后的同步机制：事件驱动同步 + 长间隔保活同步
     let lastEventSyncTime = null; // 追踪最后一次事件驱动同步的时间
     
-    // 注释掉保活同步机制
-    /*
-    setInterval(() => {
-        // 只有主持人发送保活同步，且只在有连接时发送
-        if (isHost && ws && ws.readyState === WebSocket.OPEN && currentRoomId) {
-            console.log('执行保活同步检查...');
-            syncGameState(true); // 传入保活标识
-        }
-    }, 30000); //30秒一次保活同步
-    */
+    // setInterval(() => {
+    //     // 只有主持人发送保活同步，且只在有连接时发送
+    //     if (isHost && ws && ws.readyState === WebSocket.OPEN && currentRoomId) {
+    //         console.log('执行保活同步检查...');
+    //         syncGameState(true); // 传入保活标识
+    //     }
+    // }, 30000); //30秒一次保活同步
     
     // 游戏状态缓存，用于检测变化
     let lastGameStateHash = null;
