@@ -369,7 +369,15 @@ wss.on("connection", (ws) => {
 
         case "get_shared_libraries":
           try {
-            const approvedFiles = fs.readdirSync(APPROVED_DIR).filter(file => file.endsWith('.json'));
+            const approvedFiles = fs.readdirSync(APPROVED_DIR)
+                .filter(file => file.endsWith('.json'))
+                .map(file => ({
+                    name: file,
+                    time: fs.statSync(require('path').join(APPROVED_DIR, file)).mtime.getTime()
+                }))
+                .sort((a, b) => a.time - b.time)
+                .map(file => file.name);
+
             const combinedLibraries = {
               personalEvents: {},
               teamEvents: {}
