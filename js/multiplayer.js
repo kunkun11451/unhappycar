@@ -1407,8 +1407,21 @@ ws.onmessage = (event) => {
 
     // 将消息路由到共享事件模块
     if (window.sharedEvents && typeof window.sharedEvents.handleMessage === 'function') {
-        // 如果消息被共享模块处理，则提前返回
-        if (['shared_libraries_data', 'admin_login_success', 'pending_libraries_list', 'approval_success', 'rejection_success', 'upload_success'].includes(data.type)) {
+        const sharedEventTypes = [
+            'shared_libraries_data', 
+            'upload_success',
+            'pin_mismatch',
+            'authentication_success',
+            'authentication_failure',
+            'event_deleted_success',
+            'event_added_success',
+            // Legacy types, can be kept for compatibility or removed if not used
+            'admin_login_success', 
+            'pending_libraries_list', 
+            'approval_success', 
+            'rejection_success'
+        ];
+        if (sharedEventTypes.includes(data.type)) {
             window.sharedEvents.handleMessage(data);
             return;
         }
