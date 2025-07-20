@@ -297,15 +297,47 @@ wss.on("connection", (ws) => {
               throw new Error("无效的事件库格式");
             }
 
-            // Helper function to extract JS object from file content
+            // Helper function to safely extract JS object from file content
             const extractObject = (content, varName) => {
-              const regex = new RegExp(`const ${varName} = ({[\\s\\S]*?});`);
-              const match = content.match(regex);
-              if (match && match[1]) {
-                // Use a safer method to parse the object-like string
-                return JSON.parse(JSON.stringify(eval('(' + match[1] + ')')));
-              }
-              return {};
+                const startIndex = content.indexOf(`const ${varName} = {`);
+                if (startIndex === -1) return {};
+
+                const slicedContent = content.substring(startIndex);
+                let braceCount = 0;
+                let endIndex = -1;
+
+                for (let i = 0; i < slicedContent.length; i++) {
+                    if (slicedContent[i] === '{') {
+                        braceCount++;
+                    } else if (slicedContent[i] === '}') {
+                        braceCount--;
+                    }
+                    if (braceCount === 0 && i > 0) {
+                        endIndex = i + 1;
+                        break;
+                    }
+                }
+
+                if (endIndex === -1) return {};
+
+                const objectStr = slicedContent.substring(slicedContent.indexOf('{'), endIndex);
+                
+                try {
+                    // A bit of a hack, but safer than eval. We rely on the JSON-like structure.
+                    // We convert it to a string that can be parsed by JSON.parse.
+                    // This requires property names to be in double quotes.
+                    const jsonStr = objectStr
+                        .replace(/(['"])?([a-zA-Z0-9_]+)(['"])?:/g, '"$2":') // Add quotes to keys
+                        .replace(/'/g, '"'); // Replace single quotes with double quotes for values
+                    
+                    // This is still not perfect and might fail for complex objects.
+                    // A more robust solution would be to use a proper JS parser like acorn.
+                    // For now, let's try a simpler approach by creating a function from the string.
+                    return new Function(`return ${objectStr}`)();
+                } catch (e) {
+                    console.error(`Failed to parse object for ${varName}:`, e);
+                    return {};
+                }
             };
 
             // Load default events

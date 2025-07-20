@@ -314,7 +314,6 @@
     transition: opacity 0.3s ease, transform 0.3s ease;
     display: none;
     padding: 25px;
-    display: none; /* Initially hidden */
     flex-direction: column;
     gap: 15px;
 }
