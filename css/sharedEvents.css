@@ -1,0 +1,383 @@
+/* css/sharedEvents.css */
+
+.shared-events-content {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto;
+    position: relative; /* For proper scrolling context */
+}
+
+.shared-events-footer {
+    padding: 15px 25px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+}
+
+.shared-events-footer-btn {
+    padding: 10px 20px;
+    border: 1px solid #444;
+    background-color: #333;
+    color: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.shared-events-footer-btn:hover {
+    background-color: #444;
+}
+
+/* Tabs */
+.shared-events-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #444;
+    justify-content: center;
+}
+
+.shared-events-tab-btn {
+    padding: 10px 20px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: #aaa;
+    font-size: 1em;
+    border-bottom: 3px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+}
+
+.shared-events-tab-btn.active {
+    color: #fff;
+    border-bottom-color: #3498db;
+}
+
+/* Grid Controls */
+.shared-events-grid-controls {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.shared-events-action-btn {
+    padding: 10px 20px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.shared-events-action-btn:hover {
+    background-color: #2980b9;
+}
+
+.shared-events-filter {
+    padding: 10px 15px;
+    background-color: #333;
+    color: #fff;
+    border: 1px solid #444;
+    border-radius: 8px;
+    font-size: 1em;
+    cursor: pointer;
+}
+
+/* Event Grid & Cards */
+.shared-events-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+.shared-event-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s, opacity 0.3s;
+    width: calc(33.333% - 20px); /* Adjust for gap */
+    min-width: 280px;
+    box-sizing: border-box; /* Ensure padding and border are included in the width */
+}
+
+.shared-event-card.added {
+    opacity: 0.6;
+}
+
+.shared-event-card.added .add-btn {
+    background-color: #555;
+    cursor: not-allowed;
+}
+
+.shared-event-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.shared-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.shared-card-title {
+    margin: 0;
+    font-size: 1.1em;
+    flex-grow: 1;
+}
+
+.shared-card-checkbox {
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+}
+
+.shared-card-content {
+    font-size: 0.9em;
+    color: #ccc;
+    margin-bottom: 10px;
+    word-wrap: break-word;
+}
+
+.shared-card-placeholders {
+    font-size: 0.8em;
+    color: #999;
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 15px;
+    flex-grow: 1; /* Allow this to take up space */
+}
+
+.shared-card-placeholders li {
+    margin-bottom: 4px;
+    color: #bbb;
+}
+
+.shared-card-uploader {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.uploader-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.uploader-name {
+    font-size: 0.85em;
+    color: #bbb;
+}
+
+.shared-card-footer {
+    display: flex;
+    gap: 10px;
+    margin-top: auto; /* Push footer to the bottom */
+}
+
+.shared-card-btn {
+    flex-grow: 1;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.shared-card-btn.add-btn {
+    background-color: #27ae60;
+    color: #fff;
+}
+.shared-card-btn.add-btn:hover {
+    background-color: #2ecc71;
+}
+
+.shared-events-empty {
+    text-align: center;
+    grid-column: 1 / -1;
+    padding: 40px;
+    color: #888;
+}
+
+/* Admin View */
+.admin-pending-list {
+    list-style: none;
+    padding: 0;
+}
+
+.admin-pending-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.pending-item-info strong {
+    margin-right: 10px;
+}
+
+.pending-item-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.approve-btn {
+    background-color: #27ae60;
+    color: #fff;
+}
+.reject-btn {
+    background-color: #c0392b;
+    color: #fff;
+}
+
+/* Detail Modal */
+.shared-events-detail-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.95);
+    width: 90%;
+    max-width: 600px;
+    background: rgba(35, 35, 40, 0.9);
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    z-index: 1002; /* Above main modal */
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    display: none;
+    padding: 25px;
+}
+
+.shared-events-detail-modal.visible {
+    display: block;
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.shared-events-detail-modal h3 {
+    margin-top: 0;
+    color: #3498db;
+}
+
+.shared-events-detail-modal p {
+    line-height: 1.6;
+}
+
+.shared-events-detail-modal h4 {
+    margin-top: 20px;
+    border-bottom: 1px solid #444;
+    padding-bottom: 5px;
+}
+
+.shared-events-detail-modal ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.shared-events-detail-modal li {
+    margin-bottom: 8px;
+}
+
+/* Upload Modal */
+.shared-events-upload-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.95);
+    width: 90%;
+    max-width: 450px;
+    background: rgba(40, 42, 48, 0.95);
+    backdrop-filter: blur(5px);
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    z-index: 1002;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    display: none;
+    padding: 25px;
+    display: none; /* Initially hidden */
+    flex-direction: column;
+    gap: 15px;
+}
+
+.shared-events-upload-modal.visible {
+    display: flex;
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.shared-events-upload-modal h3 {
+    margin-top: 0;
+    text-align: center;
+    color: #3498db;
+}
+
+.shared-events-upload-modal p {
+    margin-top: -5px;
+    margin-bottom: 10px;
+    text-align: center;
+    font-size: 0.9em;
+    color: #bbb;
+}
+
+.shared-events-upload-modal input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid #444;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 1em;
+    box-sizing: border-box;
+}
+
+.avatar-input-group {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.avatar-input-group input {
+    flex-grow: 1;
+}
+
+.avatar-preview-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 50px;
+    margin-top: 10px;
+}
+
+#avatarPreviewImage {
+    max-width: 100px;
+    max-height: 100px;
+    border-radius: 8px;
+    border: 1px solid #555;
+}
+
+.upload-modal-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    margin-top: 10px;
+}

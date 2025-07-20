@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const characterManagement = document.getElementById("characterManagement");
     const characterHistory = document.getElementById("characterHistory");
     const eventManagement = document.getElementById("eventManagement");
+    const sharedEvents = document.getElementById("sharedEvents");
     const eventHistory = document.getElementById("eventHistory");
     const moreSettings = document.getElementById("moreSettings");
     const gameSettings = document.getElementById("gameSettings");
@@ -134,6 +135,29 @@ document.addEventListener('DOMContentLoaded', () => {
                     window.eventManagement.triggerTableAnimation(personalTableBody);
                 }
             }, 100);
+        });
+    }
+
+    if(sharedEvents) {
+        sharedEvents.addEventListener("click", () => {
+            if (currentActiveOption === sharedEvents) {
+                return;
+            }
+            // The sharedEvents module now generates content instead of a modal
+            if (window.sharedEvents && typeof window.sharedEvents.renderUserView === 'function') {
+                // Create a container for the content
+                const container = document.createElement('div');
+                container.id = 'sharedEventsContainer'; // Add an ID for styling if needed
+                container.style.height = '100%';
+                
+                selectOption(sharedEvents, "事件创意工坊", container);
+                
+                // Call the render function which populates the container
+                window.sharedEvents.renderUserView(container);
+                currentActiveOption = sharedEvents;
+            } else {
+                console.error('sharedEvents module or renderUserView function not found.');
+            }
         });
     }
 

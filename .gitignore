@@ -3,3 +3,5 @@ package.json
 package-lock.json
 .vscode/
 *.log
+approved_events/
+pending_events/

@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     // 检查是否为本地开发环境
     const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const wsUrl = isLocalDev ? 'ws://127.0.0.1:3000' : 'wss://unhappycar.tech:3000';
+    const wsUrl = isLocalDev ? 'ws://127.0.0.1:11451' : 'wss://unhappycar.tech:11451';
     console.log('连接到WebSocket服务器:', wsUrl);
     
     // 记录连接开始时间
@@ -52,6 +52,11 @@ document.addEventListener('DOMContentLoaded', function () {
         
         // 开始发送心跳包
         startHeartbeat();
+
+        // 初始化共享事件模块
+        if (window.sharedEvents && typeof window.sharedEvents.init === 'function') {
+            window.sharedEvents.init(ws);
+        }
         
     };    // WebSocket 连接错误
     ws.onerror = (error) => {
@@ -1399,6 +1404,15 @@ function showTemporaryMessage(message) {
 ws.onmessage = (event) => {
     // console.log('收到消息:', event.data);
     const data = JSON.parse(event.data);
+
+    // 将消息路由到共享事件模块
+    if (window.sharedEvents && typeof window.sharedEvents.handleMessage === 'function') {
+        // 如果消息被共享模块处理，则提前返回
+        if (['shared_libraries_data', 'admin_login_success', 'pending_libraries_list', 'approval_success', 'rejection_success', 'upload_success'].includes(data.type)) {
+            window.sharedEvents.handleMessage(data);
+            return;
+        }
+    }
 
     switch (data.type) {        case 'roomCreated':
             currentRoomId = data.roomId;

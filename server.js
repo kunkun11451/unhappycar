@@ -3,7 +3,12 @@ const https = require("https");
 const WebSocket = require("ws");
 const { v4: uuidv4 } = require("uuid");
 
-const PORT = process.env.PORT || 3000;
+const APPROVED_DIR = './approved_events';
+if (!fs.existsSync(APPROVED_DIR)) {
+  fs.mkdirSync(APPROVED_DIR);
+}
+
+const PORT = process.env.PORT || 11451;
 
 // 带时间戳的日志函数（北京时间）
 function logWithTimestamp(message, ...args) {
@@ -285,6 +290,120 @@ wss.on("connection", (ws) => {
       const data = JSON.parse(message);
       
       switch (data.type) {
+        case "upload_event_library":
+          try {
+            const userLibrary = data.library;
+            if (typeof userLibrary !== 'object' || !userLibrary.personalEvents || !userLibrary.teamEvents) {
+              throw new Error("无效的事件库格式");
+            }
+
+            // Helper function to extract JS object from file content
+            const extractObject = (content, varName) => {
+              const regex = new RegExp(`const ${varName} = ({[\\s\\S]*?});`);
+              const match = content.match(regex);
+              if (match && match[1]) {
+                // Use a safer method to parse the object-like string
+                return JSON.parse(JSON.stringify(eval('(' + match[1] + ')')));
+              }
+              return {};
+            };
+
+            // Load default events
+            let defaultMissions = {};
+            let defaultHardMissions = {};
+            if (fs.existsSync('./js/mission.js')) {
+              const missionContent = fs.readFileSync('./js/mission.js', 'utf-8');
+              defaultMissions = extractObject(missionContent, 'mission');
+            }
+            if (fs.existsSync('./js/hardmission.js')) {
+              const hardMissionContent = fs.readFileSync('./js/hardmission.js', 'utf-8');
+              defaultHardMissions = extractObject(hardMissionContent, 'hardmission');
+            }
+
+            // Filter out events that already exist in default libraries
+            const newPersonalEvents = {};
+            for (const key in userLibrary.personalEvents) {
+              if (!defaultMissions.hasOwnProperty(key)) {
+                newPersonalEvents[key] = userLibrary.personalEvents[key];
+              }
+            }
+
+            const newTeamEvents = {};
+            for (const key in userLibrary.teamEvents) {
+              if (!defaultHardMissions.hasOwnProperty(key)) {
+                newTeamEvents[key] = userLibrary.teamEvents[key];
+              }
+            }
+
+            const filteredLibrary = {
+              personalEvents: newPersonalEvents,
+              teamEvents: newTeamEvents,
+              uploaderName: userLibrary.uploaderName,
+              uploaderAvatar: userLibrary.uploaderAvatar
+            };
+
+            if (Object.keys(filteredLibrary.personalEvents).length === 0 && Object.keys(filteredLibrary.teamEvents).length === 0) {
+              ws.send(JSON.stringify({ type: "upload_success", message: "您分享的事件均已存在于默认库中，无需重复上传。" }));
+              return;
+            }
+
+            const filename = `${Date.now()}-${uuidv4().substring(0, 8)}.json`;
+            const filePath = require('path').join(APPROVED_DIR, filename);
+            fs.writeFileSync(filePath, JSON.stringify(filteredLibrary, null, 2));
+            logWithTimestamp(`收到新的事件库上传并自动批准: ${filename}`);
+            ws.send(JSON.stringify({ type: "upload_success", message: "上传成功！您的事件已成功添加到共享中心。" }));
+
+          } catch (e) {
+            logWithTimestamp("处理上传的事件库失败:", e);
+            ws.send(JSON.stringify({ type: "error", message: `上传失败: ${e.message}` }));
+          }
+          break;
+
+        case "get_shared_libraries":
+          try {
+            const approvedFiles = fs.readdirSync(APPROVED_DIR).filter(file => file.endsWith('.json'));
+            const combinedLibraries = {
+              personalEvents: {},
+              teamEvents: {}
+            };
+
+            approvedFiles.forEach(file => {
+              try {
+                const content = fs.readFileSync(require('path').join(APPROVED_DIR, file), 'utf-8');
+                const library = JSON.parse(content);
+                
+                // Add uploader info to each event
+                const addUploaderInfo = (events) => {
+                    for (const key in events) {
+                        if (events.hasOwnProperty(key)) {
+                            events[key].uploaderName = library.uploaderName;
+                            events[key].uploaderAvatar = library.uploaderAvatar;
+                        }
+                    }
+                };
+
+                if (library.personalEvents) {
+                    addUploaderInfo(library.personalEvents);
+                    Object.assign(combinedLibraries.personalEvents, library.personalEvents);
+                }
+                if (library.teamEvents) {
+                    addUploaderInfo(library.teamEvents);
+                    Object.assign(combinedLibraries.teamEvents, library.teamEvents);
+                }
+
+              } catch (e) {
+                logWithTimestamp(`加载共享事件库 ${file} 失败:`, e);
+              }
+            });
+
+            ws.send(JSON.stringify({ type: "shared_libraries_data", libraries: combinedLibraries }));
+            logWithTimestamp(`向客户端发送了 ${approvedFiles.length} 个共享事件库`);
+          } catch (e) {
+            logWithTimestamp("获取共享事件库失败:", e);
+            ws.send(JSON.stringify({ type: "error", message: "获取共享事件库失败" }));
+          }
+          break;
+
         case "createRoom":
           let roomId;
           
