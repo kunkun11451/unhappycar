@@ -9,7 +9,7 @@ if (!fs.existsSync(APPROVED_DIR)) {
   fs.mkdirSync(APPROVED_DIR);
 }
 
-const PORT = process.env.PORT || 11451;
+const PORT = process.env.PORT || 3000
 
 // 带时间戳的日志函数（北京时间）
 function logWithTimestamp(message, ...args) {
@@ -343,27 +343,41 @@ wss.on("connection", (ws) => {
               const existingData = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
               if (existingData.uploaderPin === uploaderPin) {
                 // PIN matches, merge and update library, ensuring no content duplicates within the user's library
-                const existingPersonalSignatures = new Set(Object.values(existingData.personalEvents || {}).map(e => JSON.stringify(e)));
-                const existingTeamSignatures = new Set(Object.values(existingData.teamEvents || {}).map(e => JSON.stringify(e)));
+                
+                // Helper to create a signature for an event object (ignoring keys like uploaderName etc.)
+                const createEventSignature = (event) => {
+                    const coreEvent = {
+                        内容: event.内容,
+                        placeholders: event.placeholders
+                    };
+                    return JSON.stringify(coreEvent);
+                };
 
-                for (const title in finalLibrary.personalEvents) {
-                    const eventSignature = JSON.stringify(finalLibrary.personalEvents[title]);
-                    if (!existingPersonalSignatures.has(eventSignature)) {
-                        existingData.personalEvents[title] = finalLibrary.personalEvents[title];
+                const mergeEvents = (existingEvents, newEvents) => {
+                    const signatures = new Set(Object.values(existingEvents).map(createEventSignature));
+                    for (const title in newEvents) {
+                        const newEvent = newEvents[title];
+                        const signature = createEventSignature(newEvent);
+                        if (!signatures.has(signature)) {
+                            // Add if signature is new. We use the original title.
+                            // If title exists, it will be overwritten, which is fine for updates.
+                            existingEvents[title] = newEvent;
+                            signatures.add(signature);
+                        }
                     }
-                }
-                for (const title in finalLibrary.teamEvents) {
-                    const eventSignature = JSON.stringify(finalLibrary.teamEvents[title]);
-                    if (!existingTeamSignatures.has(eventSignature)) {
-                        existingData.teamEvents[title] = finalLibrary.teamEvents[title];
-                    }
-                }
+                };
+                
+                if (!existingData.personalEvents) existingData.personalEvents = {};
+                if (!existingData.teamEvents) existingData.teamEvents = {};
+
+                mergeEvents(existingData.personalEvents, finalLibrary.personalEvents);
+                mergeEvents(existingData.teamEvents, finalLibrary.teamEvents);
 
                 existingData.lastUpdated = new Date().toISOString();
                 existingData.uploaderAvatar = finalLibrary.uploaderAvatar; // Also update avatar
 
                 fs.writeFileSync(filePath, JSON.stringify(existingData, null, 2));
-                logWithTimestamp(`更新了用户 ${uploaderName} 的事件库`);
+                logWithTimestamp(`更新了用户 ${uploaderName} 的事件库 (增量)`);
                 ws.send(JSON.stringify({ type: "upload_success", message: "事件库更新成功！" }));
               } else {
                 // PIN mismatch
