@@ -52,6 +52,11 @@ document.addEventListener('DOMContentLoaded', function () {
         
         // 开始发送心跳包
         startHeartbeat();
+
+        // 初始化共享事件模块
+        if (window.sharedEvents && typeof window.sharedEvents.init === 'function') {
+            window.sharedEvents.init(ws);
+        }
         
     };    // WebSocket 连接错误
     ws.onerror = (error) => {
@@ -1399,6 +1404,28 @@ function showTemporaryMessage(message) {
 ws.onmessage = (event) => {
     // console.log('收到消息:', event.data);
     const data = JSON.parse(event.data);
+
+    // 将消息路由到共享事件模块
+    if (window.sharedEvents && typeof window.sharedEvents.handleMessage === 'function') {
+        const sharedEventTypes = [
+            'shared_libraries_data', 
+            'upload_success',
+            'pin_mismatch',
+            'authentication_success',
+            'authentication_failure',
+            'event_deleted_success',
+            'event_added_success',
+            // Legacy types, can be kept for compatibility or removed if not used
+            'admin_login_success', 
+            'pending_libraries_list', 
+            'approval_success', 
+            'rejection_success'
+        ];
+        if (sharedEventTypes.includes(data.type)) {
+            window.sharedEvents.handleMessage(data);
+            return;
+        }
+    }
 
     switch (data.type) {        case 'roomCreated':
             currentRoomId = data.roomId;

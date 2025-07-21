@@ -1449,7 +1449,7 @@ position: absolute;
     display: none; /* 默认隐藏 */
     top: 0;
     left: 0;
-    height: 100%;
+    /* height: 100%; */
     background-color: #6C6C6E; /* 半透明背景 */
     z-index: 300;
     padding: 20px;

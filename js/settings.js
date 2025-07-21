@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const characterManagement = document.getElementById("characterManagement");
     const characterHistory = document.getElementById("characterHistory");
     const eventManagement = document.getElementById("eventManagement");
+    const sharedEvents = document.getElementById("sharedEvents");
     const eventHistory = document.getElementById("eventHistory");
     const moreSettings = document.getElementById("moreSettings");
     const gameSettings = document.getElementById("gameSettings");
@@ -137,6 +138,29 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    if(sharedEvents) {
+        sharedEvents.addEventListener("click", () => {
+            if (currentActiveOption === sharedEvents) {
+                return;
+            }
+            // The sharedEvents module now generates content instead of a modal
+            if (window.sharedEvents && typeof window.sharedEvents.renderUserView === 'function') {
+                // Create a container for the content
+                const container = document.createElement('div');
+                container.id = 'sharedEventsContainer'; // Add an ID for styling if needed
+                container.style.height = '100%';
+                
+                selectOption(sharedEvents, "事件创意工坊", container);
+                
+                // Call the render function which populates the container
+                window.sharedEvents.renderUserView(container);
+                currentActiveOption = sharedEvents;
+            } else {
+                console.error('sharedEvents module or renderUserView function not found.');
+            }
+        });
+    }
+
     if(eventHistory) {
         eventHistory.addEventListener("click", () => {
             if (currentActiveOption === eventHistory) {
@@ -227,15 +251,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // 显示赤石科技内容
             selectOption(redstoneTech, " ", container);
             currentActiveOption = redstoneTech; // 更新当前活跃选项
-        });
-    }
-
-    // 方位抽取按钮点击事件
-    const directionExtractor = document.getElementById("directionExtractor");
-    if (directionExtractor) {
-        directionExtractor.addEventListener("click", () => {
-            // 在新窗口中打开方位抽取器
-            window.open('./fangwei', '_blank');
         });
     }
 
@@ -778,7 +793,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const projects = [
             { name: "拼好图", file: "pinhaotu" },
             { name: "拼好车", file: "pinhaoche" },
-            { name: "赤石3",},
+            { name: "方位抽取器", file: "fangwei"},
             { name: "赤石4", },
             { name: "赤石5", },
             { name: "赤石6", }
