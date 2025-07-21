@@ -27,6 +27,8 @@
         injectUploadModalHtml();
         injectConflictModalHtml();
         injectManagementModalHtml(); // Inject the management modal
+        injectErrorModalHtml();
+        injectHelpModalHtml();
         
         // Assign DOM elements
         detailModal = document.getElementById('sharedEventsDetailModal');
@@ -48,102 +50,220 @@
     }
 
     /**
-     * Injects the upload modal's HTML structure into the document body.
+     * Injects the error modal's HTML structure into the document body.
      */
-    function injectUploadModalHtml() {
-        if (document.getElementById('sharedEventsUploadModal')) return;
-        const modalHtml = `
-            <div id="sharedEventsUploadModal" class="shared-events-upload-modal">
-                <h3>分享你的事件库</h3>
-                <p>首次分享请设置名字和识别码，后续更新或管理需使用相同信息。</p>
-                <input type="text" id="uploaderNameInput" placeholder="显示的名字（必填）">
-                <input type="text" id="uploaderPinInput" placeholder="识别码（必填,仅限字母和数字）" pattern="[a-zA-Z0-9]+">
-                <div class="avatar-input-group">
-                    <input type="text" id="uploaderAvatarInput" placeholder="显示的头像URL（可选）">
-                    <button id="previewAvatarBtn" class="shared-card-btn detail-btn">预览</button>
-                </div>
-                <div id="avatarPreviewContainer" class="avatar-preview-container">
-                    <img id="avatarPreviewImage" src="" alt="头像预览" style="display:none;">
-                </div>
-                <div>
-                    <p>成功分享后刷新网页即可查看</p>
-                    <p>主持游戏时请慎重刷新,会导致房间解散</p>
-                    <p>如有与现有分享内容完全相同的事件</p>
-                    <p>将只会在共享库中显示最先被分享的一个</p>
-                </div>
-                <div class="upload-modal-actions">
-                    <button id="confirmUploadBtn" class="shared-card-btn approve-btn">确认并上传</button>
-                    <button id="cancelUploadBtn" class="shared-card-btn reject-btn">取消</button>
+    function injectErrorModalHtml() {
+        if (document.getElementById('sharedEventsErrorOverlay')) return;
+        const overlayHtml = `
+            <div id="sharedEventsErrorOverlay" class="submission-overlay">
+                <div id="sharedEventsErrorModal" class="submission-modal">
+                    <button id="closeErrorModalBtn" class="submission-close-btn">✕</button>
+                    <h2 id="errorModalTitle" class="submission-title">提示</h2>
+                    <div id="errorModalMessage" class="error-modal-message"></div>
+                    <div class="submission-button-container">
+                        <button id="confirmErrorBtn" class="submission-btn submit">确认</button>
+                    </div>
                 </div>
             </div>
         `;
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        document.body.insertAdjacentHTML('beforeend', overlayHtml);
+    }
+
+    /**
+     * Injects the help modal's HTML structure into the document body.
+     */
+    function injectHelpModalHtml() {
+        if (document.getElementById('sharedEventsHelpOverlay')) return;
+        const overlayHtml = `
+            <div id="sharedEventsHelpOverlay" class="submission-overlay">
+                <div id="sharedEventsHelpModal" class="submission-modal">
+                    <button id="closeHelpModalBtn" class="submission-close-btn">✕</button>
+                    <h2 class="submission-title">使用教程</h2>
+                    <div class="help-content">
+                        <h4>这是什么功能?</h4>
+                        <p>你可以在这里浏览他人分享的事件库，并将它们一键添加到你自己的本地事件库中。同时，你也可以将自己的事件库分享给他人。</p>
+                        
+                        <h4>首次分享事件库</h4>
+                        <p>1. 点击“分享我的事件库”按钮。</p>
+                        <p>2. 输入“显示的名字”和“识别码”(相当于账号密码,使用未被其他用户使用的"名字"将自动"注册")。</p>
+                        <p>3. 点击“确认并上传”即可完成分享。</p>
+
+                        <h4>更新已分享的事件库</h4>
+                        <p>1. 在"事件管理"中编辑你的事件库。</p>
+                        <p>2. 输入与之前完全相同的“显示的名字”和“识别码”。</p>
+                        <p>3. 系统会自动用你当前的本地事件库覆盖之前的分享。</p>
+
+                        <h4>管理我的分享</h4>
+                        <p>1. 点击“管理我的分享库”按钮。</p>
+                        <p>2. 输入你的“显示的名字”和“识别码”进行验证。</p>
+                        <p>3. 验证成功后，你可以看到你所有已分享的事件，并可以单独删除它们。</p>
+
+                        <h4>注意事项</h4>
+                        <p>1. 当存在与已有分享内容完全相同的事件时，系统将只保留最先被分享的一个并署名最先分享的用户。</p>
+                        <p>2. 共享的事件库将对所有人可见，请确保其中不包含敏感及不文明信息。</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', overlayHtml);
+    }
+
+    /**
+     * Injects the upload modal's HTML structure into the document body.
+     */
+    function injectUploadModalHtml() {
+        if (document.getElementById('sharedEventsUploadOverlay')) return;
+        const overlayHtml = `
+            <div id="sharedEventsUploadOverlay" class="submission-overlay">
+                <div id="sharedEventsUploadModal" class="submission-modal">
+                    <button id="closeUploadModalBtn" class="submission-close-btn">✕</button>
+                    <h2 class="submission-title">分享你的事件库</h2>
+                    <p class="submission-description">将自动读取你的事件库中的内容进行分享</p>
+                    <p class="submission-description">如有与现有分享内容完全相同的事件</p>
+                    <p class="submission-description">将只会在共享库中显示最先被分享的一个</p>
+                    <input type="text" id="uploaderNameInput" class="submission-input" placeholder="显示的名字（必填）">
+                    <input type="text" id="uploaderPinInput" class="submission-input" placeholder="识别码（必填,用于在同一个名字下更新和管理事件）" pattern="[a-zA-Z0-9]+">
+                    <div class="avatar-input-group">
+                        <input type="text" id="uploaderAvatarInput" class="submission-input" placeholder="显示的头像（可选,以URL网址的形式）">
+                        <button id="previewAvatarBtn" class="submission-btn">预览</button>
+                    </div>
+                    <div id="avatarPreviewContainer" class="avatar-preview-container">
+                        <img id="avatarPreviewImage" src="" alt="头像预览" style="display:none;">
+                    </div>
+                    <div class="submission-button-container">
+                        <button id="confirmUploadBtn" class="submission-btn submit">确认并上传</button>
+                        <button id="cancelUploadBtn" class="submission-btn cancel">取消</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', overlayHtml);
+    }
+
+    /**
+     * Displays a temporary toast notification.
+     * @param {string} message - The message to display.
+     */
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        // Animate in
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 10);
+
+        // Animate out and remove
+        setTimeout(() => {
+            toast.classList.remove('show');
+            toast.addEventListener('transitionend', () => toast.remove());
+        }, 3000);
+    }
+
+    /**
+     * Displays a modal with an error message.
+     * @param {string} message - The HTML message to display.
+     */
+    function showErrorModal(message) {
+        const overlay = document.getElementById('sharedEventsErrorOverlay');
+        const modal = document.getElementById('sharedEventsErrorModal');
+        const messageDiv = document.getElementById('errorModalMessage');
+        const confirmBtn = document.getElementById('confirmErrorBtn');
+        const closeBtn = document.getElementById('closeErrorModalBtn');
+
+        messageDiv.innerHTML = message;
+
+        overlay.style.display = 'flex';
+        setTimeout(() => {
+            overlay.style.opacity = '1';
+            modal.style.transform = 'scale(1)';
+        }, 10);
+
+        const closeModal = () => {
+            overlay.style.opacity = '0';
+            modal.style.transform = 'scale(0.8)';
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 300);
+        };
+
+        confirmBtn.onclick = closeModal;
+        closeBtn.onclick = closeModal;
     }
 
     /**
      * Injects the management modal's HTML structure into the document body.
      */
     function injectManagementModalHtml() {
-        if (document.getElementById('sharedEventsManagementModal')) return;
-        const modalHtml = `
-            <div id="sharedEventsManagementModal" class="shared-events-management-modal">
-                <div id="managementAuthView">
-                    <h3>管理我的分享</h3>
-                    <p>请输入你的名字和识别码以继续。</p>
-                    <input type="text" id="managementNameInput" placeholder="你的名字">
-                    <input type="text" id="managementPinInput" placeholder="你的识别码">
-                    <div class="management-modal-actions">
-                        <button id="managementAuthBtn" class="shared-card-btn approve-btn">验证</button>
-                        <button id="cancelManagementBtn" class="shared-card-btn reject-btn">取消</button>
+        if (document.getElementById('sharedEventsManagementOverlay')) return;
+        const overlayHtml = `
+            <div id="sharedEventsManagementOverlay" class="submission-overlay">
+                <div id="sharedEventsManagementModal" class="submission-modal">
+                    <button id="closeManagementModalBtn" class="submission-close-btn">✕</button>
+                    <div id="managementAuthView">
+                        <h2 class="submission-title">管理我的分享库</h2>
+                        <p class="submission-description">创建的分享库可以在此管理。</p>
+                        <p class="submission-description">请输入你的名字和识别码以继续。</p>
+                        <input type="text" id="managementNameInput" class="submission-input" placeholder="你的名字">
+                        <input type="text" id="managementPinInput" class="submission-input" placeholder="你的识别码">
+                        <div class="submission-button-container">
+                            <button id="managementAuthBtn" class="submission-btn submit">验证</button>
+                            <button id="cancelManagementBtn" class="submission-btn cancel">取消</button>
+                        </div>
                     </div>
-                </div>
-                <div id="managementEditView" style="display:none;">
-                    <h3>编辑你的分享库</h3>
-                    <div class="shared-events-tabs" id="managementTabs">
-                        <button class="shared-events-tab-btn active" data-type="personal">个人事件</button>
-                        <button class="shared-events-tab-btn" data-type="team">团队事件</button>
-                    </div>
-                    <div id="managementEventsGrid" class="management-events-grid shared-events-grid"></div>
-                    <div>
-                        <p>刷新网页后即可查看到分享库中的内容变动</p>
-                        <p>主持游戏时请慎重刷新,会导致房间解散</p>
-                    </div>
-                    <div class="management-modal-actions">
-                        <button id="closeManagementEditBtn" class="shared-card-btn reject-btn">关闭</button>
+                    <div id="managementEditView" style="display:none;">
+                        <h2 class="submission-title">编辑你的分享库</h2>
+                        <div class="shared-events-tabs" id="managementTabs">
+                            <button class="shared-events-tab-btn active" data-type="personal">个人事件</button>
+                            <button class="shared-events-tab-btn" data-type="team">团队事件</button>
+                        </div>
+                        <div id="managementEventsGrid" class="management-events-grid shared-events-grid"></div>
+                        <div>
+                            <p class="submission-description">刷新网页后即可查看到分享库中的内容变动</p>
+                            <p class="submission-description">主持游戏时请慎重刷新,会导致房间解散</p>
+                        </div>
+                        <div class="submission-button-container">
+                            <button id="closeManagementEditBtn" class="submission-btn cancel">关闭</button>
+                        </div>
                     </div>
                 </div>
             </div>
         `;
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        document.body.insertAdjacentHTML('beforeend', overlayHtml);
     }
 
     /**
      * Injects the conflict modal's HTML structure into the document body.
      */
     function injectConflictModalHtml() {
-        if (document.getElementById('sharedEventsConflictModal')) return;
-        const modalHtml = `
-            <div id="sharedEventsConflictModal" class="shared-events-conflict-modal">
-                <h3 class="conflict-modal-title">事件内容冲突</h3>
-                <p class="conflict-modal-subtitle">事件 "<span id="conflictEventTitle"></span>" 在您的本地库中已存在，但内容不同。</p>
-                <div class="conflict-modal-comparison">
-                    <div class="conflict-event-version">
-                        <h4>本地版本</h4>
-                        <div id="localEventDetails"></div>
+        if (document.getElementById('sharedEventsConflictOverlay')) return;
+        const overlayHtml = `
+            <div id="sharedEventsConflictOverlay" class="submission-overlay">
+                <div id="sharedEventsConflictModal" class="submission-modal">
+                    <button id="closeConflictModalBtn" class="submission-close-btn">✕</button>
+                    <h2 class="submission-title">事件内容冲突</h2>
+                    <p class="submission-description">事件 "<span id="conflictEventTitle"></span>" 在您的本地库中已存在，但内容不同。</p>
+                    <div class="conflict-modal-comparison">
+                        <div class="conflict-event-version">
+                            <h4>本地版本</h4>
+                            <div id="localEventDetails"></div>
+                        </div>
+                        <div class="conflict-event-version">
+                            <h4>共享版本</h4>
+                            <div id="sharedEventDetails"></div>
+                        </div>
                     </div>
-                    <div class="conflict-event-version">
-                        <h4>共享版本</h4>
-                        <div id="sharedEventDetails"></div>
+                    <div class="submission-button-container">
+                        <button id="overwriteEventBtn" class="submission-btn submit">覆盖本地版本</button>
+                        <button id="renameEventBtn" class="submission-btn">重命名后添加</button>
+                        <button id="cancelConflictBtn" class="submission-btn cancel">取消</button>
                     </div>
-                </div>
-                <div class="conflict-modal-actions">
-                    <button id="overwriteEventBtn" class="shared-card-btn approve-btn">覆盖本地版本</button>
-                    <button id="renameEventBtn" class="shared-card-btn detail-btn">重命名后添加</button>
-                    <button id="cancelConflictBtn" class="shared-card-btn reject-btn">取消</button>
                 </div>
             </div>
         `;
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        document.body.insertAdjacentHTML('beforeend', overlayHtml);
     }
 
     /**
@@ -171,25 +291,23 @@
                 }
                 break;
             case 'upload_success':
-                alert(data.message || '上传/更新成功！');
+                showToast(data.message || '上传/更新成功！');
                 requestSharedLibraries(); // Refresh the view
                 break;
             case 'pin_mismatch':
-                alert('识别码错误！请检查你的识别码，或者如果想创建新的分享，请使用一个全新的名字。');
+                showErrorModal('对于<strong>想创建新分享的用户</strong>: 此名字已有人使用,请使用一个全新的名字。<br><br>对于<strong>使用此名字分享过的用户</strong>: 识别码错误,请检查识别码。');
                 break;
             case 'authentication_success':
                 showManagementEditView(data.library);
                 break;
             case 'authentication_failure':
-                alert('验证失败，请检查你的名字和识别码。');
+                showErrorModal('验证失败，请检查你的名字和识别码。');
                 break;
             case 'event_deleted_success':
-                alert('事件删除成功！');
-                // Optionally refresh the management view
+                showToast('事件删除成功！');
                 break;
              case 'event_added_success':
-                alert('事件添加成功！');
-                // Optionally refresh the management view
+                showToast('事件添加成功！');
                 break;
         }
     }
@@ -208,19 +326,50 @@
         });
 
         container.innerHTML = `
+            <div class="shared-events-header">
+                <button id="helpBtn" class="help-btn">?</button>
+            </div>
             <div class="shared-events-tabs">
                 <button class="shared-events-tab-btn active" data-type="personal">个人事件</button>
                 <button class="shared-events-tab-btn" data-type="team">团队事件</button>
             </div>
             <div class="shared-events-grid-controls">
-                <select id="uploaderFilter" class="shared-events-filter">${filterOptions}</select>
-                <div id="statusFilterContainer" class="shared-events-status-filter">
-                    <label><input type="checkbox" name="statusFilter" value="not-added" checked> 未添加</label>
-                    <label><input type="checkbox" name="statusFilter" value="added" checked> 已添加</label>
-                    <label><input type="checkbox" name="statusFilter" value="conflict" checked> 有冲突</label>
+                <div class="submission-button-container">
+                    <button id="uploadLibraryBtn" class="submission-btn">🗃️ 分享我的事件库</button>
+                    <button id="manageLibraryBtn" class="submission-btn">⚙️ 管理我的分享库</button>
                 </div>
-                <button id="uploadLibraryBtn" class="shared-events-action-btn">分享我的事件库</button>
-                <button id="manageLibraryBtn" class="shared-events-action-btn">管理我的分享</button>
+                <div class="filters-container">
+                    <div id="statusFilterContainer" class="shared-events-radio-inputs">
+                    <label>
+                        <input class="radio-input" type="checkbox" name="statusFilter" value="not-added" checked>
+                        <span class="radio-tile">
+                            <span class="radio-icon">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4V20M4 12H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                            </span>
+                            <span class="radio-label">未添加</span>
+                        </span>
+                    </label>
+                    <label>
+                        <input class="radio-input" type="checkbox" name="statusFilter" value="added">
+                        <span class="radio-tile">
+                            <span class="radio-icon">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                            </span>
+                            <span class="radio-label">已添加</span>
+                        </span>
+                    </label>
+                    <label>
+                        <input class="radio-input" type="checkbox" name="statusFilter" value="conflict">
+                        <span class="radio-tile">
+                            <span class="radio-icon">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 9V13M12 17H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                            </span>
+                            <span class="radio-label">内容冲突</span>
+                        </span>
+                    </label>
+                    </div>
+                    <select id="uploaderFilter" class="shared-events-filter">${filterOptions}</select>
+                </div>
             </div>
             <div id="sharedEventsGrid" class="shared-events-grid"></div>
         `;
@@ -245,9 +394,22 @@
         });
 
         uploaderFilter.addEventListener('change', updateView);
-        statusFilters.forEach(filter => filter.addEventListener('change', updateView));
+
+        statusFilters.forEach(filter => {
+            filter.addEventListener('change', (e) => {
+                const checkedCount = [...statusFilters].filter(f => f.checked).length;
+                if (checkedCount === 0) {
+                    // Prevent unchecking the last box
+                    e.target.checked = true;
+                    return; // Don't update view if no change happened
+                }
+                updateView();
+            });
+        });
+
         document.getElementById('uploadLibraryBtn').addEventListener('click', triggerUpload);
         document.getElementById('manageLibraryBtn').addEventListener('click', triggerManagement);
+        document.getElementById('helpBtn').addEventListener('click', triggerHelp);
 
         updateView();
     }
@@ -330,7 +492,7 @@
                 <p class="shared-card-content">${event.内容}</p>
                 ${placeholdersHtml}
                 <div class="shared-card-footer">
-                    <button class="shared-card-btn add-btn">${status === 'conflict' ? '有冲突' : (status === 'added' ? '已添加' : '添加')}</button>
+                    <button class="shared-card-btn add-btn">${status === 'conflict' ? '内容冲突' : (status === 'added' ? '已添加' : '添加')}</button>
                 </div>
             `;
             grid.appendChild(card);
@@ -386,28 +548,30 @@
         const localEvents = (type === 'personal') ? window.mission : window.hardmission;
         const localEvent = localEvents[originalTitle];
 
+        const conflictOverlay = document.getElementById('sharedEventsConflictOverlay');
+        const conflictModal = document.getElementById('sharedEventsConflictModal');
+
         document.getElementById('conflictEventTitle').textContent = originalTitle;
         document.getElementById('localEventDetails').innerHTML = formatEventDetailsForDisplay(localEvent);
         document.getElementById('sharedEventDetails').innerHTML = formatEventDetailsForDisplay(sharedEvent);
 
-        conflictModal.classList.add('visible');
-        if (settingsOverlay) {
-            settingsOverlay.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
-            settingsOverlay.style.zIndex = 1001;
-        }
+        conflictOverlay.style.display = 'flex';
+        setTimeout(() => {
+            conflictOverlay.style.opacity = '1';
+            conflictModal.style.transform = 'scale(1)';
+        }, 10);
 
         const overwriteBtn = document.getElementById('overwriteEventBtn');
         const renameBtn = document.getElementById('renameEventBtn');
         const cancelBtn = document.getElementById('cancelConflictBtn');
-
-        const stopClickPropagation = (e) => e.stopPropagation();
+        const closeBtn = document.getElementById('closeConflictModalBtn');
 
         const closeModal = () => {
-            conflictModal.classList.remove('visible');
-            if (settingsOverlay) {
-                settingsOverlay.style.backgroundColor = "";
-                settingsOverlay.style.zIndex = "";
-            }
+            conflictOverlay.style.opacity = '0';
+            conflictModal.style.transform = 'scale(0.8)';
+            setTimeout(() => {
+                conflictOverlay.style.display = 'none';
+            }, 300);
             overwriteBtn.removeEventListener('click', handleOverwrite);
             renameBtn.removeEventListener('click', handleRename);
             cancelBtn.removeEventListener('click', closeModal);
@@ -432,7 +596,7 @@
         overwriteBtn.addEventListener('click', handleOverwrite);
         renameBtn.addEventListener('click', handleRename);
         cancelBtn.addEventListener('click', closeModal);
-        settingsOverlay.addEventListener('click', stopClickPropagation, true);
+        closeBtn.addEventListener('click', closeModal);
     }
 
     function formatEventDetailsForDisplay(event) {
@@ -449,12 +613,14 @@
     }
 
     function triggerUpload() {
+        const uploadOverlay = document.getElementById('sharedEventsUploadOverlay');
         const uploadModal = document.getElementById('sharedEventsUploadModal');
         const nameInput = document.getElementById('uploaderNameInput');
         const pinInput = document.getElementById('uploaderPinInput');
         const avatarInput = document.getElementById('uploaderAvatarInput');
         const confirmBtn = document.getElementById('confirmUploadBtn');
         const cancelBtn = document.getElementById('cancelUploadBtn');
+        const closeBtn = document.getElementById('closeUploadModalBtn');
         const previewBtn = document.getElementById('previewAvatarBtn');
         const previewImage = document.getElementById('avatarPreviewImage');
 
@@ -463,24 +629,18 @@
         avatarInput.value = localStorage.getItem('uploaderAvatar') || '';
         previewImage.style.display = 'none';
 
-        uploadModal.classList.add('visible');
-        if (settingsOverlay) {
-            settingsOverlay.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
-            settingsOverlay.style.zIndex = 1001;
-        }
-
-        const stopClickPropagation = (e) => e.stopPropagation();
+        uploadOverlay.style.display = 'flex';
+        setTimeout(() => {
+            uploadOverlay.style.opacity = '1';
+            uploadModal.style.transform = 'scale(1)';
+        }, 10);
 
         const closeModal = () => {
-            uploadModal.classList.remove('visible');
-            if (settingsOverlay) {
-                settingsOverlay.style.backgroundColor = "";
-                settingsOverlay.style.zIndex = "";
-            }
-            confirmBtn.removeEventListener('click', handleConfirm);
-            cancelBtn.removeEventListener('click', closeModal);
-            previewBtn.removeEventListener('click', handlePreview);
-            settingsOverlay.removeEventListener('click', stopClickPropagation, true);
+            uploadOverlay.style.opacity = '0';
+            uploadModal.style.transform = 'scale(0.8)';
+            setTimeout(() => {
+                uploadOverlay.style.display = 'none';
+            }, 300);
         };
 
         const handlePreview = () => {
@@ -535,17 +695,20 @@
 
         confirmBtn.addEventListener('click', handleConfirm);
         cancelBtn.addEventListener('click', closeModal);
+        closeBtn.addEventListener('click', closeModal);
         previewBtn.addEventListener('click', handlePreview);
-        settingsOverlay.addEventListener('click', stopClickPropagation, true);
     }
 
     function triggerManagement() {
+        const managementOverlay = document.getElementById('sharedEventsManagementOverlay');
+        const managementModal = document.getElementById('sharedEventsManagementModal');
         const authView = document.getElementById('managementAuthView');
         const editView = document.getElementById('managementEditView');
         const nameInput = document.getElementById('managementNameInput');
         const pinInput = document.getElementById('managementPinInput');
         const authBtn = document.getElementById('managementAuthBtn');
         const cancelBtn = document.getElementById('cancelManagementBtn');
+        const closeBtn = document.getElementById('closeManagementModalBtn');
         const closeEditBtn = document.getElementById('closeManagementEditBtn');
 
         // Reset view
@@ -561,24 +724,18 @@
             pinInput.value = '';
         }
 
-        managementModal.classList.add('visible');
-        if (settingsOverlay) {
-            settingsOverlay.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
-            settingsOverlay.style.zIndex = 1001;
-        }
-
-        const stopClickPropagation = (e) => e.stopPropagation();
+        managementOverlay.style.display = 'flex';
+        setTimeout(() => {
+            managementOverlay.style.opacity = '1';
+            managementModal.style.transform = 'scale(1)';
+        }, 10);
 
         const closeModal = () => {
-            managementModal.classList.remove('visible');
-            if (settingsOverlay) {
-                settingsOverlay.style.backgroundColor = "";
-                settingsOverlay.style.zIndex = "";
-            }
-            authBtn.removeEventListener('click', handleAuth);
-            cancelBtn.removeEventListener('click', closeModal);
-            closeEditBtn.removeEventListener('click', closeModal);
-            settingsOverlay.removeEventListener('click', stopClickPropagation, true);
+            managementOverlay.style.opacity = '0';
+            managementModal.style.transform = 'scale(0.8)';
+            setTimeout(() => {
+                managementOverlay.style.display = 'none';
+            }, 300);
         };
 
         const handleAuth = () => {
@@ -598,8 +755,30 @@
 
         authBtn.addEventListener('click', handleAuth);
         cancelBtn.addEventListener('click', closeModal);
+        closeBtn.addEventListener('click', closeModal);
         closeEditBtn.addEventListener('click', closeModal);
-        settingsOverlay.addEventListener('click', stopClickPropagation, true);
+    }
+
+    function triggerHelp() {
+        const helpOverlay = document.getElementById('sharedEventsHelpOverlay');
+        const helpModal = document.getElementById('sharedEventsHelpModal');
+        const closeBtn = document.getElementById('closeHelpModalBtn');
+
+        helpOverlay.style.display = 'flex';
+        setTimeout(() => {
+            helpOverlay.style.opacity = '1';
+            helpModal.style.transform = 'scale(1)';
+        }, 10);
+
+        const closeModal = () => {
+            helpOverlay.style.opacity = '0';
+            helpModal.style.transform = 'scale(0.8)';
+            setTimeout(() => {
+                helpOverlay.style.display = 'none';
+            }, 300);
+        };
+
+        closeBtn.onclick = closeModal;
     }
 
     function showManagementEditView(library) {

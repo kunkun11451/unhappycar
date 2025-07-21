@@ -254,15 +254,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 方位抽取按钮点击事件
-    const directionExtractor = document.getElementById("directionExtractor");
-    if (directionExtractor) {
-        directionExtractor.addEventListener("click", () => {
-            // 在新窗口中打开方位抽取器
-            window.open('./fangwei', '_blank');
-        });
-    }
-
     // 通用函数：选定设置选项
     function selectOption(button, title, content) {
         // 移除所有按钮的激活状态
@@ -802,7 +793,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const projects = [
             { name: "拼好图", file: "pinhaotu" },
             { name: "拼好车", file: "pinhaoche" },
-            { name: "赤石3",},
+            { name: "方位抽取器", file: "fangwei"},
             { name: "赤石4", },
             { name: "赤石5", },
             { name: "赤石6", }

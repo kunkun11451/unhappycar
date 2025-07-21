@@ -1,5 +1,54 @@
 /* css/sharedEvents.css */
 
+.shared-events-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px;
+    position: relative;
+}
+
+.shared-events-title {
+    color: #fff;
+    font-size: 1.5em;
+    margin: 0;
+}
+
+.help-btn {
+    position: absolute;
+    right: 0;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.help-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.1);
+}
+
+.help-content {
+    text-align: left;
+    color: #ddd;
+}
+
+.help-content h4 {
+    color: #3498db;
+    margin-top: 20px;
+}
+
+.help-content p {
+    line-height: 1.6;
+    margin-bottom: 10px;
+}
+
 .shared-events-content {
     flex-grow: 1;
     padding: 20px;
@@ -56,58 +105,129 @@
 
 /* Grid Controls */
 .shared-events-grid-controls {
-    margin-bottom: 20px;
     display: flex;
-    justify-content: center;
-    align-items: center;
+    flex-direction: column;
     gap: 15px;
-    flex-wrap: wrap;
+    margin-bottom: 20px;
 }
 
-.shared-events-action-btn {
-    padding: 10px 20px;
-    background-color: #3498db;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.shared-events-action-btn:hover {
-    background-color: #2980b9;
+.filters-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    width: 100%;
 }
 
 .shared-events-filter {
-    padding: 10px 15px;
-    background-color: #333;
-    color: #fff;
-    border: 1px solid #444;
-    border-radius: 8px;
-    font-size: 1em;
-    cursor: pointer;
+    width: auto;
+    min-width: 200px;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    color: white;
+    font-size: 14px;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
 }
 
-/* Status Filter */
-.shared-events-status-filter {
-    display: flex;
-    gap: 15px;
-    background-color: #333;
-    padding: 5px 15px;
-    border-radius: 8px;
-    border: 1px solid #444;
+.shared-events-filter option {
+    background-color: #555;
+    color: white;
 }
 
-.shared-events-status-filter label {
+.shared-events-radio-inputs {
     display: flex;
+    justify-content: center;
     align-items: center;
-    gap: 5px;
-    cursor: pointer;
-    font-size: 0.9em;
+    width: 100%;
+    gap: 10px;
+    user-select: none;
 }
 
-.shared-events-status-filter input[type="checkbox"] {
+
+.radio-input {
+    display: none;
+}
+
+.radio-input:checked + .radio-tile {
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+    color: #fff;
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.radio-input:checked + .radio-tile:before {
+    transform: scale(1);
+    opacity: 1;
+    background-color: #fff;
+    border-color: #fff;
+}
+
+.radio-input:checked + .radio-tile .radio-label {
+    color: #fff;
+}
+
+.radio-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    transition: 0.15s ease;
     cursor: pointer;
+    position: relative;
+}
+
+.radio-tile:before {
+    content: "";
+    position: absolute;
+    display: block;
+    width: 0.75rem;
+    height: 0.75rem;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    background-color: transparent;
+    border-radius: 50%;
+    top: 0.25rem;
+    left: 0.25rem;
+    opacity: 0;
+    transform: scale(0);
+    transition: 0.25s ease;
+}
+
+.radio-tile:hover {
+    border-color: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.radio-tile:hover:before {
+    transform: scale(1);
+    opacity: 1;
+}
+
+.radio-icon {
+    width: 2rem;
+    height: 2rem;
+    color: #eee;
+}
+
+.radio-input:checked + .radio-tile .radio-icon {
+    color: #fff;
+}
+
+.radio-label {
+    color: #fff;
+    transition: 0.375s ease;
+    text-align: center;
+    font-size: 13px;
 }
 
 
@@ -171,6 +291,7 @@
     margin: 0;
     font-size: 1.1em;
     flex-grow: 1;
+    color: #fff;
 }
 
 .shared-card-checkbox {
@@ -340,58 +461,135 @@
     margin-bottom: 8px;
 }
 
-/* Upload Modal */
-.shared-events-upload-modal {
+/* New Submission Modal Styles */
+.submission-overlay {
     position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0.95);
-    width: 90%;
-    max-width: 450px;
-    background: rgba(40, 42, 48, 0.95);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(5px);
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    z-index: 1002;
-    color: #fff;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 10000;
+    display: none; /* Initially hidden */
+    justify-content: center;
+    align-items: center;
     opacity: 0;
-    transition: opacity 0.3s ease, transform 0.3s ease;
-    display: none;
-    padding: 25px;
-    flex-direction: column;
-    gap: 15px;
+    transition: opacity 0.3s ease;
 }
 
-.shared-events-upload-modal.visible {
-    display: flex;
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
+.submission-modal {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 30px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transform: scale(0.8);
+    transition: transform 0.3s ease;
+    position: relative;
 }
 
-.shared-events-upload-modal h3 {
-    margin-top: 0;
+.submission-title {
+    color: white;
     text-align: center;
-    color: #3498db;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-.shared-events-upload-modal p {
-    margin-top: -5px;
+.submission-description {
+    text-align: center;
+    color: #ccc;
     margin-bottom: 10px;
-    text-align: center;
-    font-size: 0.9em;
-    color: #bbb;
 }
 
-.shared-events-upload-modal input[type="text"] {
+.submission-close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.submission-close-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: rotate(90deg) scale(1.1);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.submission-input {
     width: 100%;
     padding: 12px;
-    background-color: rgba(0, 0, 0, 0.2);
-    border: 1px solid #444;
-    border-radius: 8px;
-    color: #fff;
-    font-size: 1em;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    color: white;
+    font-size: 15px;
+    margin-bottom: 20px;
     box-sizing: border-box;
+    margin-top: 20px;
+    transition: all 0.3s ease;
+}
+
+.submission-input:focus {
+    border-color: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+}
+
+.submission-button-container {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.submission-btn {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 12px 25px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 140px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.submission-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.submission-btn.submit {
+    background-color: rgba(46, 204, 113, 0.7);
+}
+
+.submission-btn.cancel {
+    background-color: rgba(231, 76, 60, 0.7);
 }
 
 .avatar-input-group {
@@ -419,12 +617,6 @@
     border: 1px solid #555;
 }
 
-.upload-modal-actions {
-    display: flex;
-    justify-content: space-between;
-    gap: 15px;
-    margin-top: 10px;
-}
 
 /* Conflict Modal */
 .shared-events-conflict-modal {
@@ -471,6 +663,7 @@
     display: flex;
     gap: 20px;
     margin-top: 15px;
+    margin-bottom: 25px;
 }
 
 .conflict-event-version {
@@ -486,10 +679,11 @@
     border-bottom: 1px solid #555;
     padding-bottom: 8px;
     margin-bottom: 10px;
+    color: #fff;
 }
 
 .conflict-detail-content {
-    color: #ddd;
+    color: #eee;
     margin-bottom: 10px;
 }
 
@@ -511,69 +705,6 @@
     margin-top: 20px;
 }
 
-/* Management Modal */
-.shared-events-management-modal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0.95);
-    width: 90%;
-    max-width: 550px;
-    background: rgba(40, 42, 48, 0.95);
-    backdrop-filter: blur(5px);
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    z-index: 1002;
-    color: #fff;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    opacity: 0;
-    transition: opacity 0.3s ease, transform 0.3s ease;
-    display: none;
-    padding: 25px;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.shared-events-management-modal.visible {
-    display: flex;
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-}
-
-.shared-events-management-modal h3 {
-    margin-top: 0;
-    text-align: center;
-    color: #3498db;
-}
-
-.shared-events-management-modal p {
-    margin-top: -5px;
-    margin-bottom: 10px;
-    text-align: center;
-    font-size: 0.9em;
-    color: #bbb;
-}
-
-.shared-events-management-modal input[type="text"],
-.shared-events-management-modal textarea,
-.shared-events-management-modal select {
-    width: 100%;
-    padding: 12px;
-    background-color: rgba(0, 0, 0, 0.2);
-    border: 1px solid #444;
-    border-radius: 8px;
-    color: #fff;
-    font-size: 1em;
-    box-sizing: border-box;
-    margin-bottom: 10px;
-}
-
-.management-modal-actions {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-top: 10px;
-}
 
 #managementEditView h3 {
     color: #27ae60;
@@ -610,4 +741,55 @@
 .management-add-form {
     padding-top: 15px;
     border-top: 1px solid #444;
+}
+
+@media (max-width: 768px) {
+    .shared-event-card {
+        width: 95% ;
+    }
+}
+
+/* Toast Notification */
+.toast-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: rgba(46, 204, 113, 0.8);
+    color: white;
+    padding: 15px 25px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    z-index: 10001;
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    font-size: 1em;
+    backdrop-filter: blur(5px);
+}
+
+.toast-notification.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Error Modal (reusing submission styles) */
+.error-modal-message {
+    text-align: center;
+    color: #ddd;
+    margin-bottom: 25px;
+    line-height: 1.6;
+}
+
+/* Hide scrollbar */
+.shared-events-content::-webkit-scrollbar,
+.management-events-grid::-webkit-scrollbar,
+.submission-modal::-webkit-scrollbar {
+    display: none;
+}
+
+.shared-events-content,
+.management-events-grid,
+.submission-modal {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
 }
