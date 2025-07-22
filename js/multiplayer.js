@@ -3,9 +3,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const wsUrl = isLocalDev ? 'ws://127.0.0.1:3000' : 'wss://unhappycar.tech:3000';
     console.log('连接到WebSocket服务器:', wsUrl);
-    
-    // 记录连接开始时间
-    const connectionStartTime = Date.now();
     const ws = new WebSocket(wsUrl);
 
     // DOM 元素
@@ -39,12 +36,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // WebSocket 连接成功
     ws.onopen = () => {
         console.log('WebSocket 连接成功');
-        
-        // 计算连接用时
-        const connectionTime = Date.now() - connectionStartTime;
-        
+                
         if (connectionStatus) {
-            connectionStatus.textContent = `多人游戏服务器连接成功！ (${connectionTime}ms)`;
+            connectionStatus.textContent = '多人游戏服务器连接成功！';
             connectionStatus.style.color = 'green'; 
         }        // 启用按钮
         hostGameButton.disabled = false;
@@ -62,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function () {
     ws.onerror = (error) => {
         console.error('WebSocket 连接错误:', error);
         if (connectionStatus) {
-            connectionStatus.textContent = '服务器连接失败，请刷新页面重试...';
+            connectionStatus.innerHTML = '服务器连接失败，请刷新页面重试...<br>如果持续连接不上请尝试使用edge/chrome/firefox浏览器。<br>特别是使用百度/UC/夸克等浏览器的手机用户';
             connectionStatus.style.color = 'red'; 
         }
 
@@ -77,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function () {
     ws.onclose = () => {
         console.log('WebSocket 连接已关闭');
         if (connectionStatus) {
-            connectionStatus.textContent = '服务器连接已断开，请刷新页面重试...';
+            connectionStatus.innerHTML = '服务器连接已断开，请刷新页面重试...<br>如果持续连接不上请尝试使用edge/chrome/firefox浏览器。<br>特别是使用百度/UC/夸克等浏览器的手机用户';
             connectionStatus.style.color = 'red'; 
         }
 
