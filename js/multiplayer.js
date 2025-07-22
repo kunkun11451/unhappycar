@@ -1,7 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // 检查是否为本地开发环境
-    const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const wsUrl = isLocalDev ? 'ws://127.0.0.1:3000' : 'wss://unhappycar.tech:3000';
+    const wsUrl = 'wss://unhappycar.tech:3000';
     console.log('连接到WebSocket服务器:', wsUrl);
     
     // 记录连接开始时间
