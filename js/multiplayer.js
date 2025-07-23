@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function () {
     ws.onerror = (error) => {
         console.error('WebSocket 连接错误:', error);
         if (connectionStatus) {
-            connectionStatus.innerHTML = '服务器连接失败，请刷新页面重试...<br>如果持续连接不上请尝试使用edge/chrome/firefox浏览器。<br>特别是使用百度/UC/夸克等浏览器的手机用户';
+            connectionStatus.innerHTML = `服务器连接失败，请刷新页面重试...<br>如果持续连接不上请尝试使用edge/chrome/firefox浏览器。<br>特别是使用百度/UC/夸克等浏览器的手机用户<br>或者使用<a href="http://8.138.250.99/" style="color: #87CEEB; text-decoration: underline;">无加密的连接</a>(不使用加密通信以解决部分浏览器的SSL证书适配问题<br>会提示不安全的连接)`;
             connectionStatus.style.color = 'red'; 
         }
 
@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function () {
     ws.onclose = (event) => {
         console.log(`WebSocket 连接已关闭, Code: ${event.code}, Reason: ${event.reason}, WasClean: ${event.wasClean}`);
         if (connectionStatus) {
-            connectionStatus.innerHTML = `服务器连接已断开 (Code: ${event.code}, Reason: ${event.reason}, WasClean: ${event.wasClean})，请刷新页面重试...<br>如果持续连接不上请尝试使用edge/chrome/firefox浏览器。<br>特别是使用百度/UC/夸克等浏览器的手机用户`;
+            connectionStatus.innerHTML = `服务器连接已断开，请刷新页面重试...<br>如果持续连接不上请尝试使用edge/chrome/firefox浏览器。<br>特别是使用百度/UC/夸克等浏览器的手机用户<br>或者使用<a href="http://8.138.250.99/" style="color: #87CEEB; text-decoration: underline;">无加密的连接</a><br>(不使用加密通信以解决部分浏览器的SSL证书适配问题<br>会提示不安全的连接)`;
             connectionStatus.style.color = 'red'; 
         }
 
