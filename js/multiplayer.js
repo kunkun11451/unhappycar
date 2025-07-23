@@ -68,10 +68,10 @@ document.addEventListener('DOMContentLoaded', function () {
         stopHeartbeat();
         
     };    // WebSocket 连接关闭
-    ws.onclose = () => {
-        console.log('WebSocket 连接已关闭');
+    ws.onclose = (event) => {
+        console.log(`WebSocket 连接已关闭, Code: ${event.code}, Reason: ${event.reason}, WasClean: ${event.wasClean}`);
         if (connectionStatus) {
-            connectionStatus.innerHTML = '服务器连接已断开，请刷新页面重试...<br>如果持续连接不上请尝试使用edge/chrome/firefox浏览器。<br>特别是使用百度/UC/夸克等浏览器的手机用户';
+            connectionStatus.innerHTML = `服务器连接已断开 (Code: ${event.code}, Reason: ${event.reason}, WasClean: ${event.wasClean})，请刷新页面重试...<br>如果持续连接不上请尝试使用edge/chrome/firefox浏览器。<br>特别是使用百度/UC/夸克等浏览器的手机用户`;
             connectionStatus.style.color = 'red'; 
         }
 

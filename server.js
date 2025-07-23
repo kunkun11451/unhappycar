@@ -20,7 +20,7 @@ function logWithTimestamp(message, ...args) {
 }
 
 // 检查是否为本地测试环境
-const isLocalTest = process.env.NODE_ENV === 'development' || !fs.existsSync('/etc/letsencrypt/live/socket.unhappycar.games/fullchain.pem');
+const isLocalTest = process.env.NODE_ENV === 'development' || !fs.existsSync('/etc/letsencrypt/live/unhappycar.tech/fullchain.pem');
 
 let server, wss;
 
