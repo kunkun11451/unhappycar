@@ -52,36 +52,74 @@ document.addEventListener('DOMContentLoaded', function () {
             window.sharedEvents.init(ws);
         }
         
-    };    // WebSocket 连接错误
+    };    
+    
+    const insecureHtml = `
+        <div style="
+            background: rgba(255, 230, 230, 0.98);
+            border-radius: 12px;
+            padding: 24px 18px;
+            margin: 20px auto;
+            width: 70%;
+            max-width: 390px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            text-align: center;
+            border: 1px solid #f5c2c7;
+        ">
+            <div style="font-size: 18px; color: #d32f2f; font-weight: bold; margin-bottom: 12px;">
+                ⛓️‍💥服务器连接失败或断开...
+            </div>
+            <div style="color: #b71c1c; margin-bottom: 16px;">
+                请首先刷新页面重试...<br><br>
+                如果持续连接不上请尝试使用<br> 
+                Edge/Chrome/Firefox 等国际主流浏览器<br>
+                特别是使用百度/UC/夸克等浏览器的手机用户
+            </div>
+            <div style="margin-bottom: 10px; color: #b71c1c;">
+                或者使用下方无加密的连接<br>
+                <span style="font-size: 13px; color: #888;">不使用加密通信以解决部分浏览器的SSL证书适配问题<br>会提示不安全的连接</span>
+            </div>
+            <a href="http://8.138.250.99/" 
+            style="
+                    display: inline-block;
+                    background: #ff9800;
+                    color: #fff;
+                    font-weight: bold;
+                    padding: 12px 32px;
+                    border-radius: 8px;
+                    text-decoration: none;
+                    font-size: 16px;
+                    box-shadow: 0 2px 8px rgba(255,152,0,0.12);
+                    margin-top: 8px;
+                    transition: background 0.2s;
+            "
+            target="_blank"
+            >使用无加密的连接</a>
+        </div>
+    `;
+
+    // WebSocket 连接错误
     ws.onerror = (error) => {
         console.error('WebSocket 连接错误:', error);
         if (connectionStatus) {
-            connectionStatus.innerHTML = `服务器连接失败，请刷新页面重试...<br>如果持续连接不上请尝试使用edge/chrome/firefox浏览器。<br>特别是使用百度/UC/夸克等浏览器的手机用户<br>或者使用<a href="http://8.138.250.99/" style="color: #87CEEB; text-decoration: underline;">无加密的连接</a>(不使用加密通信以解决部分浏览器的SSL证书适配问题<br>会提示不安全的连接)`;
-            connectionStatus.style.color = 'red'; 
+            connectionStatus.innerHTML = insecureHtml;
+            connectionStatus.style.color = 'unset';
         }
-
-        // 确保按钮保持禁用状态
         hostGameButton.disabled = true;
         joinGameButton.disabled = true;
-        
-        // 停止心跳包
         stopHeartbeat();
-        
-    };    // WebSocket 连接关闭
+    };
+
+    // WebSocket 连接关闭
     ws.onclose = (event) => {
         console.log(`WebSocket 连接已关闭, Code: ${event.code}, Reason: ${event.reason}, WasClean: ${event.wasClean}`);
         if (connectionStatus) {
-            connectionStatus.innerHTML = `服务器连接已断开，请刷新页面重试...<br>如果持续连接不上请尝试使用edge/chrome/firefox浏览器。<br>特别是使用百度/UC/夸克等浏览器的手机用户<br>或者使用<a href="http://8.138.250.99/" style="color: #87CEEB; text-decoration: underline;">无加密的连接</a><br>(不使用加密通信以解决部分浏览器的SSL证书适配问题<br>会提示不安全的连接)`;
-            connectionStatus.style.color = 'red'; 
+            connectionStatus.innerHTML = insecureHtml;
+            connectionStatus.style.color = 'unset';
         }
-
-        // 确保按钮保持禁用状态
         hostGameButton.disabled = true;
         joinGameButton.disabled = true;
-        
-        // 停止心跳包
         stopHeartbeat();
-        
     };
 
     // 主持游戏
