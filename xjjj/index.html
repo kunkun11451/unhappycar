@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="https://upload-bbs.miyoushe.com/upload/2024/06/29/273489775/4be47bf1376bfb4f69c1e3fe26c8a8e8_8119842655567179283.png" type="image/png">
+    <title>选角禁技🎭</title>
+</head>
+<body>
+    <div class="container">
+        <section class="rules card">
+            <h2>选角禁技</h2>
+            <div class="rule-mode">
+                <h3>[1] 手动选角版</h3>
+                <ol>
+                    <li><strong>角色提出</strong>: 每轮每位玩家提出 1 位角色（不可重复）。</li>
+                    <li><strong>补充角色</strong>: 抽帽子数字最大和最小的两位玩家，额外各提出 1 位<strong>四星</strong>角色，形成共 6 人的备选池。</li>
+                    <li><strong>角色选择</strong>: 同样按帽子数字“从大到小”的顺序，玩家从 6 名角色中依次挑选。</li>
+                    <li><strong>技能禁用</strong>: 前三位挑选的玩家随机分配禁用的技能（A/E/Q）,在选择角色前说明。</li>
+                    <li><strong>特殊规则</strong>: 如果玩家最终选择了自己 [步骤1] 提出的那名角色，则该玩家需用此角色单通。</li>
+                </ol>
+            </div>
+
+            <div class="rule-mode">
+                <h3>[2] 网页随机版</h3>
+                <ol>
+                    <li><strong>角色池与禁用生成</strong>: 随机抽取若干名角色 与 前三位挑选的玩家禁用的技能</li>
+                    <li><strong>选择顺序</strong>: 抽帽子，按数字 从大到小 确定挑选角色的顺序。</li>
+                    <li><strong>角色挑选</strong>: 玩家按顺序从角色池中挑选 1 名心仪的角色。</li>
+                </ol>
+            </div>
+            <div class="rule-tip" style="text-align: center;">
+                <p>默认: <strong>全局BP 不禁食物 3点一换</strong></p>
+            </div>
+        </section>
+
+        <main class="card">
+            <h2>功能区</h2>
+            <div class="controls">
+                <label for="char-count">选择抽取角色数量 (4-8):</label>
+                <input type="number" id="char-count" value="8" min="4" max="8">
+                <button id="draw-characters">抽取</button>
+                <button id="reset-game">重置</button>
+            </div>
+
+            <div id="character-display" class="character-grid">
+            </div>
+            <div id="character-result-wrapper" class="result-wrapper">
+                <div id="character-result-text"></div>
+                <button id="copy-characters-btn" class="icon-copy-btn" aria-label="复制角色">
+                    <svg class="copy-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                    <svg class="checkmark-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                </button>
+            </div>
+                <div class="rule-tip">
+                    <p><strong>提示</strong>: 点击角色卡片可以将其标记为“未使用”。在下一次抽取前，所有未标记“未使用”的角色将被自动加入Ban列表，不会在后续抽取中出现。</p>
+                </div>
+
+        </main>
+
+        <footer>
+            <h3>Ban List</h3>
+            <div id="ban-list-container">
+                <table id="ban-list-table">
+                    <thead>
+                        <tr>
+                            <th>轮次</th>
+                            <th>禁用角色</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Ban list rows will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </footer>
+    </div>
+
+    <script src="characters.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
