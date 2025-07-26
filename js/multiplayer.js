@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     // 检查是否为本地开发环境
     const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const wsUrl = isLocalDev ? 'ws://127.0.0.1:3000' : 'wss://unhappycar.tech';
+    const wsUrl = isLocalDev ? 'ws://127.0.0.1:3000' : 'wss://unhappycar.tech:3000';
     console.log('连接到WebSocket服务器:', wsUrl);
     const ws = new WebSocket(wsUrl);
 
@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 Edge/Chrome/Firefox 等国际主流浏览器<br>
                 特别是使用百度/UC/夸克等浏览器的手机用户
             </div>
-            <div style="margin-bottom: 10px; color: #b71c1c;">
+            <!-- <div style="margin-bottom: 10px; color: #b71c1c;">
                 或者使用下方无加密的连接<br>
                 <span style="font-size: 13px; color: #888;">不使用加密通信以解决部分浏览器的SSL证书适配问题<br>会提示不安全的连接</span>
             </div>
@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     transition: background 0.2s;
             "
             target="_blank"
-            >使用无加密的连接</a>
+            >使用无加密的连接</a> -->
         </div>
     `;
 
