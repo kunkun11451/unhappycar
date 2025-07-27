@@ -70,7 +70,12 @@
 
 *   **连接游戏**:
     无论使用哪种方式部署，你最终都会得到一个以 `trycloudflare.com` 结尾的安全临时域名。将它用于连接游戏即可。
-    *   **服务器地址**: `wss://random-word-1234.trycloudflare.com`(示例)
+    ```cmd
+        +--------------------------------------------------------------------------------------------+
+        |  Your quick Tunnel has been created! Visit it at (it may take some time to be reachable):  |
+        |  https://gmt-decades-professional-helps.trycloudflare.com    #示例 复制https://后面的内容    |
+        +--------------------------------------------------------------------------------------------+
+    ```
     *   **在游戏设置中的自定义服务器使用**
 
 *   **结束游戏**:
