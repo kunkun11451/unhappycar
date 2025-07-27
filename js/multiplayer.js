@@ -1,7 +1,10 @@
 document.addEventListener('DOMContentLoaded', function () {
+    // 检查自定义服务器URL
+    const customWsUrl = localStorage.getItem('customWsUrl');
     // 检查是否为本地开发环境
     const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const wsUrl = isLocalDev ? 'ws://127.0.0.1:3000' : 'wss://unhappycar.tech:3000';
+    const defaultWsUrl = isLocalDev ? 'ws://127.0.0.1:3000' : 'wss://unhappycar.tech:3000';
+    const wsUrl = customWsUrl || defaultWsUrl;
     console.log('连接到WebSocket服务器:', wsUrl);
     const ws = new WebSocket(wsUrl);
 
@@ -38,9 +41,10 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log('WebSocket 连接成功');
                 
         if (connectionStatus) {
-            connectionStatus.textContent = '多人游戏服务器连接成功！';
+            connectionStatus.textContent = `多人游戏服务器连接成功！连接到：${wsUrl}`;
             connectionStatus.style.color = 'green'; 
-        }        // 启用按钮
+        }
+        // 启用按钮
         hostGameButton.disabled = false;
         joinGameButton.disabled = false;
         
@@ -70,31 +74,25 @@ document.addEventListener('DOMContentLoaded', function () {
                 ⛓️‍💥服务器连接失败或断开...
             </div>
             <div style="color: #b71c1c; margin-bottom: 16px;">
-                请首先刷新页面重试...<br><br>
-                如果持续连接不上请尝试使用<br> 
-                Edge/Chrome/Firefox 等国际主流浏览器<br>
-                特别是使用百度/UC/夸克等浏览器的手机用户
+                连接到：${wsUrl}<br><br>
+                请首先刷新页面重试...<br>
+                如果持续连接不上，可以尝试设置自定义服务器
             </div>
-            <!-- <div style="margin-bottom: 10px; color: #b71c1c;">
-                或者使用下方无加密的连接<br>
-                <span style="font-size: 13px; color: #888;">不使用加密通信以解决部分浏览器的SSL证书适配问题<br>会提示不安全的连接</span>
-            </div>
-            <a href="http://8.138.250.99/" 
-            style="
-                    display: inline-block;
-                    background: #ff9800;
-                    color: #fff;
-                    font-weight: bold;
-                    padding: 12px 32px;
-                    border-radius: 8px;
-                    text-decoration: none;
-                    font-size: 16px;
-                    box-shadow: 0 2px 8px rgba(255,152,0,0.12);
-                    margin-top: 8px;
-                    transition: background 0.2s;
-            "
-            target="_blank"
-            >使用无加密的连接</a> -->
+            <button id="openSettingsForServer" style="
+                display: inline-block;
+                background: #ff9800;
+                color: #fff;
+                font-weight: bold;
+                padding: 12px 32px;
+                border-radius: 8px;
+                text-decoration: none;
+                font-size: 16px;
+                box-shadow: 0 2px 8px rgba(255,152,0,0.12);
+                margin-top: 8px;
+                transition: background 0.2s;
+                border: none;
+                cursor: pointer;
+            ">设置自定义服务器</button>
         </div>
     `;
 
@@ -104,6 +102,19 @@ document.addEventListener('DOMContentLoaded', function () {
         if (connectionStatus) {
             connectionStatus.innerHTML = insecureHtml;
             connectionStatus.style.color = 'unset';
+            const openSettingsBtn = document.getElementById('openSettingsForServer');
+            if (openSettingsBtn) {
+                openSettingsBtn.addEventListener('click', () => {
+                    const settingsButton = document.getElementById('initialSettingsButton');
+                    if (settingsButton) {
+                        settingsButton.click();
+                        setTimeout(() => {
+                            const gameSettings = document.getElementById('gameSettings');
+                            if(gameSettings) gameSettings.click();
+                        }, 100);
+                    }
+                });
+            }
         }
         hostGameButton.disabled = true;
         joinGameButton.disabled = true;
@@ -116,6 +127,19 @@ document.addEventListener('DOMContentLoaded', function () {
         if (connectionStatus) {
             connectionStatus.innerHTML = insecureHtml;
             connectionStatus.style.color = 'unset';
+            const openSettingsBtn = document.getElementById('openSettingsForServer');
+            if (openSettingsBtn) {
+                openSettingsBtn.addEventListener('click', () => {
+                    const settingsButton = document.getElementById('initialSettingsButton');
+                    if (settingsButton) {
+                        settingsButton.click();
+                        setTimeout(() => {
+                            const gameSettings = document.getElementById('gameSettings');
+                            if(gameSettings) gameSettings.click();
+                        }, 100);
+                    }
+                });
+            }
         }
         hostGameButton.disabled = true;
         joinGameButton.disabled = true;

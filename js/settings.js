@@ -412,6 +412,19 @@ document.addEventListener('DOMContentLoaded', () => {
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         `;
 
+        // 自定义服务器URL设置
+        const serverSection = createServerSettingsSection();
+        container.appendChild(serverSection);
+
+        // 分隔线
+        const divider1 = document.createElement("div");
+        divider1.style.cssText = `
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 30px 0;
+        `;
+        container.appendChild(divider1);
+
         // 重抽次数功能设置
         const rerollSection = createRerollSettingsSection();
         container.appendChild(rerollSection);
@@ -467,6 +480,154 @@ document.addEventListener('DOMContentLoaded', () => {
         container.appendChild(resetButton);
 
         return container;
+    }
+
+    // 创建自定义服务器设置区域
+    function createServerSettingsSection() {
+        const section = document.createElement("div");
+        section.className = "server-settings-section";
+
+        const title = document.createElement("div");
+        title.textContent = "自定义服务器";
+        title.style.cssText = `
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        `;
+        const icon = document.createElement("span");
+        icon.textContent = "⚙️";
+        icon.style.marginRight = "10px";
+        title.insertBefore(icon, title.firstChild);
+        section.appendChild(title);
+
+        const inputContainer = document.createElement("div");
+        inputContainer.style.display = "flex";
+        inputContainer.style.gap = "10px";
+
+        const protocolButton = document.createElement("button");
+        let currentProtocol = localStorage.getItem('customWsProtocol') || 'wss://';
+        protocolButton.innerHTML = `🔄${currentProtocol} <span style="font-size: 10px; vertical-align: middle;"></span>`;
+        protocolButton.style.cssText = `
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px 0 0 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-right: none;
+            color: #fff;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        `;
+        protocolButton.addEventListener('mouseover', () => {
+            protocolButton.style.background = 'rgba(255, 255, 255, 0.1)';
+        });
+        protocolButton.addEventListener('mouseout', () => {
+            protocolButton.style.background = 'rgba(0, 0, 0, 0.2)';
+        });
+        protocolButton.addEventListener('click', () => {
+            currentProtocol = currentProtocol === 'wss://' ? 'ws://' : 'wss://';
+            protocolButton.innerHTML = `🔄${currentProtocol} <span style="font-size: 10px; vertical-align: middle;"></span>`;
+            localStorage.setItem('customWsProtocol', currentProtocol);
+            
+            const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const warningMessage = document.getElementById('ws-warning-message');
+            if (currentProtocol === 'ws://' && !isLocalDev) {
+                if (!warningMessage) {
+                    const warning = document.createElement('div');
+                    warning.id = 'ws-warning-message';
+                    warning.textContent = "警告：(ws://)连接仅适用于本地网页，可能无法正常工作。";
+                    warning.style.cssText = `
+                        color: #ffcc00;
+                        font-size: 13px;
+                        margin-top: 10px;
+                        text-align: center;
+                    `;
+                    section.appendChild(warning);
+                }
+            } else {
+                if (warningMessage) {
+                    warningMessage.remove();
+                }
+            }
+        });
+        inputContainer.appendChild(protocolButton);
+
+        const input = document.createElement("input");
+        input.type = "text";
+        input.placeholder = "your-server.com";
+        input.id = "customServerUrlInput";
+        const savedUrl = localStorage.getItem('customWsUrl') || '';
+        const savedProto = localStorage.getItem('customWsProtocol') || 'wss://';
+        input.value = savedUrl.startsWith(savedProto) ? savedUrl.substring(savedProto.length) : savedUrl;
+        input.style.cssText = `
+            flex-grow: 1;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 0 12px 12px 0;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            color: white;
+            font-size: 14px;
+            border-left: none;
+        `;
+        inputContainer.appendChild(input);
+
+        const saveButton = document.createElement("button");
+        saveButton.textContent = "保存";
+        saveButton.style.cssText = `
+            padding: 0 20px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        `;
+        saveButton.addEventListener('click', () => {
+            const urlPart = input.value.trim();
+            if (urlPart) {
+                const fullUrl = currentProtocol + urlPart;
+                localStorage.setItem('customWsUrl', fullUrl);
+                localStorage.setItem('customWsProtocol', currentProtocol);
+                showMessage("自定义服务器地址已保存！请刷新页面以生效。", "success");
+            } else {
+                localStorage.removeItem('customWsUrl');
+                localStorage.removeItem('customWsProtocol');
+                showMessage("已清除自定义服务器地址。将使用默认地址。请刷新页面以生效。", "info");
+            }
+        });
+        
+        saveButton.addEventListener("mouseover", () => {
+            saveButton.style.background = "#1976D2";
+        });
+        
+        saveButton.addEventListener("mouseout", () => {
+            saveButton.style.background = "#2196F3";
+        });
+
+        inputContainer.appendChild(saveButton);
+        
+        section.appendChild(inputContainer);
+
+        const tutorialLink = document.createElement("a");
+        tutorialLink.textContent = "搭建服务器教程";
+        tutorialLink.href = "./docs"; 
+        tutorialLink.target = "_blank";
+        tutorialLink.style.cssText = `
+            display: block;
+            margin-top: 15px;
+            color: #2196F3;
+            text-decoration: none;
+            font-size: 14px;
+            text-align: center;
+        `;
+        section.appendChild(tutorialLink);
+
+        return section;
     }
 
     // 创建重抽次数设置区域

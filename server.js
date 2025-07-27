@@ -20,7 +20,7 @@ function logWithTimestamp(message, ...args) {
 }
 
 // 检查是否为本地测试环境
-const isLocalTest = process.env.NODE_ENV === 'development' || !fs.existsSync('/etc/letsencrypt/live/unhappycar.tech/fullchain.pem');
+const isLocalTest = process.env.NODE_ENV === 'development' || !fs.existsSync('./ssl/fullchain.pem');
 
 let server, wss;
 
@@ -34,11 +34,11 @@ if (isLocalTest) {
   // 生产环境用 HTTPS 服务器
   logWithTimestamp('使用生产环境模式 (HTTPS)');
 
-const sslOptions = {
-  cert: fs.readFileSync("/etc/letsencrypt/live/unhappycar.tech/fullchain.pem"),
-  key: fs.readFileSync("/etc/letsencrypt/live/unhappycar.tech/privkey.pem"),
-  ca: fs.readFileSync("/etc/letsencrypt/live/unhappycar.tech/chain.pem"),
-};
+  const sslOptions = {
+    cert: fs.readFileSync("./ssl/fullchain.pem"),
+    key: fs.readFileSync("./ssl/privkey.pem"),
+    ca: fs.readFileSync("./ssl/chain.pem"),
+  };
   server = https.createServer(sslOptions);
   wss = new WebSocket.Server({ server });
 }
@@ -303,39 +303,12 @@ wss.on("connection", (ws) => {
             const fileName = `${uploaderName}.json`;
             const filePath = require('path').join(APPROVED_DIR, fileName);
 
-            // Filter out default events
-            const extractObject = (content, varName) => {
-              try {
-                const sandbox = {};
-                vm.createContext(sandbox);
-                const scriptContent = content.replace(new RegExp(`^\\s*const\\s+${varName}\\s*=`), `sandbox.${varName} =`).replace(new RegExp(`window\\.${varName}\\s*=\\s*${varName};?`), '');
-                vm.runInContext(scriptContent, sandbox);
-                return sandbox[varName] || {};
-              } catch (e) {
-                try { return JSON.parse(content); } catch (jsonError) { console.error(`解析 ${varName} 失败:`, e, jsonError); return {}; }
-              }
-            };
-            let defaultMissions = {};
-            let defaultHardMissions = {};
-            if (fs.existsSync('./js/mission.js')) defaultMissions = extractObject(fs.readFileSync('./js/mission.js', 'utf-8'), 'mission');
-            if (fs.existsSync('./js/hardmission.js')) defaultHardMissions = extractObject(fs.readFileSync('./js/hardmission.js', 'utf-8'), 'hardmission');
-
-            const filterDefaultEvents = (events, defaultEvents) => {
-                const filtered = {};
-                for (const key in events) {
-                    if (!defaultEvents[key] || JSON.stringify(events[key]) !== JSON.stringify(defaultEvents[key])) {
-                        filtered[key] = events[key];
-                    }
-                }
-                return filtered;
-            };
-            
             const finalLibrary = {
                 uploaderName: uploaderName,
                 uploaderPin: uploaderPin,
                 uploaderAvatar: userLibrary.uploaderAvatar,
-                personalEvents: filterDefaultEvents(userLibrary.personalEvents, defaultMissions),
-                teamEvents: filterDefaultEvents(userLibrary.teamEvents, defaultHardMissions)
+                personalEvents: userLibrary.personalEvents || {},
+                teamEvents: userLibrary.teamEvents || {}
             };
 
             if (fs.existsSync(filePath)) {
@@ -739,14 +712,14 @@ wss.on("connection", (ws) => {
           break;
 
         case "updateState":
-          logWithTimestamp(`更新状态请求，房间ID: ${data.roomId}`);
+          // logWithTimestamp(`更新状态请求，房间ID: ${data.roomId}`);
           const updateRoom = rooms[data.roomId];
           if (updateRoom && updateRoom.host === ws) {
             updateRoom.state = data.state;
             updateRoom.history = data.history || [];
             updateRoom.characterHistory = data.characterHistory || []; // 保存角色历史
             // 广播最新状态，包括历史记录
-            logWithTimestamp(`广播最新状态，房间ID: ${data.roomId}`);
+            // logWithTimestamp(`广播最新状态，房间ID: ${data.roomId}`);
             updateRoom.players.forEach((player) => {
               player.ws.send(
                 JSON.stringify({
@@ -825,7 +798,7 @@ wss.on("connection", (ws) => {
           }break;
 
         case "heartbeat":          // 处理心跳包，简单返回确认消息
-          logWithTimestamp(`收到心跳包 - 玩家ID: ${data.playerId}, 房间ID: ${data.roomId}, 时间: ${new Date(data.timestamp).toLocaleTimeString()}`);
+          // logWithTimestamp(`收到心跳包 - 玩家ID: ${data.playerId}, 房间ID: ${data.roomId}, 时间: ${new Date(data.timestamp).toLocaleTimeString()}`);
           
           // 可选：返回心跳确认（通常心跳包不需要确认，只要连接正常即可）
           try {
