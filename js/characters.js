@@ -1,5 +1,11 @@
 // 角色数据
 window.characterData = {
+    "伊涅芙": {
+        "头像": "https://act-upload.mihoyo.com/wiki-user-upload/2025/07/21/50494840/bd297354e4709df7963f6dc976ab8784_5144561901319432302.png",
+        "元素类型": "雷",
+        "武器类型": "长枪",
+        "星级": "五星"
+    },
     "丝柯克": {
         "头像": "https://act-upload.mihoyo.com/ys-obc/2025/06/12/73740358/867b0b36bfd629cd5ce88443cc5816c6_8276246094525984208.png",
         "元素类型": "冰",
