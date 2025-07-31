@@ -518,14 +518,33 @@ class FangweiDrawer {
         const modeResultItem = document.getElementById('modeResultItem');
         const pointResultItem = document.getElementById('pointResultItem');
         const eventResultsContainer = document.getElementById('eventResultsContainer');
+        const modeSettings = document.getElementById('modeSettings');
+        const customModeSection = document.querySelector('.custom-mode-section');
 
-        modeResultItem.style.display = this.settings.enableMode ? 'flex' : 'none';
+        if (this.settings.enableMode) {
+            modeResultItem.style.display = 'flex';
+            modeSettings.style.display = 'block';
+            customModeSection.style.display = 'block';
+        } else {
+            modeResultItem.style.display = 'none';
+            modeSettings.style.display = 'none';
+            customModeSection.style.display = 'none';
+            this.currentResults.mode = '';
+            this.currentResults.modeDetail = '';
+            this.updateModeDisplay();
+        }
+
         pointResultItem.style.display = this.settings.enablePoint ? 'flex' : 'none';
-        eventResultsContainer.style.display = this.settings.enableEvents ? 'block' : 'none';
+        if (!this.settings.enablePoint) {
+            this.currentResults.point = '';
+            this.updatePointDisplay();
+        }
 
-        if (!this.settings.enableMode) { this.currentResults.mode = ''; this.currentResults.modeDetail = ''; this.updateModeDisplay(); }
-        if (!this.settings.enablePoint) { this.currentResults.point = ''; this.updatePointDisplay(); }
-        if (!this.settings.enableEvents) { this.currentResults.events = {}; this.updateEventDisplay(); }
+        eventResultsContainer.style.display = this.settings.enableEvents ? 'block' : 'none';
+        if (!this.settings.enableEvents) {
+            this.currentResults.events = {};
+            this.updateEventDisplay();
+        }
 
         this.updateCopyText();
     }
