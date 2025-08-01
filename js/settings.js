@@ -557,7 +557,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const input = document.createElement("input");
         input.type = "text";
-        input.placeholder = "your-server.com";
+        input.placeholder = "your-server.com(:port) (留空保存后使用默认服务器)";
         input.id = "customServerUrlInput";
         const savedUrl = localStorage.getItem('customWsUrl') || '';
         const savedProto = localStorage.getItem('customWsProtocol') || 'wss://';
@@ -567,7 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
             padding: 12px;
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 0 12px 12px 0;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.3);
             backdrop-filter: blur(10px);
             color: white;
             font-size: 14px;
@@ -620,7 +620,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tutorialLink.style.cssText = `
             display: block;
             margin-top: 15px;
-            color: #2196F3;
+            color: #00ff11ff;
             text-decoration: none;
             font-size: 14px;
             text-align: center;

@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log('WebSocket 连接成功');
                 
         if (connectionStatus) {
-            connectionStatus.textContent = `多人游戏服务器连接成功！连接到：${wsUrl}`;
+            connectionStatus.innerHTML = `多人游戏服务器连接成功！<br>连接到：${wsUrl}`;
             connectionStatus.style.color = 'green'; 
         }
         // 启用按钮
@@ -58,7 +58,8 @@ document.addEventListener('DOMContentLoaded', function () {
         
     };    
     
-    const insecureHtml = `
+    // 生成错误连接HTML的函数，接受错误原因参数
+    const generateInsecureHtml = (errorReason = '') => `
         <div style="
             background: rgba(255, 230, 230, 0.98);
             border-radius: 12px;
@@ -74,34 +75,75 @@ document.addEventListener('DOMContentLoaded', function () {
                 ⛓️‍💥服务器连接失败或断开...
             </div>
             <div style="color: #b71c1c; margin-bottom: 16px;">
-                连接到：${wsUrl}<br><br>
+                连接到：${wsUrl}<br>
+                ${errorReason ? `<div style="background: rgba(255, 200, 200, 0.7); border-radius: 6px; padding: 8px 12px; margin: 12px 0; font-size: 14px; border-left: 3px solid #d32f2f;">
+                    <strong>失败原因：</strong>${errorReason}
+                </div>` : ''}
                 请首先刷新页面重试...<br>
                 如果持续连接不上，可以尝试设置自定义服务器
             </div>
-            <button id="openSettingsForServer" style="
-                display: inline-block;
-                background: #ff9800;
-                color: #fff;
-                font-weight: bold;
-                padding: 12px 32px;
-                border-radius: 8px;
-                text-decoration: none;
-                font-size: 16px;
-                box-shadow: 0 2px 8px rgba(255,152,0,0.12);
-                margin-top: 8px;
-                transition: background 0.2s;
-                border: none;
-                cursor: pointer;
-            ">设置自定义服务器</button>
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                <button id="refreshPageButton" style="
+                    display: inline-block;
+                    background: #4caf50;
+                    color: #fff;
+                    font-weight: bold;
+                    padding: 12px 24px;
+                    border-radius: 8px;
+                    text-decoration: none;
+                    font-size: 16px;
+                    box-shadow: 0 2px 8px rgba(76,175,80,0.12);
+                    transition: background 0.2s;
+                    border: none;
+                    cursor: pointer;
+                ">🔄 刷新页面</button>
+                <button id="openSettingsForServer" style="
+                    display: inline-block;
+                    background: #ff9800;
+                    color: #fff;
+                    font-weight: bold;
+                    padding: 12px 24px;
+                    border-radius: 8px;
+                    text-decoration: none;
+                    font-size: 16px;
+                    box-shadow: 0 2px 8px rgba(255,152,0,0.12);
+                    transition: background 0.2s;
+                    border: none;
+                    cursor: pointer;
+                ">⚙️ 设置服务器</button>
+            </div>
         </div>
     `;
 
     // WebSocket 连接错误
     ws.onerror = (error) => {
         console.error('WebSocket 连接错误:', error);
+        let errorReason = '网络连接错误';
+        
+        // 尝试获取更详细的错误信息
+        if (error.type === 'error') {
+            if (wsUrl.includes('wss://') && window.location.protocol === 'http:') {
+                errorReason = '混合内容错误：HTTPS页面无法连接WS协议';
+            } else if (wsUrl.includes('ws://') && window.location.protocol === 'https:') {
+                errorReason = '协议不匹配：HTTP页面尝试连接WSS协议';
+            } else {
+                errorReason = '无法连接到服务器，可能是服务器未启动或网络问题';
+            }
+        }
+        
         if (connectionStatus) {
-            connectionStatus.innerHTML = insecureHtml;
+            connectionStatus.innerHTML = generateInsecureHtml(errorReason);
             connectionStatus.style.color = 'unset';
+            
+            // 绑定刷新按钮事件
+            const refreshPageBtn = document.getElementById('refreshPageButton');
+            if (refreshPageBtn) {
+                refreshPageBtn.addEventListener('click', () => {
+                    window.location.reload();
+                });
+            }
+            
+            // 绑定设置按钮事件
             const openSettingsBtn = document.getElementById('openSettingsForServer');
             if (openSettingsBtn) {
                 openSettingsBtn.addEventListener('click', () => {
@@ -124,9 +166,59 @@ document.addEventListener('DOMContentLoaded', function () {
     // WebSocket 连接关闭
     ws.onclose = (event) => {
         console.log(`WebSocket 连接已关闭, Code: ${event.code}, Reason: ${event.reason}, WasClean: ${event.wasClean}`);
+        
+        let closeReason = '连接已断开';
+        
+        // 根据关闭代码提供更详细的原因
+        switch (event.code) {
+            case 1000:
+                closeReason = '正常关闭连接';
+                break;
+            case 1001:
+                closeReason = '端点已离开（如页面刷新）';
+                break;
+            case 1002:
+                closeReason = '协议错误';
+                break;
+            case 1003:
+                closeReason = '收到不支持的数据类型';
+                break;
+            case 1006:
+                closeReason = '连接异常关闭（可能是网络问题或服务器未开启）';
+                break;
+            case 1011:
+                closeReason = '服务器遇到意外情况';
+                break;
+            case 1012:
+                closeReason = '服务器重启中';
+                break;
+            case 1013:
+                closeReason = '服务器过载，请稍后重试';
+                break;
+            case 1015:
+                closeReason = 'TLS握手失败';
+                break;
+            default:
+                if (event.reason) {
+                    closeReason = `连接关闭：${event.reason}`;
+                } else {
+                    closeReason = `连接关闭（代码：${event.code}）`;
+                }
+        }
+        
         if (connectionStatus) {
-            connectionStatus.innerHTML = insecureHtml;
+            connectionStatus.innerHTML = generateInsecureHtml(closeReason);
             connectionStatus.style.color = 'unset';
+            
+            // 绑定刷新按钮事件
+            const refreshPageBtn = document.getElementById('refreshPageButton');
+            if (refreshPageBtn) {
+                refreshPageBtn.addEventListener('click', () => {
+                    window.location.reload();
+                });
+            }
+            
+            // 绑定设置按钮事件
             const openSettingsBtn = document.getElementById('openSettingsForServer');
             if (openSettingsBtn) {
                 openSettingsBtn.addEventListener('click', () => {
