@@ -145,6 +145,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             // The sharedEvents module now generates content instead of a modal
             if (window.sharedEvents && typeof window.sharedEvents.renderUserView === 'function') {
+                // Request the libraries first
+                if (typeof window.sharedEvents.requestSharedLibraries === 'function') {
+                    window.sharedEvents.requestSharedLibraries();
+                }
+
                 // Create a container for the content
                 const container = document.createElement('div');
                 container.id = 'sharedEventsContainer'; // Add an ID for styling if needed
@@ -234,7 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if(userDocumentation) {
         userDocumentation.addEventListener("click", () => {
             // 在新窗口中打开使用文档
-            window.open('./documentation', '_blank');
+            window.open('./docs', '_blank');
         });
     }
 
@@ -615,7 +620,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const tutorialLink = document.createElement("a");
         tutorialLink.textContent = "搭建服务器教程";
-        tutorialLink.href = "./docs"; 
+        tutorialLink.href = "./docs/#/server-deployment"; 
         tutorialLink.target = "_blank";
         tutorialLink.style.cssText = `
             display: block;
@@ -1335,6 +1340,123 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // 将消息提示函数和WebSocket连接管理函数移到外部，以便复用
+    function showMessage(message, type = "info") {
+        const messageDiv = document.createElement("div");
+        messageDiv.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 15px;
+            color: white;
+            font-weight: bold;
+            z-index: 10001;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            max-width: 300px;
+            word-wrap: break-word;
+        `;
+
+        if (type === "success") {
+            messageDiv.style.background = "rgba(100, 255, 100, 0.2)";
+            messageDiv.style.border = "1px solid rgba(100, 255, 100, 0.3)";
+        } else if (type === "error") {
+            messageDiv.style.background = "rgba(255, 100, 100, 0.2)";
+            messageDiv.style.border = "1px solid rgba(255, 100, 100, 0.3)";
+        } else {
+            messageDiv.style.background = "rgba(100, 150, 255, 0.2)";
+            messageDiv.style.border = "1px solid rgba(100, 150, 255, 0.3)";
+        }
+
+        messageDiv.textContent = message;
+        document.body.appendChild(messageDiv);
+
+        // 动画显示
+        setTimeout(() => {
+            messageDiv.style.transform = "translateX(0)";
+        }, 10);
+
+        // 自动隐藏
+        setTimeout(() => {
+            messageDiv.style.transform = "translateX(400px)";
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 300);
+        }, 3000);
+    }
+
+    // WebSocket连接管理函数
+    async function ensureWebSocketConnection() {
+        return new Promise((resolve, reject) => {
+            // 检查app.js中主WebSocket连接
+            if (window.ws && window.ws.readyState === WebSocket.OPEN) {
+                console.log('Using main WebSocket connection.');
+                resolve(window.ws);
+                return;
+            }
+            
+            // 检查多人游戏连接
+            if (window.multiplayerManager && window.multiplayerManager.isConnected()) {
+                console.log('Using multiplayer WebSocket connection.');
+                resolve(window.multiplayerManager.getWebSocket());
+                return;
+            }
+
+            // 检查已有的临时连接
+            if (window.tempWs && window.tempWs.readyState === WebSocket.OPEN) {
+                console.log('Using existing temporary WebSocket connection.');
+                resolve(window.tempWs);
+                return;
+            }
+
+            // 创建新的临时连接
+            const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const wsUrl = isLocalDev ? 'ws://127.0.0.1:3000' : 'wss://unhappycar.tech:3000';
+            
+            console.log('Creating new temporary WebSocket connection:', wsUrl);
+            
+            window.tempWs = new WebSocket(wsUrl);
+            
+            const connectionTimeout = setTimeout(() => {
+                window.tempWs.close();
+                reject(new Error('WebSocket connection timed out.'));
+            }, 5000);
+
+            window.tempWs.onopen = () => {
+                clearTimeout(connectionTimeout);
+                console.log('Temporary WebSocket connection successful.');
+                
+                // 临时连接也需要能处理消息
+                window.tempWs.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+                    // 主ws连接断开时,临时ws连接也能收到消息并处理
+                    if (window.sharedEvents && typeof window.sharedEvents.handleMessage === 'function') {
+                        window.sharedEvents.handleMessage(data);
+                    }
+                };
+                
+                resolve(window.tempWs);
+            };
+
+            window.tempWs.onerror = (error) => {
+                clearTimeout(connectionTimeout);
+                console.error('Temporary WebSocket connection error:', error);
+                reject(error);
+            };
+
+            window.tempWs.onclose = () => {
+                console.log('Temporary WebSocket connection closed.');
+                window.tempWs = null; // 清理
+            };
+        });
+    }
+    // 暴露到全局
+    window.ensureWebSocketConnection = ensureWebSocketConnection;
+
+
     // 投稿弹窗功能
     function showSubmissionModal() {
         // 创建遮罩层
@@ -1634,8 +1756,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 submitBtn.textContent = "⏳ 提交中...";
                 submitBtn.disabled = true;
 
-                // 检查并重新连接WebSocket（如果需要）
-                await ensureWebSocketConnection();
+                // 获取一个可用的WebSocket连接
+                const ws = await ensureWebSocketConnection();
 
                 // 通过WebSocket发送投稿数据
                 const submissionData = {
@@ -1648,36 +1770,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         url: window.location.href
                     }
                 };
-
-                // 优先使用现有的多人游戏WebSocket连接
-                if (window.multiplayerManager && window.multiplayerManager.isConnected()) {
-                    console.log('通过多人游戏WebSocket连接发送投稿');
-                    // 需要访问multiplayer.js中的ws变量，这里我们通过multiplayerManager发送
-                    // 由于multiplayerManager没有直接暴露发送方法，我们需要在multiplayer.js中添加一个发送方法
-                    if (window.multiplayerManager.sendMessage) {
-                        window.multiplayerManager.sendMessage(submissionData);
-                    } else {
-                        // 如果没有sendMessage方法，回退到专门的投稿连接
-                        if (window.submissionWebSocket && window.submissionWebSocket.readyState === WebSocket.OPEN) {
-                            window.submissionWebSocket.send(JSON.stringify(submissionData));
-                        } else {
-                            throw new Error('无法发送投稿，WebSocket连接不可用');
-                        }
-                    }
-                    showMessage("投稿提交成功！感谢您的分享！", "success");
-                    hideSubmissionModal();
-                } else if (window.submissionWebSocket && window.submissionWebSocket.readyState === WebSocket.OPEN) {
-                    console.log('通过专门的投稿WebSocket连接发送投稿');
-                    window.submissionWebSocket.send(JSON.stringify(submissionData));
-                    showMessage("投稿提交成功！感谢您的分享！", "success");
-                    hideSubmissionModal();
-                } else {
-                    throw new Error('WebSocket连接未建立');
-                }
+                
+                ws.send(JSON.stringify(submissionData));
+                showMessage("投稿提交成功！感谢您的分享！", "success");
+                hideSubmissionModal();
 
             } catch (error) {
                 console.error('提交投稿时出错:', error);
-                showMessage("提交失败，请稍后重试", "error");
+                showMessage(`提交失败: ${error.message}`, "error");
             } finally {
                 submitBtn.textContent = "🚀 提交投稿";
                 submitBtn.disabled = false;
@@ -1712,122 +1812,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 overlay.remove();
             }, 300);
         }
-    }
-
-    // 消息提示函数
-    function showMessage(message, type = "info") {
-        const messageDiv = document.createElement("div");
-        messageDiv.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            border-radius: 15px;
-            color: white;
-            font-weight: bold;
-            z-index: 10001;
-            backdrop-filter: blur(15px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-            transform: translateX(400px);
-            transition: transform 0.3s ease;
-            max-width: 300px;
-            word-wrap: break-word;
-        `;
-
-        if (type === "success") {
-            messageDiv.style.background = "rgba(100, 255, 100, 0.2)";
-            messageDiv.style.border = "1px solid rgba(100, 255, 100, 0.3)";
-        } else if (type === "error") {
-            messageDiv.style.background = "rgba(255, 100, 100, 0.2)";
-            messageDiv.style.border = "1px solid rgba(255, 100, 100, 0.3)";
-        } else {
-            messageDiv.style.background = "rgba(100, 150, 255, 0.2)";
-            messageDiv.style.border = "1px solid rgba(100, 150, 255, 0.3)";
-        }
-
-        messageDiv.textContent = message;
-        document.body.appendChild(messageDiv);
-
-        // 动画显示
-        setTimeout(() => {
-            messageDiv.style.transform = "translateX(0)";
-        }, 10);
-
-        // 自动隐藏
-        setTimeout(() => {
-            messageDiv.style.transform = "translateX(400px)";
-            setTimeout(() => {
-                messageDiv.remove();
-            }, 300);
-        }, 3000);
-    }
-
-    // WebSocket连接管理函数
-    async function ensureWebSocketConnection() {
-        return new Promise((resolve, reject) => {
-            // 首先检查是否有现有的多人游戏WebSocket连接可用
-            if (window.multiplayerManager && window.multiplayerManager.isConnected()) {
-                console.log('使用现有的多人游戏WebSocket连接进行投稿');
-                window.submissionWebSocket = null; // 不需要独立的投稿连接
-                resolve();
-                return;
-            }
-
-            // 检查是否已有专门的投稿WebSocket连接
-            if (window.submissionWebSocket && window.submissionWebSocket.readyState === WebSocket.OPEN) {
-                resolve();
-                return;
-            }
-
-            // 如果没有可用连接，创建新的WebSocket连接用于投稿
-            const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-            const wsUrl = isLocalDev ? 'ws://127.0.0.1:3000' : 'wss://unhappycar.tech:3000';
-            
-            console.log('为投稿创建WebSocket连接:', wsUrl);
-            
-            window.submissionWebSocket = new WebSocket(wsUrl);
-            
-            // 设置连接超时
-            const connectionTimeout = setTimeout(() => {
-                window.submissionWebSocket.close();
-                reject(new Error('WebSocket连接超时'));
-            }, 5000); // 5秒超时
-
-            window.submissionWebSocket.onopen = () => {
-                clearTimeout(connectionTimeout);
-                console.log('投稿WebSocket连接成功');
-                resolve();
-            };
-
-            window.submissionWebSocket.onerror = (error) => {
-                clearTimeout(connectionTimeout);
-                console.error('投稿WebSocket连接错误:', error);
-                reject(error);
-            };
-
-            window.submissionWebSocket.onclose = () => {
-                console.log('投稿WebSocket连接已关闭');
-            };
-
-            // 处理服务器返回的消息
-            window.submissionWebSocket.onmessage = (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-                    if (data.type === 'submission_received') {
-                        console.log('服务器确认收到投稿:', data);
-                        // 投稿成功后立即关闭连接（只针对专门创建的投稿连接）
-                        setTimeout(() => {
-                            if (window.submissionWebSocket && window.submissionWebSocket.readyState === WebSocket.OPEN) {
-                                window.submissionWebSocket.close();
-                                console.log('投稿完成，已关闭WebSocket连接');
-                            }
-                        }, 1000); // 延迟1秒关闭，确保消息处理完成
-                    }
-                } catch (error) {
-                    console.log('收到服务器消息:', event.data);
-                }
-            };
-        });
     }
 
     // 页面卸载时关闭投稿WebSocket连接（只关闭专门创建的投稿连接）

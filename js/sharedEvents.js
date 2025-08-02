@@ -37,7 +37,7 @@
         settingsOverlay = document.getElementById('settingsOverlay'); // Use the main settings overlay
 
         // Request shared libraries from server on connect
-        requestSharedLibraries();
+        // requestSharedLibraries(); // Deactivated: Now called on demand from settings.js
     }
 
     /**
@@ -306,9 +306,18 @@
     /**
      * Requests all approved shared libraries from the server.
      */
-    function requestSharedLibraries() {
-        if (ws && ws.readyState === WebSocket.OPEN) {
+    async function requestSharedLibraries() {
+        try {
+            const currentWs = await window.ensureWebSocketConnection();
+            ws = currentWs; // Update the module-scoped ws instance
             ws.send(JSON.stringify({ type: 'get_shared_libraries' }));
+        } catch (error) {
+            console.error("Could not establish WebSocket connection for shared events:", error);
+            // Optionally, show an error to the user in the UI
+            const container = document.getElementById('sharedEventsContainer');
+            if (container) {
+                container.innerHTML = `<p class="shared-events-empty" style="color: #ff6b6b;">无法连接到服务器获取共享事件。请刷新页面或检查网络后重试。</p>`;
+            }
         }
     }
 
@@ -1035,6 +1044,7 @@
     window.sharedEvents = {
         init,
         handleMessage,
-        renderUserView
+        renderUserView,
+        requestSharedLibraries // Expose the function
     };
 })();

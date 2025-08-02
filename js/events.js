@@ -1735,16 +1735,9 @@ window.eventManagement = (() => {
         // 移除了 placeholderEditModal 的点击外部关闭逻辑
 
         const helpBtn = document.getElementById('placeholderHelpBtn');
-        const tooltip = document.getElementById('placeholderTooltip');
         helpBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            tooltip.style.display = tooltip.style.display === 'block' ? 'none' : 'block';
-        });
-
-        document.addEventListener('click', (e) => {
-            if (tooltip.style.display === 'block' && !tooltip.contains(e.target) && e.target !== helpBtn) {
-                tooltip.style.display = 'none';
-            }
+            window.open('./docs/#/guide?id=随机词条', '_blank');
         });
 
         modalControlsInitialized = true;
