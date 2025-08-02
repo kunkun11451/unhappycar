@@ -202,7 +202,10 @@ document.addEventListener('DOMContentLoaded', function () {
             const isLastCharacter = index === characterBoxes.length - 1;
             animateSelection(box, newChar, 0, isLastCharacter ? window.syncGameStateIfChanged : null);
             roundHistory.characters.push({ new: newChar });
-        });        // 将本轮抽取的角色存到历史
+            box.classList.add('active');
+        });
+        updatePlayerTags();
+        // 将本轮抽取的角色存到历史
         window.historyModule.pushRoundHistory(roundHistory);
 
         // 禁用按钮 0.5 秒
@@ -550,10 +553,40 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             return `${minutes}:${remainingSeconds}`;
         }
-    }    // ================= 事件绑定 =================
-    characterBoxes.forEach(box => {
-        box.addEventListener('click', () => refreshSingleCharacter(box));
-    });    // 等待所有脚本加载完成后初始化表格
+    }
+
+    function updatePlayerTags() {
+        const activeBoxes = document.querySelectorAll('.character-box.active');
+        let playerCounter = 1;
+        characterBoxes.forEach(box => {
+            if (box.classList.contains('active')) {
+                box.dataset.player = `${playerCounter}P`;
+                playerCounter++;
+            } else {
+                delete box.dataset.player;
+            }
+        });
+    }
+
+    function toggleCharacterActive(box) {
+        box.classList.toggle('active');
+        updatePlayerTags();
+    }
+
+    // ================= 事件绑定 =================
+    characterBoxes.forEach((box, index) => {
+        box.classList.add('active');
+        box.dataset.player = `${index + 1}P`;
+        box.addEventListener('click', (event) => {
+            if (event.shiftKey) {
+                toggleCharacterActive(box);
+            } else {
+                refreshSingleCharacter(box);
+            }
+        });
+    });
+
+    // 等待所有脚本加载完成后初始化表格
     setTimeout(() => {
         // 获取表格元素
         const personalEventsTable = document.getElementById('personalEventsTable');

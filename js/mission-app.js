@@ -58,12 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {
     missionBoxes.forEach((box, index) => {
         setTimeout(() => {
             box.classList.add('active');
-            
-            // 为每个事件盒子添加玩家标识元素
-            const playerTag = document.createElement('div');
-            playerTag.className = `player-tag p${index+1}`;
-            playerTag.textContent = `P${index+1}`;
-            box.appendChild(playerTag);
+            box.dataset.player = `${index + 1}P`;
             
             // 为每个事件盒子添加点击事件，实现单独刷新
             box.addEventListener('click', function() {

@@ -249,7 +249,40 @@ function initCharacterManagement() {
     document.head.appendChild(style);
 
     searchContainer.appendChild(searchInput);
-    // searchContainer.appendChild(style);
+
+    const selectAllButton = document.createElement("button");
+    selectAllButton.className = "filter-button";
+    selectAllButton.style.width = "40px";
+    selectAllButton.style.height = "40px";
+    selectAllButton.style.marginLeft = "10px";
+    selectAllButton.innerHTML = `<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path d="M374.656 713.344a32 32 0 0 1 3.648 40.832l-3.648 4.48-128 128a32 32 0 0 1-40.832 3.648l-4.48-3.648-64-64a32 32 0 0 1 40.832-48.96l4.48 3.648 41.344 41.408 105.344-105.408a32 32 0 0 1 45.312 0zM864 768a32 32 0 1 1 0 64h-384a32 32 0 1 1 0-64h384zM374.656 457.344a32 32 0 0 1 3.648 40.832l-3.648 4.48-128 128a32 32 0 0 1-40.832 3.648l-4.48-3.648-64-64a32 32 0 0 1 40.832-48.96l4.48 3.648 41.344 41.408 105.344-105.408a32 32 0 0 1 45.312 0zM864 512a32 32 0 1 1 0 64h-384a32 32 0 0 1 0-64h384zM374.656 201.344a32 32 0 0 1 3.648 40.832l-3.648 4.48-128 128a32 32 0 0 1-40.832 3.648l-4.48-3.648-64-64a32 32 0 0 1 40.832-48.96l4.48 3.648 41.344 41.408 105.344-105.408a32 32 0 0 1 45.312 0zM864 256a32 32 0 1 1 0 64h-384a32 32 0 0 1 0-64h384z" fill="currentColor"/></svg>`;
+    selectAllButton.addEventListener("click", () => {
+        const allCharacters = Object.keys(characterData);
+        const allEnabled = allCharacters.every(character => !disabledCharacters.has(character));
+
+        if (allEnabled) {
+            allCharacters.forEach(character => {
+                disabledCharacters.add(character);
+            });
+        } else {
+            allCharacters.forEach(character => {
+                disabledCharacters.delete(character);
+            });
+        }
+
+        Array.from(cardContainer.children).forEach(card => {
+            const characterName = card.dataset.character;
+            if (disabledCharacters.has(characterName)) {
+                card.classList.add("disabled");
+            } else {
+                card.classList.remove("disabled");
+            }
+        });
+
+        localStorage.setItem("disabledCharacters", JSON.stringify(Array.from(disabledCharacters)));
+        enabledCountContainer.textContent = `启用角色数量：${Object.keys(characterData).length - disabledCharacters.size} / ${Object.keys(characterData).length}`;
+    });
+    searchContainer.appendChild(selectAllButton);
 
     // 创建元素筛选按钮容器
     const filterContainer = document.createElement("div");
