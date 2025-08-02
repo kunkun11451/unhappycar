@@ -2363,6 +2363,13 @@ window.multiplayerManager = {
         // 返回实际的玩家数量，包含主机和所有玩家
         return currentPlayerCount;
     },
+    // 获取WebSocket连接实例
+    getWebSocket: () => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            return ws;
+        }
+        return null;
+    },
     // 添加发送消息的方法，供其他模块使用现有的WebSocket连接
     sendMessage: (data) => {
         if (ws && ws.readyState === WebSocket.OPEN) {
