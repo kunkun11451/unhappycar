@@ -716,58 +716,129 @@ window.eventManagement = (() => {
         instructionText.textContent = '右键/长按可删除或编辑事件，无法右键请关闭Simple Allow Copy等插件';
         header.appendChild(instructionText);
         
-        // 创建单选按钮
-        const radioInputs = document.createElement('div');
-        radioInputs.className = 'radio-inputs';
-        radioInputs.style.display = 'flex';
-        radioInputs.style.justifyContent = 'center';
-        radioInputs.style.gap = '20px';
-        radioInputs.style.marginBottom = '20px';
+        // 创建毛玻璃切换按钮
+        const radioContainer = document.createElement('div');
+        radioContainer.className = 'glassmorphism-radio-inputs';
         
+        // 个人事件选项
         const personalLabel = document.createElement('label');
         personalLabel.className = 'radio';
-        personalLabel.style.display = 'flex';
-        personalLabel.style.alignItems = 'center';
-        personalLabel.style.cursor = 'pointer';
         
         const personalRadio = document.createElement('input');
         personalRadio.type = 'radio';
-        personalRadio.name = 'eventTypeInSettings';
-        personalRadio.id = 'personalEventsRadioInSettings';
+        personalRadio.name = 'eventType';
+        personalRadio.id = 'personalEventsRadio';
         personalRadio.checked = true;
         
         const personalSpan = document.createElement('span');
         personalSpan.className = 'radio-item';
         personalSpan.textContent = '个人事件';
-        personalSpan.style.marginLeft = '8px';
         
         personalLabel.appendChild(personalRadio);
         personalLabel.appendChild(personalSpan);
         
+        // 团队事件选项
         const teamLabel = document.createElement('label');
         teamLabel.className = 'radio';
-        teamLabel.style.display = 'flex';
-        teamLabel.style.alignItems = 'center';
-        teamLabel.style.cursor = 'pointer';
         
         const teamRadio = document.createElement('input');
         teamRadio.type = 'radio';
-        teamRadio.name = 'eventTypeInSettings';
-        teamRadio.id = 'teamEventsRadioInSettings';
+        teamRadio.name = 'eventType';
+        teamRadio.id = 'teamEventsRadio';
         
         const teamSpan = document.createElement('span');
         teamSpan.className = 'radio-item';
         teamSpan.textContent = '团队事件';
-        teamSpan.style.marginLeft = '8px';
         
         teamLabel.appendChild(teamRadio);
         teamLabel.appendChild(teamSpan);
         
-        radioInputs.appendChild(personalLabel);
-        radioInputs.appendChild(teamLabel);
-        header.appendChild(radioInputs);
+        radioContainer.appendChild(personalLabel);
+        radioContainer.appendChild(teamLabel);
+
+        // 创建主控制容器，包含所有按钮和搜索框
+        const controlsContainer = document.createElement('div');
+        controlsContainer.className = 'event-management-container';
         
-        // 创建搜索输入框
+        // 1. 个人/团队切换按钮 (放在最上面)
+        controlsContainer.appendChild(radioContainer);
+        
+        // 2. 小图标按钮区域
+        const iconButtonsContainer = document.createElement('div');
+        iconButtonsContainer.className = 'icon-buttons-container';
+        
+        // 创建小图标按钮的函数
+        function createIconButton(id, iconSvg, tooltip, className) {
+            const button = document.createElement('button');
+            button.id = id;
+            button.className = `icon-btn ${className}`;
+            button.title = tooltip; // 使用title属性作为工具提示
+            
+            const icon = document.createElement('div');
+            icon.className = 'btn-icon';
+            icon.innerHTML = iconSvg;
+            
+            button.appendChild(icon);
+            
+            return button;
+        }
+        
+        // 添加个人事件按钮
+        const addPersonalButton = createIconButton(
+            'addPersonalButton',
+            `<svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
+            </svg>`,
+            '添加个人事件',
+            'add-btn'
+        );
+        addPersonalButton.style.display = 'flex';
+        addPersonalButton.addEventListener('click', () => openEventModal('personal'));
+        iconButtonsContainer.appendChild(addPersonalButton);
+        
+        // 添加团队事件按钮
+        const addTeamButton = createIconButton(
+            'addTeamButton',
+            `<svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
+            </svg>`,
+            '添加团队事件',
+            'add-btn'
+        );
+        addTeamButton.style.display = 'none';
+        addTeamButton.addEventListener('click', () => openEventModal('team'));
+        iconButtonsContainer.appendChild(addTeamButton);
+        
+        // 导出事件按钮
+        const exportAllButton = createIconButton(
+            'exportAllButton',
+            `<svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                <path d="M12,11L16,15H13V19H11V15H8L12,11Z"/>
+            </svg>`,
+            '导出事件',
+            'export-btn'
+        );
+        exportAllButton.addEventListener('click', exportAllEvents);
+        iconButtonsContainer.appendChild(exportAllButton);
+        
+        // 导入事件按钮
+        const importAllButton = createIconButton(
+            'importAllButton',
+            `<svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                <path d="M12,17L8,13H11V9H13V13H16L12,17Z"/>
+            </svg>`,
+            '导入事件',
+            'import-btn'
+        );
+        importAllButton.addEventListener('click', importAllEvents);
+        iconButtonsContainer.appendChild(importAllButton);
+
+        // 将图标按钮容器添加到主控制容器
+        controlsContainer.appendChild(iconButtonsContainer);
+        
+        // 3. 创建搜索输入框 (放在最下面)
         const searchContainer = document.createElement('div');
         searchContainer.style.marginBottom = '15px';
         searchContainer.style.textAlign = 'center';
@@ -812,161 +883,14 @@ window.eventManagement = (() => {
     document.head.appendChild(style);
 
     searchContainer.appendChild(searchInput);
-    header.appendChild(searchContainer);
+    
+    // 将搜索容器添加到主控制容器
+    controlsContainer.appendChild(searchContainer);
+    
+    // 将主控制容器添加到header
+    header.appendChild(controlsContainer);
 
     container.appendChild(header);
-        
-        // 添加事件按钮区域
-        const addEventContainer = document.createElement('div');
-        addEventContainer.id = 'addEventContainer';
-        addEventContainer.style.marginBottom = '20px';
-        addEventContainer.style.display = 'flex';
-        addEventContainer.style.justifyContent = 'center';
-        addEventContainer.style.alignItems = 'center';
-        addEventContainer.style.gap = '15px';
-        
-        // 创建按钮样式函数
-        function createStyledButton(id, text, bgColor, hoverColor) {
-            const button = document.createElement('button');
-            button.id = id;
-            button.textContent = text;
-            button.className = 'add-event-btn';
-            
-            // 基础样式
-            button.style.cssText = `
-                padding: 12px 24px;
-                background: linear-gradient(135deg, ${bgColor}, ${hoverColor});
-                color: white;
-                border: none;
-                border-radius: 8px;
-                font-size: 14px;
-                font-weight: 600;
-                cursor: pointer;
-                min-width: 140px;
-                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                position: relative;
-                overflow: hidden;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-            `;
-            
-            // 添加动画效果
-            button.addEventListener('mouseenter', () => {
-                button.style.transform = 'translateY(-2px) scale(1.02)';
-                button.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.15)';
-                button.style.background = `linear-gradient(135deg, ${hoverColor}, ${bgColor})`;
-            });
-            
-            button.addEventListener('mouseleave', () => {
-                button.style.transform = 'translateY(0) scale(1)';
-                button.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.1)';
-                button.style.background = `linear-gradient(135deg, ${bgColor}, ${hoverColor})`;
-            });
-            
-            button.addEventListener('mousedown', () => {
-                button.style.transform = 'translateY(1px) scale(0.98)';
-            });
-            
-            button.addEventListener('mouseup', () => {
-                button.style.transform = 'translateY(-2px) scale(1.02)';
-            });
-            
-            // 添加点击波纹效果
-            button.addEventListener('click', (e) => {
-                const ripple = document.createElement('span');
-                const rect = button.getBoundingClientRect();
-                const size = Math.max(rect.width, rect.height);
-                const x = e.clientX - rect.left - size / 2;
-                const y = e.clientY - rect.top - size / 2;
-                
-                ripple.style.cssText = `
-                    position: absolute;
-                    width: ${size}px;
-                    height: ${size}px;
-                    left: ${x}px;
-                    top: ${y}px;
-                    background: rgba(255, 255, 255, 0.3);
-                    border-radius: 50%;
-                    transform: scale(0);
-                    animation: ripple 0.6s ease-out;
-                    pointer-events: none;
-                `;
-                
-                button.appendChild(ripple);
-                
-                setTimeout(() => {
-                    ripple.remove();
-                }, 600);
-            });
-            
-            return button;
-        }
-        
-        // 添加波纹动画样式
-        if (!document.querySelector('#ripple-animation')) {
-            const style = document.createElement('style');
-            style.id = 'ripple-animation';
-            style.textContent = `
-                @keyframes ripple {
-                    to {
-                        transform: scale(2);
-                        opacity: 0;
-                    }
-                }
-            `;
-            document.head.appendChild(style);
-        }
-        
-        const addPersonalButton = createStyledButton(
-            'addPersonalButton', 
-            '添加个人事件', 
-            '#2ecc71', 
-            '#27ae60'
-        );
-        addPersonalButton.style.display = 'block'; // 默认显示个人事件按钮
-        addPersonalButton.addEventListener('click', () => openEventModal('personal'));
-        addEventContainer.appendChild(addPersonalButton);
-        
-        const addTeamButton = createStyledButton(
-            'addTeamButton', 
-            '添加团队事件', 
-            '#2ecc71', 
-            '#27ae60'
-        );
-        addTeamButton.style.display = 'none'; // 默认隐藏团队事件按钮
-        addTeamButton.addEventListener('click', () => openEventModal('team'));
-        addEventContainer.appendChild(addTeamButton);
-        
-        container.appendChild(addEventContainer);
-                
-        // 添加导出导入按钮
-        const exportAllContainer = document.createElement('div');
-        exportAllContainer.style.marginBottom = '20px';
-        exportAllContainer.style.display = 'flex';
-        exportAllContainer.style.justifyContent = 'center';
-        exportAllContainer.style.alignItems = 'center';
-        exportAllContainer.style.gap = '15px';
-        
-        const exportAllButton = createStyledButton(
-            'exportAllButton',
-            '📤 导出事件',
-            '#3498db',
-            '#2980b9'
-        );
-        exportAllButton.addEventListener('click', exportAllEvents);
-        exportAllContainer.appendChild(exportAllButton);
-        
-        const importAllButton = createStyledButton(
-            'importAllButton',
-            '📥 导入事件',
-            '#9b59b6',
-            '#8e44ad'
-        );
-        importAllButton.addEventListener('click', importAllEvents);
-        exportAllContainer.appendChild(importAllButton);
-        
-        header.appendChild(exportAllContainer);
 
         // 创建个人事件内容区域
         const personalEvents = document.createElement('div');
@@ -1123,14 +1047,15 @@ window.eventManagement = (() => {
                 bindTableRowContextMenu(teamTableBody, 'team');
             }
             
-            // 单选按钮事件
-            const personalRadioInSettings = document.getElementById('personalEventsRadioInSettings');
-            const teamRadioInSettings = document.getElementById('teamEventsRadioInSettings');
+            // 毛玻璃切换按钮事件
+            const personalRadio = document.getElementById('personalEventsRadio');
+            const teamRadio = document.getElementById('teamEventsRadio');
             const personalEventsInSettings = document.getElementById('personalEventsInSettings');
             const teamEventsInSettings = document.getElementById('teamEventsInSettings');
             
-            if (personalRadioInSettings && teamRadioInSettings && personalEventsInSettings && teamEventsInSettings) {                personalRadioInSettings.addEventListener('change', () => {
-                    if (personalRadioInSettings.checked) {
+            if (personalRadio && teamRadio && personalEventsInSettings && teamEventsInSettings) {
+                personalRadio.addEventListener('change', () => {
+                    if (personalRadio.checked) {
                         personalEventsInSettings.style.display = 'block';
                         teamEventsInSettings.style.display = 'none';
                         
@@ -1138,18 +1063,23 @@ window.eventManagement = (() => {
                         const addPersonalButton = document.getElementById('addPersonalButton');
                         const addTeamButton = document.getElementById('addTeamButton');
                         if (addPersonalButton && addTeamButton) {
-                            addPersonalButton.style.display = 'block';
+                            addPersonalButton.style.display = 'flex';
                             addTeamButton.style.display = 'none';
                         }
                         
                         // 触发个人事件表格的动画效果
                         const personalTableBody = document.getElementById('personalEventsTable');
                         triggerTableAnimation(personalTableBody);
+                        
+                        // 更新搜索功能
+                        setupEventSearch('eventSearchInput', '#personalEventsInSettings table');
+                        
+                        isShowingPersonal = true;
                     }
                 });
                 
-                teamRadioInSettings.addEventListener('change', () => {
-                    if (teamRadioInSettings.checked) {
+                teamRadio.addEventListener('change', () => {
+                    if (teamRadio.checked) {
                         personalEventsInSettings.style.display = 'none';
                         teamEventsInSettings.style.display = 'block';
                         
@@ -1158,12 +1088,17 @@ window.eventManagement = (() => {
                         const addTeamButton = document.getElementById('addTeamButton');
                         if (addPersonalButton && addTeamButton) {
                             addPersonalButton.style.display = 'none';
-                            addTeamButton.style.display = 'block';
+                            addTeamButton.style.display = 'flex';
                         }
                         
                         // 触发团队事件表格的动画效果
                         const teamTableBody = document.getElementById('teamEventsTable');
                         triggerTableAnimation(teamTableBody);
+                        
+                        // 更新搜索功能
+                        setupEventSearch('eventSearchInput', '#teamEventsInSettings table');
+                        
+                        isShowingPersonal = false;
                     }
                 });
             }
@@ -1173,26 +1108,6 @@ window.eventManagement = (() => {
             
             // 初始化搜索功能
             setupEventSearch('eventSearchInput', '#personalEventsInSettings table');
-            
-            // 监听标签页切换，重新绑定搜索功能
-            const personalRadio = document.getElementById('personalEventsRadioInSettings');
-            const teamRadio = document.getElementById('teamEventsRadioInSettings');
-            
-            if (personalRadio) {
-                personalRadio.addEventListener('change', () => {
-                    if (personalRadio.checked) {
-                        setupEventSearch('eventSearchInput', '#personalEventsInSettings table');
-                    }
-                });
-            }
-            
-            if (teamRadio) {
-                teamRadio.addEventListener('change', () => {
-                    if (teamRadio.checked) {
-                        setupEventSearch('eventSearchInput', '#teamEventsInSettings table');
-                    }
-                });
-            }
             
             // 右键菜单事件
             const contextMenuInSettings = container.querySelector('.context-menu');

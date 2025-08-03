@@ -1,0 +1,1040 @@
+/* 深浅色模式切换器样式 */
+
+/* 主题切换器容器 */
+.theme-toggle-section {
+    margin-bottom: 30px;
+}
+
+.theme-toggle-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 15px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* 主题切换开关容器 */
+.theme-toggle-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.theme-toggle-container:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.theme-toggle-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.theme-toggle-label {
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.theme-toggle-description {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.4;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.switch #input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #2196f3;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.sun-moon {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: yellow;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
+}
+
+#input:checked + .slider {
+  background-color: black;
+}
+
+#input:focus + .slider {
+  box-shadow: 0 0 1px #2196f3;
+}
+
+#input:checked + .slider .sun-moon {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+  background-color: white;
+  -webkit-animation: rotate-center 0.6s ease-in-out both;
+  animation: rotate-center 0.6s ease-in-out both;
+}
+
+@keyframes rotate-center {
+  0% {
+    -webkit-transform: translateX(26px) rotate(0);
+    transform: translateX(26px) rotate(0);
+  }
+  100% {
+    -webkit-transform: translateX(26px) rotate(360deg);
+    transform: translateX(26px) rotate(360deg);
+  }
+}
+
+.moon-dot {
+  opacity: 0;
+  transition: 0.4s;
+  fill: gray;
+}
+
+#input:checked + .slider .sun-moon .moon-dot {
+  opacity: 1;
+}
+
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round .sun-moon {
+  border-radius: 50%;
+}
+
+#moon-dot-1 {
+  left: 10px;
+  top: 3px;
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  z-index: 4;
+}
+
+#moon-dot-2 {
+  left: 2px;
+  top: 10px;
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  z-index: 4;
+}
+
+#moon-dot-3 {
+  left: 16px;
+  top: 18px;
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  z-index: 4;
+}
+
+#light-ray-1 {
+  left: -8px;
+  top: -8px;
+  position: absolute;
+  width: 43px;
+  height: 43px;
+  z-index: -1;
+  fill: white;
+  opacity: 10%;
+}
+
+#light-ray-2 {
+  left: -50%;
+  top: -50%;
+  position: absolute;
+  width: 55px;
+  height: 55px;
+  z-index: -1;
+  fill: white;
+  opacity: 10%;
+}
+
+#light-ray-3 {
+  left: -18px;
+  top: -18px;
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  z-index: -1;
+  fill: white;
+  opacity: 10%;
+}
+
+.cloud-light {
+  position: absolute;
+  fill: #eee;
+  animation-name: cloud-move;
+  animation-duration: 6s;
+  animation-iteration-count: infinite;
+}
+
+.cloud-dark {
+  position: absolute;
+  fill: #ccc;
+  animation-name: cloud-move;
+  animation-duration: 6s;
+  animation-iteration-count: infinite;
+  animation-delay: 1s;
+}
+
+#cloud-1 {
+  left: 30px;
+  top: 15px;
+  width: 40px;
+}
+
+#cloud-2 {
+  left: 44px;
+  top: 10px;
+  width: 20px;
+}
+
+#cloud-3 {
+  left: 18px;
+  top: 24px;
+  width: 30px;
+}
+
+#cloud-4 {
+  left: 36px;
+  top: 18px;
+  width: 40px;
+}
+
+#cloud-5 {
+  left: 48px;
+  top: 14px;
+  width: 20px;
+}
+
+#cloud-6 {
+  left: 22px;
+  top: 26px;
+  width: 30px;
+}
+
+@keyframes cloud-move {
+  0% {
+    transform: translateX(0px);
+  }
+
+  40% {
+    transform: translateX(4px);
+  }
+
+  80% {
+    transform: translateX(-4px);
+  }
+
+  100% {
+    transform: translateX(0px);
+  }
+}
+
+.stars {
+  transform: translateY(-32px);
+  opacity: 0;
+  transition: 0.4s;
+}
+
+.star {
+  fill: white;
+  position: absolute;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
+  animation-name: star-twinkle;
+  animation-duration: 2s;
+  animation-iteration-count: infinite;
+}
+
+#input:checked + .slider .stars {
+  -webkit-transform: translateY(0);
+  -ms-transform: translateY(0);
+  transform: translateY(0);
+  opacity: 1;
+}
+
+#star-1 {
+  width: 20px;
+  top: 2px;
+  left: 3px;
+  animation-delay: 0.3s;
+}
+
+#star-2 {
+  width: 6px;
+  top: 16px;
+  left: 3px;
+}
+
+#star-3 {
+  width: 12px;
+  top: 20px;
+  left: 10px;
+  animation-delay: 0.6s;
+}
+
+#star-4 {
+  width: 18px;
+  top: 0px;
+  left: 18px;
+  animation-delay: 1.3s;
+}
+
+@keyframes star-twinkle {
+  0% {
+    transform: scale(1);
+  }
+
+  40% {
+    transform: scale(1.2);
+  }
+
+  80% {
+    transform: scale(0.8);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* 主题状态指示器 */
+.theme-status {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-top: 8px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+/* 深色主题样式 */
+:root {
+    --bg-primary: rgba(255, 255, 255, 0.1);
+    --bg-secondary: rgba(255, 255, 255, 0.05);
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.8);
+    --border-color: rgba(255, 255, 255, 0.2);
+    --shadow-color: rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] {
+    --bg-primary: rgba(0, 0, 0, 0.3);
+    --bg-secondary: rgba(0, 0, 0, 0.2);
+    --text-primary: #e0e0e0;
+    --text-secondary: rgba(224, 224, 224, 0.7);
+    --border-color: rgba(255, 255, 255, 0.1);
+    --shadow-color: rgba(0, 0, 0, 0.5);
+}
+
+/* 深色模式下的背景渐变 */
+[data-theme="dark"] body {
+    background: rgb(30, 30, 30) !important;
+}
+
+/* 深色模式下的设置弹窗样式 */
+[data-theme="dark"] #settingsPopup {
+    background: rgba(0, 0, 0, 0.4) !important;
+    backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .game-settings-container,
+[data-theme="dark"] .theme-toggle-container {
+    background: var(--bg-primary) !important;
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .theme-toggle-title,
+[data-theme="dark"] .theme-toggle-label {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .theme-toggle-description {
+    color: var(--text-secondary) !important;
+}
+
+/* 深色模式下的按钮样式 */
+[data-theme="dark"] .start-button,
+[data-theme="dark"] .reset-button {
+    background: linear-gradient(135deg, #2c3e50, #34495e) !important;
+    color: #e0e0e0 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .start-button:hover,
+[data-theme="dark"] .reset-button:hover {
+    background: linear-gradient(135deg, #34495e, #2c3e50) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* 深色模式下的设置侧边栏 */
+[data-theme="dark"] .settings-options {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .value {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .value:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .value.active {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-primary) !important;
+}
+
+/* 深色模式下的毛玻璃按钮 */
+[data-theme="dark"] .glassmorphism-radio-inputs {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.1)) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 
+        0 8px 32px 0 rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .glassmorphism-radio-inputs:hover {
+    box-shadow: 
+        0 12px 40px 0 rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-theme="dark"] .glassmorphism-radio-inputs input:checked ~ .radio-item::before {
+    background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.2), 
+        rgba(255, 255, 255, 0.1)) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+/* 深色模式下的图标按钮 */
+[data-theme="dark"] .icon-btn {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.1)) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 
+        0 6px 24px 0 rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .icon-btn:hover {
+    box-shadow: 
+        0 12px 36px 0 rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+/* 深色模式下的输入框 */
+[data-theme="dark"] input[type="text"],
+[data-theme="dark"] input[type="url"],
+[data-theme="dark"] textarea {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] input[type="text"]::placeholder,
+[data-theme="dark"] input[type="url"]::placeholder,
+[data-theme="dark"] textarea::placeholder {
+    color: var(--text-secondary) !important;
+}
+
+/* 深色模式下的表格 */
+[data-theme="dark"] table {
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] th,
+[data-theme="dark"] td {
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    background: rgba(0, 0, 0, 0.1) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] th {
+    background: rgba(0, 0, 0, 0.2) !important;
+}
+
+/* 深色模式下的滚动条 */
+[data-theme="dark"] ::-webkit-scrollbar {
+    background: rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* 深色模式下的更新日志 */
+[data-theme="dark"] #updateLog {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] #updateLog h3 {
+    color: var(--text-primary) !important;
+    border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] #updateLogContent {
+    background: rgba(0, 0, 0, 0.2) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .update-item {
+    background: rgba(0, 0, 0, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .update-item h4 {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .update-item .update-date {
+    color: var(--text-secondary) !important;
+}
+
+/* 深色模式下的规则容器 */
+[data-theme="dark"] .rules-container {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .rules-container h2 {
+    color: var(--text-primary) !important;
+    border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .rules-container ul li {
+    color: var(--text-secondary) !important;
+    border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+[data-theme="dark"] .rules-container ul li:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: var(--text-primary) !important;
+}
+
+/* 深色模式下的困难任务容器 */
+[data-theme="dark"] .hard-missions-container {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .hard-mission-box {
+    background: rgba(0, 0, 0, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .hard-mission-box:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    transform: translateY(-2px) !important;
+}
+
+[data-theme="dark"] .hard-mission-title {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .hard-missions-title {
+    color: var(--text-primary) !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme="dark"] .hard-mission-content {
+    color: var(--text-secondary) !important;
+}
+
+/* 深色模式下的角色名称 */
+[data-theme="dark"] .character-name {
+    color: var(--text-primary) !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme="dark"] .character-box:hover .character-name {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .team-character-name {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .selected-character-name {
+    color: var(--text-primary) !important;
+}
+
+/* 深色模式下的任务标题和内容 */
+[data-theme="dark"] .mission-title {
+    color: var(--text-primary) !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme="dark"] .mission-content {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .mission-box:hover .mission-title {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .mission-box:hover .mission-content {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* 深色模式下的角色卡片 */
+[data-theme="dark"] .character-box {
+    background: rgba(0, 0, 0, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .character-box:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* 深色模式下的任务卡片 */
+[data-theme="dark"] .mission-box {
+    background: rgba(0, 0, 0, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .mission-box:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* 深色模式下的 data-player 字体颜色 */
+[data-theme="dark"] [data-player] {
+    color: #606060 !important;
+}
+
+/* 深色模式下的角色卡片和任务卡片的P数显示 */
+[data-theme="dark"] .character-box.active::before,
+[data-theme="dark"] .mission-box.active::before {
+    color: rgba(96, 96, 96, 0.25) !important;
+}
+
+/* 深色模式下的角色管理卡片边框 */
+[data-theme="dark"] .character-management-card {
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-theme="dark"] .character-box,
+[data-theme="dark"] .mission-box {
+    transition: all 0.5s, opacity 0.3s ease !important;
+}
+
+/* 深色模式下的fadeIn动画确保可见 */
+[data-theme="dark"] .character-box.fadeIn,
+[data-theme="dark"] .mission-box.fadeIn {
+    opacity: 1 !important;
+}
+
+/* 深色模式下抽取时的player-tag样式 */
+[data-theme="dark"] .player-tag {
+    background-color: #2c3e50 !important;
+    color: #e0e0e0 !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* 深色模式下的模态框 */
+[data-theme="dark"] .modal {
+    background: rgba(0, 0, 0, 0.7) !important;
+}
+
+[data-theme="dark"] .modal-content {
+    background: rgba(0, 0, 0, 0.4) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .modal-header {
+    border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .modal-title {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .close {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .close:hover {
+    color: var(--text-primary) !important;
+}
+
+/* 深色模式下的容器通用样式 */
+[data-theme="dark"] .container {
+    color: var(--text-primary) !important;
+}
+
+/* 深色模式下的标题样式 */
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] h5,
+[data-theme="dark"] h6 {
+    color: var(--text-primary) !important;
+}
+
+/* 深色模式下的段落文本 */
+[data-theme="dark"] p {
+    color: var(--text-secondary) !important;
+}
+
+/* 深色模式下的链接 */
+[data-theme="dark"] a {
+    color: #6ab7ff !important;
+}
+
+[data-theme="dark"] a:hover {
+    color: #86c7ff !important;
+}
+
+/* 深色模式下的分隔线 */
+[data-theme="dark"] hr {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* 深色模式下的代码块 */
+[data-theme="dark"] code,
+[data-theme="dark"] pre {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-primary) !important;
+}
+
+/* 深色模式下的游戏界面特殊元素 */
+
+/* 游戏标题和副标题 */
+[data-theme="dark"] #initialScreen h1 {
+    color: var(--text-primary) !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7) !important;
+}
+
+/* 游戏结果显示 */
+[data-theme="dark"] #result {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-primary) !important;
+}
+
+/* 角色选择界面 */
+[data-theme="dark"] #characterSelection {
+    background: rgba(0, 0, 0, 0.3) !important;
+    color: var(--text-primary) !important;
+}
+
+/* 任务选择界面 */
+[data-theme="dark"] #missionSelection {
+    background: rgba(0, 0, 0, 0.3) !important;
+    color: var(--text-primary) !important;
+}
+
+/* 深色模式下的提示文本 */
+[data-theme="dark"] .hint-text,
+[data-theme="dark"] .help-text,
+[data-theme="dark"] .info-text {
+    color: var(--text-secondary) !important;
+}
+
+/* 深色模式下的警告文本 */
+[data-theme="dark"] .warning-text {
+    color: #ffaa00 !important;
+}
+
+/* 深色模式下的错误文本 */
+[data-theme="dark"] .error-text {
+    color: #ff6b6b !important;
+}
+
+/* 深色模式下的成功文本 */
+[data-theme="dark"] .success-text {
+    color: #51cf66 !important;
+}
+
+/* 深色模式下的加载动画 */
+[data-theme="dark"] .loading {
+    background: rgba(0, 0, 0, 0.3) !important;
+    color: var(--text-primary) !important;
+}
+
+/* 深色模式下的徽章和标签 */
+[data-theme="dark"] .badge,
+[data-theme="dark"] .tag,
+[data-theme="dark"] .label {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-primary) !important;
+}
+
+/* 深色模式下的卡片组件 */
+[data-theme="dark"] .card {
+    background: rgba(0, 0, 0, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .card-header {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .card-body {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .card-footer {
+    background: rgba(0, 0, 0, 0.1) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-secondary) !important;
+}
+
+/* 深色模式下的列表项 */
+[data-theme="dark"] ul li,
+[data-theme="dark"] ol li {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] ul li:hover,
+[data-theme="dark"] ol li:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: var(--text-primary) !important;
+}
+
+/* 深色模式下的选择框和复选框 */
+[data-theme="dark"] select {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] option {
+    background: rgba(0, 0, 0, 0.8) !important;
+    color: var(--text-primary) !important;
+}
+
+/* 深色模式下的进度条 */
+[data-theme="dark"] .progress {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .progress-bar {
+    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+}
+
+/* 深色模式下的工具提示 */
+[data-theme="dark"] .tooltip {
+    background: rgba(0, 0, 0, 0.9) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-primary) !important;
+}
+
+/* 深色模式下的下拉菜单 */
+[data-theme="dark"] .dropdown-menu {
+    background: rgba(0, 0, 0, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+[data-theme="dark"] .dropdown-item {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .dropdown-item:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-primary) !important;
+}
+
+/* 深色模式下的面包屑导航 */
+[data-theme="dark"] .breadcrumb {
+    background: rgba(0, 0, 0, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .breadcrumb-item {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .breadcrumb-item.active {
+    color: var(--text-primary) !important;
+}
+
+/* 深色模式下的分页器 */
+[data-theme="dark"] .pagination {
+    background: rgba(0, 0, 0, 0.2) !important;
+}
+
+[data-theme="dark"] .page-link {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .page-link:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .page-item.active .page-link {
+    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    color: #ffffff !important;
+}
+
+/* 响应式设计 */
+@media (max-width: 600px) {
+    .theme-toggle-container {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .switch {
+        width: 50px;
+        height: 28px;
+    }
+    
+    .sun-moon {
+        width: 22px;
+        height: 22px;
+        left: 3px;
+        bottom: 3px;
+    }
+    
+    #input:checked + .slider .sun-moon {
+        transform: translateX(22px);
+    }
+    
+    /* 调整月亮斑点大小 */
+    #moon-dot-1 {
+        width: 4px;
+        height: 4px;
+        left: 8px;
+        top: 2px;
+    }
+    
+    #moon-dot-2 {
+        width: 6px;
+        height: 6px;
+        left: 2px;
+        top: 8px;
+    }
+    
+    #moon-dot-3 {
+        width: 2px;
+        height: 2px;
+        left: 12px;
+        top: 14px;
+    }
+    
+    /* 调整星星大小 */
+    #star-1 {
+        width: 14px;
+        top: 1px;
+        left: 2px;
+    }
+    
+    #star-2 {
+        width: 4px;
+        top: 12px;
+        left: 2px;
+    }
+    
+    #star-3 {
+        width: 8px;
+        top: 16px;
+        left: 8px;
+    }
+    
+    #star-4 {
+        width: 12px;
+        top: 0px;
+        left: 14px;
+    }
+}
+
+/* 深色模式下的玩家计数显示 */
+[data-theme="dark"] #playerCountDisplay {
+    background: rgba(0, 0, 0, 0.4) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: var(--text-primary) !important;
+    backdrop-filter: blur(10px) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] #playerCountDisplay span {
+    color: var(--text-primary) !important;
+}
+
+/* 深色模式下的复制房间码按钮 */
+[data-theme="dark"] #copyRoomCodeButton {
+    background: linear-gradient(135deg, #2c3e50, #34495e) !important;
+    color: #e0e0e0 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] #copyRoomCodeButton:hover {
+    background: linear-gradient(135deg, #34495e, #2c3e50) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* 浅色模式下的玩家计数显示（确保在浅色模式下有合适的背景） */
+[data-theme="light"] #playerCountDisplay,
+#playerCountDisplay {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    color: #333 !important;
+    backdrop-filter: blur(10px) !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
+}

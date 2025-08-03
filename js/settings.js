@@ -417,6 +417,21 @@ document.addEventListener('DOMContentLoaded', () => {
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         `;
 
+        // 主题设置
+        if (window.themeToggle) {
+            const themeSection = window.themeToggle.createThemeToggleUI();
+            container.appendChild(themeSection);
+
+            // 分隔线
+            const themeDivider = document.createElement("div");
+            themeDivider.style.cssText = `
+                height: 1px;
+                background: rgba(255, 255, 255, 0.1);
+                margin: 30px 0;
+            `;
+            container.appendChild(themeDivider);
+        }
+
         // 自定义服务器URL设置
         const serverSection = createServerSettingsSection();
         container.appendChild(serverSection);

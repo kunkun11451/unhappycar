@@ -199,11 +199,10 @@ h1 {
   user-select: none;
   font-weight: bolder;
   color: black;
-  padding: 15px; /* 增加内边距 */
-  margin: 2px; /* 增加外边距 */
+  padding: 15px; 
+  margin: 2px; 
   position: relative;
   overflow: hidden;
-  background-color: #ffffff;
 }
 
 
