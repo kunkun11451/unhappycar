@@ -2,703 +2,723 @@
 window.eventManagement = (() => {
     // 事件管理相关变量
     let isShowingPersonal = true;
-    let currentEventKey = null;
-    let currentEventType = null;
+    // 启用状态筛选：'all' | 'enabled' | 'disabled'
+    const statusFilter = { personal: 'all', team: 'all' };
 
-    // 设置搜索功能 - 支持多音字拼音搜索和精确高亮
+    // 预设存取
+    function getPresetKey(/* unified */) {
+        return 'eventEnabledPresets';
+    }
+    function loadPresets() {
+        try { return JSON.parse(localStorage.getItem(getPresetKey()) || '{}') || {}; } catch { return {}; }
+    }
+    function savePresets(presets) {
+        try { localStorage.setItem(getPresetKey(), JSON.stringify(presets || {})); } catch {}
+    }
+    function snapshotAll() {
+        const personalChecked = JSON.parse(localStorage.getItem('personalEventsTable-checkedState') || '{}');
+        const teamChecked = JSON.parse(localStorage.getItem('teamEventsTable-checkedState') || '{}');
+        return {
+            personalEvents: JSON.parse(JSON.stringify(window.mission || {})),
+            teamEvents: JSON.parse(JSON.stringify(window.hardmission || {})),
+            personalCheckedState: JSON.parse(JSON.stringify(personalChecked)),
+            teamCheckedState: JSON.parse(JSON.stringify(teamChecked)),
+            savedAt: new Date().toISOString()
+        };
+    }
+    function applyPresetAll(preset) {
+        if (!preset) return;
+        window.mission = JSON.parse(JSON.stringify(preset.personalEvents || {}));
+        window.hardmission = JSON.parse(JSON.stringify(preset.teamEvents || {}));
+        localStorage.setItem('personalEventsTable-checkedState', JSON.stringify(preset.personalCheckedState || {}));
+        localStorage.setItem('teamEventsTable-checkedState', JSON.stringify(preset.teamCheckedState || {}));
+        saveEventsToStorage();
+        refreshEventManagement();
+    }
+
+    // 轻量提示（玻璃风格）替代 alert
+    function showGlassToast(message, variant = 'info', duration = 1600) {
+        const palette = {
+            info:  { bg:'rgba(59,130,246,.22)', bd:'rgba(59,130,246,.35)' },
+            success:{ bg:'rgba(34,197,94,.22)', bd:'rgba(34,197,94,.35)' },
+            warn:  { bg:'rgba(234,179,8,.22)',  bd:'rgba(234,179,8,.35)' },
+            error: { bg:'rgba(239,68,68,.22)',  bd:'rgba(239,68,68,.35)' }
+        };
+        const color = palette[variant] || palette.info;
+        let container = document.getElementById('glassToastContainer');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'glassToastContainer';
+            container.style.cssText = 'position:fixed;top:24px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:10px;z-index:10010;pointer-events:none;';
+            document.body.appendChild(container);
+        }
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            pointer-events:auto; color:#fff; font-weight:600; letter-spacing:.2px;
+            background:${color.bg}; backdrop-filter:blur(16px);
+            border:1px solid ${color.bd}; border-radius:14px; padding:10px 14px; 
+            box-shadow:0 8px 24px rgba(0,0,0,.22); opacity:0; transform:translateY(-6px);
+            transition:opacity .25s ease, transform .25s ease; max-width:80vw; text-align:center;
+        `;
+        toast.textContent = message;
+        container.appendChild(toast);
+        requestAnimationFrame(()=>{ toast.style.opacity='1'; toast.style.transform='translateY(0)'; });
+        setTimeout(()=>{
+            toast.style.opacity='0'; toast.style.transform='translateY(-6px)';
+            setTimeout(()=>{ toast.remove(); if (!container.children.length) container.remove(); }, 250);
+        }, duration);
+    }
+
+    // 确认框，替代 confirm()
+    function showGlassConfirm(message, onConfirm, opts = {}) {
+        const { okText = '确定', cancelText = '取消', title = '提示', intent = 'ok' } = opts;
+        const palette = {
+            base:   { bg:'rgba(255,255,255,0.10)', bd:'rgba(255,255,255,0.22)' },
+            ok:     { bg:'rgba(34,197,94,.25)',  bd:'rgba(34,197,94,.35)' },
+            danger: { bg:'rgba(239,68,68,.25)',  bd:'rgba(239,68,68,.35)' },
+            cancel: { bg:'rgba(148,163,184,.25)',bd:'rgba(148,163,184,.35)' }
+        };
+        const overlay = document.createElement('div');
+        overlay.id = 'glassConfirmOverlay';
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(5px);z-index:10020;display:flex;justify-content:center;align-items:center;opacity:0;transition:opacity .25s ease;';
+        const box = document.createElement('div');
+        box.style.cssText = `background:${palette.base.bg};backdrop-filter:blur(20px);border-radius:16px;border:1px solid ${palette.base.bd};padding:18px 16px;max-width:440px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.22);transform:scale(.92);transition:transform .25s ease;`;
+    const header = document.createElement('div'); header.textContent = title; header.style.cssText='color:#fff;font-weight:800;font-size:20px;letter-spacing:.3px;margin-bottom:8px;text-align:center;';
+        const msg = document.createElement('div'); msg.textContent = message; msg.style.cssText = 'color:#fff;font-size:15px;line-height:1.7;margin-bottom:14px;opacity:.95;white-space:pre-line;';
+        const btns = document.createElement('div'); btns.style.cssText = 'display:flex;gap:10px;justify-content:flex-end;';
+        const ok = document.createElement('button'); ok.className='icon-btn';
+        const okPal = palette[intent] || palette.ok;
+        ok.style.cssText = `min-width:88px;background:${okPal.bg};border:1px solid ${okPal.bd};`;
+        const okLabel = document.createElement('div'); okLabel.className='btn-icon'; okLabel.textContent = okText; ok.appendChild(okLabel);
+        const cancel = document.createElement('button'); cancel.className='icon-btn'; cancel.style.cssText = `min-width:88px;background:${palette.cancel.bg};border:1px solid ${palette.cancel.bd};`;
+        const cancelLabel = document.createElement('div'); cancelLabel.className='btn-icon'; cancelLabel.textContent = cancelText; cancel.appendChild(cancelLabel);
+        btns.appendChild(cancel); btns.appendChild(ok);
+        box.appendChild(header); box.appendChild(msg); box.appendChild(btns); overlay.appendChild(box);
+
+        function close(){ overlay.style.opacity='0'; box.style.transform='scale(.92)'; setTimeout(()=>overlay.remove(), 220); }
+        cancel.addEventListener('click', close);
+        ok.addEventListener('click', ()=>{ try{ onConfirm && onConfirm(); } finally { close(); } });
+        overlay.addEventListener('click', (e)=>{ if(e.target===overlay) close(); });
+        document.addEventListener('keydown', function onKey(e){ if(e.key==='Escape'){ close(); document.removeEventListener('keydown',onKey);} });
+
+        document.body.appendChild(overlay);
+        requestAnimationFrame(()=>{ overlay.style.opacity='1'; box.style.transform='scale(1)'; });
+    }
+
+    // 统计工具：返回 {enabled, total}
+    function countEnabledTotal(eventsObj, checkedMap) {
+        const keys = Object.keys(eventsObj || {});
+        const total = keys.length;
+        let enabled = 0;
+        for (const k of keys) if (checkedMap && checkedMap[k]) enabled++;
+        return { enabled, total };
+    }
+
+    // 预设管理弹窗
+    function showPresetModal() {
+        // 避免重复
+        if (document.getElementById('presetOverlay')) return;
+        const presets = loadPresets();
+        const overlay = document.createElement('div');
+        overlay.id = 'presetOverlay';
+        overlay.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(5px);z-index:10000;display:flex;justify-content:center;align-items:center;opacity:0;transition:opacity .3s ease;`;
+        const modal = document.createElement('div');
+        modal.style.cssText = `background:rgba(255,255,255,0.1);backdrop-filter:blur(20px);border-radius:20px;padding:24px;max-width:560px;width:92%;max-height:80vh;overflow:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.2);transform:scale(.9);transition:transform .3s ease;position:relative;`;
+
+        const title = document.createElement('h2');
+        title.textContent = '事件预设';
+        title.style.cssText = 'color:#fff;text-align:center;font-size:22px;font-weight:700;margin:0 0 14px;text-shadow:2px 2px 4px rgba(0,0,0,.3)';
+        modal.appendChild(title);
+
+    // 帮助按钮（左上角）
+    const helpBtn = document.createElement('button');
+    helpBtn.innerHTML = '？';
+    helpBtn.title = '预设功能教程';
+    helpBtn.style.cssText = 'position:absolute;top:12px;left:12px;background:rgba(255,255,255,.15);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:18px;font-weight:700;width:35px;height:35px;border-radius:50%;cursor:pointer;transition:all .3s;display:flex;align-items:center;justify-content:center;';
+    helpBtn.addEventListener('mouseover',()=>{helpBtn.style.background='rgba(255,255,255,.25)';helpBtn.style.transform='scale(1.08)';helpBtn.style.borderColor='rgba(255,255,255,.3)';});
+    helpBtn.addEventListener('mouseout',()=>{helpBtn.style.background='rgba(255,255,255,.15)';helpBtn.style.transform='scale(1)';helpBtn.style.borderColor='rgba(255,255,255,.2)';});
+    helpBtn.addEventListener('click', showPresetHelpModal);
+    modal.appendChild(helpBtn);
+
+    const close = document.createElement('button');
+        close.innerHTML = '✕';
+        close.style.cssText = 'position:absolute;top:12px;right:12px;background:rgba(255,255,255,.15);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:18px;font-weight:700;width:35px;height:35px;border-radius:50%;cursor:pointer;transition:all .3s;display:flex;align-items:center;justify-content:center;';
+        close.addEventListener('mouseover',()=>{close.style.background='rgba(255,255,255,.25)';close.style.transform='rotate(90deg) scale(1.1)';close.style.borderColor='rgba(255,255,255,.3)';});
+        close.addEventListener('mouseout',()=>{close.style.background='rgba(255,255,255,.15)';close.style.transform='rotate(0) scale(1)';close.style.borderColor='rgba(255,255,255,.2)';});
+        close.addEventListener('click', hidePresetModal);
+        modal.appendChild(close);
+
+        // 新建预设区域
+        const createBox = document.createElement('div');
+        createBox.style.cssText = 'display:flex;gap:8px;align-items:center;justify-content:center;margin:10px 0 16px;';
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.placeholder = '输入预设名称';
+        nameInput.style.cssText = 'flex:1;min-width:140px;max-width:260px;padding:8px 10px;border:1px solid rgba(255,255,255,.2);border-radius:10px;background:rgba(255,255,255,.1);color:#fff;outline:none;';
+        const saveBtn = document.createElement('button');
+        saveBtn.className = 'icon-btn';
+        saveBtn.style.cssText = 'min-width:96px;background:rgba(99,102,241,.25);border:1px solid rgba(99,102,241,.35);';
+        saveBtn.title = '保存当前为预设';
+        const sbIcon = document.createElement('div'); sbIcon.className='btn-icon'; sbIcon.textContent='保存预设';
+        saveBtn.appendChild(sbIcon);
+        saveBtn.addEventListener('click', () => {
+            const n = (nameInput.value||'').trim();
+            if (!n) { showGlassToast('请输入预设名称','warn'); return; }
+            const cur = snapshotAll();
+            const list = loadPresets();
+            list[n] = cur;
+            savePresets(list);
+            renderList();
+            showGlassToast('已保存预设','success');
+        });
+        createBox.appendChild(nameInput);
+        createBox.appendChild(saveBtn);
+        modal.appendChild(createBox);
+
+        // 预设列表
+        const listWrap = document.createElement('div');
+        listWrap.style.cssText = 'display:flex;flex-direction:column;gap:10px;';
+        modal.appendChild(listWrap);
+
+        function styleColored(btn, color) {
+            const colors = {
+                green: { bg:'rgba(34,197,94,.25)', bd:'rgba(34,197,94,.35)' },
+                blue:  { bg:'rgba(59,130,246,.25)', bd:'rgba(59,130,246,.35)' },
+                red:   { bg:'rgba(239,68,68,.25)', bd:'rgba(239,68,68,.35)' },
+                slate: { bg:'rgba(148,163,184,.25)', bd:'rgba(148,163,184,.35)' }
+            };
+            const c = colors[color] || colors.slate;
+            btn.style.minWidth = '80px';
+            btn.style.background = c.bg;
+            btn.style.border = `1px solid ${c.bd}`;
+        }
+
+        function renderList() {
+            listWrap.innerHTML='';
+            const list = loadPresets();
+            const names = Object.keys(list);
+            if (names.length===0){
+                const empty = document.createElement('div');
+                empty.textContent = '暂无预设';
+                empty.style.cssText = 'color:#ddd;text-align:center;padding:12px;';
+                listWrap.appendChild(empty);
+                return;
+            }
+            names.forEach(n=>{
+                const row = document.createElement('div');
+                row.style.cssText = 'display:flex;align-items:center;gap:8px;justify-content:space-between;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:10px 12px;';
+                const info = document.createElement('div');
+                info.style.cssText = 'display:flex;flex-direction:column;color:#eee;';
+                const title = document.createElement('div'); title.textContent = n;
+                const time = document.createElement('small'); time.style.color='#bbb'; time.textContent = `保存于 ${new Date(list[n].savedAt||Date.now()).toLocaleString()}`;
+                info.appendChild(title); info.appendChild(time);
+                const actions = document.createElement('div'); actions.style.cssText='display:flex;gap:8px;'; actions.setAttribute('data-role','actions');
+                const apply = document.createElement('button'); apply.className='icon-btn'; styleColored(apply,'green'); const ai=document.createElement('div'); ai.className='btn-icon'; ai.textContent='应用'; apply.appendChild(ai);
+                apply.addEventListener('click', ()=>{
+                    const p = list[n] || {};
+                    const pc = countEnabledTotal(p.personalEvents||{}, p.personalCheckedState||{});
+                    const tc = countEnabledTotal(p.teamEvents||{}, p.teamCheckedState||{});
+                    const lines = `应用预设 "${n}" 将覆盖当前个人与团队事件及其启用状态，确定继续？\n\n将应用的数量：\n个人事件：${pc.enabled}/${pc.total}\n团队事件：${tc.enabled}/${tc.total}`;
+                    showGlassConfirm(lines, ()=>{
+                        applyPresetAll(list[n]);
+                        hidePresetModal();
+                        showGlassToast('已应用预设','success');
+                    }, { okText:'应用', cancelText:'取消', title:'✅应用预设', intent:'ok' });
+                });
+                const update = document.createElement('button'); update.className='icon-btn'; styleColored(update,'blue'); const ui=document.createElement('div'); ui.className='btn-icon'; ui.textContent='更新'; update.appendChild(ui);
+                update.addEventListener('click', ()=>{
+                    const personalChecked = JSON.parse(localStorage.getItem('personalEventsTable-checkedState')||'{}');
+                    const teamChecked = JSON.parse(localStorage.getItem('teamEventsTable-checkedState')||'{}');
+                    const pc = countEnabledTotal(window.mission||{}, personalChecked);
+                    const tc = countEnabledTotal(window.hardmission||{}, teamChecked);
+                    const lines = `使用当前状态覆盖预设 "${n}"？\n\n当前事件数量：\n个人事件：${pc.enabled}/${pc.total}\n团队事件：${tc.enabled}/${tc.total}`;
+                    showGlassConfirm(lines, ()=>{
+                        const cur = snapshotAll();
+                        const l = loadPresets(); l[n]=cur; savePresets(l); renderList(); showGlassToast('已更新预设','success');
+                    }, { okText:'更新', cancelText:'取消', title:'🔄️更新预设', intent:'ok' });
+                });
+                const del = document.createElement('button'); del.className='icon-btn'; styleColored(del,'red'); const di=document.createElement('div'); di.className='btn-icon'; di.textContent='删除'; del.appendChild(di);
+                del.addEventListener('click', ()=>{
+                    showGlassConfirm(`删除预设 "${n}"？`, ()=>{
+                        const l = loadPresets(); delete l[n]; savePresets(l); renderList(); showGlassToast('已删除预设','success');
+                    }, { okText:'删除', cancelText:'取消', title:'🗑️删除预设', intent:'danger' });
+                });
+                actions.appendChild(apply); actions.appendChild(update); actions.appendChild(del);
+                row.appendChild(info); row.appendChild(actions);
+                listWrap.appendChild(row);
+            });
+        }
+        // 根据窗口宽度动态调整列表项布局
+        function applyResponsive(){
+            const narrow = window.innerWidth < 512;
+            Array.from(listWrap.children).forEach(row => {
+                const actions = row.querySelector('[data-role="actions"]');
+                if (!actions) return;
+                if (narrow) {
+                    row.style.flexDirection = 'column';
+                    row.style.alignItems = 'stretch';
+                    row.style.justifyContent = 'flex-start';
+                    actions.style.marginTop = '8px';
+                    actions.style.justifyContent = 'flex-start';
+                    actions.style.flexWrap = 'wrap';
+                } else {
+                    row.style.flexDirection = 'row';
+                    row.style.alignItems = 'center';
+                    row.style.justifyContent = 'space-between';
+                    actions.style.marginTop = '0';
+                    actions.style.justifyContent = 'flex-start';
+                    actions.style.flexWrap = 'nowrap';
+                }
+            });
+        }
+        renderList();
+        applyResponsive();
+        const onResize = () => applyResponsive();
+        window.addEventListener('resize', onResize);
+        overlay._onResize = onResize;
+
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+        requestAnimationFrame(()=>{ overlay.style.opacity='1'; modal.style.transform='scale(1)'; });
+    }
+
+    // 预设功能教程弹窗
+    function showPresetHelpModal(){
+        if (document.getElementById('presetHelpOverlay')) return;
+        const overlay = document.createElement('div');
+        overlay.id = 'presetHelpOverlay';
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(5px);z-index:10015;display:flex;justify-content:center;align-items:center;opacity:0;transition:opacity .25s ease;';
+        const modal = document.createElement('div');
+        modal.style.cssText = 'background:rgba(255,255,255,0.12);backdrop-filter:blur(20px);border-radius:18px;padding:20px 18px;max-width:640px;width:92%;max-height:82vh;overflow:auto;border:1px solid rgba(255,255,255,0.22);box-shadow:0 8px 32px rgba(0,0,0,.24);transform:scale(.92);transition:transform .25s ease;position:relative;';
+
+        const title = document.createElement('h3');
+        title.textContent = '❓ 预设功能教程';
+        title.style.cssText = 'color:#fff;text-align:center;font-size:20px;font-weight:800;margin:0 0 10px;letter-spacing:.3px;';
+        modal.appendChild(title);
+
+        const content = document.createElement('div');
+        content.style.cssText = 'color:#eaeaea;font-size:14px;line-height:1.8;';
+        const p1 = document.createElement('p'); p1.textContent = '预设用于一键保存/恢复事件列表与启用状态。';
+        const list = document.createElement('ul'); list.style.margin='8px 0 0 18px'; list.style.padding='0'; list.style.listStyle='disc';
+        function li(text){ const el=document.createElement('li'); el.textContent=text; el.style.margin='6px 0'; return el; }
+        list.appendChild(li('在“输入预设名称”后点「保存预设」即可自动读取当前的所有事件和启用状态创建预设。'));
+        list.appendChild(li('「应用」会使用预设内容覆盖当前的事件与启用状态。'));
+        list.appendChild(li('「更新」会用当前的事件与启用状态覆盖该预设内容。'));
+        list.appendChild(li('「删除」将从本地清除该预设。'));
+        list.appendChild(li('数据保存在浏览器缓存中，清理缓存后数据将丢失！'));
+        const p2 = document.createElement('p');
+        content.appendChild(p1); content.appendChild(list); content.appendChild(p2);
+        modal.appendChild(content);
+
+        const close = document.createElement('button');
+        close.innerHTML = '✕';
+        close.style.cssText = 'position:absolute;top:10px;right:10px;background:rgba(255,255,255,.15);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:16px;font-weight:700;width:32px;height:32px;border-radius:50%;cursor:pointer;transition:all .25s;display:flex;align-items:center;justify-content:center;';
+        close.addEventListener('mouseover',()=>{close.style.background='rgba(255,255,255,.25)';close.style.transform='rotate(90deg) scale(1.06)';close.style.borderColor='rgba(255,255,255,.3)';});
+        close.addEventListener('mouseout',()=>{close.style.background='rgba(255,255,255,.15)';close.style.transform='rotate(0) scale(1)';close.style.borderColor='rgba(255,255,255,.2)';});
+        close.addEventListener('click', hidePresetHelpModal);
+        modal.appendChild(close);
+
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+        requestAnimationFrame(()=>{ overlay.style.opacity='1'; modal.style.transform='scale(1)'; });
+    }
+    function hidePresetHelpModal(){
+        const overlay = document.getElementById('presetHelpOverlay');
+        if (!overlay) return;
+        overlay.style.opacity='0';
+        const modal = overlay.firstElementChild; if (modal) modal.style.transform='scale(.92)';
+        setTimeout(()=> overlay.remove(), 220);
+    }
+    function hidePresetModal(){
+        const overlay = document.getElementById('presetOverlay');
+        if (!overlay) return;
+        if (overlay._onResize) {
+            window.removeEventListener('resize', overlay._onResize);
+        }
+        overlay.style.opacity='0';
+        const modal = overlay.firstElementChild; if (modal) modal.style.transform='scale(.9)';
+        setTimeout(()=>{ overlay.remove(); }, 250);
+    }
+    // 右键菜单已移除，相关状态变量删除
+    // 搜索（表格版，兼容旧结构；已去除右键/动画逻辑）
     function setupEventSearch(inputId, tableSelector) {
         const searchInput = document.getElementById(inputId);
         if (!searchInput) return;
-        
-        // 检查pinyinPro库是否已加载
-        const hasPinyinSupport = typeof window.pinyinPro !== 'undefined' && 
-                                typeof window.pinyinPro.pinyin === 'function';
-        
-        if (!hasPinyinSupport) {
-            console.warn('pinyinPro库未加载，拼音搜索功能将不可用');
-        }
-
+        const hasPinyin = typeof window.pinyinPro?.pinyin === 'function';
+        const toInitials = (text) => {
+            if (!hasPinyin || !text) return '';
+            try {
+                return window.pinyinPro.pinyin(text, { pattern: 'initial', toneType: 'none', type: 'array' }).join('').toLowerCase();
+            } catch { return ''; }
+        };
         searchInput.addEventListener('input', () => {
-            const searchTerm = searchInput.value.toLowerCase();
+            const searchTerm = searchInput.value.trim().toLowerCase();
             const table = document.querySelector(tableSelector);
-            if (!table) return;
-
-            const tbody = table.querySelector('tbody');
+            const tbody = table ? table.querySelector('tbody') || table : null;
             if (!tbody) return;
-
             const rows = tbody.querySelectorAll('tr');
-
             rows.forEach(row => {
-                // 跳过统计行
-                if (row.textContent.includes('启用：')) {
-                    return;
-                }
-
-                const titleCell = row.querySelector('td:nth-child(2)'); // 事件标题列
-                const contentCell = row.querySelector('td:nth-child(3)'); // 事件内容列
-                
-                if (!titleCell || !contentCell) return;
-
-                const title = titleCell.textContent || '';
-                const content = contentCell.textContent || '';
-                const combinedText = title + ' ' + content;
-
-                // Reset highlight
-                titleCell.innerHTML = title;
-                contentCell.innerHTML = content;
-                
-                let match = false;
-
-                if (searchTerm === '') {
-                    match = true;
-                } else if (combinedText.toLowerCase().includes(searchTerm)) {
-                    match = true;
-                    // 高亮标题
-                    if (title.toLowerCase().includes(searchTerm)) {
-                        const regex = new RegExp(searchTerm.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'gi');
-                        titleCell.innerHTML = title.replace(regex, '<span style="background-color: yellow; color: black; font-weight: bold;">$&</span>');
-                    }
-                    // 高亮内容
-                    if (content.toLowerCase().includes(searchTerm)) {
-                        const regex = new RegExp(searchTerm.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'gi');
-                        contentCell.innerHTML = content.replace(regex, '<span style="background-color: yellow; color: black; font-weight: bold;">$&</span>');
-                    }
-                } else if (hasPinyinSupport) {
-                    // 使用安全的方式访问pinyin函数
-                    const { pinyin } = window.pinyinPro;
-                    
-                    // 检查标题的拼音匹配
-                    const titleMatchResult = matchPinyinInitials(title, searchTerm, pinyin);
-                    const contentMatchResult = matchPinyinInitials(content, searchTerm, pinyin);
-                    
-                    if (titleMatchResult.match || contentMatchResult.match) {
-                        match = true;
-                        
-                        // 高亮标题中匹配的字符
-                        if (titleMatchResult.match) {
-                            let highlightedTitle = '';
-                            for (let i = 0; i < title.length; i++) {
-                                if (titleMatchResult.matchedPositions.includes(i)) {
-                                    highlightedTitle += `<span style="background-color: yellow; color: black; font-weight: bold;">${title[i]}</span>`;
-                                } else {
-                                    highlightedTitle += title[i];
-                                }
-                            }
-                            titleCell.innerHTML = highlightedTitle;
-                        }
-                        
-                        // 高亮内容中匹配的字符
-                        if (contentMatchResult.match) {
-                            let highlightedContent = '';
-                            for (let i = 0; i < content.length; i++) {
-                                if (contentMatchResult.matchedPositions.includes(i)) {
-                                    highlightedContent += `<span style="background-color: yellow; color: black; font-weight: bold;">${content[i]}</span>`;
-                                } else {
-                                    highlightedContent += content[i];
-                                }
-                            }
-                            contentCell.innerHTML = highlightedContent;
-                        }
-                    }
-                }
-
+                const text = row.textContent.toLowerCase();
+                const match = !searchTerm || text.includes(searchTerm) || toInitials(text).includes(searchTerm);
                 row.style.display = match ? '' : 'none';
             });
         });
-
-        // 支持多音字的拼音首字母匹配函数
-        function matchPinyinInitials(name, searchTerm, pinyinFunc) {
-            if (!pinyinFunc || !name) return { match: false, matchedPositions: [] };
-            
-            // 获取所有可能的拼音首字母组合
-            const { initialsMatrix, matchedPositions } = getAllPossibleInitials(name, searchTerm, pinyinFunc);
-            
-            // 检查是否有任何组合匹配搜索词
-            const match = initialsMatrix.some(initials => {
-                const combinedInitials = initials.join('');
-                const startIndex = combinedInitials.indexOf(searchTerm);
-                
-                if (startIndex !== -1) {
-                    // 记录匹配的字符位置
-                    matchedPositions.length = 0; // 清空之前的结果
-                    for (let i = 0; i < searchTerm.length; i++) {
-                        matchedPositions.push(startIndex + i);
-                    }
-                    return true;
-                }
-                return false;
-            });
-            
-            return { match, matchedPositions };
-        }
-
-        // 获取名字所有可能的拼音首字母组合，并尝试匹配搜索词
-        function getAllPossibleInitials(name, searchTerm, pinyinFunc) {
-            // 存储每个字符的所有可能首字母
-            const charInitialsList = [];
-            
-            // 遍历名字中的每个字符
-            for (let i = 0; i < name.length; i++) {
-                const char = name[i];
-                // 获取字符的所有可能拼音
-                const pinyinOptions = pinyinFunc(char, { 
-                    pattern: 'pinyin', 
-                    toneType: 'none',
-                    multiple: true // 获取多音字的所有拼音
-                });
-                
-                // 提取每个拼音的首字母
-                const initials = pinyinOptions
-                    .split(' ')
-                    .map(py => py.charAt(0).toLowerCase());
-                
-                charInitialsList.push(initials);
-            }
-            
-            // 生成所有可能的组合矩阵（每个组合是一个首字母数组）
-            const initialsMatrix = generateInitialsMatrix(charInitialsList);
-            
-            return { initialsMatrix, matchedPositions: [] };
-        }
-
-        // 生成所有可能的首字母组合矩阵
-        function generateInitialsMatrix(charInitialsList) {
-            let result = [[]];
-            
-            charInitialsList.forEach(initials => {
-                const temp = [];
-                result.forEach(prefix => {
-                    initials.forEach(initial => {
-                        temp.push([...prefix, initial]);
-                    });
-                });
-                result = temp;
-            });
-            
-            return result;
-        }
     }
 
-    // 填充任务表格
-    function populateTable(table, tasks, tableId, skipAnimation = false) {
+    // 搜索（卡片版）
+    function setupEventCardSearch(inputId, gridSelector) {
+        const input = document.getElementById(inputId);
+        const grid = document.querySelector(gridSelector);
+        if (!input || !grid) return;
+        const hasPinyin = typeof window.pinyinPro?.pinyin === 'function';
+        const toInitials = (text) => {
+            if (!hasPinyin || !text) return '';
+            try {
+                return window.pinyinPro.pinyin(text, { pattern: 'initial', toneType: 'none', type: 'array' }).join('').toLowerCase();
+            } catch { return ''; }
+        };
+        const escapeHTML = (s = '') => s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
+        const highlightPlain = (text = '', term = '') => {
+            if (!term) return escapeHTML(text);
+            const lowerText = text.toLowerCase();
+            const lowerTerm = term.toLowerCase();
+            if (!lowerTerm) return escapeHTML(text);
+            let idx = 0, out = '';
+            while (true) {
+                const pos = lowerText.indexOf(lowerTerm, idx);
+                if (pos === -1) { out += escapeHTML(text.slice(idx)); break; }
+                out += escapeHTML(text.slice(idx, pos));
+                const match = text.slice(pos, pos + term.length);
+                out += `<span class="search-highlight">${escapeHTML(match)}</span>`;
+                idx = pos + term.length;
+            }
+            return out;
+        };
+        // 计算拼音首字母字符串与字符索引映射
+        const computeInitialsMap = (text = '') => {
+            if (!hasPinyin || !text) return { initials: '', map: [] };
+            try {
+                const arr = window.pinyinPro.pinyin(text, { pattern: 'initial', toneType: 'none', type: 'array' });
+                let initials = '';
+                const map = [];
+                arr.forEach((seg, idx) => {
+                    const piece = String(seg || '').toLowerCase();
+                    for (let k = 0; k < piece.length; k++) {
+                        initials += piece[k];
+                        map.push(idx);
+                    }
+                });
+                return { initials, map };
+            } catch {
+                return { initials: '', map: [] };
+            }
+        };
+        const wrapByCharIndices = (text = '', indicesSet) => {
+            const chars = Array.from(text);
+            let out = '';
+            for (let i = 0; i < chars.length; i++) {
+                const ch = chars[i];
+                if (indicesSet.has(i)) out += `<span class="search-highlight">${escapeHTML(ch)}</span>`;
+                else out += escapeHTML(ch);
+            }
+            return out;
+        };
+        const highlightByPinyin = (text = '', term = '') => {
+            if (!term) return null;
+            const { initials, map } = computeInitialsMap(text);
+            if (!initials) return null;
+            const lowerTerm = term.toLowerCase();
+            const pos = initials.indexOf(lowerTerm);
+            if (pos === -1) return null;
+            const covered = map.slice(pos, pos + lowerTerm.length);
+            const indicesSet = new Set(covered);
+            return wrapByCharIndices(text, indicesSet);
+        };
+    input.oninput = () => {
+            const term = input.value.trim().toLowerCase();
+            const cards = grid.querySelectorAll('.shared-event-card');
+            cards.forEach(card => {
+                const titleEl = card.querySelector('.shared-card-title');
+                const contentEl = card.querySelector('.shared-card-content');
+                const placeholderLis = Array.from(card.querySelectorAll('.shared-card-placeholders li'));
+                const title = titleEl?.textContent || '';
+                const content = contentEl?.textContent || '';
+                const placeholders = placeholderLis.map(li => li.textContent).join(' ');
+                const text = `${title}\n${content}\n${placeholders}`.toLowerCase();
+                const match = !term || text.includes(term) || toInitials(text).includes(term);
+        // 启用状态筛选
+        const type = card.dataset.type || (gridSelector.includes('personal') ? 'personal' : 'team');
+        const mode = statusFilter[type] || 'all';
+        const enabledChecked = !!card.querySelector('.enable-checkbox')?.checked;
+        let statusOk = true;
+        if (mode === 'enabled') statusOk = enabledChecked;
+        else if (mode === 'disabled') statusOk = !enabledChecked;
+        const visible = match && statusOk;
+        card.style.display = visible ? '' : 'none';
+
+                // 恢复原文缓存
+                if (titleEl && !titleEl.dataset.original) titleEl.dataset.original = title;
+                if (contentEl && !contentEl.dataset.original) contentEl.dataset.original = content;
+                placeholderLis.forEach(li => {
+                    const nameEl = li.querySelector('strong');
+                    const valuesEl = li.querySelector('.ph-values');
+                    if (nameEl && !nameEl.dataset.original) nameEl.dataset.original = nameEl.textContent;
+                    if (valuesEl && !valuesEl.dataset.original) valuesEl.dataset.original = valuesEl.textContent;
+                });
+
+                // 高亮：优先文本直接匹配；若无文本命中则尝试拼音首字母匹配
+                const rawTerm = input.value.trim();
+                if (rawTerm) {
+                    const apply = (el, original) => {
+                        if (!el) return;
+                        let html = highlightPlain(original, rawTerm);
+                        if (!html.includes('search-highlight')) {
+                            const pinHtml = highlightByPinyin(original, rawTerm);
+                            if (pinHtml) html = pinHtml;
+                        }
+                        el.innerHTML = html;
+                    };
+                    if (titleEl) apply(titleEl, titleEl.dataset.original || '');
+                    if (contentEl) apply(contentEl, contentEl.dataset.original || '');
+                    placeholderLis.forEach(li => {
+                        const nameEl = li.querySelector('strong');
+                        const valuesEl = li.querySelector('.ph-values');
+                        if (nameEl) apply(nameEl, nameEl.dataset.original || nameEl.textContent || '');
+                        if (valuesEl) apply(valuesEl, valuesEl.dataset.original || valuesEl.textContent || '');
+                    });
+                } else {
+                    // 清空搜索时恢复原文
+                    if (titleEl) titleEl.textContent = titleEl.dataset.original || titleEl.textContent;
+                    if (contentEl) contentEl.textContent = contentEl.dataset.original || contentEl.textContent;
+                    placeholderLis.forEach(li => {
+                        const nameEl = li.querySelector('strong');
+                        const valuesEl = li.querySelector('.ph-values');
+                        if (nameEl && nameEl.dataset.original) nameEl.textContent = nameEl.dataset.original;
+                        if (valuesEl && valuesEl.dataset.original) valuesEl.textContent = valuesEl.dataset.original;
+                    });
+                }
+            });
+        };
+    }
+
+    // 根据当前搜索与状态筛选刷新可见性
+    function refreshGridVisibilityForType(type) {
+        try {
+            const input = document.getElementById('eventSearchInput');
+            if (input && typeof input.oninput === 'function') {
+                input.oninput();
+                return;
+            }
+            const gridId = type === 'personal' ? 'personalEventsGrid' : 'teamEventsGrid';
+            const grid = document.getElementById(gridId);
+            if (!grid) return;
+            const mode = statusFilter[type] || 'all';
+            const cards = grid.querySelectorAll('.shared-event-card');
+            cards.forEach(card => {
+                const enabledChecked = !!card.querySelector('.enable-checkbox')?.checked;
+                let statusOk = true;
+                if (mode === 'enabled') statusOk = enabledChecked;
+                else if (mode === 'disabled') statusOk = !enabledChecked;
+                card.style.display = statusOk ? '' : 'none';
+            });
+        } catch {}
+    }
+
+    // 卡片渲染
+    function populateCards(grid, tasks, type) {
+        if (!grid) return;
+        grid.innerHTML = '';
+        const keys = Object.keys(tasks || {});
+        if (keys.length === 0) {
+            grid.innerHTML = '<p class="shared-events-empty">暂无事件</p>';
+            updateEnabledCountForCards(type, 0, 0);
+            return;
+        }
+        const tableId = type === 'personal' ? 'personalEventsTable' : 'teamEventsTable';
+        const savedState = JSON.parse(localStorage.getItem(`${tableId}-checkedState`) || '{}');
+
+        keys.forEach(title => {
+            const event = tasks[title] || {};
+            const card = document.createElement('div');
+            card.className = 'shared-event-card';
+            card.dataset.type = type;
+            card.dataset.title = title;
+
+            let placeholdersHtml = '';
+        if (event.placeholders && Object.keys(event.placeholders).length > 0) {
+                placeholdersHtml += '<ul class="shared-card-placeholders">';
+                for (const ph in event.placeholders) {
+            const values = Array.isArray(event.placeholders[ph]) ? event.placeholders[ph].join(', ') : String(event.placeholders[ph] ?? '');
+            placeholdersHtml += `<li><strong class="ph-name">[${ph}]</strong>: <span class="ph-values">${values}</span></li>`;
+                }
+                placeholdersHtml += '</ul>';
+            }
+
+            const checked = savedState[title] !== undefined ? !!savedState[title] : true;
+            card.innerHTML = `
+                <div class="shared-card-header">
+                    <div class="card-header-line" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                        <h4 class="shared-card-title" style="margin:0;">${title}</h4>
+                        <label class="custom-checkbox" title="启用/禁用">
+                            <input type="checkbox" class="enable-checkbox" ${checked ? 'checked' : ''} data-key="${title}">
+                            <span class="checkmark"></span>
+                        </label>
+                    </div>
+                </div>
+                <p class="shared-card-content">${event.内容 || ''}</p>
+                ${placeholdersHtml}
+                <div class="shared-card-footer" style="display:flex;gap:8px;justify-content:flex-end;">
+                    <button class="shared-card-btn edit-btn" title="编辑">编辑</button>
+                    <button class="shared-card-btn delete-btn" title="删除">删除</button>
+                </div>
+            `;
+
+            // 初始状态样式：未启用的事件卡片添加明显区分
+            if (!checked) {
+                card.classList.add('disabled');
+            }
+
+            // 绑定启用勾选
+            const checkbox = card.querySelector('.enable-checkbox');
+            checkbox.addEventListener('change', () => {
+                const state = JSON.parse(localStorage.getItem(`${tableId}-checkedState`) || '{}');
+                state[title] = checkbox.checked;
+                localStorage.setItem(`${tableId}-checkedState`, JSON.stringify(state));
+                // 切换未启用样式
+                card.classList.toggle('disabled', !checkbox.checked);
+                updateEnabledCountForCards(type);
+                // 若当前存在状态筛选，需立即应用
+                refreshGridVisibilityForType(type);
+            });
+
+            // 编辑
+            card.querySelector('.edit-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                openEventModal(type, title);
+            });
+
+            // 删除
+            card.querySelector('.delete-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (confirm(`确定要删除事件 "${title}" 吗？`)) {
+                    deleteEventDirect(type, title);
+                }
+            });
+
+            grid.appendChild(card);
+        });
+
+        updateEnabledCountForCards(type);
+    }
+
+    function updateEnabledCountForCards(type, forcedEnabled = null, forcedTotal = null) {
+        const tableId = type === 'personal' ? 'personalEventsTable' : 'teamEventsTable';
+        const counterId = type === 'personal' ? 'personalEnabledCount' : 'teamEnabledCount';
+        const tasks = type === 'personal' ? (window.mission || {}) : (window.hardmission || {});
+        const total = forcedTotal !== null ? forcedTotal : Object.keys(tasks).length;
+        const savedState = JSON.parse(localStorage.getItem(`${tableId}-checkedState`) || '{}');
+        let enabled = forcedEnabled !== null ? forcedEnabled : 0;
+        if (forcedEnabled === null) {
+            enabled = Object.keys(tasks).reduce((acc, k) => acc + (savedState[k] !== undefined ? (savedState[k] ? 1 : 0) : 1), 0);
+        }
+        const el = document.getElementById(counterId);
+        if (el) el.textContent = `已启用：${enabled}/${total}`;
+    }
+
+    // 批量选择：mode = 'toggleAll' | 'invert'；onlyVisible=true 时仅作用于当前显示的卡片（受搜索过滤影响）
+    function bulkToggleSelection(type, mode = 'toggleAll', onlyVisible = true) {
+        const gridId = type === 'personal' ? 'personalEventsGrid' : 'teamEventsGrid';
+        const tableId = type === 'personal' ? 'personalEventsTable' : 'teamEventsTable';
+        const grid = document.getElementById(gridId);
+        if (!grid) return;
+        const cards = Array.from(grid.querySelectorAll('.shared-event-card'))
+            .filter(card => !onlyVisible || card.style.display !== 'none');
+        if (cards.length === 0) return;
+
+        const savedState = JSON.parse(localStorage.getItem(`${tableId}-checkedState`) || '{}');
+        const checkboxes = cards.map(card => ({
+            card,
+            title: card.dataset.title,
+            el: card.querySelector('.enable-checkbox')
+        })).filter(x => x.el);
+
+        // 计算目标状态
+        let op; // function(current:boolean) => boolean
+        if (mode === 'invert') {
+            op = (cur) => !cur;
+        } else {
+            const allChecked = checkboxes.every(x => x.el.checked || savedState[x.title] === true || savedState[x.title] === undefined);
+            const target = !allChecked; // 若全选则全不选，否则全选
+            op = () => target;
+        }
+
+        // 应用更改
+        checkboxes.forEach(({ card, title, el }) => {
+            const next = op(el.checked);
+            el.checked = next;
+            savedState[title] = next;
+            card.classList.toggle('disabled', !next);
+        });
+        localStorage.setItem(`${tableId}-checkedState`, JSON.stringify(savedState));
+        updateEnabledCountForCards(type);
+    }
+
+    // 表格回退渲染（供旧页面或其他模块调用）
+    function populateTable(table, tasks, tableId) {
+        if (!table) return;
         table.innerHTML = '';
-
-        // 加载保存的勾选状态
-        const savedState = JSON.parse(localStorage.getItem(`${tableId}-checkedState`)) || {};
-
-        // 计算启用的个数
-        const totalTasks = Object.keys(tasks).length;
-        let enabledCount = 0;
-
-        // 遍历任务，生成表格内容
-        Object.keys(tasks).forEach((key, index) => {
+        const tbody = table.tagName.toLowerCase() === 'tbody' ? table : table.querySelector('tbody') || table;
+        const savedState = JSON.parse(localStorage.getItem(`${tableId}-checkedState`) || '{}');
+        Object.keys(tasks || {}).forEach(key => {
             const row = document.createElement('tr');
-            
-            // 添加动画类，初始隐藏
-            row.classList.add('animate-row');
-            
-            // 创建序号单元格
-            const indexCell = document.createElement('td');
-            indexCell.textContent = index + 1;
-            row.appendChild(indexCell);
-
-            // 创建标题和内容单元格
+            const enableCell = document.createElement('td');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = savedState[key] !== undefined ? !!savedState[key] : true;
+            checkbox.dataset.key = key;
+            checkbox.addEventListener('change', () => {
+                const state = JSON.parse(localStorage.getItem(`${tableId}-checkedState`) || '{}');
+                state[key] = checkbox.checked;
+                localStorage.setItem(`${tableId}-checkedState`, JSON.stringify(state));
+            });
+            enableCell.appendChild(checkbox);
             const titleCell = document.createElement('td');
             const contentCell = document.createElement('td');
             titleCell.textContent = key;
-            contentCell.textContent = tasks[key].内容;
+            contentCell.textContent = tasks[key]?.内容 || '';
+            row.appendChild(enableCell);
             row.appendChild(titleCell);
             row.appendChild(contentCell);
-
-            // 创建启用勾选框单元格
-            const enableCell = document.createElement('td');
-            const label = document.createElement('label');
-            label.className = 'custom-checkbox';
-
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.addEventListener('click', e => {
-                e.stopPropagation();
-            });
-            checkbox.checked = savedState[key] !== undefined ? savedState[key] : true;
-            checkbox.dataset.key = key;
-
-            const checkmark = document.createElement('span');
-            checkmark.className = 'checkmark';
-
-            label.appendChild(checkbox);
-            label.appendChild(checkmark);
-            enableCell.appendChild(label);
-            row.appendChild(enableCell);
-
-            // 更新启用计数和行样式
-            if (checkbox.checked) {
-                enabledCount++;
-            } else {
-                row.classList.add('unchecked');
-            }
-
-            // 为整行添加点击事件，切换勾选框状态
-            row.addEventListener('click', (event) => {
-                if (event.target.tagName.toLowerCase() === 'input') {
-                    return;
-                }
-                checkbox.checked = !checkbox.checked;
-                checkbox.dispatchEvent(new Event('change'));
-            });
-
-            // 为勾选框单独添加事件监听
-            checkbox.addEventListener('change', () => {
-                if (checkbox.checked) {
-                    enabledCount++;
-                    row.classList.remove('unchecked');
-                } else {
-                    enabledCount--;
-                    row.classList.add('unchecked');
-                }
-                updateEnabledCount(tableId, enabledCount, totalTasks);
-                saveCheckedState(tableId);
-            });
-
-            // 将行添加到表格
-            table.appendChild(row);
-        });        // 添加启用计数行
-        const footerRow = document.createElement('tr');
-        const footerCell = document.createElement('td');
-        footerCell.colSpan = 3;
-        footerCell.textContent = `启用：${enabledCount}/${totalTasks}`;
-        footerCell.style.textAlign = 'right';
-        footerRow.appendChild(footerCell);        const emptyCell = document.createElement('td');
-        footerRow.appendChild(emptyCell);
-        table.appendChild(footerRow);
-        
-        // 只有在不跳过动画时才触发动画效果
-        if (!skipAnimation) {
-            triggerTableAnimation(table);
-        } else {
-            // 如果跳过动画，确保行立即可见
-            const tbody = table.querySelector('tbody');
-            const rows = tbody ? tbody.querySelectorAll('tr') : table.querySelectorAll('tr:not(thead tr)');
-            rows.forEach(row => {
-                row.classList.remove('animate-row');
-                row.style.opacity = '1';
-                row.style.transform = 'translateY(0)';
-            });
-            
-            // 确保添加事件表单可见
-            const addForms = document.querySelectorAll('.add-event-form');
-            addForms.forEach(form => {
-                form.style.opacity = '1';
-            });
-        }
-    }
-
-    // 更新启用计数显示
-    function updateEnabledCount(tableId, enabledCount, totalTasks) {
-        const table = document.getElementById(tableId);
-        if (table) {
-            const footerRow = table.querySelector('tr:last-child');
-            if (footerRow) {
-                const footerCell = footerRow.querySelector('td');
-                if (footerCell) {
-                    footerCell.textContent = `启用：${enabledCount}/${totalTasks}`;
-                }
-            }
-        }
-    }
-
-    // 保存勾选状态
-    function saveCheckedState(tableId) {
-        const table = document.getElementById(tableId);
-        if (!table) return;
-
-        const checkboxes = table.querySelectorAll('input[type="checkbox"]');
-        const state = {};
-
-        checkboxes.forEach(checkbox => {
-            const key = checkbox.dataset.key;
-            if (key) {
-                state[key] = checkbox.checked;
-            }
+            tbody.appendChild(row);
         });
-
-        localStorage.setItem(`${tableId}-checkedState`, JSON.stringify(state));
     }
 
-    // 从 localStorage 加载事件数据
-    function loadEventsFromStorage() {
-        // 确保使用全局的mission和hardmission对象作为默认值
-        if (typeof window.mission === 'undefined' || Object.keys(window.mission).length === 0) {
-            console.log('初始化mission事件数据');
-            // 如果window.mission不存在，尝试从其他来源获取
-            if (typeof mission !== 'undefined') {
-                window.mission = mission;
-            } else {
-                window.mission = {};
-                console.warn('mission变量完全未找到，使用空对象');
-            }
-        }
-        if (typeof window.hardmission === 'undefined' || Object.keys(window.hardmission).length === 0) {
-            console.log('初始化hardmission事件数据');
-            // 如果window.hardmission不存在，尝试从其他来源获取
-            if (typeof hardmission !== 'undefined') {
-                window.hardmission = hardmission;
-            } else {
-                window.hardmission = {};
-                console.warn('hardmission变量完全未找到，使用空对象');
-            }
-        }
-
-        const savedMissions = localStorage.getItem('missions');
-        const savedHardMissions = localStorage.getItem('hardmissions');
-
-        if (savedMissions) {
-            // 如果有本地存储数据，完全替换而不是合并
-            window.mission = JSON.parse(savedMissions);
-        } else {
-            // 如果没有本地存储数据，保存当前的默认数据到本地存储
-            saveEventsToStorage();
-        }
-
-        if (savedHardMissions) {
-            // 如果有本地存储数据，完全替换而不是合并
-            window.hardmission = JSON.parse(savedHardMissions);
-        } else {
-            // 如果没有本地存储数据，保存当前的默认数据到本地存储
-            saveEventsToStorage();
-        }
-    }
-
-    // 将事件数据保存到 localStorage
+    // 事件数据存取（仅使用原始键名：missions / hardmissions）
     function saveEventsToStorage() {
-        if (typeof window.mission !== 'undefined') {
-            localStorage.setItem('missions', JSON.stringify(window.mission));
-        }
-        if (typeof window.hardmission !== 'undefined') {
-            localStorage.setItem('hardmissions', JSON.stringify(window.hardmission));
-        }
-    }
-
-    // 显示右键菜单
-    function showContextMenu(event, key, type) {
-        event.preventDefault();
-        
-        currentEventKey = key;
-        currentEventType = type;
-        
-        console.log('显示右键菜单：', key, type);
-        console.log('事件对象：', event.clientX, event.clientY);
-          // 添加选中行的视觉提示
-        const rows = document.querySelectorAll('tr');
-        rows.forEach(row => row.classList.remove('highlighted-row'));
-        
-        // 获取当前行并高亮
-        const row = event.target.closest('tr');
-        if (row) {
-            row.classList.add('highlighted-row');
-            // 确保行动画不会影响高亮显示
-            row.classList.add('show'); 
-            console.log('高亮行：', row.rowIndex);
-        }
-        
-        // 获取右键菜单
-        const contextMenu = document.querySelector('.context-menu');
-        if (!contextMenu) {
-            console.error('找不到右键菜单元素');
-            return;
-        }
-        
-        // 确保菜单可见以计算尺寸
-        contextMenu.style.display = 'block';
-        contextMenu.classList.remove('visible'); // 准备动画
-        
-        // 计算菜单位置
-        const menuWidth = contextMenu.offsetWidth || 150;
-        const menuHeight = contextMenu.offsetHeight || 100;
-        console.log('菜单尺寸：', menuWidth, menuHeight);
-          // 获取鼠标位置和窗口尺寸
-        const x = event.clientX || (event.touches && event.touches[0].clientX) || 0;
-        const y = event.clientY || (event.touches && event.touches[0].clientY) || 0;
-        const windowWidth = window.innerWidth;
-        const windowHeight = window.innerHeight;
-        console.log('窗口尺寸：', windowWidth, windowHeight);
-        console.log('鼠标位置：', x, y);
-        
-        // 计算箭头的末端位置 (基于图片中的箭头方向，向右下方延伸)
-        // 模拟箭头位置，通常比鼠标位置偏向右下方约40-60像素
-        let posX = x - 200; // 箭头向右延伸约50像素
-        let posY = y - 100; // 箭头向下延伸约50像素
-        
-        // 检查右边界
-        if (posX + menuWidth > windowWidth) {
-            posX = x - menuWidth;
-            console.log('调整右边界：', posX);
-        }
-        
-        // 检查下边界
-        if (posY + menuHeight > windowHeight) {
-            posY = y - menuHeight;
-            console.log('调整下边界：', posY);
-        }
-        
-        // 确保菜单不会显示在负坐标
-        posX = Math.max(0, posX);
-        posY = Math.max(0, posY);
-        
-        // 设置最终位置
-        contextMenu.style.left = `${posX}px`;
-        contextMenu.style.top = `${posY}px`;
-        
-        // 应用动画
-        requestAnimationFrame(() => {
-            contextMenu.classList.add('visible');
-        });
-        
-        console.log('最终位置：', posX, posY);
-        
-        // 添加点击外部区域关闭菜单的处理
-        setTimeout(() => {
-            document.addEventListener('click', hideContextMenuOnClickOutside);
-        }, 10);
-    }
-    
-    // 点击外部区域关闭菜单
-    function hideContextMenuOnClickOutside(event) {
-        const contextMenu = document.querySelector('.context-menu');
-        if (contextMenu && !contextMenu.contains(event.target)) {
-            hideContextMenu();
-            document.removeEventListener('click', hideContextMenuOnClickOutside);
+        try {
+            localStorage.setItem('missions', JSON.stringify(window.mission || {}));
+            localStorage.setItem('hardmissions', JSON.stringify(window.hardmission || {}));
+        } catch (e) {
+            console.warn('保存事件到本地存储失败:', e);
         }
     }
-    
-    // 隐藏右键菜单
-    function hideContextMenu() {
-        const contextMenu = document.querySelector('.context-menu');
-        if (contextMenu) {
-            // 添加动画效果
-            contextMenu.classList.remove('visible');
-            
-            // 等待动画完成后隐藏菜单
-            setTimeout(() => {
-                contextMenu.style.display = 'none';
-            }, 150); // 与CSS中transition时间一致
-        }
-        
-        // 移除高亮效果
-        const rows = document.querySelectorAll('tr');
-        rows.forEach(row => row.classList.remove('highlighted-row'));
-        
-        currentEventKey = null;
-        currentEventType = null;
-    }
 
-    // 编辑事件
-    function editEvent() {
-        if (!currentEventKey || !currentEventType) return;
-
-        // 使用新的弹窗进行编辑
-        openEventModal(currentEventType, currentEventKey);
-
-        hideContextMenu();
-    }
-
-    // 删除事件
-    function deleteEvent() {
-        if (!currentEventKey || !currentEventType) return;
-
-        const isPersonal = currentEventType === 'personal';
-
-        const missionObj = window.mission || {};
-        const hardmissionObj = window.hardmission || {};
-
-        if (isPersonal) {
-            delete missionObj[currentEventKey];
-            if (window.mission && window.mission[currentEventKey]) {
-                delete window.mission[currentEventKey];
+    function loadEventsFromStorage() {
+        try {
+            const personal = JSON.parse(localStorage.getItem('missions') || 'null');
+            const team = JSON.parse(localStorage.getItem('hardmissions') || 'null');
+            if (personal && typeof personal === 'object') {
+                window.mission = personal;
             }
-        } else {
-            delete hardmissionObj[currentEventKey];
-            if (window.hardmission && window.hardmission[currentEventKey]) {
-                delete window.hardmission[currentEventKey];
+            if (team && typeof team === 'object') {
+                window.hardmission = team;
             }
+        } catch (e) {
+            console.warn('从本地存储加载事件失败:', e);
         }
-
-        const tableId = isPersonal ? 'personalEventsTable' : 'teamEventsTable';
-        const savedState = JSON.parse(localStorage.getItem(`${tableId}-checkedState`)) || {};
-        if (savedState[currentEventKey] !== undefined) {
-            delete savedState[currentEventKey];
-            localStorage.setItem(`${tableId}-checkedState`, JSON.stringify(savedState));
-        }        saveEventsToStorage();
-
-        const table = document.getElementById(isPersonal ? 'personalEventsTable' : 'teamEventsTable');
-        if (table) {
-            populateTable(table, isPersonal ? missionObj : hardmissionObj, isPersonal ? 'personalEventsTable' : 'teamEventsTable', true);
-        }
-
-        hideContextMenu();
     }
 
-    // 在表格中绑定右键事件（支持桌面端右键和手机端长按）
-    function bindTableRowContextMenu(table, type) {
-        // 处理鼠标右键
-        table.addEventListener('contextmenu', (event) => {
-            event.preventDefault(); // 阻止默认右键菜单
-            
-            const row = event.target.closest('tr');
-            if (row && row.children.length >= 2) {
-                const titleCell = row.children[1];
-                if (titleCell) {
-                    const key = titleCell.textContent;
-                    console.log('右键菜单触发：', key);
-                    showContextMenu(event, key, type);
-                }
-            }
-        });
-
-        // 处理长按事件（移动端）
-        let pressTimer;
-        let startX, startY;
-        const longPressThreshold = 500; // 长按阈值（毫秒）
-        const moveThreshold = 10; // 移动阈值（像素）
-          // 触摸开始
-        table.addEventListener('touchstart', (event) => {
-            if (event.touches.length !== 1) return; // 仅处理单指触摸
-            
-            const touch = event.touches[0];
-            startX = touch.clientX;
-            startY = touch.clientY;
-            console.log('触摸开始：', startX, startY);
-            
-            // 添加触摸反馈效果
-            createTouchRipple(startX, startY);
-            
-            const row = event.target.closest('tr');
-            if (!row || row.children.length < 2) return;
-            
-            const titleCell = row.children[1];
-            if (!titleCell) return;
-            
-            const key = titleCell.textContent;
-            
-            // 设置长按定时器
-            pressTimer = setTimeout(() => {
-                console.log('长按触发：', key, startX, startY);
-                
-                // 阻止默认行为（防止菜单弹出后消失）
-                event.preventDefault();
-                
-                const touchEvent = {
-                    preventDefault: () => {},
-                    clientX: startX,
-                    clientY: startY,
-                    target: event.target,
-                    closest: (selector) => event.target.closest(selector)
-                };
-                
-                showContextMenu(touchEvent, key, type);
-                
-                // 阻止接下来的触摸事件转换为鼠标事件
-                event.stopPropagation();
-            }, longPressThreshold);
-        }, { passive: false }); // 非被动模式，允许preventDefault
-        
-        // 触摸移动
-        table.addEventListener('touchmove', (event) => {
-            if (!pressTimer) return;
-            
-            const touch = event.touches[0];
-            const moveX = Math.abs(touch.clientX - startX);
-            const moveY = Math.abs(touch.clientY - startY);
-            
-            console.log('触摸移动：', moveX, moveY);
-            
-            // 如果移动超过阈值，取消长按
-            if (moveX > moveThreshold || moveY > moveThreshold) {
-                console.log('取消长按（移动超过阈值）');
-                clearTimeout(pressTimer);
-                pressTimer = null;
-            }
-        });
-        
-        // 触摸结束
-        table.addEventListener('touchend', (event) => {
-            console.log('触摸结束');
-            clearTimeout(pressTimer);
-            pressTimer = null;
-        });
-        
-        // 触摸取消
-        table.addEventListener('touchcancel', (event) => {
-            console.log('触摸取消');
-            clearTimeout(pressTimer);
-            pressTimer = null;
-        });
-    }
-
-    // 创建触摸反馈效果
-    function createTouchRipple(x, y) {
-        const ripple = document.createElement('div');
-        ripple.className = 'touch-feedback';
-        ripple.style.left = `${x}px`;
-        ripple.style.top = `${y}px`;
-        document.body.appendChild(ripple);
-        
-        // 动画结束后移除元素
-        setTimeout(() => {
-            ripple.remove();
-        }, 700); // 稍微长于动画时间，确保完成
-    }    // 触发表格行动画效果
-    function triggerTableAnimation(table) {
-        if (!table) return;
-        
-        // 先隐藏添加事件表单，避免闪现
-        const addForms = document.querySelectorAll('.add-event-form');
-        addForms.forEach(form => {
-            form.style.opacity = '0';
-            form.style.transition = 'opacity 0.3s ease';
-        });
-        
-        // 确保表格布局保持固定
-        table.style.tableLayout = 'fixed';
-        table.style.width = '100%';
-        
-        // 获取所有数据行（排除表头）
-        const tbody = table.querySelector('tbody');
-        const rows = tbody ? tbody.querySelectorAll('tr') : table.querySelectorAll('tr:not(thead tr)');
-        
-        // 先重置所有行的动画状态
-        rows.forEach(row => {
-            row.classList.remove('show');
-            row.classList.add('animate-row');
-        });
-          
-        // 逐行添加显示类，触发动画效果
-        rows.forEach((row, index) => {
-            setTimeout(() => {
-                row.classList.add('show');
-                
-                // 在最后一行动画完成后显示添加事件表单
-                if (index === rows.length - 1) {
-                    setTimeout(() => {
-                        addForms.forEach(form => {
-                            form.style.opacity = '1';
-                        });                }, 250); // 等待行动画完成（减少等待时间）
-            }
-        }, 5 + (index * 25)); // 每行延迟25ms (0.025秒，加快速度)
-        });
-    }
-
-    // 设置添加事件表单的可见性
-    function setAddEventFormsVisibility(visible, delay = 0) {
-        setTimeout(() => {
-            const addForms = document.querySelectorAll('.add-event-form');
-            addForms.forEach(form => {
-                form.style.opacity = visible ? '1' : '0';
-            });
-        }, delay);
-    }
-
-    // 生成事件管理内容
+    // 生成事件管理内容（改为卡片样式）
     function loadEventManagement() {
         const container = document.createElement('div');
         container.style.width = '100%';
@@ -713,7 +733,6 @@ window.eventManagement = (() => {
         instructionText.style.fontSize = '14px';
         instructionText.style.color = 'rgb(197, 197, 197)';
         instructionText.style.marginBottom = '10px';
-        instructionText.textContent = '右键/长按可删除或编辑事件，无法右键请关闭Simple Allow Copy等插件';
         header.appendChild(instructionText);
         
         // 创建毛玻璃切换按钮
@@ -835,10 +854,100 @@ window.eventManagement = (() => {
         importAllButton.addEventListener('click', importAllEvents);
         iconButtonsContainer.appendChild(importAllButton);
 
+        // 全选/全不选（二合一）按钮
+                const toggleSelectButton = createIconButton(
+                        'toggleSelectButton',
+                        `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                            <title>tasks</title>
+                            <g fill="none">
+                                <path d="M9.27314 1.65681C11.4366 1.07711 12.5185 0.786442 13.4577 0.985911C14.284 1.16154 15.0341 1.59449 15.5993 2.22224C16.2419 2.93589 16.5312 4.01836 17.111 6.1822L17.9392 9.27302C18.0796 9.79721 18.2028 10.258 18.3063 10.6685C18.8715 10.3738 19.5855 10.4646 20.0603 10.939C20.646 11.5248 20.646 12.4743 20.0603 13.0601L14.5603 18.5601C13.9745 19.1459 13.0249 19.1459 12.4392 18.5601L11.5017 17.6226L10.3229 17.939C8.15947 18.5187 7.07759 18.8094 6.13838 18.6099C5.31212 18.4343 4.562 18.0014 3.99678 17.3736C3.35422 16.66 3.06486 15.5775 2.48506 13.4136L1.65693 10.3228C1.07723 8.15934 0.786562 7.07747 0.986035 6.13825C1.16166 5.312 1.59462 4.56188 2.22236 3.99665C2.93602 3.35412 4.01851 3.06473 6.18232 2.48493L9.27314 1.65681Z" fill="url(#1752500502808-546714_tasks_existing_0_b87x1rwj4)" data-glass="origin" mask="url(#1752500502808-546714_tasks_mask_lnek3qiiw)"></path>
+                                <path d="M9.27314 1.65681C11.4366 1.07711 12.5185 0.786442 13.4577 0.985911C14.284 1.16154 15.0341 1.59449 15.5993 2.22224C16.2419 2.93589 16.5312 4.01836 17.111 6.1822L17.9392 9.27302C18.0796 9.79721 18.2028 10.258 18.3063 10.6685C18.8715 10.3738 19.5855 10.4646 20.0603 10.939C20.646 11.5248 20.646 12.4743 20.0603 13.0601L14.5603 18.5601C13.9745 19.1459 13.0249 19.1459 12.4392 18.5601L11.5017 17.6226L10.3229 17.939C8.15947 18.5187 7.07759 18.8094 6.13838 18.6099C5.31212 18.4343 4.562 18.0014 3.99678 17.3736C3.35422 16.66 3.06486 15.5775 2.48506 13.4136L1.65693 10.3228C1.07723 8.15934 0.786562 7.07747 0.986035 6.13825C1.16166 5.312 1.59462 4.56188 2.22236 3.99665C2.93602 3.35412 4.01851 3.06473 6.18232 2.48493L9.27314 1.65681Z" fill="url(#1752500502808-546714_tasks_existing_0_b87x1rwj4)" data-glass="clone" filter="url(#1752500502808-546714_tasks_filter_js25kvyuv)" clip-path="url(#1752500502808-546714_tasks_clipPath_wvsdi5iv7)"></path>
+                                <path d="M16.0996 6.5C18.3398 6.5 19.4608 6.49957 20.3164 6.93555C21.0689 7.31902 21.681 7.93109 22.0645 8.68359C22.5004 9.53924 22.5 10.6602 22.5 12.9004V16.0996C22.5 18.3398 22.5004 19.4608 22.0645 20.3164C21.681 21.0689 21.0689 21.681 20.3164 22.0645C19.4608 22.5004 18.3398 22.5 16.0996 22.5H12.9004C10.6602 22.5 9.53924 22.5004 8.68359 22.0645C7.93109 21.681 7.31902 21.0689 6.93555 20.3164C6.49957 19.4608 6.5 18.3398 6.5 16.0996V12.9004C6.5 10.6602 6.49957 9.53924 6.93555 8.68359C7.31902 7.93109 7.93109 7.31902 8.68359 6.93555C9.53924 6.49957 10.6602 6.5 12.9004 6.5H16.0996ZM19.707 11.293C19.3165 10.9024 18.6835 10.9024 18.293 11.293L13.5 16.0859L11.707 14.293L11.6309 14.2246C11.2381 13.9043 10.6591 13.9269 10.293 14.293C9.90244 14.6835 9.90244 15.3165 10.293 15.707L12.793 18.207C13.1835 18.5976 13.8165 18.5976 14.207 18.207L19.707 12.707C20.0976 12.3165 20.0976 11.6835 19.707 11.293Z" fill="url(#1752500502808-546714_tasks_existing_1_zvuzizccf)" data-glass="blur"></path>
+                                <path d="M16.0996 21.75V22.5H12.9004V21.75H16.0996ZM21.75 16.0996V12.9004C21.75 11.768 21.7497 10.9633 21.6982 10.334C21.6475 9.71336 21.5506 9.32889 21.3955 9.02441C21.0839 8.41304 20.587 7.91605 19.9756 7.60449C19.6711 7.44936 19.2866 7.35247 18.666 7.30176C18.0367 7.25035 17.232 7.25 16.0996 7.25H12.9004C11.768 7.25 10.9633 7.25035 10.334 7.30176C9.71336 7.35247 9.32889 7.44936 9.02441 7.60449C8.41304 7.91605 7.91605 8.41304 7.60449 9.02441C7.44936 9.32889 7.35247 9.71336 7.30176 10.334C7.25035 10.9633 7.25 11.768 7.25 12.9004V16.0996C7.25 17.232 7.25035 18.0367 7.30176 18.666C7.35247 19.2866 7.44936 19.6711 7.60449 19.9756C7.91605 20.587 8.41304 21.0839 9.02441 21.3955C9.32889 21.5506 9.71336 21.6475 10.334 21.6982C10.9633 21.7497 11.768 21.75 12.9004 21.75V22.5L11.416 22.4932C10.2243 22.4744 9.46088 22.4041 8.84766 22.1406L8.68359 22.0645C8.02512 21.7289 7.47413 21.2183 7.08984 20.5918L6.93555 20.3164C6.49957 19.4608 6.5 18.3398 6.5 16.0996V12.9004C6.5 10.6602 6.49957 9.53924 6.93555 8.68359C7.31902 7.93109 7.93109 7.31902 8.68359 6.93555C9.32525 6.60861 10.1161 6.52728 11.416 6.50684L12.9004 6.5H16.0996C18.3398 6.5 19.4608 6.49957 20.3164 6.93555C21.0689 7.31902 21.681 7.93109 22.0645 8.68359C22.5004 9.53924 22.5 10.6602 22.5 12.9004V16.0996C22.5 18.3398 22.5004 19.4608 22.0645 20.3164L21.9102 20.5918C21.5259 21.2183 20.9749 21.7289 20.3164 22.0645L20.1523 22.1406C19.316 22.4999 18.1999 22.5 16.0996 22.5V21.75C17.232 21.75 18.0367 21.7497 18.666 21.6982C19.2866 21.6475 19.6711 21.5506 19.9756 21.3955C20.587 21.0839 21.0839 20.587 21.3955 19.9756C21.5506 19.6711 21.6475 19.2866 21.6982 18.666C21.7497 18.0367 21.75 17.232 21.75 16.0996Z" fill="url(#1752500502808-546714_tasks_existing_2_rwjcgbppv)"></path>
+                                <defs>
+                                    <linearGradient id="1752500502808-546714_tasks_existing_0_b87x1rwj4" x1="10.711" y1=".923" x2="10.711" y2="19" gradientUnits="userSpaceOnUse">
+                                        <stop stop-color="#575757"></stop>
+                                        <stop offset="1" stop-color="#151515"></stop>
+                                    </linearGradient>
+                                    <linearGradient id="1752500502808-546714_tasks_existing_1_zvuzizccf" x1="14.5" y1="6.5" x2="14.5" y2="22.5" gradientUnits="userSpaceOnUse">
+                                        <stop stop-color="#E3E3E5" stop-opacity=".6"></stop>
+                                        <stop offset="1" stop-color="#BBBBC0" stop-opacity=".6"></stop>
+                                    </linearGradient>
+                                    <linearGradient id="1752500502808-546714_tasks_existing_2_rwjcgbppv" x1="14.5" y1="6.5" x2="14.5" y2="15.766" gradientUnits="userSpaceOnUse">
+                                        <stop stop-color="#fff"></stop>
+                                        <stop offset="1" stop-color="#fff" stop-opacity="0"></stop>
+                                    </linearGradient>
+                                    <filter id="1752500502808-546714_tasks_filter_js25kvyuv" x="-100%" y="-100%" width="400%" height="400%" filterUnits="objectBoundingBox" primitiveUnits="userSpaceOnUse">
+                                        <feGaussianBlur stdDeviation="2" x="0%" y="0%" width="100%" height="100%" in="SourceGraphic" edgeMode="none" result="blur"></feGaussianBlur>
+                                    </filter>
+                                    <clipPath id="1752500502808-546714_tasks_clipPath_wvsdi5iv7">
+                                        <path d="M16.0996 6.5C18.3398 6.5 19.4608 6.49957 20.3164 6.93555C21.0689 7.31902 21.681 7.93109 22.0645 8.68359C22.5004 9.53924 22.5 10.6602 22.5 12.9004V16.0996C22.5 18.3398 22.5004 19.4608 22.0645 20.3164C21.681 21.0689 21.0689 21.681 20.3164 22.0645C19.4608 22.5004 18.3398 22.5 16.0996 22.5H12.9004C10.6602 22.5 9.53924 22.5004 8.68359 22.0645C7.93109 21.681 7.31902 21.0689 6.93555 20.3164C6.49957 19.4608 6.5 18.3398 6.5 16.0996V12.9004C6.5 10.6602 6.49957 9.53924 6.93555 8.68359C7.31902 7.93109 7.93109 7.31902 8.68359 6.93555C9.53924 6.49957 10.6602 6.5 12.9004 6.5H16.0996ZM19.707 11.293C19.3165 10.9024 18.6835 10.9024 18.293 11.293L13.5 16.0859L11.707 14.293L11.6309 14.2246C11.2381 13.9043 10.6591 13.9269 10.293 14.293C9.90244 14.6835 9.90244 15.3165 10.293 15.707L12.793 18.207C13.1835 18.5976 13.8165 18.5976 14.207 18.207L19.707 12.707C20.0976 12.3165 20.0976 11.6835 19.707 11.293Z" fill="url(#1752500502808-546714_tasks_existing_1_zvuzizccf)"></path>
+                                    </clipPath>
+                                    <mask id="1752500502808-546714_tasks_mask_lnek3qiiw">
+                                        <rect width="100%" height="100%" fill="#FFF"></rect>
+                                        <path d="M16.0996 6.5C18.3398 6.5 19.4608 6.49957 20.3164 6.93555C21.0689 7.31902 21.681 7.93109 22.0645 8.68359C22.5004 9.53924 22.5 10.6602 22.5 12.9004V16.0996C22.5 18.3398 22.5004 19.4608 22.0645 20.3164C21.681 21.0689 21.0689 21.681 20.3164 22.0645C19.4608 22.5004 18.3398 22.5 16.0996 22.5H12.9004C10.6602 22.5 9.53924 22.5004 8.68359 22.0645C7.93109 21.681 7.31902 21.0689 6.93555 20.3164C6.49957 19.4608 6.5 18.3398 6.5 16.0996V12.9004C6.5 10.6602 6.49957 9.53924 6.93555 8.68359C7.31902 7.93109 7.93109 7.31902 8.68359 6.93555C9.53924 6.49957 10.6602 6.5 12.9004 6.5H16.0996ZM19.707 11.293C19.3165 10.9024 18.6835 10.9024 18.293 11.293L13.5 16.0859L11.707 14.293L11.6309 14.2246C11.2381 13.9043 10.6591 13.9269 10.293 14.293C9.90244 14.6835 9.90244 15.3165 10.293 15.707L12.793 18.207C13.1835 18.5976 13.8165 18.5976 14.207 18.207L19.707 12.707C20.0976 12.3165 20.0976 11.6835 19.707 11.293Z" fill="#000"></path>
+                                    </mask>
+                                </defs>
+                            </g>
+                        </svg>`,
+                        '全选/全不选（按一次全选，再按全不选；对当前显示卡片生效）',
+                        'select-toggle-btn'
+                );
+        toggleSelectButton.addEventListener('click', () => {
+            const type = isShowingPersonal ? 'personal' : 'team';
+            bulkToggleSelection(type, 'toggleAll', true);
+        });
+        iconButtonsContainer.appendChild(toggleSelectButton);
+
+        // 反选按钮
+                const invertSelectButton = createIconButton(
+                        'invertSelectButton',
+                        `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                            <title>arrows-bold-opposite-direction</title>
+                            <g fill="none">
+                                <path d="M12 15.1099V12.134H18.5C19.3284 12.134 20 11.4624 20 10.634L20 6.63397C20 5.80555 19.3284 5.13398 18.5 5.13398L12 5.13398V2.15802C12 0.917543 10.58 0.213184 9.59238 0.963774L1.07138 7.43974C0.281546 8.04001 0.281546 9.22795 1.07138 9.82822L9.59238 16.3042C10.58 17.0548 12 16.3504 12 15.1099Z" fill="url(#1752500502765-1219022_arrows-bold-opposite-direction_existing_0_ng1mkmgk8)" data-glass="origin" mask="url(#1752500502765-1219022_arrows-bold-opposite-direction_mask_m1tbxjjqc)"></path>
+                                <path d="M12 15.1099V12.134H18.5C19.3284 12.134 20 11.4624 20 10.634L20 6.63397C20 5.80555 19.3284 5.13398 18.5 5.13398L12 5.13398V2.15802C12 0.917543 10.58 0.213184 9.59238 0.963774L1.07138 7.43974C0.281546 8.04001 0.281546 9.22795 1.07138 9.82822L9.59238 16.3042C10.58 17.0548 12 16.3504 12 15.1099Z" fill="url(#1752500502765-1219022_arrows-bold-opposite-direction_existing_0_ng1mkmgk8)" data-glass="clone" filter="url(#1752500502765-1219022_arrows-bold-opposite-direction_filter_fjwlm2igw)" clip-path="url(#1752500502765-1219022_arrows-bold-opposite-direction_clipPath_06b3zrgty)"></path>
+                                <path d="M12 21.976L12 19L5.50001 19C4.67158 19 4 18.3284 4.00001 17.5L4.00003 13.5C4.00003 12.6716 4.67161 12 5.50003 12L12 12L12 9.02404C12 7.78356 13.42 7.07921 14.4076 7.8298L22.9286 14.3058C23.7185 14.906 23.7185 16.094 22.9286 16.6942L14.4076 23.1702C13.42 23.9208 12 23.2164 12 21.976Z" fill="url(#1752500502765-1219022_arrows-bold-opposite-direction_existing_1_7ryavlmrh)" data-glass="blur"></path>
+                                <path d="M4 17.4996V13.4996C4.0001 12.6712 4.67165 11.9996 5.5 11.9996H12V9.024C12 7.78361 13.4196 7.07932 14.4072 7.82966L22.9287 14.3052C23.7185 14.9055 23.7184 16.0936 22.9287 16.6939L14.4072 23.1695C13.4505 23.8966 12.0881 23.2588 12.0039 22.0904L12 21.9761V18.9996H5.5V18.2496H12.75V21.9761C12.7503 22.5961 13.4604 22.948 13.9541 22.5728L22.4746 16.0972C22.8695 15.7971 22.8695 15.203 22.4746 14.9029L13.9541 8.42634C13.4603 8.05104 12.75 8.40376 12.75 9.024V12.7496H5.5C5.08586 12.7496 4.7501 13.0855 4.75 13.4996V17.4996C4.75 17.9138 5.08579 18.2496 5.5 18.2496V18.9996L5.34668 18.9918C4.59028 18.915 4 18.2762 4 17.4996Z" fill="url(#1752500502765-1219022_arrows-bold-opposite-direction_existing_2_p9nlanf69)"></path>
+                                <defs>
+                                    <linearGradient id="1752500502765-1219022_arrows-bold-opposite-direction_existing_0_ng1mkmgk8" x1="10.239" y1=".655" x2="10.239" y2="16.613" gradientUnits="userSpaceOnUse">
+                                        <stop stop-color="#575757"></stop>
+                                        <stop offset="1" stop-color="#151515"></stop>
+                                    </linearGradient>
+                                    <linearGradient id="1752500502765-1219022_arrows-bold-opposite-direction_existing_1_7ryavlmrh" x1="24.5" y1="15.5" x2="4" y2="15.5" gradientUnits="userSpaceOnUse">
+                                        <stop stop-color="#E3E3E5" stop-opacity=".6"></stop>
+                                        <stop offset="1" stop-color="#BBBBC0" stop-opacity=".6"></stop>
+                                    </linearGradient>
+                                    <linearGradient id="1752500502765-1219022_arrows-bold-opposite-direction_existing_2_p9nlanf69" x1="13.761" y1="7.521" x2="13.761" y2="16.762" gradientUnits="userSpaceOnUse">
+                                        <stop stop-color="#fff"></stop>
+                                        <stop offset="1" stop-color="#fff" stop-opacity="0"></stop>
+                                    </linearGradient>
+                                    <filter id="1752500502765-1219022_arrows-bold-opposite-direction_filter_fjwlm2igw" x="-100%" y="-100%" width="400%" height="400%" filterUnits="objectBoundingBox" primitiveUnits="userSpaceOnUse">
+                                        <feGaussianBlur stdDeviation="2" x="0%" y="0%" width="100%" height="100%" in="SourceGraphic" edgeMode="none" result="blur"></feGaussianBlur>
+                                    </filter>
+                                    <clipPath id="1752500502765-1219022_arrows-bold-opposite-direction_clipPath_06b3zrgty">
+                                        <path d="M12 21.976L12 19L5.50001 19C4.67158 19 4 18.3284 4.00001 17.5L4.00003 13.5C4.00003 12.6716 4.67161 12 5.50003 12L12 12L12 9.02404C12 7.78356 13.42 7.07921 14.4076 7.8298L22.9286 14.3058C23.7185 14.906 23.7185 16.094 22.9286 16.6942L14.4076 23.1702C13.42 23.9208 12 23.2164 12 21.976Z" fill="url(#1752500502765-1219022_arrows-bold-opposite-direction_existing_1_7ryavlmrh)"></path>
+                                    </clipPath>
+                                    <mask id="1752500502765-1219022_arrows-bold-opposite-direction_mask_m1tbxjjqc">
+                                        <rect width="100%" height="100%" fill="#FFF"></rect>
+                                        <path d="M12 21.976L12 19L5.50001 19C4.67158 19 4 18.3284 4.00001 17.5L4.00003 13.5C4.00003 12.6716 4.67161 12 5.50003 12L12 12L12 9.02404C12 7.78356 13.42 7.07921 14.4076 7.8298L22.9286 14.3058C23.7185 14.906 23.7185 16.094 22.9286 16.6942L14.4076 23.1702C13.42 23.9208 12 23.2164 12 21.976Z" fill="#000"></path>
+                                    </mask>
+                                </defs>
+                            </g>
+                        </svg>`,
+                        '反选（对当前显示卡片生效）',
+                        'invert-select-btn'
+                );
+        invertSelectButton.addEventListener('click', () => {
+            const type = isShowingPersonal ? 'personal' : 'team';
+            bulkToggleSelection(type, 'invert', true);
+        });
+        iconButtonsContainer.appendChild(invertSelectButton);
+
         // 将图标按钮容器添加到主控制容器
         controlsContainer.appendChild(iconButtonsContainer);
         
-        // 3. 创建搜索输入框 (放在最下面)
+    // 3. 创建搜索输入框 (放在最下面)
         const searchContainer = document.createElement('div');
         searchContainer.style.marginBottom = '15px';
         searchContainer.style.textAlign = 'center';
@@ -892,160 +1001,108 @@ window.eventManagement = (() => {
 
     container.appendChild(header);
 
-        // 创建个人事件内容区域
+        // 创建个人事件卡片区域
         const personalEvents = document.createElement('div');
         personalEvents.id = 'personalEventsInSettings';
         personalEvents.style.display = 'block';
-          const personalTable = document.createElement('table');
-        personalTable.className = 'event-table';
-        personalTable.style.width = '100%';
-        personalTable.style.borderCollapse = 'collapse';
-        personalTable.style.marginBottom = '20px';
-        personalTable.style.tableLayout = 'fixed'; // 强制固定布局
-        
-        const personalThead = document.createElement('thead');
-        personalThead.style.position = 'relative';
-        personalThead.style.zIndex = '10';
-        
-        const personalHeaderRow = document.createElement('tr');
-        personalHeaderRow.style.opacity = '1'; // 确保表头始终可见
-        personalHeaderRow.style.transform = 'none'; // 确保表头不参与动画
-        ['序号', '事件标题', '事件内容', '启用'].forEach((text, index) => {
-            const th = document.createElement('th');
-            th.textContent = text;
-            th.style.border = '1px solid #ddd';
-            th.style.padding = '8px';
-            th.style.backgroundColor = 'transparent';
-            th.style.position = 'relative';
-            th.style.boxSizing = 'border-box';
-            
-            // 为每列设置固定宽度
-            const widths = ['8%', '30%', '52%', '10%'];
-            th.style.width = widths[index];
-            th.style.minWidth = widths[index];
-            th.style.maxWidth = widths[index];
-            
-            personalHeaderRow.appendChild(th);
+        // 顶部行：左侧筛选按钮，右侧启用计数
+        const personalTopRow = document.createElement('div');
+        personalTopRow.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:10px;';
+        // 筛选按钮（个人）
+    const personalFilterBtn = document.createElement('button');
+        personalFilterBtn.className = 'icon-btn filter-btn';
+        const personalFilterIcon = document.createElement('div');
+        personalFilterIcon.className = 'btn-icon';
+        personalFilterIcon.textContent = '筛选：全部事件';
+        personalFilterBtn.appendChild(personalFilterIcon);
+        personalFilterBtn.addEventListener('click', () => {
+            const order = ['all', 'enabled', 'disabled'];
+            const cur = statusFilter.personal || 'all';
+            const next = order[(order.indexOf(cur) + 1) % order.length];
+            statusFilter.personal = next;
+            personalFilterIcon.textContent = next === 'all' ? '筛选：全部事件' : (next === 'enabled' ? '筛选：启用事件' : '筛选：禁用事件');
+            refreshGridVisibilityForType('personal');
         });
-        
-        personalThead.appendChild(personalHeaderRow);
-        personalTable.appendChild(personalThead);
-        
-        const personalTbody = document.createElement('tbody');
-        personalTbody.id = 'personalEventsTable';
-        personalTable.appendChild(personalTbody);
-        
-        personalEvents.appendChild(personalTable);
-        
+        // 启用计数（个人）
+        const personalCount = document.createElement('div');
+        personalCount.id = 'personalEnabledCount';
+        personalCount.style.cssText = 'text-align:right;color:#ddd;';
+    // 预设按钮（个人）
+    const personalPresetBtn = document.createElement('button');
+    personalPresetBtn.className = 'icon-btn filter-btn';
+    const ppIcon = document.createElement('div'); ppIcon.className='btn-icon'; ppIcon.textContent='事件预设';
+    personalPresetBtn.appendChild(ppIcon);
+    personalPresetBtn.addEventListener('click', ()=> showPresetModal());
+
+    const personalLeft = document.createElement('div');
+    personalLeft.style.cssText='display:flex;gap:8px;align-items:center;';
+    personalLeft.appendChild(personalFilterBtn);
+    personalLeft.appendChild(personalPresetBtn);
+    personalTopRow.appendChild(personalLeft);
+        personalTopRow.appendChild(personalCount);
+        personalEvents.appendChild(personalTopRow);
+        const personalGrid = document.createElement('div');
+        personalGrid.id = 'personalEventsGrid';
+        personalGrid.className = 'shared-events-grid';
+        personalEvents.appendChild(personalGrid);
         container.appendChild(personalEvents);
-        
-        // 创建团队事件内容区域
+
+        // 创建团队事件卡片区域
         const teamEvents = document.createElement('div');
         teamEvents.id = 'teamEventsInSettings';
         teamEvents.style.display = 'none';
-          const teamTable = document.createElement('table');
-        teamTable.className = 'event-table';
-        teamTable.style.width = '100%';
-        teamTable.style.borderCollapse = 'collapse';
-        teamTable.style.marginBottom = '20px';
-        teamTable.style.tableLayout = 'fixed'; // 强制固定布局
-        
-        const teamThead = document.createElement('thead');
-        teamThead.style.position = 'relative';
-        teamThead.style.zIndex = '10';
-        
-        const teamHeaderRow = document.createElement('tr');
-        teamHeaderRow.style.opacity = '1'; // 确保表头始终可见
-        teamHeaderRow.style.transform = 'none'; // 确保表头不参与动画
-        ['序号', '事件标题', '事件内容', '启用'].forEach((text, index) => {
-            const th = document.createElement('th');
-            th.textContent = text;
-            th.style.border = '1px solid #ddd';
-            th.style.padding = '8px';
-            th.style.backgroundColor = 'transparent';
-            th.style.position = 'relative';
-            th.style.boxSizing = 'border-box';
-            
-            // 为每列设置固定宽度
-            const widths = ['8%', '30%', '52%', '10%'];
-            th.style.width = widths[index];
-            th.style.minWidth = widths[index];
-            th.style.maxWidth = widths[index];
-            
-            teamHeaderRow.appendChild(th);
+        // 顶部行：左侧筛选按钮，右侧启用计数（团队）
+        const teamTopRow = document.createElement('div');
+        teamTopRow.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:10px;';
+    const teamFilterBtn = document.createElement('button');
+        teamFilterBtn.className = 'icon-btn filter-btn';
+        teamFilterBtn.title = '筛选：全部/启用/禁用';
+        const teamFilterIcon = document.createElement('div');
+        teamFilterIcon.className = 'btn-icon';
+        teamFilterIcon.textContent = '筛选：全部事件';
+        teamFilterBtn.appendChild(teamFilterIcon);
+        teamFilterBtn.addEventListener('click', () => {
+            const order = ['all', 'enabled', 'disabled'];
+            const cur = statusFilter.team || 'all';
+            const next = order[(order.indexOf(cur) + 1) % order.length];
+            statusFilter.team = next;
+            teamFilterIcon.textContent = next === 'all' ? '筛选：全部事件' : (next === 'enabled' ? '筛选：启用事件' : '筛选：禁用事件');
+            refreshGridVisibilityForType('team');
         });
-        
-        teamThead.appendChild(teamHeaderRow);
-        teamTable.appendChild(teamThead);
-        
-        const teamTbody = document.createElement('tbody');
-        teamTbody.id = 'teamEventsTable';
-        teamTable.appendChild(teamTbody);
-        
-        teamEvents.appendChild(teamTable);
-        
+        const teamCount = document.createElement('div');
+        teamCount.id = 'teamEnabledCount';
+        teamCount.style.cssText = 'text-align:right;color:#ddd;';
+    // 预设按钮（团队）
+    const teamPresetBtn = document.createElement('button');
+    teamPresetBtn.className = 'icon-btn filter-btn';
+    const tpIcon = document.createElement('div'); tpIcon.className='btn-icon'; tpIcon.textContent='事件预设';
+    teamPresetBtn.appendChild(tpIcon);
+    teamPresetBtn.addEventListener('click', ()=> showPresetModal());
+
+    const teamLeft = document.createElement('div');
+    teamLeft.style.cssText='display:flex;gap:8px;align-items:center;';
+    teamLeft.appendChild(teamFilterBtn);
+    teamLeft.appendChild(teamPresetBtn);
+    teamTopRow.appendChild(teamLeft);
+        teamTopRow.appendChild(teamCount);
+        teamEvents.appendChild(teamTopRow);
+        const teamGrid = document.createElement('div');
+        teamGrid.id = 'teamEventsGrid';
+        teamGrid.className = 'shared-events-grid';
+        teamEvents.appendChild(teamGrid);
         container.appendChild(teamEvents);
-        
-        // 创建右键菜单
-        const contextMenu = document.createElement('div');
-        contextMenu.className = 'context-menu';
-        contextMenu.style.position = 'fixed';
-        contextMenu.style.backgroundColor = 'white';
-        contextMenu.style.border = '1px solid #ccc';
-        contextMenu.style.borderRadius = '4px';
-        contextMenu.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-        contextMenu.style.zIndex = '1000';
-        contextMenu.style.display = 'none';
-        contextMenu.style.minWidth = '120px';
-        
-        const menuList = document.createElement('ul');
-        menuList.style.listStyle = 'none';
-        menuList.style.margin = '0';
-        menuList.style.padding = '0';
-        
-        const editItem = document.createElement('li');
-        editItem.id = 'editEvent';
-        editItem.textContent = '编辑事件';
-        editItem.style.padding = '8px 12px';
-        editItem.style.cursor = 'pointer';
-        editItem.style.borderBottom = '1px solid #eee';
-        editItem.style.color = 'black';
-        editItem.addEventListener('mouseover', () => editItem.style.backgroundColor = '#f5f5f5');
-        editItem.addEventListener('mouseout', () => editItem.style.backgroundColor = 'white');
-        
-        const deleteItem = document.createElement('li');
-        deleteItem.id = 'deleteEvent';
-        deleteItem.textContent = '删除事件';
-        deleteItem.style.padding = '8px 12px';
-        deleteItem.style.cursor = 'pointer';
-        deleteItem.style.color = 'black';
-        deleteItem.addEventListener('mouseover', () => deleteItem.style.backgroundColor = '#f5f5f5');
-        deleteItem.addEventListener('mouseout', () => deleteItem.style.backgroundColor = 'white');
-        
-        menuList.appendChild(editItem);
-        menuList.appendChild(deleteItem);
-        contextMenu.appendChild(menuList);
-        container.appendChild(contextMenu);
         
         // 绑定事件监听器
         setTimeout(() => {
             // 加载事件数据
             loadEventsFromStorage();
             
-            const personalTableBody = document.getElementById('personalEventsTable');
-            const teamTableBody = document.getElementById('teamEventsTable');
-            if (personalTableBody && teamTableBody) {
-                const missionObj = window.mission || {};
-                const hardmissionObj = window.hardmission || {};
-                
-                // 填充表格
-                populateTable(personalTableBody, missionObj, 'personalEventsTable');
-                populateTable(teamTableBody, hardmissionObj, 'teamEventsTable');
-                
-                // 绑定右键事件
-                bindTableRowContextMenu(personalTableBody, 'personal');
-                bindTableRowContextMenu(teamTableBody, 'team');
-            }
+            const personalGrid = document.getElementById('personalEventsGrid');
+            const teamGrid = document.getElementById('teamEventsGrid');
+            const missionObj = window.mission || {};
+            const hardmissionObj = window.hardmission || {};
+            populateCards(personalGrid, missionObj, 'personal');
+            populateCards(teamGrid, hardmissionObj, 'team');
             
             // 毛玻璃切换按钮事件
             const personalRadio = document.getElementById('personalEventsRadio');
@@ -1067,12 +1124,8 @@ window.eventManagement = (() => {
                             addTeamButton.style.display = 'none';
                         }
                         
-                        // 触发个人事件表格的动画效果
-                        const personalTableBody = document.getElementById('personalEventsTable');
-                        triggerTableAnimation(personalTableBody);
-                        
-                        // 更新搜索功能
-                        setupEventSearch('eventSearchInput', '#personalEventsInSettings table');
+                        // 更新搜索功能（卡片）
+                        setupEventCardSearch('eventSearchInput', '#personalEventsGrid');
                         
                         isShowingPersonal = true;
                     }
@@ -1091,12 +1144,8 @@ window.eventManagement = (() => {
                             addTeamButton.style.display = 'flex';
                         }
                         
-                        // 触发团队事件表格的动画效果
-                        const teamTableBody = document.getElementById('teamEventsTable');
-                        triggerTableAnimation(teamTableBody);
-                        
-                        // 更新搜索功能
-                        setupEventSearch('eventSearchInput', '#teamEventsInSettings table');
+                        // 更新搜索功能（卡片）
+                        setupEventCardSearch('eventSearchInput', '#teamEventsGrid');
                         
                         isShowingPersonal = false;
                     }
@@ -1106,34 +1155,12 @@ window.eventManagement = (() => {
             // 弹窗相关事件绑定
             setupModalControls();
             
-            // 初始化搜索功能
-            setupEventSearch('eventSearchInput', '#personalEventsInSettings table');
-            
-            // 右键菜单事件
-            const contextMenuInSettings = container.querySelector('.context-menu');
-            if (contextMenuInSettings) {
-                contextMenuInSettings.addEventListener('click', (event) => {
-                    if (event.target.id === 'editEvent') {
-                        editEvent();
-                    } else if (event.target.id === 'deleteEvent') {
-                        deleteEvent();
-                    }
-                });
-            }
-              // 隐藏右键菜单（点击其他地方时）
-            document.addEventListener('click', (event) => {
-                const contextMenu = document.querySelector('.context-menu');
-                if (contextMenu && 
-                    event.target !== contextMenu && 
-                    !contextMenu.contains(event.target) &&
-                    !event.target.closest('tr')) {
-                    hideContextMenu();
-                }
-            });
+            // 初始化搜索功能（默认个人事件卡片）
+            setupEventCardSearch('eventSearchInput', '#personalEventsGrid');
             
         }, 100);
         
-        return container;
+    return container;
     }
 
     // 初始化事件数据
@@ -1624,10 +1651,16 @@ window.eventManagement = (() => {
         eventPool[title] = eventData;
         saveEventsToStorage();
 
-        // 刷新表格
-        const tableId = currentEditingType === 'personal' ? 'personalEventsTable' : 'teamEventsTable';
-        const table = document.getElementById(tableId);
-        populateTable(table, eventPool, tableId, true);
+        // 刷新视图：优先刷新卡片网格，其次表格（兼容）
+    const gridId = currentEditingType === 'personal' ? 'personalEventsGrid' : 'teamEventsGrid';
+        const grid = document.getElementById(gridId);
+        if (grid) {
+            populateCards(grid, eventPool, currentEditingType);
+        } else {
+            const tableId = currentEditingType === 'personal' ? 'personalEventsTable' : 'teamEventsTable';
+            const table = document.getElementById(tableId);
+            if (table) populateTable(table, eventPool, tableId);
+        }
 
         closeEventModal();
     }
@@ -1742,21 +1775,45 @@ window.eventManagement = (() => {
     
     // 刷新事件管理界面
     function refreshEventManagement() {
-        // 重新填充个人事件表格
+        // 优先刷新卡片网格
+        const personalGrid = document.getElementById('personalEventsGrid');
+        const teamGrid = document.getElementById('teamEventsGrid');
+        if (personalGrid) {
+            populateCards(personalGrid, window.mission || {}, 'personal');
+        }
+        if (teamGrid) {
+            populateCards(teamGrid, window.hardmission || {}, 'team');
+        }
+        // 回退：若存在旧表格结构，也刷新
         const personalTable = document.getElementById('personalEventsTable');
         if (personalTable) {
-            populateTable(personalTable, window.mission || {}, 'personalEventsTable', true);
+            populateTable(personalTable, window.mission || {}, 'personalEventsTable');
         }
-        
-        // 重新填充团队事件表格
         const teamTable = document.getElementById('teamEventsTable');
         if (teamTable) {
-            populateTable(teamTable, window.hardmission || {}, 'teamEventsTable', true);
+            populateTable(teamTable, window.hardmission || {}, 'teamEventsTable');
         }
-        
-        // 清除勾选状态缓存，重新计算
-        localStorage.removeItem('personalEventsTable-checkedState');
-        localStorage.removeItem('teamEventsTable-checkedState');
+    }
+
+    // 直接删除（卡片按钮用）
+    function deleteEventDirect(type, key) {
+        const isPersonal = type === 'personal';
+        if (isPersonal) {
+            if (window.mission && window.mission[key]) delete window.mission[key];
+        } else {
+            if (window.hardmission && window.hardmission[key]) delete window.hardmission[key];
+        }
+        // 同步勾选状态存储
+        const tableId = isPersonal ? 'personalEventsTable' : 'teamEventsTable';
+        const savedState = JSON.parse(localStorage.getItem(`${tableId}-checkedState`)) || {};
+        if (savedState[key] !== undefined) {
+            delete savedState[key];
+            localStorage.setItem(`${tableId}-checkedState`, JSON.stringify(savedState));
+        }
+        saveEventsToStorage();
+
+        // 刷新界面
+        refreshEventManagement();
     }
 
     // 公共接口
@@ -1765,16 +1822,18 @@ window.eventManagement = (() => {
         populateTable,
         loadEventsFromStorage,
         saveEventsToStorage,
-        editEvent,
-        deleteEvent,
-        bindTableRowContextMenu,
+        // 旧函数已移除：右键/动画
         initializeEventData,
-        triggerTableAnimation,
-        setAddEventFormsVisibility,
+        
         // 新的占位符功能
         editPlaceholder: openPlaceholderEditModal,
         deletePlaceholder: deletePlaceholder,
         removePlaceholderValue: removePlaceholderValue,
-        setupEventSearch
+        setupEventSearch,
+        setupEventCardSearch,
+        // 新卡片渲染 & 刷新
+        populateCards,
+    refreshEventManagement,
+    bulkToggleSelection
     };
 })();

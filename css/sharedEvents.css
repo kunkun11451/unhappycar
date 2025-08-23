@@ -280,11 +280,45 @@
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
+/* 未启用的事件卡片（设置页） */
+.shared-event-card.disabled {
+    opacity: 0.65;
+    filter: grayscale(0.6);
+    border-style: dashed;
+    border-color: rgba(255, 255, 255, 0.25);
+}
+.shared-event-card.disabled .shared-card-content,
+.shared-event-card.disabled .shared-card-title,
+.shared-event-card.disabled .shared-card-placeholders li {
+    color: rgba(200, 200, 200, 0.6);
+}
+.shared-event-card.disabled .shared-card-btn.edit-btn,
+.shared-event-card.disabled .shared-card-btn.delete-btn {
+    opacity: 0.7;
+}
+.shared-event-card.disabled .shared-card-btn.edit-btn:hover,
+.shared-event-card.disabled .shared-card-btn.delete-btn:hover {
+    filter: brightness(0.95);
+}
+
 .shared-card-header {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     margin-bottom: 10px;
+}
+
+/* Header line with title left and checkbox right */
+.card-header-line {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.card-header-line .custom-checkbox {
+    margin-left: auto;
 }
 
 .shared-card-title {
@@ -363,6 +397,26 @@
 }
 .shared-card-btn.add-btn:hover {
     background-color: #2ecc71;
+}
+
+/* Buttons for settings event management cards */
+.shared-card-btn.edit-btn {
+    background: rgba(52, 152, 219, 0.25);
+    color: #fff;
+    border: 1px solid rgba(52, 152, 219, 0.4);
+    backdrop-filter: blur(8px);
+}
+.shared-card-btn.edit-btn:hover {
+    background: rgba(52, 152, 219, 0.4);
+}
+.shared-card-btn.delete-btn {
+    background: rgba(231, 76, 60, 0.25);
+    color: #fff;
+    border: 1px solid rgba(231, 76, 60, 0.4);
+    backdrop-filter: blur(8px);
+}
+.shared-card-btn.delete-btn:hover {
+    background: rgba(231, 76, 60, 0.4);
 }
 
 .shared-events-empty {

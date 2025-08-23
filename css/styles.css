@@ -529,6 +529,15 @@ img {
     pointer-events: none; /* 禁用鼠标事件 */
 }
 
+/* 搜索高亮通用样式 */
+.search-highlight {
+    background: yellow;
+    color: #000;
+    font-weight: bold;
+    padding: 0 2px;
+    border-radius: 2px;
+}
+
 /* 弹窗切换按钮样式 */
 /* 弹窗标题样式 */
 .popup-title {
@@ -641,138 +650,7 @@ img {
     }
 }
 
-/* 表格样式 */
-.event-table {
-    width: 100%;
-    border-collapse: collapse;
-    text-align: left;
-    table-layout: fixed; /* 固定表格布局，防止列宽动态变化 */
-    position: relative; /* 确保表格位置固定 */
-}
-
-/* 表头固定样式 */
-.event-table thead {
-    position: relative;
-    z-index: 10;
-}
-
-.event-table thead tr {
-    opacity: 1 !important; /* 表头始终可见 */
-    transform: none !important; /* 表头不参与动画 */
-}
-
-.event-table th, .event-table td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    overflow: hidden; /* 隐藏溢出的内容 */
-    text-overflow: ellipsis; /* 显示省略号 */
-    white-space: nowrap; /* 防止换行 */
-    box-sizing: border-box; /* 确保边框包含在宽度内 */
-}
-
-.event-table th {
-    color: white; /* 设置表头文字颜色为白色 */
-    font-weight: bold; /* 加粗文字 */
-    text-align: center; /* 居中对齐 */
-    padding: 10px; /* 增加内边距 */
-    border: 1px solid #ddd; /* 添加边框 */
-    position: relative; /* 固定表头位置 */
-    min-width: 0; /* 防止内容撑开表头 */
-}
-
-/* 为事件表格列设置固定宽度比例 - 使用更精确的定位 */
-.event-table th:nth-child(1), .event-table td:nth-child(1) {
-    width: 8%; /* 序号列 */
-    max-width: 8%;
-    min-width: 8%;
-}
-
-.event-table th:nth-child(2), .event-table td:nth-child(2) {
-    width: 30%; /* 事件标题列 */
-    max-width: 30%;
-    min-width: 30%;
-    white-space: normal; /* 允许标题换行 */
-}
-
-.event-table th:nth-child(3), .event-table td:nth-child(3) {
-    width: 52%; /* 事件内容列 */
-    max-width: 52%;
-    min-width: 52%;
-    white-space: normal; /* 允许内容换行 */
-}
-
-.event-table th:nth-child(4), .event-table td:nth-child(4) {
-    width: 10%; /* 启用列 */
-    max-width: 10%;
-    min-width: 10%;
-}
-
-.event-table tr:hover {
-    background-color: rgba(0, 0, 0, 0.1); /* 添加浅灰色背景 */
-    transform: scale(1.01); /* 略微放大 */
-    transition: all 0.1s ease; /* 平滑过渡效果 */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 添加阴影效果 */
-}
-
-/* 为未启用的行添加暗红色遮罩 */
-.event-table tr.unchecked {
-    background-color: rgba(139, 0, 0, 0.2); /* 暗红色背景 */
-    border: 1.8px solid rgba(139, 0, 0, 0.5); 
-    transition: background-color 0.3s ease; /* 添加平滑过渡效果 */
-}
-
-.event-table tr.unchecked:hover {
-    background-color: rgba(139, 0, 0, 0.3); /* 鼠标悬停时加深遮罩 */
-}
-
-/* 事件行动画效果 */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* 只有tbody中的行才参与动画，表头不参与 */
-.event-table tbody tr {
-    opacity: 0;
-    animation: fadeInUp 0.3s ease forwards;
-}
-
-/* 确保表头行始终可见且不参与动画 */
-.event-table thead tr {
-    opacity: 1 !important;
-    transform: none !important;
-    animation: none !important;
-}
-
-/* 设置每行的动画延迟，实现逐行出现的效果 - 加快速度 */
-/* 只为tbody中的行设置动画延迟 */
-.event-table tbody tr:nth-child(1) { animation-delay: 0.005s; }
-.event-table tbody tr:nth-child(2) { animation-delay: 0.01s; }
-.event-table tbody tr:nth-child(3) { animation-delay: 0.015s; }
-.event-table tbody tr:nth-child(4) { animation-delay: 0.02s; }
-.event-table tbody tr:nth-child(5) { animation-delay: 0.025s; }
-.event-table tbody tr:nth-child(6) { animation-delay: 0.03s; }
-.event-table tbody tr:nth-child(7) { animation-delay: 0.035s; }
-.event-table tbody tr:nth-child(8) { animation-delay: 0.04s; }
-.event-table tbody tr:nth-child(9) { animation-delay: 0.045s; }
-.event-table tbody tr:nth-child(10) { animation-delay: 0.05s; }
-.event-table tbody tr:nth-child(n+11) { animation-delay: 0.055s; }
-
-/* 表格行重新加载动画类 */
-.event-table tbody tr.animate-row {
-    animation: none;
-    opacity: 0;
-}
-
-.event-table tbody tr.animate-row.show {
-    animation: fadeInUp 0.23s ease forwards;
-}
+/* 表格相关样式已废弃（迁移到卡片式界面），故移除 */
 
 /* From Uiverse.io by KhaledMatalkah */
 .custom-checkbox {
@@ -839,155 +717,15 @@ img {
   transition: background-color 1.3s, border-color 1.3s, color 1.3s, transform 0.3s;
 }
 
-/* 右键菜单样式 */
-.context-menu {
-    position: fixed;
-    background: #fff;
-    border: 1px solid #ccc;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    z-index: 1500;
-    border-radius: 5px;
-    padding: 5px 0;
-    font-size: 14px;
-    opacity: 0;
-    transform: scale(0.9);
-    transition: opacity 0.15s ease, transform 0.15s ease;
-}
+/* 右键菜单样式已废弃，移除 */
 
-.context-menu.visible {
-    opacity: 1;
-    transform: scale(1);
-}
+/* 旧弹窗展开/收起动画已废弃，移除 */
 
-/* 弹窗展开和收起动画 */
-@keyframes slideDown {
-    from {
-        transform: translateY(-20%);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
+/* 旧表格高亮样式已废弃，移除 */
 
-@keyframes slideUp {
-    from {
-        transform: translateY(0);
-        opacity: 1;
-    }
-    to {
-        transform: translateY(-20%);
-        opacity: 0;
-    }
-}
+/* 触摸涟漪反馈已废弃，移除 */
 
-/* 高亮行样式 */
-.highlighted-row {
-    background-color: rgba(51, 150, 217, 0.3) !important;
-    position: relative;
-    z-index: 1;
-    box-shadow: 0 0 10px rgba(51, 150, 217, 0.5);
-    transition: all 0.2s ease;
-}
-
-.highlighted-row::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border: 2px solid #3396D9;
-    pointer-events: none;
-    animation: pulse 1.5s infinite alternate;
-    z-index: -1;
-}
-
-@keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(51, 150, 217, 0.4); }
-    100% { box-shadow: 0 0 0 8px rgba(51, 150, 217, 0); }
-}
-
-/* 事件表格行选中时文字加粗 */
-.highlighted-row td {
-    font-weight: bold;
-    color: #ffffff;
-}
-
-/* 触摸反馈效果 */
-.touch-feedback {
-    position: absolute;
-    border-radius: 50%;
-    pointer-events: none;
-    background-color: rgba(51, 150, 217, 0.3);
-    transform: scale(0);
-    z-index: 9999;
-    animation: ripple 0.6s linear;
-}
-
-@keyframes ripple {
-    to {
-        transform: scale(4);
-        opacity: 0;
-    }
-}
-
-/* 弹窗显示时的动画 */
-.edit-event-form.show {
-    animation: slideDown 0.3s ease-out forwards;
-}
-
-/* 弹窗隐藏时的动画 */
-.edit-event-form.hide {
-    animation: slideUp 0.3s ease-in forwards;
-}
-
-/* 编辑事件弹窗样式 */
-.edit-event-form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 10px;
-    background-color: #f9f9f9;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    margin-top: 10px;
-}
-
-.edit-event-buttons {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-}
-
-.edit-event-form input,
-.edit-event-form textarea {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 14px;
-}
-
-.edit-event-form button {
-    padding: 8px 12px;
-    border: none;
-    border-radius: 5px;
-    font-size: 14px;
-    cursor: pointer;
-}
-
-.edit-event-form button#saveEventButton {
-    background-color: #3498db;
-    color: white;
-}
-
-.edit-event-form button#deleteEventButton {
-    background-color: #e74c3c;
-    color: white;
-}
+/* 旧编辑事件弹窗样式已废弃，移除 */
 
 /* 输入框和文本域样式 */
 .input-field, .textarea-field {

@@ -118,23 +118,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (currentActiveOption === eventManagement) {
                 return; // 如果当前已经在事件管理界面，则不响应
             }
-            // 确保在加载内容前隐藏添加事件表单
-            if (typeof window.eventManagement.setAddEventFormsVisibility === 'function') {
-                window.eventManagement.setAddEventFormsVisibility(false, 0);
-            }
-            
             // 使用 events.js 模块中的事件管理功能
             const eventManagementContent = window.eventManagement.loadEventManagement();
             selectOption(eventManagement, "事件管理", eventManagementContent);
             currentActiveOption = eventManagement; // 更新当前活跃选项
-            
-            // 延时确保DOM已经更新，然后触发表格动画
-            setTimeout(() => {
-                const personalTableBody = document.getElementById('personalEventsTable');
-                if (personalTableBody && typeof window.eventManagement.triggerTableAnimation === 'function') {
-                    window.eventManagement.triggerTableAnimation(personalTableBody);
-                }
-            }, 100);
+
         });
     }
 
