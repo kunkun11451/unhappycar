@@ -6,8 +6,15 @@ window.eventManagement = (() => {
     const statusFilter = { personal: 'all', team: 'all' };
 
     // 预设存取
-    function getPresetKey(/* unified */) {
-        return 'eventEnabledPresets';
+    function isNoChallengeActive() {
+        try { return !!(window.noChallengeMode && window.noChallengeMode.active); } catch { return false; }
+    }
+    // 勾选状态键（模式感知）
+    function getPersonalCheckedKey() {
+        return isNoChallengeActive() ? 'nc_personalEventsTable-checkedState' : 'personalEventsTable-checkedState';
+    }
+    function getPresetKey() {
+        return isNoChallengeActive() ? 'nc_eventEnabledPresets' : 'eventEnabledPresets';
     }
     function loadPresets() {
         try { return JSON.parse(localStorage.getItem(getPresetKey()) || '{}') || {}; } catch { return {}; }
@@ -16,10 +23,10 @@ window.eventManagement = (() => {
         try { localStorage.setItem(getPresetKey(), JSON.stringify(presets || {})); } catch {}
     }
     function snapshotAll() {
-        const personalChecked = JSON.parse(localStorage.getItem('personalEventsTable-checkedState') || '{}');
+        const personalChecked = JSON.parse(localStorage.getItem(getPersonalCheckedKey()) || '{}');
         const teamChecked = JSON.parse(localStorage.getItem('teamEventsTable-checkedState') || '{}');
         return {
-            personalEvents: JSON.parse(JSON.stringify(window.mission || {})),
+            personalEvents: JSON.parse(JSON.stringify(isNoChallengeActive() ? (window.noChallengeMission || {}) : (window.mission || {}))),
             teamEvents: JSON.parse(JSON.stringify(window.hardmission || {})),
             personalCheckedState: JSON.parse(JSON.stringify(personalChecked)),
             teamCheckedState: JSON.parse(JSON.stringify(teamChecked)),
@@ -28,9 +35,13 @@ window.eventManagement = (() => {
     }
     function applyPresetAll(preset) {
         if (!preset) return;
-        window.mission = JSON.parse(JSON.stringify(preset.personalEvents || {}));
+        if (isNoChallengeActive()) {
+            window.noChallengeMission = JSON.parse(JSON.stringify(preset.personalEvents || {}));
+        } else {
+            window.mission = JSON.parse(JSON.stringify(preset.personalEvents || {}));
+        }
         window.hardmission = JSON.parse(JSON.stringify(preset.teamEvents || {}));
-        localStorage.setItem('personalEventsTable-checkedState', JSON.stringify(preset.personalCheckedState || {}));
+    localStorage.setItem(getPersonalCheckedKey(), JSON.stringify(preset.personalCheckedState || {}));
         localStorage.setItem('teamEventsTable-checkedState', JSON.stringify(preset.teamCheckedState || {}));
         saveEventsToStorage();
         refreshEventManagement();
@@ -227,9 +238,10 @@ window.eventManagement = (() => {
                 });
                 const update = document.createElement('button'); update.className='icon-btn'; styleColored(update,'blue'); const ui=document.createElement('div'); ui.className='btn-icon'; ui.textContent='更新'; update.appendChild(ui);
                 update.addEventListener('click', ()=>{
-                    const personalChecked = JSON.parse(localStorage.getItem('personalEventsTable-checkedState')||'{}');
+                    const personalChecked = JSON.parse(localStorage.getItem(getPersonalCheckedKey())||'{}');
                     const teamChecked = JSON.parse(localStorage.getItem('teamEventsTable-checkedState')||'{}');
-                    const pc = countEnabledTotal(window.mission||{}, personalChecked);
+                    const currentPersonal = isNoChallengeActive() ? (window.noChallengeMission||{}) : (window.mission||{});
+                    const pc = countEnabledTotal(currentPersonal, personalChecked);
                     const tc = countEnabledTotal(window.hardmission||{}, teamChecked);
                     const lines = `使用当前状态覆盖预设 "${n}"？\n\n当前事件数量：\n个人事件：${pc.enabled}/${pc.total}\n团队事件：${tc.enabled}/${tc.total}`;
                     showGlassConfirm(lines, ()=>{
@@ -535,7 +547,8 @@ window.eventManagement = (() => {
             return;
         }
         const tableId = type === 'personal' ? 'personalEventsTable' : 'teamEventsTable';
-        const savedState = JSON.parse(localStorage.getItem(`${tableId}-checkedState`) || '{}');
+        const savedStateKey = type === 'personal' ? getPersonalCheckedKey() : `${tableId}-checkedState`;
+        const savedState = JSON.parse(localStorage.getItem(savedStateKey) || '{}');
 
         keys.forEach(title => {
             const event = tasks[title] || {};
@@ -555,6 +568,7 @@ window.eventManagement = (() => {
             }
 
             const checked = savedState[title] !== undefined ? !!savedState[title] : true;
+            const hideContent = isNoChallengeActive() && type === 'personal';
             card.innerHTML = `
                 <div class="shared-card-header">
                     <div class="card-header-line" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
@@ -565,7 +579,7 @@ window.eventManagement = (() => {
                         </label>
                     </div>
                 </div>
-                <p class="shared-card-content">${event.内容 || ''}</p>
+                <p class="shared-card-content" style="${hideContent ? 'display:none;' : ''}">${hideContent ? '' : (event.内容 || '')}</p>
                 ${placeholdersHtml}
                 <div class="shared-card-footer" style="display:flex;gap:8px;justify-content:flex-end;">
                     <button class="shared-card-btn edit-btn" title="编辑">编辑</button>
@@ -581,9 +595,9 @@ window.eventManagement = (() => {
             // 绑定启用勾选
             const checkbox = card.querySelector('.enable-checkbox');
             checkbox.addEventListener('change', () => {
-                const state = JSON.parse(localStorage.getItem(`${tableId}-checkedState`) || '{}');
+                const state = JSON.parse(localStorage.getItem(savedStateKey) || '{}');
                 state[title] = checkbox.checked;
-                localStorage.setItem(`${tableId}-checkedState`, JSON.stringify(state));
+                localStorage.setItem(savedStateKey, JSON.stringify(state));
                 // 切换未启用样式
                 card.classList.toggle('disabled', !checkbox.checked);
                 updateEnabledCountForCards(type);
@@ -612,11 +626,12 @@ window.eventManagement = (() => {
     }
 
     function updateEnabledCountForCards(type, forcedEnabled = null, forcedTotal = null) {
-        const tableId = type === 'personal' ? 'personalEventsTable' : 'teamEventsTable';
+    const tableId = type === 'personal' ? 'personalEventsTable' : 'teamEventsTable';
         const counterId = type === 'personal' ? 'personalEnabledCount' : 'teamEnabledCount';
-        const tasks = type === 'personal' ? (window.mission || {}) : (window.hardmission || {});
+        const tasks = type === 'personal' ? (isNoChallengeActive() ? (window.noChallengeMission || {}) : (window.mission || {})) : (window.hardmission || {});
         const total = forcedTotal !== null ? forcedTotal : Object.keys(tasks).length;
-        const savedState = JSON.parse(localStorage.getItem(`${tableId}-checkedState`) || '{}');
+    const savedStateKey = type === 'personal' ? getPersonalCheckedKey() : `${tableId}-checkedState`;
+    const savedState = JSON.parse(localStorage.getItem(savedStateKey) || '{}');
         let enabled = forcedEnabled !== null ? forcedEnabled : 0;
         if (forcedEnabled === null) {
             enabled = Object.keys(tasks).reduce((acc, k) => acc + (savedState[k] !== undefined ? (savedState[k] ? 1 : 0) : 1), 0);
@@ -627,15 +642,16 @@ window.eventManagement = (() => {
 
     // 批量选择：mode = 'toggleAll' | 'invert'；onlyVisible=true 时仅作用于当前显示的卡片（受搜索过滤影响）
     function bulkToggleSelection(type, mode = 'toggleAll', onlyVisible = true) {
-        const gridId = type === 'personal' ? 'personalEventsGrid' : 'teamEventsGrid';
-        const tableId = type === 'personal' ? 'personalEventsTable' : 'teamEventsTable';
+    const gridId = type === 'personal' ? 'personalEventsGrid' : 'teamEventsGrid';
+    const tableId = type === 'personal' ? 'personalEventsTable' : 'teamEventsTable';
         const grid = document.getElementById(gridId);
         if (!grid) return;
         const cards = Array.from(grid.querySelectorAll('.shared-event-card'))
             .filter(card => !onlyVisible || card.style.display !== 'none');
         if (cards.length === 0) return;
 
-        const savedState = JSON.parse(localStorage.getItem(`${tableId}-checkedState`) || '{}');
+    const savedStateKey = type === 'personal' ? getPersonalCheckedKey() : `${tableId}-checkedState`;
+    const savedState = JSON.parse(localStorage.getItem(savedStateKey) || '{}');
         const checkboxes = cards.map(card => ({
             card,
             title: card.dataset.title,
@@ -659,7 +675,7 @@ window.eventManagement = (() => {
             savedState[title] = next;
             card.classList.toggle('disabled', !next);
         });
-        localStorage.setItem(`${tableId}-checkedState`, JSON.stringify(savedState));
+    localStorage.setItem(savedStateKey, JSON.stringify(savedState));
         updateEnabledCountForCards(type);
     }
 
@@ -668,7 +684,8 @@ window.eventManagement = (() => {
         if (!table) return;
         table.innerHTML = '';
         const tbody = table.tagName.toLowerCase() === 'tbody' ? table : table.querySelector('tbody') || table;
-        const savedState = JSON.parse(localStorage.getItem(`${tableId}-checkedState`) || '{}');
+        const savedStateKey = tableId === 'personalEventsTable' ? getPersonalCheckedKey() : `${tableId}-checkedState`;
+        const savedState = JSON.parse(localStorage.getItem(savedStateKey) || '{}');
         Object.keys(tasks || {}).forEach(key => {
             const row = document.createElement('tr');
             const enableCell = document.createElement('td');
@@ -677,9 +694,9 @@ window.eventManagement = (() => {
             checkbox.checked = savedState[key] !== undefined ? !!savedState[key] : true;
             checkbox.dataset.key = key;
             checkbox.addEventListener('change', () => {
-                const state = JSON.parse(localStorage.getItem(`${tableId}-checkedState`) || '{}');
+                const state = JSON.parse(localStorage.getItem(savedStateKey) || '{}');
                 state[key] = checkbox.checked;
-                localStorage.setItem(`${tableId}-checkedState`, JSON.stringify(state));
+                localStorage.setItem(savedStateKey, JSON.stringify(state));
             });
             enableCell.appendChild(checkbox);
             const titleCell = document.createElement('td');
@@ -696,7 +713,11 @@ window.eventManagement = (() => {
     // 事件数据存取（仅使用原始键名：missions / hardmissions）
     function saveEventsToStorage() {
         try {
-            localStorage.setItem('missions', JSON.stringify(window.mission || {}));
+            if (isNoChallengeActive()) {
+                localStorage.setItem('nc_missions', JSON.stringify(window.noChallengeMission || {}));
+            } else {
+                localStorage.setItem('missions', JSON.stringify(window.mission || {}));
+            }
             localStorage.setItem('hardmissions', JSON.stringify(window.hardmission || {}));
         } catch (e) {
             console.warn('保存事件到本地存储失败:', e);
@@ -705,10 +726,12 @@ window.eventManagement = (() => {
 
     function loadEventsFromStorage() {
         try {
-            const personal = JSON.parse(localStorage.getItem('missions') || 'null');
+            const personal = isNoChallengeActive()
+                ? JSON.parse(localStorage.getItem('nc_missions') || 'null')
+                : JSON.parse(localStorage.getItem('missions') || 'null');
             const team = JSON.parse(localStorage.getItem('hardmissions') || 'null');
             if (personal && typeof personal === 'object') {
-                window.mission = personal;
+                if (isNoChallengeActive()) window.noChallengeMission = personal; else window.mission = personal;
             }
             if (team && typeof team === 'object') {
                 window.hardmission = team;
@@ -734,6 +757,14 @@ window.eventManagement = (() => {
         instructionText.style.color = 'rgb(197, 197, 197)';
         instructionText.style.marginBottom = '10px';
         header.appendChild(instructionText);
+
+        // 不要做挑战模式提示（显示在标题下方）
+        if (isNoChallengeActive()) {
+            const modeHint = document.createElement('div');
+            modeHint.textContent = '当前处于“不要做挑战”模式（本页仅管理该模式的个人事件库，团队事件已隐藏）';
+            modeHint.style.cssText = 'display:inline-block;padding:6px 10px;margin:6px 0 12px;border-radius:10px;color:#fff;background:rgba(99,102,241,.22);border:1px solid rgba(99,102,241,.35);backdrop-filter:blur(8px);font-size:13px;';
+            header.appendChild(modeHint);
+        }
         
         // 创建毛玻璃切换按钮
         const radioContainer = document.createElement('div');
@@ -1094,12 +1125,12 @@ window.eventManagement = (() => {
         
         // 绑定事件监听器
         setTimeout(() => {
-            // 加载事件数据
-            loadEventsFromStorage();
+            // 加载事件数据（该模式下切换为独立库）
+                loadEventsFromStorage();
             
             const personalGrid = document.getElementById('personalEventsGrid');
             const teamGrid = document.getElementById('teamEventsGrid');
-            const missionObj = window.mission || {};
+            const missionObj = isNoChallengeActive() ? (window.noChallengeMission || {}) : (window.mission || {});
             const hardmissionObj = window.hardmission || {};
             populateCards(personalGrid, missionObj, 'personal');
             populateCards(teamGrid, hardmissionObj, 'team');
@@ -1114,14 +1145,14 @@ window.eventManagement = (() => {
                 personalRadio.addEventListener('change', () => {
                     if (personalRadio.checked) {
                         personalEventsInSettings.style.display = 'block';
-                        teamEventsInSettings.style.display = 'none';
+                        teamEventsInSettings.style.display = isNoChallengeActive() ? 'none' : 'block';
                         
                         // 控制添加按钮显示
                         const addPersonalButton = document.getElementById('addPersonalButton');
                         const addTeamButton = document.getElementById('addTeamButton');
                         if (addPersonalButton && addTeamButton) {
                             addPersonalButton.style.display = 'flex';
-                            addTeamButton.style.display = 'none';
+                            addTeamButton.style.display = isNoChallengeActive() ? 'none' : 'flex';
                         }
                         
                         // 更新搜索功能（卡片）
@@ -1133,15 +1164,15 @@ window.eventManagement = (() => {
                 
                 teamRadio.addEventListener('change', () => {
                     if (teamRadio.checked) {
-                        personalEventsInSettings.style.display = 'none';
-                        teamEventsInSettings.style.display = 'block';
+                        personalEventsInSettings.style.display = 'block';
+                        teamEventsInSettings.style.display = isNoChallengeActive() ? 'none' : 'block';
                         
                         // 控制添加按钮显示
                         const addPersonalButton = document.getElementById('addPersonalButton');
                         const addTeamButton = document.getElementById('addTeamButton');
                         if (addPersonalButton && addTeamButton) {
-                            addPersonalButton.style.display = 'none';
-                            addTeamButton.style.display = 'flex';
+                            addPersonalButton.style.display = 'flex';
+                            addTeamButton.style.display = isNoChallengeActive() ? 'none' : 'flex';
                         }
                         
                         // 更新搜索功能（卡片）
@@ -1157,6 +1188,21 @@ window.eventManagement = (() => {
             
             // 初始化搜索功能（默认个人事件卡片）
             setupEventCardSearch('eventSearchInput', '#personalEventsGrid');
+
+            // 在不要做挑战模式下：隐藏团队事件与切换控件
+            if (isNoChallengeActive()) {
+                // 隐藏团队事件区域
+                const teamSection = document.getElementById('teamEventsInSettings');
+                if (teamSection) teamSection.style.display = 'none';
+                // 隐藏切换单选
+                const radioWrap = document.querySelector('.glassmorphism-radio-inputs');
+                if (radioWrap) radioWrap.style.display = 'none';
+                // 确保仅个人事件的添加按钮显示
+                const addPersonalButton = document.getElementById('addPersonalButton');
+                const addTeamButton = document.getElementById('addTeamButton');
+                if (addPersonalButton) addPersonalButton.style.display = 'flex';
+                if (addTeamButton) addTeamButton.style.display = 'none';
+            }
             
         }, 100);
         
@@ -1196,12 +1242,14 @@ window.eventManagement = (() => {
     // 初始化勾选状态
     function initializeCheckboxStates() {
         // 检查个人事件的勾选状态
-        if (window.mission) {
-            const savedState = JSON.parse(localStorage.getItem('personalEventsTable-checkedState')) || {};
+        if (window.mission || window.noChallengeMission) {
+            const personalKey = getPersonalCheckedKey();
+            const currentPersonal = isNoChallengeActive() ? (window.noChallengeMission||{}) : (window.mission||{});
+            const savedState = JSON.parse(localStorage.getItem(personalKey)) || {};
             let needsUpdate = false;
             
             // 为所有存在的事件初始化勾选状态（如果不存在）
-            Object.keys(window.mission).forEach(key => {
+            Object.keys(currentPersonal).forEach(key => {
                 if (savedState[key] === undefined) {
                     savedState[key] = true; // 默认启用
                     needsUpdate = true;
@@ -1210,14 +1258,14 @@ window.eventManagement = (() => {
             
             // 移除不存在的事件的勾选状态
             Object.keys(savedState).forEach(key => {
-                if (!window.mission[key]) {
+                if (!currentPersonal[key]) {
                     delete savedState[key];
                     needsUpdate = true;
                 }
             });
             
             if (needsUpdate) {
-                localStorage.setItem('personalEventsTable-checkedState', JSON.stringify(savedState));
+                localStorage.setItem(personalKey, JSON.stringify(savedState));
             }
         }
         
@@ -1258,22 +1306,27 @@ window.eventManagement = (() => {
         const overlay = document.getElementById('eventModalOverlay');
         const titleInput = document.getElementById('eventTitle');
         const contentInput = document.getElementById('eventContent');
+        const contentFieldWrap = contentInput ? contentInput.closest('.form-field') || contentInput.parentElement : null;
         const placeholdersContainer = document.getElementById('placeholdersContainer');
 
-        currentEditingType = type;
+    currentEditingType = type;
         currentEditingKey = key;
 
         // 重置表单
         titleInput.value = '';
-        contentInput.value = '';
+    // 在不要做挑战模式且为个人事件时，内容固定为空且隐藏内容区域
+    const hideContent = isNoChallengeActive() && type === 'personal';
+    contentInput.value = hideContent ? '' : '';
+    if (contentFieldWrap) contentFieldWrap.style.display = hideContent ? 'none' : '';
         placeholderData = {}; // 重置占位符数据
 
         if (key) {
             // 编辑模式
-            const eventData = (type === 'personal' ? window.mission : window.hardmission)[key];
+            const pool = (type === 'personal' ? (isNoChallengeActive() ? (window.noChallengeMission || {}) : (window.mission || {})) : (window.hardmission || {}));
+            const eventData = pool[key];
             if (eventData) {
                 titleInput.value = key;
-                contentInput.value = eventData.内容;
+                contentInput.value = hideContent ? '' : (eventData.内容 || '');
                 if (eventData.placeholders) {
                     // 安全地复制占位符数据，确保每个值都是数组格式
                     placeholderData = {};
@@ -1298,7 +1351,7 @@ window.eventManagement = (() => {
         // 渲染占位符卡片
         renderPlaceholderCards();
 
-        modal.style.display = 'block';
+    modal.style.display = 'block';
         overlay.style.display = 'block';
     }
 
@@ -1619,14 +1672,18 @@ window.eventManagement = (() => {
 
     function saveEvent() {
         const title = document.getElementById('eventTitle').value.trim();
-        const content = document.getElementById('eventContent').value.trim();
+        const rawContent = document.getElementById('eventContent').value.trim();
+        const isNC = isNoChallengeActive() && currentEditingType === 'personal';
+        const content = isNC ? '' : rawContent;
 
-        if (!title || !content) {
+        if (!title || (!isNC && !content)) {
             alert('事件标题和内容不能为空！');
             return;
         }
 
-        const eventPool = currentEditingType === 'personal' ? window.mission : window.hardmission;
+        const eventPool = currentEditingType === 'personal' 
+            ? (isNoChallengeActive() ? (window.noChallengeMission = window.noChallengeMission || {}) : window.mission)
+            : window.hardmission;
         
         // 检查标题是否重复（仅在新增或编辑时标题有变化的情况下）
         if ((!currentEditingKey || currentEditingKey !== title) && eventPool.hasOwnProperty(title)) {
@@ -1694,11 +1751,17 @@ window.eventManagement = (() => {
     // 导出所有事件
     function exportAllEvents() {
         try {
-            const allEvents = {
-                personalEvents: window.mission || {},
-                teamEvents: window.hardmission || {},
-                exportTime: new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }),
-            };
+            const personalSrc = isNoChallengeActive() ? (window.noChallengeMission || {}) : (window.mission || {});
+            const allEvents = isNoChallengeActive()
+                ? {
+                    personalEvents: personalSrc,
+                    exportTime: new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })
+                }
+                : {
+                    personalEvents: personalSrc,
+                    teamEvents: window.hardmission || {},
+                    exportTime: new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })
+                };
             
             const dataStr = JSON.stringify(allEvents, null, 2);
             const dataBlob = new Blob([dataStr], { type: 'application/json' });
@@ -1733,16 +1796,30 @@ window.eventManagement = (() => {
                 try {
                     const importedData = JSON.parse(e.target.result);
                     
-                    // 验证数据格式
-                    if (!importedData.personalEvents || !importedData.teamEvents) {
-                        alert('文件格式不正确，请选择正确的事件导出文件');
-                        return;
+                    // 验证数据格式（模式感知）
+                    if (isNoChallengeActive()) {
+                        if (!importedData.personalEvents) {
+                            alert('文件格式不正确：需要包含 personalEvents');
+                            return;
+                        }
+                    } else {
+                        if (!importedData.personalEvents || !importedData.teamEvents) {
+                            alert('文件格式不正确，请选择正确的事件导出文件');
+                            return;
+                        }
                     }
                     
                     // 确认导入操作
-                    const confirmMessage = `将要导入：
-- 个人事件：${Object.keys(importedData.personalEvents).length} 个
-- 团队事件：${Object.keys(importedData.teamEvents).length} 个
+                    const personalCount = Object.keys(importedData.personalEvents || {}).length;
+                    const teamCount = Object.keys(importedData.teamEvents || {}).length;
+                    const confirmMessage = isNoChallengeActive()
+                        ? `将要导入：
+- 个人事件：${personalCount} 个
+
+注意：当前处于“不要做挑战”模式，将不会导入团队事件。是否继续？`
+                        : `将要导入：
+- 个人事件：${personalCount} 个
+- 团队事件：${teamCount} 个
 
 注意：这将覆盖当前所有事件数据，是否继续？`;
                     
@@ -1750,9 +1827,16 @@ window.eventManagement = (() => {
                         return;
                     }
                     
-                    // 导入数据
-                    window.mission = importedData.personalEvents;
-                    window.hardmission = importedData.teamEvents;
+                    // 导入数据（模式感知）
+                    const inNC = isNoChallengeActive();
+                    if (inNC) {
+                        window.noChallengeMission = importedData.personalEvents;
+                    } else {
+                        window.mission = importedData.personalEvents;
+                    }
+                    if (!inNC && importedData.teamEvents) {
+                        window.hardmission = importedData.teamEvents;
+                    }
                     
                     // 保存到本地存储
                     saveEventsToStorage();
@@ -1779,7 +1863,8 @@ window.eventManagement = (() => {
         const personalGrid = document.getElementById('personalEventsGrid');
         const teamGrid = document.getElementById('teamEventsGrid');
         if (personalGrid) {
-            populateCards(personalGrid, window.mission || {}, 'personal');
+            const personalSrc = isNoChallengeActive() ? (window.noChallengeMission || {}) : (window.mission || {});
+            populateCards(personalGrid, personalSrc, 'personal');
         }
         if (teamGrid) {
             populateCards(teamGrid, window.hardmission || {}, 'team');
@@ -1787,7 +1872,8 @@ window.eventManagement = (() => {
         // 回退：若存在旧表格结构，也刷新
         const personalTable = document.getElementById('personalEventsTable');
         if (personalTable) {
-            populateTable(personalTable, window.mission || {}, 'personalEventsTable');
+            const personalSrc = isNoChallengeActive() ? (window.noChallengeMission || {}) : (window.mission || {});
+            populateTable(personalTable, personalSrc, 'personalEventsTable');
         }
         const teamTable = document.getElementById('teamEventsTable');
         if (teamTable) {
@@ -1799,16 +1885,21 @@ window.eventManagement = (() => {
     function deleteEventDirect(type, key) {
         const isPersonal = type === 'personal';
         if (isPersonal) {
-            if (window.mission && window.mission[key]) delete window.mission[key];
+            if (isNoChallengeActive()) {
+                if (window.noChallengeMission && window.noChallengeMission[key]) delete window.noChallengeMission[key];
+            } else {
+                if (window.mission && window.mission[key]) delete window.mission[key];
+            }
         } else {
             if (window.hardmission && window.hardmission[key]) delete window.hardmission[key];
         }
         // 同步勾选状态存储
         const tableId = isPersonal ? 'personalEventsTable' : 'teamEventsTable';
-        const savedState = JSON.parse(localStorage.getItem(`${tableId}-checkedState`)) || {};
+        const savedStateKey = isPersonal ? getPersonalCheckedKey() : `${tableId}-checkedState`;
+        const savedState = JSON.parse(localStorage.getItem(savedStateKey)) || {};
         if (savedState[key] !== undefined) {
             delete savedState[key];
-            localStorage.setItem(`${tableId}-checkedState`, JSON.stringify(savedState));
+            localStorage.setItem(savedStateKey, JSON.stringify(savedState));
         }
         saveEventsToStorage();
 
