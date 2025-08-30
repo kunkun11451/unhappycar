@@ -1,40 +1,41 @@
-// 从mission.js获取事件数据
+// 从事件库获取可用键（模式感知：正常模式=window.mission；不要做挑战=window.noChallengeMission）
 function getMissionKeys() {
     const enabledKeys = [];
     const checkboxes = document.querySelectorAll('#personalEventsTable input[type="checkbox"]');
-    
+    const isNC = !!(window.noChallengeMode && window.noChallengeMode.active);
+
     // 如果表格不存在（用户还没打开事件管理），从localStorage读取勾选状态
     if (checkboxes.length === 0) {
-        // 确保事件数据已从localStorage加载
+        // 优先确保事件数据已从localStorage加载（会加载 nc_missions 或 missions 到对应 window 对象）
         if (window.eventManagement && typeof window.eventManagement.loadEventsFromStorage === 'function') {
-            window.eventManagement.loadEventsFromStorage();
+            try { window.eventManagement.loadEventsFromStorage(); } catch {}
         }
-        
-        // 确保mission对象存在
-        const missionObj = window.mission || (typeof mission !== 'undefined' ? mission : {});
+
+        // 选择当前模式对应的事件对象
+        const missionObj = isNC
+            ? (window.noChallengeMission || {})
+            : (window.mission || (typeof mission !== 'undefined' ? mission : {}));
+
         if (!missionObj || Object.keys(missionObj).length === 0) {
-            console.error('mission对象未找到或为空');
+            console.error('事件对象未找到或为空（模式：', isNC ? '不要做挑战' : '正常', '）');
             return [];
         }
-        
-        // 从localStorage读取保存的勾选状态
-        const savedState = JSON.parse(localStorage.getItem('personalEventsTable-checkedState')) || {};
+
+    // 从localStorage读取保存的勾选状态（模式感知，与管理页一致）
+    const savedStateKey = isNC ? 'nc_personalEventsTable-checkedState' : 'personalEventsTable-checkedState';
+    const savedState = JSON.parse(localStorage.getItem(savedStateKey)) || {};
         const allKeys = Object.keys(missionObj);
-        
-        console.log('从localStorage加载个人事件:', {
-            totalEvents: allKeys.length,
-            savedState: Object.keys(savedState).length > 0 ? '有保存状态' : '无保存状态'
-        });
-        
+
         // 如果没有保存的状态，默认所有事件都启用
         if (Object.keys(savedState).length === 0) {
             return allKeys;
         }
-        
+
         // 根据保存的状态过滤启用的事件
         return allKeys.filter(key => savedState[key] !== false);
     }
-    
+
+    // 已打开管理表格时，直接依据勾选框
     checkboxes.forEach(checkbox => {
         if (checkbox.checked) {
             enabledKeys.push(checkbox.dataset.key);
@@ -136,6 +137,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 刷新单个事件
     function refreshSingleMission(box, index) {
+        const frozen = !!(window.noChallengeMode && window.noChallengeMode.active && typeof window.noChallengeMode.shouldFreezeIndex === 'function' && window.noChallengeMode.shouldFreezeIndex(index));
         // 检查重抽次数功能是否启用
         if (window.rerollSettings && !window.rerollSettings.enabled) {
             // 重抽次数功能关闭时，允许随意重抽个人事件
@@ -159,8 +161,11 @@ document.addEventListener('DOMContentLoaded', function() {
             window.eventManagement.loadEventsFromStorage();
         }
         
-        // 确保能够访问mission对象
-        const missionObj = window.mission || (typeof mission !== 'undefined' ? mission : {});
+        // 确保能够访问事件对象（模式感知）
+        const isNC = !!(window.noChallengeMode && window.noChallengeMode.active);
+        const missionObj = isNC
+            ? (window.noChallengeMission || {})
+            : (window.mission || (typeof mission !== 'undefined' ? mission : {}));
         if (!missionObj || !missionObj[originalMissionKey]) {
             console.error('无法找到事件数据:', originalMissionKey);
             alert('事件数据加载失败，请刷新页面重试。');
@@ -171,31 +176,31 @@ document.addEventListener('DOMContentLoaded', function() {
         // 处理占位符
         const { title: missionKey, content: baseContent } = processPlaceholders(originalMissionKey, missionData);
 
-        // 重置动画
-        box.classList.remove('active');
+        // 重置动画（本机P位冻结时不做可见动画，避免闪烁）
+        if (!frozen) {
+            box.classList.remove('active');
+        }
 
         // 设置事件内容
         const titleElement = box.querySelector('.mission-title');
         const contentElement = box.querySelector('.mission-content');
 
-        // 隐藏玩家标识
+        // 隐藏玩家标识（冻结时不改动）
         const playerTag = box.querySelector('.player-tag');
-        if (playerTag) {
+        if (!frozen && playerTag) {
             playerTag.classList.remove('show');
         }
 
-        // 清空内容
-        titleElement.textContent = '';
-        contentElement.textContent = '';
-        contentElement.innerHTML = '';
-
-        // 添加淡出效果
-        box.style.opacity = 0;
+        if (!frozen) {
+            // 清空内容
+            titleElement.textContent = '';
+            contentElement.textContent = '';
+            contentElement.innerHTML = '';
+            // 添加淡出效果
+            box.style.opacity = 0;
+        }
 
         setTimeout(() => {
-            // 设置新内容
-            titleElement.textContent = missionKey;
-
             let modifiedContent = baseContent;
 
             // 添加随机逻辑 - 根据重抽次数设置决定是否触发
@@ -248,23 +253,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 rerollChance += 0.05;
             }
 
-            // 确保内容被正确更新到卡片
-            contentElement.textContent = modifiedContent;
-            contentElement.innerHTML = modifiedContent;
-
-            // 添加淡入效果
-            box.style.opacity = 1;
-            box.classList.add('active');
-
-            // 显示玩家标识
-            if (playerTag) {
-                setTimeout(() => {
-                    playerTag.classList.add('show');
-                }, 500); // 在内容显示后再显示玩家标识
+            if (frozen) {
+                // 不改写可见内容，仅更新真实数据供同步
+                if (titleElement) titleElement.dataset.realTitle = missionKey;
+                if (contentElement) contentElement.dataset.realContent = modifiedContent;
+                // 若需要，可在此处再次遮蔽（通常已是问号，无需处理）
+            } else {
+                // 设置新内容
+                titleElement.textContent = missionKey;
+                // 确保内容被正确更新到卡片
+                contentElement.textContent = modifiedContent;
+                contentElement.innerHTML = modifiedContent;
+                // 添加淡入效果
+                box.style.opacity = 1;
+                box.classList.add('active');
+                // 显示玩家标识
+                if (playerTag) {
+                    setTimeout(() => {
+                        playerTag.classList.add('show');
+                    }, 500);
+                }
             }
 
             // 更新事件历史记录
-            if (window.eventHistoryModule && window.eventHistoryModule.eventHistoryData.length > 0) {
+            if (!(window.noChallengeMode && window.noChallengeMode.active) && window.eventHistoryModule && window.eventHistoryModule.eventHistoryData.length > 0) {
                 const lastRound = window.eventHistoryModule.eventHistoryData[
                     window.eventHistoryModule.eventHistoryData.length - 1
                 ];
@@ -279,7 +291,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     currentEvent.replacedContents.push(modifiedContent);
                 }
             }
-        }, 300);
+    }, 300);
 
         // 减少重抽次数（点击卡片时至少需要 1 次）
         updateRerollCount(-1);
@@ -297,8 +309,11 @@ document.addEventListener('DOMContentLoaded', function() {
             window.eventManagement.loadEventsFromStorage();
         }
         
-        // 确保能够访问mission对象
-        const missionObj = window.mission || (typeof mission !== 'undefined' ? mission : {});
+        // 确保能够访问事件对象（模式感知）
+        const isNC = !!(window.noChallengeMode && window.noChallengeMode.active);
+        const missionObj = isNC
+            ? (window.noChallengeMission || {})
+            : (window.mission || (typeof mission !== 'undefined' ? mission : {}));
         if (!missionObj || Object.keys(missionObj).length === 0) {
             alert('事件数据未加载，请刷新页面重试。');
             return;
@@ -426,7 +441,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 在所有任务处理完成后，记录到历史
         setTimeout(() => {
-            if (roundEvents.length > 0) {
+            if (roundEvents.length > 0 && !(window.noChallengeMode && window.noChallengeMode.active)) {
                 window.eventHistoryModule.pushEventRoundHistory(roundEvents);
             }
         }, 350); // 确保在内容设置完成后再记录
@@ -435,6 +450,14 @@ document.addEventListener('DOMContentLoaded', function() {
         // hardModeButton.style.display = 'inline-block';
     }    // 显示困难事件的函数
     function displayHardMissions() {
+        // 不要做挑战：彻底禁用团体事件展示
+        if (window.noChallengeMode && window.noChallengeMode.active) {
+            const cont = document.getElementById('hardMissionsContainer');
+            const sel = document.getElementById('selectedHardMission');
+            if (cont) cont.style.display = 'none';
+            if (sel) sel.style.display = 'none';
+            return;
+        }
         // 获取三个随机困难事件
         const hardMissionKeys = typeof getHardMissionKeys === 'function' ? getHardMissionKeys() : [];
         if (hardMissionKeys.length === 0) {

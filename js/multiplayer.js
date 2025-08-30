@@ -31,6 +31,16 @@ document.addEventListener('DOMContentLoaded', function () {
     let currentPlayerCount = 1; // 当前房间玩家数量
     let heartbeatInterval = null; // 心跳包定时器
     let lastHeartbeatTime = null; // 上次心跳包发送时间
+    let selectedGameMode = 'classic'; // 默认选中经典模式
+
+    // 获取游戏模式的显示名称
+    function getGameModeDisplayName(modeId) {
+        const modes = {
+            'classic': '🎲 经典模式',
+            'nochallenge': '🚫 不要做挑战'
+        };
+        return modes[modeId] || '🎮 更多玩法';
+    }
 
     // 默认禁用按钮
     hostGameButton.disabled = true;
@@ -1005,10 +1015,51 @@ document.addEventListener('DOMContentLoaded', function () {
         function createRoom(customRoomId = null) {
             isHost = true;
             const message = customRoomId ? 
-                { type: 'createRoom', customRoomId: customRoomId } : 
-                { type: 'createRoom' };
+                { type: 'createRoom', customRoomId: customRoomId, gameMode: selectedGameMode } : 
+                { type: 'createRoom', gameMode: selectedGameMode };
             ws.send(JSON.stringify(message));
         }
+
+        // 更多玩法按钮
+        const moreGameModesButton = document.createElement('button');
+        moreGameModesButton.textContent = getGameModeDisplayName(selectedGameMode);
+        moreGameModesButton.style.cssText = `
+            width: 100%;
+            padding: 15px;
+            border: 2px solid rgba(255, 200, 100, 0.4);
+            border-radius: 8px;
+            background: rgba(255, 200, 100, 0.15);
+            backdrop-filter: blur(10px);
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(255, 200, 100, 0.1);
+            outline: none;
+        `;
+
+        // 更多玩法按钮悬停效果
+        moreGameModesButton.addEventListener('mouseover', () => {
+            moreGameModesButton.style.background = 'rgba(255, 200, 100, 0.25)';
+            moreGameModesButton.style.transform = 'translateY(-3px)';
+            moreGameModesButton.style.boxShadow = '0 8px 25px rgba(255, 200, 100, 0.2)';
+            moreGameModesButton.style.borderColor = 'rgba(255, 200, 100, 0.6)';
+        });
+
+        moreGameModesButton.addEventListener('mouseout', () => {
+            moreGameModesButton.style.background = 'rgba(255, 200, 100, 0.15)';
+            moreGameModesButton.style.transform = 'translateY(0)';
+            moreGameModesButton.style.boxShadow = '0 4px 15px rgba(255, 200, 100, 0.1)';
+            moreGameModesButton.style.borderColor = 'rgba(255, 200, 100, 0.4)';
+        });
+
+        // 更多玩法按钮点击事件
+        moreGameModesButton.addEventListener('click', () => {
+            hideDialog();
+            showMoreGameModesDialog();
+        });
 
         // 组装对话框
         customContainer.appendChild(customButton);
@@ -1019,6 +1070,7 @@ document.addEventListener('DOMContentLoaded', function () {
         dialog.appendChild(quickCreateButton);
         dialog.appendChild(separator);
         dialog.appendChild(customContainer);
+        dialog.appendChild(moreGameModesButton);
         dialog.appendChild(cancelButton);
 
         overlay.appendChild(dialog);
@@ -1033,6 +1085,408 @@ document.addEventListener('DOMContentLoaded', function () {
             dialog.style.transform = 'scale(1) translateY(0)';
         });
     }
+
+    // 显示更多玩法选择对话框
+    function showMoreGameModesDialog() {
+        // 创建遮罩层
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0);
+            backdrop-filter: blur(0px);
+            z-index: 10000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        `;
+
+        // 创建对话框
+        const dialog = document.createElement('div');
+        dialog.style.cssText = `
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(15px);
+            border-radius: 15px;
+            padding: 30px;
+            width: 400px;
+            max-width: 90vw;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transform: scale(0.7) translateY(-30px);
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-sizing: border-box;
+        `;
+
+        // 标题
+        const title = document.createElement('h3');
+        title.textContent = '更多玩法选择';
+        title.style.cssText = `
+            margin: 0 0 25px 0;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        `;
+
+        // 玩法选项容器
+        const modesContainer = document.createElement('div');
+        modesContainer.style.cssText = `
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        `;
+
+        // 玩法选项（仅保留经典模式与“不要做挑战”）
+        const gameModes = [
+            {
+                id: 'classic',
+                name: '🎲 经典模式',
+                description: '随机角色随机事件。',
+                color: 'rgba(100, 255, 150, 0.15)',
+                borderColor: 'rgba(100, 255, 150, 0.4)'
+            },
+            {
+                id: 'nochallenge',
+                name: '🚫 不要做挑战',
+                description: '玩家看不到自己的事件，做了自己事件的内容扣分。诱导其他玩家出错以获得胜利。',
+                color: 'rgba(255, 200, 100, 0.15)',
+                borderColor: 'rgba(255, 200, 100, 0.4)'
+            }
+        ];
+
+        // 当前选中的模式
+        let selectedMode = 'classic';
+
+        // 创建模式选项
+        gameModes.forEach(mode => {
+            const modeOption = document.createElement('div');
+            modeOption.style.cssText = `
+                padding: 20px;
+                border: 2px solid ${mode.borderColor};
+                border-radius: 12px;
+                background: ${mode.color};
+                backdrop-filter: blur(10px);
+                cursor: pointer;
+                transition: all 0.3s ease;
+                position: relative;
+                user-select: none;
+            `;
+
+            const modeTitle = document.createElement('div');
+            modeTitle.textContent = mode.name;
+            modeTitle.style.cssText = `
+                color: white;
+                font-size: 18px;
+                font-weight: bold;
+                margin-bottom: 8px;
+            `;
+
+            const modeDesc = document.createElement('div');
+            modeDesc.textContent = mode.description;
+            modeDesc.style.cssText = `
+                color: rgba(255, 255, 255, 0.8);
+                font-size: 14px;
+                line-height: 1.4;
+            `;
+
+
+
+            // 鼠标悬停效果
+            modeOption.addEventListener('mouseover', () => {
+                modeOption.style.transform = 'translateY(-3px)';
+                modeOption.style.boxShadow = `0 8px 25px ${mode.borderColor.replace('0.4', '0.3')}`;
+            });
+
+            modeOption.addEventListener('mouseout', () => {
+                modeOption.style.transform = 'translateY(0)';
+                modeOption.style.boxShadow = 'none';
+            });
+
+            // 点击选择
+            modeOption.addEventListener('click', () => {
+                // 选择模式并返回主持游戏界面
+                selectedGameMode = mode.id;
+                hideMoreGameModesDialog();
+                showHostGameOptions();
+            });
+
+            modeOption.appendChild(modeTitle);
+            modeOption.appendChild(modeDesc);
+            modesContainer.appendChild(modeOption);
+        });
+
+        // 按钮容器
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.cssText = `
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        `;
+
+        // 返回按钮
+        const backButton = document.createElement('button');
+        backButton.textContent = '返回';
+        backButton.style.cssText = `
+            padding: 15px 30px;
+            border: 2px solid rgba(255, 120, 120, 0.4);
+            border-radius: 8px;
+            background: rgba(255, 120, 120, 0.15);
+            backdrop-filter: blur(10px);
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 120, 120, 0.1);
+            outline: none;
+        `;
+
+        // 按钮悬停效果
+        backButton.addEventListener('mouseover', () => {
+            backButton.style.background = 'rgba(255, 120, 120, 0.25)';
+            backButton.style.transform = 'translateY(-2px)';
+            backButton.style.boxShadow = '0 6px 20px rgba(255, 120, 120, 0.2)';
+        });
+
+        backButton.addEventListener('mouseout', () => {
+            backButton.style.background = 'rgba(255, 120, 120, 0.15)';
+            backButton.style.transform = 'translateY(0)';
+            backButton.style.boxShadow = '0 4px 15px rgba(255, 120, 120, 0.1)';
+        });
+
+        // 事件处理
+        backButton.addEventListener('click', () => {
+            hideMoreGameModesDialog();
+            // 返回主持游戏对话框
+            showHostGameOptions();
+        });
+
+        // 点击遮罩层关闭
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                hideMoreGameModesDialog();
+                showHostGameOptions();
+            }
+        });
+
+        // ESC键关闭
+        const handleEsc = (e) => {
+            if (e.key === 'Escape') {
+                hideMoreGameModesDialog();
+                showHostGameOptions();
+                document.removeEventListener('keydown', handleEsc);
+            }
+        };
+        document.addEventListener('keydown', handleEsc);
+
+        // 隐藏对话框的函数
+        function hideMoreGameModesDialog() {
+            overlay.style.opacity = '0';
+            overlay.style.background = 'rgba(0, 0, 0, 0)';
+            overlay.style.backdropFilter = 'blur(0px)';
+            dialog.style.opacity = '0';
+            dialog.style.transform = 'scale(0.8) translateY(30px)';
+            
+            setTimeout(() => {
+                if (document.body.contains(overlay)) {
+                    document.body.removeChild(overlay);
+                }
+            }, 300);
+        }
+
+        // 根据模式创建房间的函数
+        function createRoomWithMode(mode) {
+            isHost = true;
+            // 可以在这里根据不同模式设置不同的房间参数
+            const message = { 
+                type: 'createRoom', 
+                gameMode: mode 
+            };
+            ws.send(JSON.stringify(message));
+            showMessage(`正在创建${getGameModeDisplayName(mode)}房间...`, 'info');
+        }
+
+        // 组装对话框
+        buttonContainer.appendChild(backButton);
+
+        dialog.appendChild(title);
+        dialog.appendChild(modesContainer);
+        dialog.appendChild(buttonContainer);
+
+        overlay.appendChild(dialog);
+        document.body.appendChild(overlay);
+        
+        // 开场动画
+        requestAnimationFrame(() => {
+            overlay.style.opacity = '1';
+            overlay.style.background = 'rgba(0, 0, 0, 0.5)';
+            overlay.style.backdropFilter = 'blur(10px)';
+            dialog.style.opacity = '1';
+            dialog.style.transform = 'scale(1) translateY(0)';
+        });
+    }
+
+    // 提供给其它模块使用的统一样式选择弹窗（复用加入房间的视觉风格）
+    window.showStyledOptionDialog = function showStyledOptionDialog({ title = '请选择', options = [], disableCancel = false, closeOnOverlayClick = true }) {
+        // 创建遮罩层
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0);
+            backdrop-filter: blur(0px);
+            z-index: 10000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        `;
+
+        // 创建对话框
+        const dialog = document.createElement('div');
+        dialog.style.cssText = `
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(15px);
+            border-radius: 15px;
+            padding: 24px;
+            width: 360px;
+            max-width: 90vw;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transform: scale(0.7) translateY(-30px);
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-sizing: border-box;
+        `;
+
+        const titleEl = document.createElement('h3');
+        titleEl.textContent = title;
+        titleEl.style.cssText = `
+            margin: 0 0 18px 0;
+            color: white;
+            font-size: 22px;
+            font-weight: bold;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        `;
+
+        const btnContainer = document.createElement('div');
+        btnContainer.style.cssText = `
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            justify-content: center;
+        `;
+
+        options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.textContent = opt.label || String(opt.value);
+            btn.style.cssText = `
+                padding: 12px 16px;
+                border: 2px solid rgba(255, 255, 255, 0.4);
+                border-radius: 10px;
+                background: rgba(255, 255, 255, 0.15);
+                backdrop-filter: blur(10px);
+                color: white;
+                font-size: 16px;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+                outline: none;
+                min-width: 88px;
+            `;
+            btn.addEventListener('mouseover', () => {
+                btn.style.background = 'rgba(255, 255, 255, 0.25)';
+                btn.style.transform = 'translateY(-2px)';
+                btn.style.boxShadow = '0 8px 20px rgba(255, 255, 255, 0.2)';
+                btn.style.borderColor = 'rgba(255, 255, 255, 0.6)';
+            });
+            btn.addEventListener('mouseout', () => {
+                btn.style.background = 'rgba(255, 255, 255, 0.15)';
+                btn.style.transform = 'translateY(0)';
+                btn.style.boxShadow = '0 4px 15px rgba(255, 255, 255, 0.1)';
+                btn.style.borderColor = 'rgba(255, 255, 255, 0.4)';
+            });
+            btn.addEventListener('click', () => {
+                try {
+                    if (typeof opt.onSelect === 'function') opt.onSelect(opt.value);
+                    else if (typeof options.onSelect === 'function') options.onSelect(opt.value);
+                } finally {
+                    overlay.style.opacity = '0';
+                    overlay.style.background = 'rgba(0, 0, 0, 0)';
+                    overlay.style.backdropFilter = 'blur(0px)';
+                    dialog.style.opacity = '0';
+                    dialog.style.transform = 'scale(0.8) translateY(30px)';
+                    setTimeout(() => {
+                        if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+                    }, 250);
+                }
+            });
+            btnContainer.appendChild(btn);
+        });
+
+        // 取消按钮（可选）
+        let cancelBtn = null;
+        if (!disableCancel) {
+            cancelBtn = document.createElement('button');
+            cancelBtn.textContent = '取消';
+            cancelBtn.style.cssText = `
+                margin-top: 8px;
+                padding: 10px 16px;
+                border: 2px solid rgba(255, 120, 120, 0.4);
+                border-radius: 10px;
+                background: rgba(255, 120, 120, 0.15);
+                color: white;
+                font-weight: bold;
+                cursor: pointer;
+                width: 100%;
+            `;
+            cancelBtn.addEventListener('click', hideDialog);
+        }
+
+        function hideDialog() {
+            overlay.style.opacity = '0';
+            overlay.style.background = 'rgba(0, 0, 0, 0)';
+            overlay.style.backdropFilter = 'blur(0px)';
+            dialog.style.opacity = '0';
+            dialog.style.transform = 'scale(0.8) translateY(30px)';
+            setTimeout(() => {
+                if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+            }, 250);
+        }
+
+        if (closeOnOverlayClick) {
+            overlay.addEventListener('click', (e) => { if (e.target === overlay) hideDialog(); });
+        }
+
+        dialog.appendChild(titleEl);
+        dialog.appendChild(btnContainer);
+    if (cancelBtn) dialog.appendChild(cancelBtn);
+        overlay.appendChild(dialog);
+        document.body.appendChild(overlay);
+
+        // 开场动画
+        requestAnimationFrame(() => {
+            overlay.style.opacity = '1';
+            overlay.style.background = 'rgba(0, 0, 0, 0.5)';
+            overlay.style.backdropFilter = 'blur(10px)';
+            dialog.style.opacity = '1';
+            dialog.style.transform = 'scale(1) translateY(0)';
+        });
+    };
 
     // 消息提示函数（如果不存在的话）
     function showMessage(message, type = "info") {
@@ -1334,10 +1788,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     };
                 }
             }),
-            missions: Array.from(missionBoxes).map((box) => ({
-                title: box.querySelector('.mission-title').textContent,
-                content: box.querySelector('.mission-content').innerHTML // 使用 innerHTML 保留颜色
-            })),            // 更新为支持新的困难事件显示格式
+            missions: Array.from(missionBoxes).map((box) => {
+                const tEl = box.querySelector('.mission-title');
+                const cEl = box.querySelector('.mission-content');
+                const title = tEl?.dataset.realTitle ?? tEl?.textContent ?? '';
+                const content = cEl?.dataset.realContent ?? cEl?.innerHTML ?? '';
+                return { title, content };
+            }),            // 更新为支持新的困难事件显示格式
             hardMissions: Array.from(document.querySelectorAll('.hard-mission-box')).map((item, index) => ({
                 title: item.querySelector('.hard-mission-title')?.textContent || '',
                 content: item.querySelector('.hard-mission-content')?.textContent || '',
@@ -1361,10 +1818,19 @@ document.addEventListener('DOMContentLoaded', function () {
             teamInfo: {
                 teamName: currentTeamName,
                 isTeamModeActive: isTeamModeActive
-            }
+            },
+            // 特殊模式：不要做挑战（用于首次/增量同步给加入者）
+            noChallenge: (window.noChallengeMode && window.noChallengeMode.active) ? {
+                active: true,
+                lastMissions: (window.noChallengeMode.getLastMissions ? window.noChallengeMode.getLastMissions() : []),
+                counters: (window.noChallengeMode.getCounters ? window.noChallengeMode.getCounters() : [0,0,0,0]),
+                seats: (window.noChallengeMode.getSeats ? window.noChallengeMode.getSeats() : undefined)
+            } : undefined,
         };
 
-        const eventHistory = window.eventHistoryModule ? window.eventHistoryModule.eventHistoryData : [];
+        const eventHistory = (window.noChallengeMode && window.noChallengeMode.active)
+            ? []
+            : (window.eventHistoryModule ? window.eventHistoryModule.eventHistoryData : []);
         const characterHistory = window.historyModule ? window.historyModule.historyData : [];
 
         console.log('同步的游戏状态:', state, '事件历史:', eventHistory, '角色历史:', characterHistory);
@@ -1415,17 +1881,26 @@ document.addEventListener('DOMContentLoaded', function () {
                     };
                 }
             }),
-            missions: Array.from(missionBoxes).map((box) => ({
-                title: box.querySelector('.mission-title').textContent,
-                content: box.querySelector('.mission-content').innerHTML
-            })),
+            missions: Array.from(missionBoxes).map((box) => {
+                const tEl = box.querySelector('.mission-title');
+                const cEl = box.querySelector('.mission-content');
+                const title = tEl?.dataset.realTitle ?? tEl?.textContent ?? '';
+                const content = cEl?.dataset.realContent ?? cEl?.innerHTML ?? '';
+                return { title, content };
+            }),
             // 添加阵容信息用于状态变化检测
             teamInfo: {
                 teamName: document.getElementById('teamNameDisplay') ? 
                     document.getElementById('teamNameDisplay').textContent : '',
                 isTeamModeActive: window.teamManagement && typeof window.teamManagement.isTeamMode === 'function' ? 
                     window.teamManagement.isTeamMode() : false
-            }
+            },
+            noChallenge: (window.noChallengeMode && window.noChallengeMode.active) ? {
+                active: true,
+                lastMissions: (window.noChallengeMode.getLastMissions ? window.noChallengeMode.getLastMissions() : []),
+                counters: (window.noChallengeMode.getCounters ? window.noChallengeMode.getCounters() : [0,0,0,0]),
+                seats: (window.noChallengeMode.getSeats ? window.noChallengeMode.getSeats() : undefined)
+            } : undefined,
         };
         
         const currentHash = calculateGameStateHash(currentState);
@@ -1448,6 +1923,35 @@ document.addEventListener('DOMContentLoaded', function () {
             syncGameState(false); // 事件驱动同步，非保活
         }
     }    // 在主界面顶部动态显示当前人数和房间码
+    // 当前座位占用（由服务器广播维护）
+    let noChallengeSeats = [null, null, null, null];
+
+    function updateSeatChips() {
+        const chipsContainer = document.getElementById('seatChips');
+        if (!chipsContainer) return;
+        // 仅在不要做挑战模式下显示
+        if (selectedGameMode !== 'nochallenge') {
+            chipsContainer.innerHTML = '';
+            chipsContainer.style.display = 'none';
+            return;
+        }
+        chipsContainer.style.display = 'flex';
+        chipsContainer.innerHTML = '';
+        for (let i = 0; i < 4; i++) {
+            const chip = document.createElement('span');
+            const taken = !!noChallengeSeats[i];
+            chip.textContent = `${i + 1}P`;
+            chip.style.cssText = [
+                'padding:2px 6px',
+                'border-radius:999px',
+                'font-size:12px',
+                'border:1px solid rgba(0,0,0,0.15)',
+                taken ? 'background:#2ecc71;color:#fff' : 'background:#e74c3c;color:#fff'
+            ].join(';');
+            chipsContainer.appendChild(chip);
+        }
+    }
+
     function showPlayerCount(count) {
     // 检查是否已经存在提示框
     let playerCountDisplay = document.getElementById('playerCountDisplay');
@@ -1492,9 +1996,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 cursor: pointer;
                 margin-left: 5px;
             ">复制</button>
+            <span id="seatChips" style="display:flex;gap:6px;align-items:center;margin-left:8px"></span>
         `;
         
         playerCountDisplay.innerHTML = content;
+
+        // 更新座位指示
+        updateSeatChips();
         
         // 添加复制功能
         const copyButton = document.getElementById('copyRoomCodeButton');
@@ -1588,6 +2096,16 @@ ws.onmessage = (event) => {
             currentPlayerCount = 1; // 主持人自己算一个玩家
             showPlayerCount(currentPlayerCount);
             
+            // 如果选择了“不要做挑战”模式，则激活模式逻辑并立刻同步一次基础状态
+            if (selectedGameMode === 'nochallenge' && window.noChallengeMode) {
+                try {
+                    window.noChallengeMode.activate({ isHost: true });
+                } catch (e) { console.error('激活不要做挑战模式失败:', e); }
+                setTimeout(() => {
+                    try { syncGameState(); } catch (e) { console.error('初始同步失败:', e); }
+                }, 300);
+            }
+
             // 设置事件驱动同步监听器
             setupEventDrivenSync();
             break;        case 'roomJoined':
@@ -1662,7 +2180,8 @@ ws.onmessage = (event) => {
 
             // 同步事件历史记录数据
             if (data.history) {
-                if (window.eventHistoryModule && window.eventHistoryModule.eventHistoryData) {
+                const noChallengeActive = !!(data.state && data.state.noChallenge && data.state.noChallenge.active);
+                if (!noChallengeActive && window.eventHistoryModule && window.eventHistoryModule.eventHistoryData) {
                     window.eventHistoryModule.eventHistoryData.length = 0;
                     Array.prototype.push.apply(window.eventHistoryModule.eventHistoryData, data.history);
                 }
@@ -1735,6 +2254,14 @@ ws.onmessage = (event) => {
             // 新玩家加入时触发完整状态同步
             handleNewPlayerJoin();
             break;case 'syncVote':
+            break;case 'noChallenge_seats':
+            // 更新座位占用
+            if (Array.isArray(data.seats)) {
+                noChallengeSeats = data.seats.slice(0,4);
+                updateSeatChips();
+            }
+            break;case 'noChallenge_seatRejected':
+            showTemporaryMessage(`该座位已被占用，请重新选择`);
             // 同步投票状态
             if (window.hardMissionVoting && window.hardMissionVoting.syncVotingState) {
                 // 传递发送者ID信息，以便客户端正确处理投票状态
@@ -1826,17 +2353,27 @@ ws.onmessage = (event) => {
                     };
                 }
             }),
-            missions: Array.from(missionBoxes).map((box) => ({
-                title: box.querySelector('.mission-title').textContent,
-                content: box.querySelector('.mission-content').textContent
-            })),
+            missions: Array.from(missionBoxes).map((box) => {
+                const tEl = box.querySelector('.mission-title');
+                const cEl = box.querySelector('.mission-content');
+                const title = (tEl && (tEl.dataset.realTitle ?? tEl.textContent)) || '';
+                const content = (cEl && (cEl.dataset.realContent ?? cEl.innerHTML)) || '';
+                return { title, content };
+            }),
             // 添加阵容信息同步
             teamInfo: {
                 teamName: document.getElementById('teamNameDisplay') ? 
                     document.getElementById('teamNameDisplay').textContent.replace('当前阵容：', '') : '',
                 isTeamModeActive: window.teamManagement && typeof window.teamManagement.isTeamMode === 'function' ? 
                     window.teamManagement.isTeamMode() : false
-            }
+            },
+            // 特殊模式：不要做挑战
+            noChallenge: (window.noChallengeMode && window.noChallengeMode.active) ? {
+                active: true,
+                lastMissions: (window.noChallengeMode.getLastMissions ? window.noChallengeMode.getLastMissions() : []),
+                counters: (window.noChallengeMode.getCounters ? window.noChallengeMode.getCounters() : [0,0,0,0]),
+                seats: (window.noChallengeMode.getSeats ? window.noChallengeMode.getSeats() : undefined)
+            } : undefined,
         };
 
         // 添加日志记录主持人发送的数据
@@ -1985,16 +2522,39 @@ ws.onmessage = (event) => {
             }
         });
 
-        // 更新事件卡片
+        // 更新事件卡片（在“不要做挑战”模式下，本机所选P位不更新可见内容，但更新data-real*用于同步）
         state.missions.forEach((mission, index) => {
             const box = missionBoxes[index];
+            if (!box) return;
+
+            // 若为不要做挑战模式，且该索引为本机P位，则跳过更新，保持静态（问号或本地内容）
+            if (
+                window.noChallengeMode && window.noChallengeMode.active &&
+                typeof window.noChallengeMode.shouldFreezeIndex === 'function' &&
+                window.noChallengeMode.shouldFreezeIndex(index)
+            ) {
+                const tEl = box.querySelector('.mission-title');
+                const cEl = box.querySelector('.mission-content');
+                if (tEl) tEl.dataset.realTitle = mission.title;
+                if (cEl) cEl.dataset.realContent = mission.content;
+                return; // 不改写可见DOM，防止本地看到内容
+            }
+
             const title = box.querySelector('.mission-title');
             const content = box.querySelector('.mission-content');
+            if (title) {
+                title.textContent = mission.title;
+                title.dataset.realTitle = mission.title;
+            }
+            if (content) {
+                content.innerHTML = mission.content; // 使用 innerHTML 保留颜色
+                content.dataset.realContent = mission.content;
+            }
+        });
 
-            title.textContent = mission.title;
-            content.innerHTML = mission.content; // 使用 innerHTML 恢复颜色
-        });        // 更新困难模式事件 - 支持新的三个困难事件显示格式和投票状态
-        if (state.hardMissions && state.hardMissions.length > 0) {
+        // 更新困难模式事件 - 支持新的三个困难事件显示格式和投票状态
+        // 若为“不要做挑战”模式，彻底跳过困难事件区域的构建与显示，并强制隐藏
+        if (!(window.noChallengeMode && window.noChallengeMode.active) && state.hardMissions && state.hardMissions.length > 0) {
             // 确保困难事件容器存在
             let hardMissionsContainer = document.getElementById('hardMissionsContainer');
             let hardMissionsGrid = document.getElementById('hardMissionsGrid');
@@ -2088,14 +2648,15 @@ ws.onmessage = (event) => {
                 window.hardMissionVoting.syncVotingResult(state.votingResult);
             }
         }
-          // 保持向后兼容性 - 更新原有的单个困难事件显示
-        const hardMissionTitle = selectedHardMission.querySelector('.mission-title');
-        const hardMissionContent = selectedHardMission.querySelector('.mission-content');
-
-        if (state.hardMission && state.hardMission.title) {
-            selectedHardMission.style.display = 'block';
-            hardMissionTitle.textContent = state.hardMission.title;
-            hardMissionContent.innerHTML = state.hardMission.content; // 使用 innerHTML 恢复颜色
+        // 保持向后兼容性 - 更新原有的单个困难事件显示（不要做挑战下跳过）
+        if (!(window.noChallengeMode && window.noChallengeMode.active)) {
+            const hardMissionTitle = selectedHardMission.querySelector('.mission-title');
+            const hardMissionContent = selectedHardMission.querySelector('.mission-content');
+            if (state.hardMission && state.hardMission.title) {
+                selectedHardMission.style.display = 'block';
+                if (hardMissionTitle) hardMissionTitle.textContent = state.hardMission.title;
+                if (hardMissionContent) hardMissionContent.innerHTML = state.hardMission.content; // 使用 innerHTML 恢复颜色
+            }
         }
 
         // 同步阵容信息
@@ -2132,6 +2693,26 @@ ws.onmessage = (event) => {
                     teamNameDisplay.style.display = 'none';
                 }
             }
+        }
+
+        // 特殊模式：不要做挑战
+        if (state.noChallenge && state.noChallenge.active) {
+            const hardMissionsContainer = document.getElementById('hardMissionsContainer');
+            const selectedHardMissionEl = document.getElementById('selectedHardMission');
+            if (hardMissionsContainer) hardMissionsContainer.style.display = 'none';
+            if (selectedHardMissionEl) selectedHardMissionEl.style.display = 'none';
+
+            if (window.noChallengeMode && typeof window.noChallengeMode.onStateUpdated === 'function') {
+                try { window.noChallengeMode.onStateUpdated(state.noChallenge); } catch (e) { console.error(e); }
+            }
+
+            // 额外保险：在回调之后再次隐藏，防止其它异步渲染重新显示
+            setTimeout(() => {
+                const cont2 = document.getElementById('hardMissionsContainer');
+                const sel2 = document.getElementById('selectedHardMission');
+                if (cont2) cont2.style.display = 'none';
+                if (sel2) sel2.style.display = 'none';
+            }, 0);
         }
     }// 同步投票状态
     function syncVoteState(voteData) {
@@ -2359,6 +2940,7 @@ window.multiplayerManager = {
     isConnected: () => ws && ws.readyState === WebSocket.OPEN,
     getCurrentPlayerId: () => currentPlayerId || 'player1',
     isHost: () => isHost,
+    getRoomId: () => currentRoomId,
     getPlayerCount: () => {
         // 返回实际的玩家数量，包含主机和所有玩家
         return currentPlayerCount;
@@ -2379,6 +2961,19 @@ window.multiplayerManager = {
         } else {
             console.error('多人游戏WebSocket连接不可用');
             return false;
+        }
+    },
+    // 提供给 noChallengeMode 的座位更新回调
+    onNoChallengeSeats: (seats) => {
+        if (Array.isArray(seats)) {
+            noChallengeSeats = seats.slice(0,4);
+            // 刷新顶部 chips
+            const el = document.getElementById('seatChips');
+            if (el) {
+                el.style.display = 'flex';
+            }
+            // 复用渲染
+            try { (typeof updateSeatChips === 'function') && updateSeatChips(); } catch {}
         }
     }
 };

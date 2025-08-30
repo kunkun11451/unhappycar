@@ -525,6 +525,8 @@ wss.on("connection", (ws) => {
             players: [],
             state: {},
             history: [],
+            characterHistory: [],
+            seats: [null, null, null, null],
             votingManager: new VotingManager(roomId)
           };
           
@@ -556,12 +558,13 @@ wss.on("connection", (ws) => {
               playerId: playerId
             }));
               // 如果房间有游戏状态，立即发送给新加入的玩家
-            if (room.state && Object.keys(room.state).length > 0) {
+      if (room.state && Object.keys(room.state).length > 0) {
               logWithTimestamp('发送当前游戏状态给新加入的玩家');
               ws.send(JSON.stringify({
                 type: "stateUpdated", 
                 state: room.state,
-                history: room.history || []
+        history: room.history || [],
+        characterHistory: room.characterHistory || []
               }));
             }
             
@@ -581,6 +584,12 @@ wss.on("connection", (ws) => {
             room.host.send(JSON.stringify(playerCountMessage));
             room.players.forEach((player) => {
               player.ws.send(JSON.stringify(playerCountMessage));            });
+            // 广播当前座位占用情况（给所有人，包括新加入者）
+            const seatsMessage = { type: "noChallenge_seats", seats: room.seats };
+            try { room.host.send(JSON.stringify(seatsMessage)); } catch {}
+            room.players.forEach((player) => {
+              try { player.ws.send(JSON.stringify(seatsMessage)); } catch {}
+            });
               // 更新投票系统的期望玩家数量
             room.votingManager.updateExpectedPlayers(currentPlayerCount, room);
             
@@ -691,6 +700,43 @@ wss.on("connection", (ws) => {
             }));
           }
           break;
+
+        case "noChallenge_seatClaim": {
+          const { roomId, seatIndex, playerId } = data;
+          const room = rooms[roomId];
+          if (!room) {
+            ws.send(JSON.stringify({ type: "error", message: "房间不存在" }));
+            break;
+          }
+          const idx = Number(seatIndex);
+          if (!(idx >= 0 && idx < 4)) {
+            ws.send(JSON.stringify({ type: "error", message: "无效的座位" }));
+            break;
+          }
+          const isHostWs = room.host === ws;
+          const playerEntry = room.players.find((p) => p.ws === ws);
+          if (!isHostWs && !playerEntry) {
+            ws.send(JSON.stringify({ type: "error", message: "未加入房间，无法占座" }));
+            break;
+          }
+          const claimantId = playerId || (playerEntry ? playerEntry.playerId : 'host');
+          // 如果该玩家之前占有其他座位，先清空
+          for (let i = 0; i < 4; i++) {
+            if (room.seats[i] === claimantId) room.seats[i] = null;
+          }
+          // 若座位已被他人占用
+          if (room.seats[idx] && room.seats[idx] !== claimantId) {
+            try { ws.send(JSON.stringify({ type: "noChallenge_seatRejected", seatIndex: idx, reason: "座位已被占用" })); } catch {}
+            break;
+          }
+          room.seats[idx] = claimantId;
+          const seatsMessage2 = { type: "noChallenge_seats", seats: room.seats };
+          try { room.host.send(JSON.stringify(seatsMessage2)); } catch {}
+          room.players.forEach((player) => {
+            try { player.ws.send(JSON.stringify(seatsMessage2)); } catch {}
+          });
+          break;
+        }
 
         case "redstone_tech_submission":
           // 处理赤石科技投稿
@@ -880,6 +926,25 @@ wss.on("connection", (ws) => {
         if (leavingPlayer) {
           // 从投票系统中移除该玩家的投票
           room.votingManager.removePlayerVote(leavingPlayer.playerId);
+          // 清理占座
+          if (room.seats && Array.isArray(room.seats)) {
+            let changed = false;
+            for (let i = 0; i < 4; i++) {
+              if (room.seats[i] === leavingPlayer.playerId) {
+                room.seats[i] = null;
+                changed = true;
+              }
+            }
+            if (changed) {
+              const seatsMessage = { type: "noChallenge_seats", seats: room.seats };
+              try { room.host.send(JSON.stringify(seatsMessage)); } catch {}
+              room.players.forEach((player) => {
+                if (player.ws !== ws) {
+                  try { player.ws.send(JSON.stringify(seatsMessage)); } catch {}
+                }
+              });
+            }
+          }
         }
         
         room.players = room.players.filter((player) => player.ws !== ws);

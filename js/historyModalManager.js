@@ -18,7 +18,26 @@ window.historyModalManager = (() => {
         window.showHistoryModal = () => {
             // 先更新内容
             updateHistoryContent();
-            
+
+            // 不要做挑战：非主持人隐藏“事件历史”标签与内容
+            try {
+                const isNC = !!(window.noChallengeMode && window.noChallengeMode.active);
+                const isHost = !!(window.multiplayerManager && typeof window.multiplayerManager.isHost === 'function' && window.multiplayerManager.isHost());
+                if (isNC && !isHost) {
+                    if (eventTab) eventTab.style.display = 'none';
+                    if (eventList) eventList.style.display = 'none';
+                    currentTab = 'character';
+                } else {
+                    if (eventTab) eventTab.style.display = '';
+                    if (eventList) eventList.style.display = '';
+                }
+                // 同步按钮和内容区的 active 状态
+                characterTab.classList.toggle('active', currentTab === 'character');
+                eventTab.classList.toggle('active', currentTab === 'event');
+                characterList.classList.toggle('active', currentTab === 'character');
+                eventList.classList.toggle('active', currentTab === 'event');
+            } catch {}
+
             // 显示弹窗
             historyOverlay.style.display = 'block';
             historyModal.style.display = 'block';
