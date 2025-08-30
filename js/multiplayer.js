@@ -2108,6 +2108,19 @@ ws.onmessage = (event) => {
 
             // 设置事件驱动同步监听器
             setupEventDrivenSync();
+            
+            // 初始化聊天系统（主持人默认为1P）
+            if (window.chatSystem && typeof window.chatSystem.initialize === 'function') {
+                window.chatSystem.initialize(1, currentRoomId);
+                window.chatSystem.show();
+                
+                // 请求聊天历史记录
+                ws.send(JSON.stringify({
+                    type: 'chat_history_request',
+                    roomId: currentRoomId,
+                    playerId: currentPlayerId
+                }));
+            }
             break;        case 'roomJoined':
             currentRoomId = data.roomId;
             // 成功加入房间后才将房间码写入缓存
@@ -2133,6 +2146,20 @@ ws.onmessage = (event) => {
             
             // 即使是非主持人，也需要设置事件监听器（虽然不会触发同步）
             setupEventDrivenSync();
+            
+            // 初始化聊天系统（玩家需要选择座位，暂时设为2P，后续会根据座位选择更新）
+            if (window.chatSystem && typeof window.chatSystem.initialize === 'function') {
+                // 先设置为2P，会在座位选择后更新
+                window.chatSystem.initialize(2, currentRoomId);
+                window.chatSystem.show();
+                
+                // 请求聊天历史记录
+                ws.send(JSON.stringify({
+                    type: 'chat_history_request',
+                    roomId: currentRoomId,
+                    playerId: currentPlayerId
+                }));
+            }
 
             // 隐藏按钮并禁用功能（加入房间的玩家）
             if (!isHost) {
@@ -2293,6 +2320,29 @@ ws.onmessage = (event) => {
             // 更新连接状态显示延迟信息
             if (connectionStatus) {
                 const baseText = connectionStatus.textContent.split('（')[0]; // 保留基础连接信息
+            }
+            break;
+
+        case 'chat_message':
+            // 处理聊天消息
+            if (window.chatSystem && typeof window.chatSystem.receiveMessage === 'function') {
+                window.chatSystem.receiveMessage(data);
+            }
+            break;
+
+        case 'chat_history_response':
+            // 处理聊天历史记录响应
+            if (window.chatSystem && data.chatHistory) {
+                // 批量添加历史消息
+                Object.keys(data.chatHistory).forEach(channelId => {
+                    const messages = data.chatHistory[channelId];
+                    messages.forEach(message => {
+                        window.chatSystem.receiveMessage({
+                            ...message,
+                            channelId: channelId
+                        });
+                    });
+                });
             }
             break;
 

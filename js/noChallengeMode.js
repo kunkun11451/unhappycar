@@ -48,6 +48,15 @@
       onSelect(value) {
         state.selfIndex = value;
         applyMasks();
+        
+        // 更新聊天系统的座位信息
+        if (window.chatSystem && typeof window.chatSystem.initialize === 'function') {
+          const roomId = window.multiplayerManager && window.multiplayerManager.getRoomId ? window.multiplayerManager.getRoomId() : null;
+          if (roomId) {
+            window.chatSystem.initialize(value + 1, roomId); // value是0-based，座位是1-based
+          }
+        }
+        
         // 占座上报到服务器
         try {
           if (window.multiplayerManager && window.multiplayerManager.getWebSocket && window.multiplayerManager.getRoomId) {
