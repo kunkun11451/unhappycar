@@ -2236,6 +2236,12 @@ ws.onmessage = (event) => {
         case 'roomClosed':
             alert('主持人已关闭房间');
             localStorage.removeItem('roomId'); // 房间关闭时清除房间代码
+            
+            // 清除聊天数据和缓存
+            if (window.chatSystem && typeof window.chatSystem.clearOnRoomClose === 'function') {
+                window.chatSystem.clearOnRoomClose();
+            }
+            
             location.reload();
             break;
 

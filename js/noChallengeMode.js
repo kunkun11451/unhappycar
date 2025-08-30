@@ -97,6 +97,22 @@
 
   // 在该模式下，所有事件卡隐藏内容区域，只显示标题
   qsa('.mission-content').forEach(el => { el.style.display = 'none'; });
+  
+  // 修改事件标题样式：居中显示并放大
+  qsa('.mission-title').forEach(el => {
+    el.style.cssText += `
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 1.4em;
+      font-weight: 600;
+      line-height: 1.3;
+      min-height: 120px;
+      padding: 20px 15px;
+      margin: 0;
+    `;
+  });
   }
 
   // 规则区域：在不要做挑战模式下展示专用说明
@@ -111,20 +127,26 @@
       // 注入专用规则
       rulesContent.innerHTML = `
         <ul>
-          <h3>模式简介（不要做挑战）</h3>
+          <h3>不要做挑战 模式简介</h3>
 
           <h3>基本规则</h3>
-          <li>每位玩家看不到自己的事件，只能看到他人的，内容区域统一隐藏。</li>
-          <li>进入房间后会让每位玩家选择自己的座位（1P~4P），以便遮蔽本人事件。</li>
-          <li>如果做或说了自己卡片上的事情，则扣一分；如果推测出自己卡片上的内容，则加一分。</li>
+          <li>每位玩家抽取一张卡片，包含一条不能做的事件。</li>
+          <li>玩家看不到自己的事件，只能看到他人的。</li>
+          <li>如果做或说了自己卡片上的事情，则扣一分；如果推测出自己卡片上的内容，则加一分。并且重抽卡片。</li>
+          <li>相互算计使其他玩家扣分，避免触发或猜出自己的内容以获得最后的胜利。</li>
 
-          <h3>主持人操作</h3>
-          <li>游戏开始，点“抽取事件”后为每人生成1条个人事件。</li>
-          <li>当玩家或自己触发了不能做事件后，主持人可点击TA的“事件卡片”来刷新对应事件卡。</li>
-          <li>按照规则为每位玩家计分</li>
+          <h3>操作与游戏管理</h3>
+          <li>进入房间后，首先根据游戏内的P数选择位置，如果选错可以刷新网页重进房间。</li>
+          <li>游戏开始，主持人点击“抽取事件”后为每人生成1条个人事件。</li>
+          <li>当玩家触发了不能做事件后，主持人可点击TA的“事件卡片”来刷新对应事件卡。</li>
+          <li>（主持人同时也是玩家，看不到自己的事件，触发时其他玩家可以提醒主持人为自己刷新）</li>
+          <li>主持人按照规则通过对应事件卡片下方的+—按钮，为每位玩家计分</li>
+          <li>提供了4个人4个群的独立秘密聊天频道，方便相互算计🥵，可通过屏幕右侧的按钮打开。</li>
 
-          <h3>其他规则</h3>
-          <li>获胜条件、长时间未触发的换牌等，地主归最终解释权所有。</li>
+          <h3>其他规则与注意事项</h3>
+          <li>其他获胜条件、长时间未触发的换牌，每次猜词的次数限制等，地主归最终解释权所有。</li>
+          <li>当前为测试版，可能存在些许bug，且服务器与正式版不互通。</li>
+          
         </ul>
       `;
       state._rulesInjected = true;
@@ -152,7 +174,26 @@
   restrictSingleRefresh(isHost);
 
         // 抽完后再次遮蔽自己的事件
-        setTimeout(() => applyMasks(), 50);
+        setTimeout(() => {
+          applyMasks();
+          // 重新应用标题样式
+          qsa('.mission-title').forEach(el => {
+            el.style.cssText += `
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              text-align: center;
+              font-size: 1.4em;
+              font-weight: 600;
+              line-height: 1.3;
+              min-height: 120px;
+              padding: 20px 15px;
+              margin: 0;
+            `;
+          });
+          // 重新渲染上轮事件
+          renderLastMissions();
+        }, 50);
       }, 350);
     }, { capture: true });
   }
@@ -183,8 +224,27 @@
             try { window.sendGameState(); } catch {}
           }
 
-          // 刷新后再次遮蔽自己的事件
-          setTimeout(() => applyMasks(), 420);
+          // 刷新后再次遮蔽自己的事件并重新应用样式
+          setTimeout(() => {
+            applyMasks();
+            // 重新应用标题样式
+            qsa('.mission-title').forEach(el => {
+              el.style.cssText += `
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                font-size: 1.4em;
+                font-weight: 600;
+                line-height: 1.3;
+                min-height: 120px;
+                padding: 20px 15px;
+                margin: 0;
+              `;
+            });
+            // 重新渲染上轮事件
+            renderLastMissions();
+          }, 420);
         }, true);
       }
     });
@@ -274,8 +334,19 @@
       if (!info) return;
       const div = document.createElement('div');
       div.className = 'last-mission';
-      div.style.cssText = 'margin-top:6px;color:#666;font-size:12px;';
-  div.textContent = `上轮事件：${info.title}`;
+      div.style.cssText = `
+        position: absolute;
+        bottom: 45px;
+        left: 8px;
+        right: 8px;
+        color: #888;
+        font-size: 11px;
+        padding: 4px 8px;
+        border-radius: 4px;
+        text-align: center;
+        z-index: 10;
+      `;
+      div.textContent = `上轮事件：${info.title}`;
       box.appendChild(div);
     });
   }

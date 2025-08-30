@@ -10,6 +10,89 @@
         roomId: null
     };
 
+    const CACHE_KEY_PREFIX = 'unhappycar_chat_';
+    const CACHE_EXPIRY_HOURS = 5;
+
+    // 缓存管理函数
+    function saveChatToCache() {
+        if (!state.roomId) return;
+        
+        const cacheData = {
+            messages: state.messages,
+            timestamp: Date.now(),
+            roomId: state.roomId
+        };
+        
+        try {
+            localStorage.setItem(CACHE_KEY_PREFIX + state.roomId, JSON.stringify(cacheData));
+        } catch (e) {
+            console.warn('保存聊天记录到缓存失败:', e);
+        }
+    }
+
+    // 从缓存加载聊天记录
+    function loadChatFromCache(roomId) {
+        if (!roomId) return null;
+        
+        try {
+            const cacheData = localStorage.getItem(CACHE_KEY_PREFIX + roomId);
+            if (!cacheData) return null;
+            
+            const parsed = JSON.parse(cacheData);
+            const now = Date.now();
+            const expiry = parsed.timestamp + (CACHE_EXPIRY_HOURS * 60 * 60 * 1000);
+            
+            // 检查是否过期
+            if (now > expiry) {
+                localStorage.removeItem(CACHE_KEY_PREFIX + roomId);
+                return null;
+            }
+            
+            return parsed.messages;
+        } catch (e) {
+            console.warn('从缓存加载聊天记录失败:', e);
+            return null;
+        }
+    }
+
+    // 清除指定房间的聊天缓存
+    function clearChatCache(roomId) {
+        if (!roomId) return;
+        try {
+            localStorage.removeItem(CACHE_KEY_PREFIX + roomId);
+        } catch (e) {
+            console.warn('清除聊天缓存失败:', e);
+        }
+    }
+
+    // 清理所有过期的聊天缓存
+    function cleanExpiredChatCaches() {
+        try {
+            const now = Date.now();
+            const keysToRemove = [];
+            
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith(CACHE_KEY_PREFIX)) {
+                    try {
+                        const data = JSON.parse(localStorage.getItem(key));
+                        const expiry = data.timestamp + (CACHE_EXPIRY_HOURS * 60 * 60 * 1000);
+                        if (now > expiry) {
+                            keysToRemove.push(key);
+                        }
+                    } catch (e) {
+                        // 损坏的数据也删除
+                        keysToRemove.push(key);
+                    }
+                }
+            }
+            
+            keysToRemove.forEach(key => localStorage.removeItem(key));
+        } catch (e) {
+            console.warn('清理过期聊天缓存失败:', e);
+        }
+    }
+
     // 根据玩家座位获取可见频道
     function getVisibleChannels(playerSeat) {
         const channels = [];
@@ -116,9 +199,10 @@
             background: #f8f9fa;
         `;
         inputArea.innerHTML = `
-            <div style="display:flex;gap:8px;">
-                <input id="messageInput" type="text" placeholder="输入消息..." 
+            <div style="display:flex;gap:8px;align-items:center;">
+                <input id="messageInput" type="text" placeholder="输入消息..." maxlength="30"
                        style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;">
+                <span id="charCounter" style="font-size:12px;color:#666;min-width:45px;">0/30</span>
                 <button id="sendBtn" style="padding:8px 15px;background:#4a90e2;color:white;border:none;border-radius:4px;cursor:pointer;">发送</button>
             </div>
         `;
@@ -161,6 +245,34 @@
                     sendMessage();
                 }
             });
+            
+            // 添加字符计数器事件监听
+            messageInput.addEventListener('input', updateCharCounter);
+        }
+        
+        // 初始化字符计数器
+        updateCharCounter();
+    }
+
+    // 更新字符计数器
+    function updateCharCounter() {
+        const messageInput = document.getElementById('messageInput');
+        const charCounter = document.getElementById('charCounter');
+        
+        if (!messageInput || !charCounter) return;
+        
+        const currentLength = messageInput.value.length;
+        const maxLength = 30;
+        
+        charCounter.textContent = `${currentLength}/${maxLength}`;
+        
+        // 根据字符数变化颜色
+        if (currentLength > 25) {
+            charCounter.style.color = '#e74c3c'; // 红色警告
+        } else if (currentLength > 20) {
+            charCounter.style.color = '#f39c12'; // 橙色提醒
+        } else {
+            charCounter.style.color = '#666'; // 默认灰色
         }
     }
 
@@ -200,6 +312,8 @@
         state.unreadCounts[channelId] = 0;
         updateChannelSelector();
         renderMessages();
+        // 更新聊天按钮的红点显示
+        updateChatButtonNotification();
     }
 
     // 渲染消息列表
@@ -213,13 +327,7 @@
         
         messages.forEach(msg => {
             const messageDiv = document.createElement('div');
-            messageDiv.style.cssText = `
-                margin-bottom: 8px;
-                padding: 6px 10px;
-                background: ${msg.playerId === getCurrentPlayerId() ? '#e3f2fd' : '#f5f5f5'};
-                border-radius: 6px;
-                border-left: 3px solid ${msg.playerId === getCurrentPlayerId() ? '#2196f3' : '#999'};
-            `;
+            messageDiv.className = `message-item ${msg.playerId === getCurrentPlayerId() ? 'own' : 'other'}`;
 
             const time = new Date(msg.timestamp).toLocaleTimeString('zh-CN', {
                 hour: '2-digit',
@@ -227,11 +335,11 @@
             });
 
             messageDiv.innerHTML = `
-                <div style="font-size:12px;color:#666;margin-bottom:2px;">
-                    <strong>${msg.playerName || msg.playerId}</strong> 
-                    <span style="float:right;">${time}</span>
+                <div class="message-header">
+                    <span class="message-sender">${msg.playerName || msg.playerId}</span>
+                    <span class="message-time">${time}</span>
                 </div>
-                <div style="font-size:14px;color:#333;">${escapeHtml(msg.message)}</div>
+                <div class="message-content">${escapeHtml(msg.message)}</div>
             `;
 
             messageList.appendChild(messageDiv);
@@ -248,6 +356,12 @@
 
         const message = messageInput.value.trim();
         if (!message) return;
+
+        // 限制消息长度不超过30个字符
+        if (message.length > 30) {
+            alert('消息长度不能超过30个字符');
+            return;
+        }
 
         // 通过WebSocket发送消息
         if (window.multiplayerManager && window.multiplayerManager.getWebSocket && state.roomId) {
@@ -289,8 +403,11 @@
             timestamp
         });
 
-        // 更新未读计数（如果不是当前频道且不是自己发的消息）
-        if (channelId !== state.currentChannel && playerId !== getCurrentPlayerId()) {
+        // 更新未读计数（如果聊天面板不可见，或者不是当前查看的频道，且不是自己发的消息）
+        const shouldCountAsUnread = playerId !== getCurrentPlayerId() && 
+            (!state.isVisible || channelId !== state.currentChannel);
+        
+        if (shouldCountAsUnread) {
             state.unreadCounts[channelId] = (state.unreadCounts[channelId] || 0) + 1;
         }
 
@@ -302,6 +419,9 @@
         
         // 显示聊天图标未读提示
         updateChatButtonNotification();
+        
+        // 保存到本地缓存
+        saveChatToCache();
     }
 
     // 获取当前玩家ID
@@ -412,7 +532,19 @@
         state.roomId = roomId;
         state.channels = getVisibleChannels(playerSeat);
         state.currentChannel = state.channels[0]?.id;
-        state.messages = {};
+        
+        // 清理过期缓存
+        cleanExpiredChatCaches();
+        
+        // 尝试从缓存加载聊天记录
+        const cachedMessages = loadChatFromCache(roomId);
+        if (cachedMessages) {
+            state.messages = cachedMessages;
+            console.log('从缓存加载聊天记录:', Object.keys(cachedMessages).length, '个频道');
+        } else {
+            state.messages = {};
+        }
+        
         state.unreadCounts = {};
 
         // 创建聊天UI（如果不存在）
@@ -498,6 +630,15 @@
         }
     }
 
+    // 房间解散时清除聊天数据和缓存
+    function clearChatDataOnRoomClose() {
+        if (state.roomId) {
+            clearChatCache(state.roomId);
+        }
+        clearChatData();
+        state.roomId = null;
+    }
+
     // 导出API
     window.chatSystem = {
         initialize: initializeChat,
@@ -505,6 +646,7 @@
         show: showChatFeature,
         hide: hideChatFeature,
         clear: clearChatData,
+        clearOnRoomClose: clearChatDataOnRoomClose,
         isVisible: () => state.isVisible
     };
 })();
