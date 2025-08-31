@@ -249,21 +249,6 @@
       }
     });
 
-    // 主持人通过点击角色卡触发对应事件卡的刷新
-    const characterBoxes = qsa('.character-box');
-    characterBoxes.forEach((cbox, idx) => {
-      if (!cbox._nochallenge_clickBound) {
-        cbox._nochallenge_clickBound = true;
-        cbox.addEventListener('click', () => {
-          if (isHost) {
-            const mboxes = qsa('.mission-box');
-            if (mboxes[idx]) {
-              mboxes[idx].click();
-            }
-          }
-        });
-      }
-    });
   }
 
   function ensurePlayerTag(box, idx){
