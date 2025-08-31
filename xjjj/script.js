@@ -7,9 +7,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const characterResultText = document.getElementById('character-result-text');
     const copyCharactersBtn = document.getElementById('copy-characters-btn');
     const banListTableBody = document.querySelector('#ban-list-table tbody');
+    const fullCharacterGrid = document.getElementById('full-character-grid');
 
     // State
-    let banListByRound = []; // Array of arrays, e.g., [[round1_char1, r1_c2], [r2_c1, r2_c2]]
+    let banListByRound = []; // For table display only
+    let globalBanList = new Set(); // Single source of truth for banned characters
     let currentDrawnCharacters = [];
     let currentSkillBans = '';
     let currentRound = 1;
@@ -22,14 +24,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const state = JSON.parse(savedState);
             banListByRound = state.banListByRound || [];
             currentRound = state.currentRound || 1;
+            if (state.globalBanList) {
+                globalBanList = new Set(state.globalBanList);
+            } else {
+                globalBanList = new Set(banListByRound.flat());
+            }
         }
         updateBanListDisplay();
+        populateFullCharacterList();
     }
 
     function saveState() {
         const state = {
             banListByRound,
-            currentRound
+            currentRound,
+            globalBanList: Array.from(globalBanList)
         };
         localStorage.setItem('genshinPickerState', JSON.stringify(state));
     }
@@ -45,11 +54,28 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function createCharacterCard(charName, charData) {
+    function setBanStatus(charName, shouldBeBanned) {
+        const card = fullCharacterGrid.querySelector(`[data-name="${charName}"]`);
+        if (shouldBeBanned) {
+            globalBanList.add(charName);
+            if (card) card.classList.add('banned');
+        } else {
+            globalBanList.delete(charName);
+            if (card) card.classList.remove('banned');
+        }
+        saveState();
+    }
+
+    function toggleBanStatus(charName) {
+        // Used by the full character list for manual toggling
+        setBanStatus(charName, !globalBanList.has(charName));
+    }
+
+    function createCharacterCard(charName, charData, isFullListCard = false) {
         const card = document.createElement('div');
         card.className = 'character-card';
         card.dataset.name = charName;
-        
+
         if (charData['星级'] === '五星') card.classList.add('star-five');
         else card.classList.add('star-four');
 
@@ -64,35 +90,53 @@ document.addEventListener('DOMContentLoaded', () => {
         card.appendChild(img);
         card.appendChild(nameDiv);
 
-        // Click to mark as "unused" - this no longer affects the ban list logic directly
-        card.addEventListener('click', () => {
-            card.classList.toggle('used');
-        });
+        if (isFullListCard) {
+            card.addEventListener('click', () => toggleBanStatus(charName));
+        } else {
+            // For drawn characters, clicking syncs the ban status
+            card.addEventListener('click', () => {
+                card.classList.toggle('used');
+                const isPicked = !card.classList.contains('used');
+                setBanStatus(card.dataset.name, isPicked);
+            });
+        }
 
         return card;
     }
 
+    function populateFullCharacterList() {
+        fullCharacterGrid.innerHTML = '';
+        const allCharacters = Object.keys(window.characterData); // Removed alphabetical sort
+
+        allCharacters.forEach(charName => {
+            const card = createCharacterCard(charName, window.characterData[charName], true);
+            if (globalBanList.has(charName)) {
+                card.classList.add('banned');
+            }
+            fullCharacterGrid.appendChild(card);
+        });
+    }
+
     function handleDraw() {
-        // 1. Add picked characters from the PREVIOUS round to the ban list
+        // 1. Record the picked characters from the PREVIOUS round for the table display
         if (currentDrawnCharacters.length > 0) {
-            const pickedThisRound = [];
+            const pickedLastRound = [];
             characterDisplay.querySelectorAll('.character-card').forEach(card => {
                 if (!card.classList.contains('used')) {
-                    pickedThisRound.push(card.dataset.name);
+                    pickedLastRound.push(card.dataset.name);
                 }
             });
-            if (pickedThisRound.length > 0) {
-                banListByRound.push(pickedThisRound);
+            if (pickedLastRound.length > 0) {
+                banListByRound.push(pickedLastRound);
                 currentRound++;
             }
         }
 
-        // 2. Get all currently banned characters for drawing logic
-        const allBannedChars = banListByRound.flat();
+        // 2. Get available characters for the new draw
         const allCharacters = Object.keys(window.characterData);
-        const availableCharacters = allCharacters.filter(char => !allBannedChars.includes(char));
+        const availableCharacters = allCharacters.filter(char => !globalBanList.has(char));
         
-        // 3. Get draw count and validate
+        // 3. Validate count
         const count = parseInt(charCountInput.value, 10);
         if (isNaN(count) || count < 4 || count > 8) {
             alert('请选择4到8之间的角色数量。');
@@ -103,50 +147,43 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // 4. Shuffle and draw characters
+        // 4. Draw new characters
         const shuffled = availableCharacters.sort(() => 0.5 - Math.random());
         currentDrawnCharacters = shuffled.slice(0, count);
 
-        // 5. Display characters
+        // 5. Display new characters and set their default state to "picked" (banned)
         characterDisplay.innerHTML = '';
         currentDrawnCharacters.forEach(charName => {
-            const card = createCharacterCard(charName, window.characterData[charName]);
+            setBanStatus(charName, true); // Add to global ban list by default
+            const card = createCharacterCard(charName, window.characterData[charName], false);
             characterDisplay.appendChild(card);
         });
 
-        // 6. Draw skills and combine results
+        // 6. Handle skills and result text
         const skills = ['A', 'E', 'Q'];
         const shuffledSkills = skills.sort(() => 0.5 - Math.random());
         currentSkillBans = `${shuffledSkills[0]}-${shuffledSkills[1]}-${shuffledSkills[2]}`;
-        
         const combinedResult = `${currentDrawnCharacters.join(' ')};${currentSkillBans}`;
         characterResultText.textContent = combinedResult;
 
-        // 7. Update state and display
+        // 7. Update displays
         saveState();
         updateBanListDisplay();
+        populateFullCharacterList();
     }
 
     function handleCopy(textToCopy, buttonElement) {
-        if (!textToCopy || textToCopy.trim() === '') {
-            return;
-        }
-
+        if (!textToCopy || textToCopy.trim() === '') return;
         navigator.clipboard.writeText(textToCopy).then(() => {
-            if (buttonElement.classList.contains('copied')) return; // Prevent re-triggering animation
-
+            if (buttonElement.classList.contains('copied')) return;
             buttonElement.classList.add('copied');
-            
-            setTimeout(() => {
-                buttonElement.classList.remove('copied');
-            }, 1500);
-        }).catch(err => {
-            console.error('Copy failed:', err);
-        });
+            setTimeout(() => buttonElement.classList.remove('copied'), 1500);
+        }).catch(err => console.error('Copy failed:', err));
     }
 
     function performReset() {
         banListByRound = [];
+        globalBanList.clear();
         currentDrawnCharacters = [];
         currentSkillBans = '';
         currentRound = 1;
@@ -156,10 +193,10 @@ document.addEventListener('DOMContentLoaded', () => {
         characterDisplay.innerHTML = '';
         characterResultText.textContent = '';
         updateBanListDisplay();
+        populateFullCharacterList();
     }
 
     function showResetConfirmationModal() {
-        // --- Modal Creation ---
         const overlay = document.createElement("div");
         overlay.id = "resetOverlay";
         overlay.style.cssText = `
@@ -212,19 +249,15 @@ document.addEventListener('DOMContentLoaded', () => {
         overlay.appendChild(modal);
         document.body.appendChild(overlay);
 
-        // --- Show Animation ---
         setTimeout(() => {
             overlay.style.opacity = '1';
             modal.style.transform = 'scale(1)';
         }, 10);
 
-        // --- Event Listeners ---
         const hideModal = () => {
             overlay.style.opacity = '0';
             modal.style.transform = 'scale(0.9)';
-            setTimeout(() => {
-                document.body.removeChild(overlay);
-            }, 300);
+            setTimeout(() => document.body.removeChild(overlay), 300);
         };
 
         confirmButton.addEventListener("click", () => {
@@ -234,28 +267,97 @@ document.addEventListener('DOMContentLoaded', () => {
         
         cancelButton.addEventListener("click", hideModal);
         overlay.addEventListener("click", (e) => {
-            if (e.target === overlay) {
-                hideModal();
-            }
+            if (e.target === overlay) hideModal();
         });
-    }
-
-    function handleResetGame() {
-        showResetConfirmationModal();
     }
 
     // --- Event Listeners ---
     drawCharactersBtn.addEventListener('click', handleDraw);
     copyCharactersBtn.addEventListener('click', () => {
-        if (currentDrawnCharacters.length === 0) {
-            // Prevent copying when there's nothing to copy
-            return;
-        }
+        if (currentDrawnCharacters.length === 0) return;
         const combinedResult = `${currentDrawnCharacters.join(' ')};${currentSkillBans}`;
         handleCopy(combinedResult, copyCharactersBtn);
     });
-    resetGameBtn.addEventListener('click', handleResetGame);
+    resetGameBtn.addEventListener('click', showResetConfirmationModal);
+
+    function matchPinyinInitials(text, searchTerm, pinyinFn) {
+        const pinyinResult = pinyinFn(text, { pattern: 'first', toneType: 'none' });
+        const initials = pinyinResult.split(' ');
+        const fullInitialsString = initials.join('');
+
+        const startIndex = fullInitialsString.indexOf(searchTerm);
+
+        if (startIndex !== -1) {
+            const matchedPositions = [];
+            for (let i = 0; i < searchTerm.length; i++) {
+                matchedPositions.push(startIndex + i);
+            }
+            return { match: true, matchedPositions };
+        }
+        
+        return { match: false, matchedPositions: [] };
+    }
+
+    function setupCharacterSearch(inputId, containerSelector, itemSelector, nameSelector, nameDatasetKey, clearFiltersCallback) {
+        const searchInput = document.getElementById(inputId);
+        if (!searchInput) return;
+        
+        const hasPinyinSupport = typeof window.pinyinPro !== 'undefined' && 
+                                typeof window.pinyinPro.pinyin === 'function';
+        
+        if (!hasPinyinSupport) {
+            console.warn('pinyinPro库未加载，拼音搜索功能将不可用');
+        }
+
+        searchInput.addEventListener('input', () => {
+            const searchTerm = searchInput.value.toLowerCase();
+            
+            if (searchTerm !== '' && clearFiltersCallback) {
+                clearFiltersCallback();
+            }
+            
+            const container = document.querySelector(containerSelector);
+            const items = container.querySelectorAll(itemSelector);
+
+            items.forEach(item => {
+                const nameElement = item.querySelector(nameSelector);
+                const itemName = item.dataset[nameDatasetKey];
+                if (!itemName || !nameElement) return;
+
+                nameElement.textContent = itemName;
+                let highlightedHTML = itemName;
+                let match = false;
+
+                if (searchTerm === '') {
+                    match = true;
+                } else if (itemName.toLowerCase().includes(searchTerm)) {
+                    match = true;
+                    const regex = new RegExp(searchTerm.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'gi');
+                    highlightedHTML = itemName.replace(regex, `<span style="background-color: yellow; color: black; font-weight: bold;">$&</span>`);
+                } else if (hasPinyinSupport) {
+                    const { pinyin } = window.pinyinPro;
+                    const matchResult = matchPinyinInitials(itemName, searchTerm, pinyin);
+                    
+                    if (matchResult.match) {
+                        match = true;
+                        highlightedHTML = '';
+                        for (let i = 0; i < itemName.length; i++) {
+                            if (matchResult.matchedPositions.includes(i)) {
+                                highlightedHTML += `<span style="background-color: yellow; color: black; font-weight: bold;">${itemName[i]}</span>`;
+                            } else {
+                                highlightedHTML += itemName[i];
+                            }
+                        }
+                    }
+                }
+
+                item.style.display = match ? '' : 'none';
+                nameElement.innerHTML = highlightedHTML;
+            });
+        });
+    }
 
     // --- Initial Load ---
     loadState();
+    setupCharacterSearch('character-search', '#full-character-grid', '.character-card', '.name', 'name');
 });

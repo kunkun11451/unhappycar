@@ -170,6 +170,28 @@ button:active {
     font-size: 14px;
 }
 
+.full-character-list .character-card.banned {
+    opacity: 0.4;
+    filter: grayscale(100%);
+}
+
+.full-character-list .character-card.banned::after {
+    content: '禁用';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(192, 57, 43, 0.9);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    font-size: 16px;
+    text-align: center;
+    width: 80%;
+    box-sizing: border-box;
+}
+
 
 .character-card img {
     width: 100%;

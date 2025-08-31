@@ -75,8 +75,19 @@
                 </table>
             </div>
         </footer>
+
+        <section class="full-character-list card">
+            <h2>角色状态总览</h2>
+            <div class="search-container" style="margin-bottom: 20px; display: flex; gap: 10px;">
+                <input type="text" id="character-search" placeholder="搜索角色 (支持拼音首字母)" style="flex-grow: 1; padding: 10px; border-radius: 5px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.2); color: var(--text-color); font-family: var(--font-family);">
+            </div>
+            <div id="full-character-grid" class="character-grid">
+                <!-- All characters will be dynamically inserted here -->
+            </div>
+        </section>
     </div>
 
+    <script src="https://unpkg.com/pinyin-pro"></script>
     <script src="characters.js"></script>
     <script src="script.js"></script>
 </body>
