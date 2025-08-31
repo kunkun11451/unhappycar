@@ -1,6 +1,6 @@
 ## Preview：2025-08-30 
 - 🎉 在主持游戏时添加了可以选择的模式“不要做挑战”
-- https://deploy-preview-5--unhappycar.netlify.app/  <a href="https://deploy-preview-5--unhappycar.netlify.app/" target="_blank" rel="noopener">访问Preview网站</a>
+- https://deploy-preview-5--unhappycar.netlify.app/  <a href="https://deploy-preview-5--unhappycar.netlify.app/" rel="noopener">访问Preview网站</a>
 ## 2025-08-24
 - 🔧 优化事件管理区域css及部分功能
 

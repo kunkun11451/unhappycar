@@ -7,7 +7,9 @@
         messages: {}, // 各频道消息 {channelId: [{playerId, playerName, message, timestamp}]}
         unreadCounts: {}, // 未读消息计数 {channelId: count}
         isVisible: false, // 聊天面板是否可见
-        roomId: null
+        roomId: null,
+        notificationsEnabled: false, // 是否开启通知
+        notificationPermission: 'default' // 通知权限状态
     };
 
     const CACHE_KEY_PREFIX = 'unhappycar_chat_';
@@ -93,6 +95,122 @@
         }
     }
 
+    // 通知相关函数
+    function initNotificationSettings() {
+        // 检查浏览器通知权限
+        if ('Notification' in window) {
+            state.notificationPermission = Notification.permission;
+            
+            // 从localStorage读取用户的通知偏好
+            const savedPreference = localStorage.getItem('unhappycar_notifications_enabled');
+            if (savedPreference !== null) {
+                state.notificationsEnabled = savedPreference === 'true';
+            }
+        } else {
+            state.notificationsEnabled = false;
+            console.warn('此浏览器不支持通知功能');
+        }
+        updateNotificationUI();
+    }
+
+    function updateNotificationUI() {
+        const toggleBtn = document.getElementById('notificationToggle');
+        const icon = document.getElementById('notificationIcon');
+        const text = document.getElementById('notificationText');
+        
+        if (!toggleBtn || !icon || !text) return;
+
+        if (state.notificationsEnabled && state.notificationPermission === 'granted') {
+            toggleBtn.style.backgroundColor = 'rgba(76, 175, 80, 0.3)';
+            toggleBtn.style.borderColor = '#4caf50';
+            icon.textContent = '🔔';
+            text.textContent = '弹窗通知';
+        } else {
+            toggleBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+            toggleBtn.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+            icon.textContent = '🔕';
+            text.textContent = state.notificationPermission === 'denied' ? '已拒绝' : '弹窗通知';
+        }
+    }
+
+    async function toggleNotifications() {
+        if (!('Notification' in window)) {
+            alert('此浏览器不支持通知功能');
+            return;
+        }
+
+        if (state.notificationPermission === 'denied') {
+            alert('通知权限已被拒绝，请在浏览器设置中手动开启通知权限');
+            return;
+        }
+
+        if (state.notificationsEnabled) {
+            // 关闭通知
+            state.notificationsEnabled = false;
+            localStorage.setItem('unhappycar_notifications_enabled', 'false');
+        } else {
+            // 开启通知
+            if (state.notificationPermission === 'default') {
+                try {
+                    const permission = await Notification.requestPermission();
+                    state.notificationPermission = permission;
+                    
+                    if (permission === 'granted') {
+                        state.notificationsEnabled = true;
+                        localStorage.setItem('unhappycar_notifications_enabled', 'true');
+                        
+                        // 显示测试通知
+                        showNotification('通知已开启', '您将收到新消息的通知', 'test');
+                    } else {
+                        alert('需要通知权限才能开启消息通知');
+                    }
+                } catch (e) {
+                    console.error('请求通知权限失败:', e);
+                    alert('请求通知权限失败');
+                }
+            } else if (state.notificationPermission === 'granted') {
+                state.notificationsEnabled = true;
+                localStorage.setItem('unhappycar_notifications_enabled', 'true');
+            }
+        }
+        
+        updateNotificationUI();
+    }
+
+    function showNotification(title, body, tag = null) {
+        if (!state.notificationsEnabled || state.notificationPermission !== 'granted') {
+            return;
+        }
+
+        // 检查页面是否在后台
+        if (!document.hidden) {
+            return; // 页面在前台时不显示通知
+        }
+
+        try {
+            const notification = new Notification(title, {
+                body: body,
+                icon: '/favicon.ico', // 可以设置应用图标
+                tag: tag,
+                requireInteraction: false,
+                silent: false
+            });
+
+            // 点击通知时聚焦到页面
+            notification.onclick = function() {
+                window.focus();
+                notification.close();
+            };
+
+            // 5秒后自动关闭
+            setTimeout(() => {
+                notification.close();
+            }, 5000);
+        } catch (e) {
+            console.error('显示通知失败:', e);
+        }
+    }
+
     // 根据玩家座位获取可见频道
     function getVisibleChannels(playerSeat) {
         const channels = [];
@@ -166,7 +284,13 @@
         `;
         chatHeader.innerHTML = `
             <span>聊天</span>
-            <button id="chatCloseBtn" style="background:none;border:none;color:white;font-size:18px;cursor:pointer;">×</button>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <button id="notificationToggle" style="background:none;border:1px solid rgba(255,255,255,0.3);color:white;font-size:12px;cursor:pointer;padding:4px 8px;border-radius:4px;display:flex;align-items:center;gap:4px;" title="开启/关闭消息通知">
+                    <span id="notificationIcon">🔔</span>
+                    <span id="notificationText">通知</span>
+                </button>
+                <button id="chatCloseBtn" style="background:none;border:none;color:white;font-size:18px;cursor:pointer;">×</button>
+            </div>
         `;
 
         // 频道选择
@@ -224,9 +348,14 @@
         const channelSelect = document.getElementById('channelSelect');
         const messageInput = document.getElementById('messageInput');
         const sendBtn = document.getElementById('sendBtn');
+        const notificationToggle = document.getElementById('notificationToggle');
 
         if (chatCloseBtn) {
             chatCloseBtn.addEventListener('click', hideChatPanel);
+        }
+
+        if (notificationToggle) {
+            notificationToggle.addEventListener('click', toggleNotifications);
         }
 
         if (channelSelect) {
@@ -252,6 +381,9 @@
         
         // 初始化字符计数器
         updateCharCounter();
+        
+        // 初始化通知设置
+        initNotificationSettings();
     }
 
     // 更新字符计数器
@@ -419,6 +551,16 @@
         
         // 显示聊天图标未读提示
         updateChatButtonNotification();
+        
+        // 发送系统通知（仅当消息不是自己发的且页面在后台时）
+        if (shouldCountAsUnread) {
+            const channelName = state.channels.find(ch => ch.id === channelId)?.name || channelId;
+            showNotification(
+                `新消息 - ${channelName}`,
+                `${playerName || playerId}: ${message}`,
+                `chat-${channelId}`
+            );
+        }
         
         // 保存到本地缓存
         saveChatToCache();
