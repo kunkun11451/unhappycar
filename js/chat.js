@@ -116,20 +116,17 @@
     function updateNotificationUI() {
         const toggleBtn = document.getElementById('notificationToggle');
         const icon = document.getElementById('notificationIcon');
-        const text = document.getElementById('notificationText');
         
-        if (!toggleBtn || !icon || !text) return;
+        if (!toggleBtn || !icon) return;
 
         if (state.notificationsEnabled && state.notificationPermission === 'granted') {
             toggleBtn.style.backgroundColor = 'rgba(76, 175, 80, 0.3)';
-            toggleBtn.style.borderColor = '#4caf50';
+            toggleBtn.style.borderColor = 'rgba(76, 175, 80, 0.5)';
             icon.textContent = '🔔';
-            text.textContent = '弹窗通知';
         } else {
-            toggleBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-            toggleBtn.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+            toggleBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+            toggleBtn.style.borderColor = 'rgba(255, 255, 255, 0.2)';
             icon.textContent = '🔕';
-            text.textContent = state.notificationPermission === 'denied' ? '已拒绝' : '弹窗通知';
         }
     }
 
@@ -251,59 +248,153 @@
 
     // 创建聊天UI
     function createChatUI() {
+        // 创建遮罩层
+        const chatOverlay = document.createElement('div');
+        chatOverlay.id = 'chatOverlay';
+        chatOverlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 10000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            display: none;
+        `;
+
+        // 创建弹窗
         const chatContainer = document.createElement('div');
         chatContainer.id = 'chatContainer';
         chatContainer.style.cssText = `
-            position: fixed;
-            right: 20px;
-            bottom: 20px;
-            width: 320px;
-            height: 400px;
-            background: rgba(255, 255, 255, 0.95);
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 0;
+            max-width: 450px;
+            width: 90%;
+            height: 70vh;
+            max-height: 600px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+            position: relative;
             display: flex;
             flex-direction: column;
-            z-index: 1000;
-            font-family: Arial, sans-serif;
-            display: none;
+            color: white;
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
         `;
 
         // 聊天头部
         const chatHeader = document.createElement('div');
         chatHeader.style.cssText = `
-            padding: 10px 15px;
-            background: #4a90e2;
-            color: white;
-            border-radius: 8px 8px 0 0;
+            padding: 20px;
+            padding-bottom: 15px;
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
+            position: relative;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            flex-shrink: 0;
+        `;
+        
+        const title = document.createElement("h2");
+        title.textContent = "💬 聊天频道";
+        title.style.cssText = `
+            color: white;
+            font-size: 22px;
             font-weight: bold;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
         `;
-        chatHeader.innerHTML = `
-            <span>聊天</span>
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <button id="notificationToggle" style="background:none;border:1px solid rgba(255,255,255,0.3);color:white;font-size:12px;cursor:pointer;padding:4px 8px;border-radius:4px;display:flex;align-items:center;gap:4px;" title="开启/关闭消息通知">
-                    <span id="notificationIcon">🔔</span>
-                    <span id="notificationText">通知</span>
-                </button>
-                <button id="chatCloseBtn" style="background:none;border:none;color:white;font-size:18px;cursor:pointer;">×</button>
-            </div>
+        chatHeader.appendChild(title);
+
+        // 通知按钮
+        const notificationToggle = document.createElement("button");
+        notificationToggle.id = "notificationToggle";
+        notificationToggle.title = "开启/关闭消息通知";
+        notificationToggle.style.cssText = `
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 18px;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         `;
+        notificationToggle.innerHTML = `<span id="notificationIcon">🔕</span>`;
+        chatHeader.appendChild(notificationToggle);
+
+
+        // 关闭按钮
+        const closeButton = document.createElement("button");
+        closeButton.id = "chatCloseBtn";
+        closeButton.innerHTML = "✕";
+        closeButton.style.cssText = `
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        `;
+        closeButton.addEventListener("mouseover", () => {
+            closeButton.style.background = "rgba(255, 255, 255, 0.25)";
+            closeButton.style.transform = "rotate(90deg) scale(1.1)";
+        });
+        closeButton.addEventListener("mouseout", () => {
+            closeButton.style.background = "rgba(255, 255, 255, 0.15)";
+            closeButton.style.transform = "rotate(0deg) scale(1)";
+        });
+        chatHeader.appendChild(closeButton);
 
         // 频道选择
-        const channelSelector = document.createElement('div');
-        channelSelector.style.cssText = `
-            padding: 8px 15px;
-            border-bottom: 1px solid #eee;
-            background: #f8f9fa;
+        const channelSelectorContainer = document.createElement('div');
+        channelSelectorContainer.style.cssText = `
+            padding: 15px 20px;
+            flex-shrink: 0;
         `;
-        channelSelector.innerHTML = `
-            <select id="channelSelect" style="width:100%;padding:4px;border:1px solid #ddd;border-radius:4px;">
-            </select>
+        const channelSelect = document.createElement('select');
+        channelSelect.id = 'channelSelect';
+        channelSelect.style.cssText = `
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            background: rgba(20, 20, 20, 0.5);
+            backdrop-filter: blur(10px);
+            color: white;
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
         `;
+        channelSelectorContainer.appendChild(channelSelect);
 
         // 消息列表
         const messageList = document.createElement('div');
@@ -311,34 +402,65 @@
         messageList.style.cssText = `
             flex: 1;
             overflow-y: auto;
-            padding: 10px;
-            background: white;
+            padding: 0 20px 10px;
         `;
 
         // 输入区域
         const inputArea = document.createElement('div');
         inputArea.style.cssText = `
-            padding: 10px;
-            border-top: 1px solid #eee;
-            background: #f8f9fa;
+            padding: 15px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            flex-shrink: 0;
         `;
-        inputArea.innerHTML = `
-            <div style="display:flex;gap:8px;align-items:center;">
-                <input id="messageInput" type="text" placeholder="输入消息..." maxlength="30"
-                       style="flex:1;padding:8px;border:1px solid #ddd;border-radius:4px;">
-                <span id="charCounter" style="font-size:12px;color:#666;min-width:45px;">0/30</span>
-                <button id="sendBtn" style="padding:8px 15px;background:#4a90e2;color:white;border:none;border-radius:4px;cursor:pointer;">发送</button>
-            </div>
+        
+        const inputWrapper = document.createElement('div');
+        inputWrapper.style.cssText = `display:flex;gap:10px;align-items:center;`;
+        const messageInput = document.createElement('input');
+        messageInput.id = "messageInput";
+        messageInput.type = "text";
+        messageInput.placeholder = "输入消息...";
+    messageInput.maxLength = 200;
+        messageInput.style.cssText = `
+            flex: 1;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            color: white;
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
         `;
+        inputWrapper.appendChild(messageInput);
+    // 已移除字符计数器显示
+        
+        const buttonContainer = document.createElement("div");
+        buttonContainer.style.cssText = `display: flex; gap: 15px; justify-content: center; margin-top: 15px;`;
+        const sendBtn = document.createElement("button");
+        sendBtn.id = "sendBtn";
+        sendBtn.textContent = "🚀 发送";
+        sendBtn.style.cssText = `
+            background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white; padding: 12px 25px; font-size: 16px; font-weight: bold; border-radius: 25px;
+            cursor: pointer; transition: all 0.3s ease; width: 100%; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        `;
+        
+        buttonContainer.appendChild(sendBtn);
+
+        inputArea.appendChild(inputWrapper);
+        inputArea.appendChild(buttonContainer);
 
         chatContainer.appendChild(chatHeader);
-        chatContainer.appendChild(channelSelector);
+        chatContainer.appendChild(channelSelectorContainer);
         chatContainer.appendChild(messageList);
         chatContainer.appendChild(inputArea);
+        
+        chatOverlay.appendChild(chatContainer);
+        document.body.appendChild(chatOverlay);
 
-        document.body.appendChild(chatContainer);
+    // 移除点击空白处关闭弹窗的功能（不再绑定遮罩点击关闭）
 
-        // 绑定事件
         bindChatEvents();
     }
 
@@ -374,65 +496,47 @@
                     sendMessage();
                 }
             });
-            
-            // 添加字符计数器事件监听
-            messageInput.addEventListener('input', updateCharCounter);
         }
-        
-        // 初始化字符计数器
-        updateCharCounter();
         
         // 初始化通知设置
         initNotificationSettings();
     }
 
-    // 更新字符计数器
-    function updateCharCounter() {
-        const messageInput = document.getElementById('messageInput');
-        const charCounter = document.getElementById('charCounter');
-        
-        if (!messageInput || !charCounter) return;
-        
-        const currentLength = messageInput.value.length;
-        const maxLength = 30;
-        
-        charCounter.textContent = `${currentLength}/${maxLength}`;
-        
-        // 根据字符数变化颜色
-        if (currentLength > 25) {
-            charCounter.style.color = '#e74c3c'; // 红色警告
-        } else if (currentLength > 20) {
-            charCounter.style.color = '#f39c12'; // 橙色提醒
-        } else {
-            charCounter.style.color = '#666'; // 默认灰色
-        }
-    }
+    // 已移除字符计数器逻辑
 
     // 更新频道选择器
     function updateChannelSelector() {
         const channelSelect = document.getElementById('channelSelect');
         if (!channelSelect) return;
 
+        const currentVal = channelSelect.value;
         channelSelect.innerHTML = '';
         
+        // 添加一个禁用的标题选项
+        const titleOption = document.createElement('option');
+        titleOption.textContent = "选择一个频道";
+        titleOption.disabled = true;
+        // channelSelect.appendChild(titleOption);
+
         state.channels.forEach(channel => {
             const option = document.createElement('option');
             option.value = channel.id;
             option.textContent = channel.name;
+            option.style.backgroundColor = "#222";
             
-            // 显示未读消息数
             const unreadCount = state.unreadCounts[channel.id] || 0;
             if (unreadCount > 0) {
-                option.textContent += ` (${unreadCount})`;
+                option.textContent += ` (${unreadCount}条未读)`;
                 option.style.fontWeight = 'bold';
-                option.style.color = '#e74c3c';
             }
             
             channelSelect.appendChild(option);
         });
 
-        // 设置当前频道
-        if (state.currentChannel && channelSelect.value !== state.currentChannel) {
+        // 恢复之前的选择，或者默认第一个
+        if (currentVal && state.channels.some(c => c.id === currentVal)) {
+            channelSelect.value = currentVal;
+        } else if (state.currentChannel) {
             channelSelect.value = state.currentChannel;
         }
     }
@@ -461,18 +565,37 @@
             const messageDiv = document.createElement('div');
             messageDiv.className = `message-item ${msg.playerId === getCurrentPlayerId() ? 'own' : 'other'}`;
 
+            const isOwn = msg.playerId === getCurrentPlayerId();
+            const senderName = msg.playerName || msg.playerId;
+            const avatarUrl = getAvatarUrlForPlayer(msg.playerId, msg.playerName);
+            const avatarImg = avatarUrl ? `<img class="message-avatar" src="${avatarUrl}" alt="${senderName}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,0.2);">` : '';
+
             const time = new Date(msg.timestamp).toLocaleTimeString('zh-CN', {
                 hour: '2-digit',
                 minute: '2-digit'
             });
 
-            messageDiv.innerHTML = `
-                <div class="message-header">
-                    <span class="message-sender">${msg.playerName || msg.playerId}</span>
-                    <span class="message-time">${time}</span>
+            if (isOwn) {
+                const seatNum = getSeatFromNameOrId(msg.playerName, msg.playerId) || state.playerSeat;
+                const seatLabel = seatNum ? `${seatNum}P` : senderName;
+                messageDiv.innerHTML = `
+                    <div class="message-header" style="display:flex;align-items:center;gap:8px;">
+                      <span class="message-time">${time}</span>
+                      <span class="message-sender" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${seatLabel}</span>
+                      ${avatarImg}
+                    </div>
+                    <div class="message-content">${escapeHtml(msg.message)}</div>
+                `;
+            } else {
+              const headerInnerLeft = `${avatarImg}<span class="message-sender" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${senderName}</span>`;
+              messageDiv.innerHTML = `
+                <div class="message-header" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                  <div style="display:flex;align-items:center;gap:8px;min-width:0;">${headerInnerLeft}</div>
+                  <span class="message-time">${time}</span>
                 </div>
                 <div class="message-content">${escapeHtml(msg.message)}</div>
-            `;
+              `;
+            }
 
             messageList.appendChild(messageDiv);
         });
@@ -489,9 +612,9 @@
         const message = messageInput.value.trim();
         if (!message) return;
 
-        // 限制消息长度不超过30个字符
-        if (message.length > 30) {
-            alert('消息长度不能超过30个字符');
+        // 限制消息长度不超过200个字符
+        if (message.length > 200) {
+            alert('消息长度不能超过200个字符');
             return;
         }
 
@@ -599,6 +722,36 @@
         return state.playerSeat;
     }
 
+    // 固定头像映射（1P-4P）
+    const AVATAR_URLS = {
+        1: 'https://upload-bbs.miyoushe.com/upload/2024/06/29/273489775/91487b41c74717dd5f7ddf70f54f8d86_395069412624245482.png',
+        2: 'https://upload-bbs.miyoushe.com/upload/2024/06/29/273489775/f7d0df2cb75f807629bed67f5a8678c5_1377069287058428643.png',
+        3: 'https://upload-bbs.miyoushe.com/upload/2024/06/29/273489775/04bcaa5de39bc19a6b0287673614f74a_6932174723629665944.png',
+        4: 'https://upload-bbs.miyoushe.com/upload/2024/06/29/273489775/4be47bf1376bfb4f69c1e3fe26c8a8e8_8119842655567179283.png'
+    };
+
+    function getSeatFromNameOrId(playerName, playerId) {
+        // 先从名称中识别 1P/2P/3P/4P
+        if (playerName) {
+            const m1 = playerName.match(/^(?:\s*)?([1-4])P(?:\s*)?$/i) || playerName.match(/([1-4])P/i);
+            if (m1) return parseInt(m1[1], 10);
+        }
+        // 尝试从ID末尾提取数字（如 Player_1、user-4 等）
+        if (playerId) {
+            const m2 = String(playerId).match(/([1-4])$/);
+            if (m2) return parseInt(m2[1], 10);
+        }
+        // 退化：如果是本地玩家，使用本地座位
+        if (playerId === getCurrentPlayerId() && state.playerSeat) return state.playerSeat;
+        return null;
+    }
+
+    function getAvatarUrlForPlayer(playerId, playerName) {
+        const seat = getSeatFromNameOrId(playerName, playerId);
+        if (seat && AVATAR_URLS[seat]) return AVATAR_URLS[seat];
+        return null;
+    }
+
     // HTML转义
     function escapeHtml(text) {
         const div = document.createElement('div');
@@ -608,12 +761,19 @@
 
     // 显示聊天面板
     function showChatPanel() {
+        const chatOverlay = document.getElementById('chatOverlay');
         const chatContainer = document.getElementById('chatContainer');
-        if (chatContainer) {
-            chatContainer.style.display = 'flex';
+        if (chatOverlay && chatContainer) {
+            chatOverlay.style.display = 'flex';
+            setTimeout(() => {
+                chatOverlay.style.opacity = '1';
+                chatContainer.style.transform = 'scale(1)';
+            }, 10);
+
             state.isVisible = true;
+            // 阻止外部页面滚动
+            try { document.body.style.overflow = 'hidden'; } catch (e) {}
             
-            // 清除当前频道未读计数
             if (state.currentChannel) {
                 state.unreadCounts[state.currentChannel] = 0;
                 updateChannelSelector();
@@ -624,9 +784,16 @@
 
     // 隐藏聊天面板
     function hideChatPanel() {
+        const chatOverlay = document.getElementById('chatOverlay');
         const chatContainer = document.getElementById('chatContainer');
-        if (chatContainer) {
-            chatContainer.style.display = 'none';
+        if (chatOverlay && chatContainer) {
+            chatOverlay.style.opacity = '0';
+            chatContainer.style.transform = 'scale(0.8)';
+            setTimeout(() => {
+                chatOverlay.style.display = 'none';
+                // 恢复外部页面滚动
+                try { document.body.style.overflow = ''; } catch (e) {}
+            }, 300);
             state.isVisible = false;
         }
     }
@@ -711,18 +878,20 @@
         chatButton.style.cssText = `
             position: fixed;
             right: 20px;
-            bottom: 440px;
-            width: 50px;
-            height: 50px;
-            background: #4a90e2;
+            bottom: 20px;
+            width: 55px;
+            height: 55px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             color: white;
-            border: none;
             border-radius: 50%;
-            font-size: 20px;
+            font-size: 24px;
             cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             z-index: 999;
             display: none;
+            transition: all 0.3s ease;
         `;
 
         chatButton.addEventListener('click', () => {
@@ -747,13 +916,13 @@
     // 隐藏聊天功能
     function hideChatFeature() {
         const chatButton = document.getElementById('chatButton');
-        const chatContainer = document.getElementById('chatContainer');
+        const chatOverlay = document.getElementById('chatOverlay');
         
         if (chatButton) {
             chatButton.style.display = 'none';
         }
-        if (chatContainer) {
-            chatContainer.style.display = 'none';
+        if (chatOverlay) {
+            chatOverlay.style.display = 'none';
         }
         
         state.isVisible = false;
