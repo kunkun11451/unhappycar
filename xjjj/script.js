@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const copyCharactersBtn = document.getElementById('copy-characters-btn');
     const banListTableBody = document.querySelector('#ban-list-table tbody');
     const fullCharacterGrid = document.getElementById('full-character-grid');
+    const orderToggle = document.getElementById('order-toggle');
 
     // State
     let banListByRound = []; // For table display only
@@ -15,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentDrawnCharacters = [];
     let currentSkillBans = '';
     let currentRound = 1;
+    let currentOrder = [];
 
     // --- Functions ---
 
@@ -163,7 +165,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const skills = ['A', 'E', 'Q'];
         const shuffledSkills = skills.sort(() => 0.5 - Math.random());
         currentSkillBans = `${shuffledSkills[0]}-${shuffledSkills[1]}-${shuffledSkills[2]}`;
-        const combinedResult = `${currentDrawnCharacters.join(' ')};${currentSkillBans}`;
+        // 顺序抽取显示（1,2,3,4 随机排序），统一写入 character-result-text
+        if (orderToggle && orderToggle.checked) {
+            const base = [1, 2, 3, 4];
+            currentOrder = base.sort(() => 0.5 - Math.random());
+        } else {
+            currentOrder = [];
+        }
+        const orderPart = (orderToggle && orderToggle.checked && Array.isArray(currentOrder) && currentOrder.length === 4)
+            ? `顺序${currentOrder.join('→')};`
+            : '';
+        const combinedResult = `${orderPart}${currentDrawnCharacters.join(' ')};${currentSkillBans}`;
         characterResultText.textContent = combinedResult;
 
         // 7. Update displays
@@ -186,12 +198,13 @@ document.addEventListener('DOMContentLoaded', () => {
         globalBanList.clear();
         currentDrawnCharacters = [];
         currentSkillBans = '';
-        currentRound = 1;
+    currentRound = 1;
+    currentOrder = [];
         
         localStorage.removeItem('genshinPickerState');
         
-        characterDisplay.innerHTML = '';
-        characterResultText.textContent = '';
+    characterDisplay.innerHTML = '';
+    characterResultText.textContent = '';
         updateBanListDisplay();
         populateFullCharacterList();
     }
@@ -273,9 +286,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Event Listeners ---
     drawCharactersBtn.addEventListener('click', handleDraw);
+    if (orderToggle) {
+        orderToggle.addEventListener('change', () => {
+            if (orderToggle.checked) {
+                if (!(Array.isArray(currentOrder) && currentOrder.length === 4)) {
+                    const base = [1, 2, 3, 4];
+                    currentOrder = base.sort(() => 0.5 - Math.random());
+                }
+                if (currentDrawnCharacters.length > 0) {
+                    const prefix = `顺序${currentOrder.join('→')};`;
+                    characterResultText.textContent = `${prefix}${currentDrawnCharacters.join(' ')};${currentSkillBans}`;
+                } else {
+                    characterResultText.textContent = `顺序${currentOrder.join('→')}`;
+                }
+            } else {
+                // 关闭时：若已有结果，则不立即移除顺序显示；仅在无结果时清空
+                currentOrder = [];
+                if (currentDrawnCharacters.length === 0) {
+                    characterResultText.textContent = '';
+                }
+            }
+        });
+    }
     copyCharactersBtn.addEventListener('click', () => {
         if (currentDrawnCharacters.length === 0) return;
-        const combinedResult = `${currentDrawnCharacters.join(' ')};${currentSkillBans}`;
+        const orderPart = (orderToggle && orderToggle.checked && Array.isArray(currentOrder) && currentOrder.length === 4)
+            ? `顺序${currentOrder.join('→')};`
+            : '';
+        const combinedResult = `${orderPart}${currentDrawnCharacters.join(' ')};${currentSkillBans}`;
         handleCopy(combinedResult, copyCharactersBtn);
     });
     resetGameBtn.addEventListener('click', showResetConfirmationModal);

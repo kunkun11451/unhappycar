@@ -26,7 +26,7 @@
                 <h3>[2] 网页随机版</h3>
                 <ol>
                     <li><strong>角色池与禁用生成</strong>: 随机抽取若干名角色 与 前三位挑选的玩家禁用的技能</li>
-                    <li><strong>选择顺序</strong>: 抽帽子，按数字 从大到小 确定挑选角色的顺序。</li>
+                    <li><strong>选择顺序</strong>: 抽帽子，按数字 从大到小 确定挑选角色的顺序。或直接抽取选取顺序。</li>
                     <li><strong>角色挑选</strong>: 玩家按顺序从角色池中挑选 1 名心仪的角色。</li>
                 </ol>
             </div>
@@ -40,6 +40,10 @@
             <div class="controls">
                 <label for="char-count">选择抽取角色数量 (4-8):</label>
                 <input type="number" id="char-count" value="8" min="4" max="8">
+                <label for="order-toggle">
+                    <input type="checkbox" id="order-toggle">
+                    选择顺序抽取
+                </label>
                 <button id="draw-characters">抽取</button>
                 <button id="reset-game">重置</button>
             </div>
