@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="https://upload-bbs.miyoushe.com/upload/2024/06/29/273489775/4be47bf1376bfb4f69c1e3fe26c8a8e8_8119842655567179283.png" type="image/png">
+    <title>表情编辑器</title>
+</head>
+<body>
+    <div class="container">
+        <canvas id="canvas"></canvas>
+        <div class="controls">
+            <a>首次加载需下载字体文件和图片可能较慢，请耐心等待。</a>
+            <textarea id="text-input" placeholder="输入文案..."></textarea>
+            <label for="font-size-slider">字体大小:</label>
+            <input type="range" id="font-size-slider" min="10" max="100" value="48">
+            <label for="position-y-slider">文字垂直位置:</label>
+            <input type="range" id="position-y-slider" min="80" max="90" value="85">
+            <label for="image-size-slider">图片大小:</label>
+            <input type="range" id="image-size-slider" min="10" max="100" value="50">
+            <label for="image-upload">上传图片:</label>
+            <input type="file" id="image-upload" accept="image/*">
+            <label for="image-url-input">或输入图片URL:</label>
+            <input type="text" id="image-url-input" placeholder="图片URL...">
+            <button id="gallery-btn">或从图库选择</button>
+            <label for="format-select">图片格式:</label>
+            <select id="format-select">
+                <option value="png">PNG</option>
+                <option value="gif">GIF</option>
+            </select>
+            <button id="download-btn">下载图片</button>
+            <button id="copy-btn">复制图片</button>
+        </div>
+    </div>
+
+    <!-- Image Gallery Modal -->
+    <div id="gallery-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <h2>图片库</h2>
+            <div id="category-container" class="category-container">
+                <!-- Categories will be inserted here by JS -->
+            </div>
+            <div id="image-gallery" class="image-gallery">
+                <!-- Images will be inserted here by JS -->
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

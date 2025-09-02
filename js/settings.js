@@ -964,7 +964,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { name: "拼好车", file: "pinhaoche" },
             { name: "方位抽取器", file: "fangwei"},
             { name: "选角禁技", file: "xjjj"},
-            { name: "赤石5", },
+            { name: "表情包编辑", file: "pt"},
             { name: "赤石6", }
         ];
 
