@@ -11,7 +11,9 @@
     <div class="container">
         <canvas id="canvas"></canvas>
         <div class="controls">
-            <label>文案...</label>
+            <label>添加图片</label>
+            <button id="gallery-btn">选择图片</button>
+            <label>添加文案</label>
             <textarea id="text-input" placeholder="..."></textarea>
             <label for="font-size-slider">字体大小:</label>
             <input type="range" id="font-size-slider" min="10" max="100" value="70">
@@ -23,12 +25,7 @@
             </div>
             <input type="range" id="image-size-slider" min="10" max="250" value="50">
             <label>图片位置可直接拖动调整</label>
-            <label for="image-upload">上传图片:</label>
-            <input type="file" id="image-upload" accept="image/*">
-            <label for="image-url-input">或输入图片URL:</label>
-            <input type="text" id="image-url-input" placeholder="图片URL...">
-            <button id="gallery-btn">或从图库选择</button>
-            <label for="format-select">图片格式:</label>
+            <label for="format-select">导出格式:</label>
             <select id="format-select">
                 <option value="png">PNG</option>
                 <option value="gif">GIF（导入了动图请选择此格式）</option>
@@ -45,6 +42,20 @@
             <h2>图片库</h2>
             <div id="category-container" class="category-container">
                 <!-- Categories will be inserted here by JS -->
+            </div>
+            <!-- Custom image category area -->
+            <div id="custom-image-panel" class="custom-image-panel" style="display:none;">
+                <div class="custom-inputs">
+                    <label for="image-upload" class="custom-label">上传图片</label>
+                    <input type="file" id="image-upload" accept="image/*" class="custom-file">
+                    <div class="or-divider"><span>或</span></div>
+                    <label for="image-url-input" class="custom-label">输入图片 URL</label>
+                    <input type="text" id="image-url-input" placeholder="https://..." class="custom-url">
+                    <div class="custom-preview" id="custom-preview" style="display:none;">
+                        <img id="custom-preview-img" alt="预览" />
+                    </div>
+                    <button id="custom-use-btn" class="custom-use-btn">使用该图片</button>
+                </div>
             </div>
             <div id="image-gallery" class="image-gallery">
                 <!-- Images will be inserted here by JS -->

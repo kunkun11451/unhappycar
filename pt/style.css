@@ -121,9 +121,6 @@ input[type="range"] {
 
 select, button {
     padding: 12px 18px;
-    border: none;
-    background-color: #007bff;
-    color: white;
     border-radius: 8px;
     cursor: pointer;
     text-align: center;
@@ -131,20 +128,15 @@ select, button {
     display: inline-block;
     font-family: inherit;
     font-size: 16px;
-    transition: background-color 0.3s ease;
+    transition: background-color .2s ease, border-color .2s ease, box-shadow .2s ease, color .2s ease;
+    background: rgb(235,228,214);
+    border: 1px solid rgb(209,191,162);
+    color: #2c2f36;
 }
 
-button:hover, select:hover {
-    background-color: #0056b3;
-}
-
-#copy-btn {
-    background-color: #28a745;
-}
-
-#copy-btn:hover {
-    background-color: #218838;
-}
+button:hover, select:hover { background: #e7dfcd; }
+button:disabled, select:disabled { opacity: .6; cursor: not-allowed; }
+button:focus-visible, select:focus-visible { outline: 2px solid rgba(209,191,162,0.9); outline-offset: 2px; }
 
 input[type="file"] {
     padding: 10px;
@@ -170,6 +162,7 @@ input[type="file"] {
     opacity: 0;
     pointer-events: none;
     transition: opacity .25s ease;
+    overscroll-behavior: contain; /* prevent scroll chaining */
 }
 
 .modal-overlay.active { opacity: 1; pointer-events: auto; }
@@ -431,3 +424,80 @@ input[type="file"] {
         border-radius: 8px; 
     }
 }
+
+/* --- Custom image panel inside gallery --- */
+.custom-image-panel { 
+    background: #f2efe6; 
+    border: 1px solid rgb(209,191,162); 
+    border-radius: 10px; 
+    padding: 12px; 
+    margin: 12px 0; 
+}
+.custom-inputs { display: grid; grid-template-columns: 1fr; gap: 8px; }
+.custom-label { color:#6b5b45; font-weight:600; font-size: 14px; }
+.custom-file, .custom-url { 
+    padding: 8px 10px; border: 1px solid rgb(209,191,162); border-radius: 8px; 
+    background: #fff; color:#2c2f36;
+}
+.custom-use-btn {
+    padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight:600;
+    background: rgb(235,228,214); border: 1px solid rgb(209,191,162); color:#2c2f36;
+}
+.custom-use-btn:hover { background:#e7dfcd; }
+.or-divider { text-align:center; color:#8b6b3e; margin: 6px 0; }
+.or-divider span { background:#f2efe6; padding: 0 6px; }
+.custom-preview { 
+    margin: 8px 0; padding: 8px; border: 1px dashed rgb(209,191,162); border-radius: 8px; 
+    background:#fff;
+    max-height: 40vh;
+    overflow: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+.custom-preview img { max-width: 100%; max-height: 200px; height: auto; display: block; border-radius: 6px; object-fit: contain; margin: 0 auto; }
+
+/* File input button theming */
+.custom-file {
+    width: 100%;
+    box-sizing: border-box;
+    font: inherit;
+}
+.custom-file::file-selector-button {
+    margin-right: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid rgb(209,191,162);
+    background: rgb(235,228,214);
+    color: #2c2f36;
+    cursor: pointer;
+    font-weight: 600;
+    font-family: inherit;
+    transition: background-color .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.custom-file:hover::file-selector-button { background:#e7dfcd; }
+.custom-file:focus-visible { outline: 2px solid rgba(209,191,162,0.9); outline-offset: 2px; }
+
+/* WebKit fallback */
+.custom-file::-webkit-file-upload-button {
+    margin-right: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid rgb(209,191,162);
+    background: rgb(235,228,214);
+    color: #2c2f36;
+    cursor: pointer;
+    font-weight: 600;
+    font-family: inherit;
+    transition: background-color .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.custom-file:hover::-webkit-file-upload-button { background:#e7dfcd; }
+
+@media (max-width: 768px) {
+    .custom-file::file-selector-button,
+    .custom-file::-webkit-file-upload-button { padding: 10px 14px; }
+}
+
+/* Disable page scroll when modal is open */
+body.modal-open { overflow: hidden; }

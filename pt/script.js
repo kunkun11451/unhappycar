@@ -10,6 +10,11 @@ const imageUpload = document.getElementById('image-upload');
 const imageSizeSlider = document.getElementById('image-size-slider');
 const imageSizeInput = document.getElementById('image-size-input');
 const imageUrlInput = document.getElementById('image-url-input');
+const customUseBtn = document.getElementById('custom-use-btn');
+const customPanel = document.getElementById('custom-image-panel');
+const customPreview = document.getElementById('custom-preview');
+const customPreviewImg = document.getElementById('custom-preview-img');
+let pendingCustomSrc = '';
 const galleryBtn = document.getElementById('gallery-btn');
 const galleryModal = document.getElementById('gallery-modal');
 const modalClose = document.querySelector('.modal-close');
@@ -43,34 +48,114 @@ function showFirstLoadTipIfNeeded() {
     msg.textContent = '首次加载需下载字体文件和图片可能较慢，请耐心等待。';
     msg.style.cssText = 'margin:0 0 18px 0;';
 
-    const btns = document.createElement('div');
-    btns.style.cssText = 'display:flex; justify-content:center; gap:12px;';
+    // 进度条容器与文本
+    const progText = document.createElement('div');
+    progText.style.cssText = 'font-size:12px; color:#6b5b45; margin:-6px 0 8px 0;';
+    progText.textContent = '资源加载进度 0%';
 
-    const ok = document.createElement('button');
-    ok.textContent = '我知道了';
-    ok.style.cssText = `
-        background: #2ea043; border: 1px solid #26833a; color:#fff;
-        padding:8px 16px; border-radius:8px; cursor:pointer; font-weight:600;`;
+    const progWrap = document.createElement('div');
+    progWrap.style.cssText = 'height:8px; background:#e2d9c7; border-radius:999px; overflow:hidden; margin:0 0 14px 0;';
+    const progBar = document.createElement('div');
+    progBar.style.cssText = 'height:100%; width:0%; background:linear-gradient(90deg,#d1bca5,#8b6b3e); transition:width .2s ease;';
+    progWrap.appendChild(progBar);
 
-    const dont = document.createElement('button');
-    dont.textContent = '不再提示';
-    dont.style.cssText = `
-        background: #f2f0ea; border: 1px solid rgb(209,191,162);
-        color:#4d4d4d; padding:8px 16px; border-radius:8px; cursor:pointer;`;
-
-    btns.appendChild(ok);
-    btns.appendChild(dont);
     modal.appendChild(title);
     modal.appendChild(msg);
-    modal.appendChild(btns);
+    modal.appendChild(progText);
+    modal.appendChild(progWrap);
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
 
     setTimeout(() => { overlay.style.opacity = '1'; modal.style.transform = 'scale(1)'; }, 10);
-    const hide = () => { overlay.style.opacity = '0'; modal.style.transform = 'scale(0.96)'; setTimeout(() => overlay.remove(), 300); };
-    ok.addEventListener('click', hide);
-    dont.addEventListener('click', () => { try { localStorage.setItem(NO_TIP_KEY, '1'); } catch {} hide(); });
+    let closed = false;
+    const hide = () => {
+        if (closed) return;
+        closed = true;
+        overlay.style.opacity = '0';
+        modal.style.transform = 'scale(0.96)';
+        setTimeout(() => overlay.remove(), 300);
+        // 清理全局进度回调，避免后续无弹窗时仍更新
+        try { window.__ptPreloadTick = null; } catch {}
+    };
     overlay.addEventListener('click', (e) => { if (e.target === overlay) hide(); });
+
+    // 进度统计：字体 + 背景图 + 分类 JSON（数量 = jsonFiles.length）
+    let total = 0;
+    try { total = 2 + (Array.isArray(jsonFiles) ? jsonFiles.length : 0); } catch { total = 2; }
+    let loaded = 0;
+    const update = () => {
+        const pct = Math.max(0, Math.min(100, Math.round((loaded / Math.max(1, total)) * 100)));
+        progBar.style.width = pct + '%';
+        progText.textContent = `资源加载进度 ${pct}%`;
+        if (pct >= 100) {
+            // 稍作延迟让 100% 的动画有时间展示
+            setTimeout(() => hide(), 400);
+        }
+    };
+    const tick = () => { loaded = Math.min(total, loaded + 1); update(); };
+    // 提供给外部（initGallery 中每个 JSON 完成后调用）
+    try { window.__ptPreloadTick = tick; } catch {}
+    update();
+
+    // 背景图完成或失败都推进一次
+    try {
+        if (backgroundImg && (backgroundImg.complete || backgroundImg.naturalWidth)) {
+            tick();
+        } else if (backgroundImg) {
+            backgroundImg.addEventListener('load', tick, { once: true });
+            backgroundImg.addEventListener('error', tick, { once: true });
+        } else {
+            tick();
+        }
+    } catch { tick(); }
+
+    // 字体加载（若已缓存立即通过）
+    try {
+        const face = "12px 'HYWenHei-85W'";
+        if (document.fonts && document.fonts.check(face)) {
+            tick();
+        } else if (document.fonts && document.fonts.load) {
+            document.fonts.load(face).then(() => tick()).catch(() => tick());
+        } else {
+            // 旧浏览器不支持 FontFaceSet，直接记为完成
+            tick();
+        }
+    } catch { tick(); }
+}
+
+// 统一的轻量提示弹窗
+function showTipModal(message, { duration = 1800 } = {}) {
+    try {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
+            z-index: 10000; display: flex; justify-content: center; align-items: center;
+            opacity: 0; transition: opacity .25s ease;`;
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+            background: rgb(235,228,214); color: #2c2f36; backdrop-filter: blur(15px);
+            border-radius: 14px; padding: 18px 20px; max-width: 420px; width: 86%;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15); border: 1px solid rgb(209,191,162);
+            transform: scale(0.96); transition: transform .25s ease; text-align: center;`;
+        const p = document.createElement('p');
+        p.textContent = String(message || '');
+        p.style.cssText = 'margin:0; font-size:14px; color:#2c2f36;';
+        modal.appendChild(p);
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+        // 出现
+        requestAnimationFrame(() => { overlay.style.opacity = '1'; modal.style.transform = 'scale(1)'; });
+        // 关闭
+        let closed = false;
+        const hide = () => {
+            if (closed) return; closed = true;
+            overlay.style.opacity = '0'; modal.style.transform = 'scale(0.96)';
+            setTimeout(() => overlay.remove(), 250);
+        };
+        const tid = setTimeout(hide, Math.max(500, duration|0));
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) { clearTimeout(tid); hide(); } });
+    } catch (e) { /* 忽略 */ }
 }
 
 const backgroundImg = new Image();
@@ -460,11 +545,12 @@ function createImage(src) {
 
 async function initGallery() {
     const promises = jsonFiles.map(file => 
-        fetch(`pic/${file}`).then(res => {
+                fetch(`pic/${file}`).then(res => {
             if (!res.ok) throw new Error(`加载失败: ${file}`);
             return res.json();
-        }).then(data => ({ status: 'fulfilled', value: data }))
-          .catch(err => ({ status: 'rejected', reason: err, file }))
+                }).then(data => ({ status: 'fulfilled', value: data }))
+                    .catch(err => ({ status: 'rejected', reason: err, file }))
+                    .finally(() => { try { window.__ptPreloadTick && window.__ptPreloadTick(); } catch {} })
     );
     const results = await Promise.all(promises);
     results.forEach((r, index) => {
@@ -479,29 +565,35 @@ async function initGallery() {
     // 插入“最近使用”置顶分类
     ensureRecentsCategory();
     populateCategories();
+    // 默认先展示“最近使用”，否则展示“自定义图片”，再否则展示任意可用分类
     const firstCategory = (recentImages && recentImages.length > 0)
         ? '最近使用'
-        : Object.keys(galleryData).find(k => k !== '最近使用');
+        : '自定义图片' || Object.keys(galleryData).find(k => k !== '最近使用');
     if (firstCategory) displayCategory(firstCategory);
 }
 
 function populateCategories() {
     // 重建分类条，保证顺序：最近使用 -> 其他
     categoryContainer.innerHTML = '';
-    const order = ['最近使用', ...Object.keys(galleryData).filter(n => n !== '最近使用')];
+    const order = ['自定义图片', '最近使用', ...Object.keys(galleryData).filter(n => n !== '最近使用')];
     for (const categoryName of order) {
         const urls = galleryData[categoryName];
         if (!urls || urls.length === 0) {
-            // “最近使用”允许为空也展示按钮；其他无图跳过
-            if (categoryName !== '最近使用') continue;
+            // “最近使用”和“自定义图片”允许为空也展示按钮；其他无图跳过
+            if (categoryName !== '最近使用' && categoryName !== '自定义图片') continue;
         }
 
         const btn = document.createElement('div');
         btn.className = 'category-btn';
         btn.dataset.category = categoryName;
 
-    const img = document.createElement('img');
-    img.src = (urls && urls[0]) || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+        const img = document.createElement('img');
+        if (categoryName === '自定义图片') {
+            const plusSvg = encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="90" height="90" viewBox="0 0 90 90"><rect fill="#efe8d6" x="0" y="0" width="90" height="90" rx="10"/><path d="M45 20v50M20 45h50" stroke="#8b6b3e" stroke-width="6" stroke-linecap="round"/></svg>');
+            img.src = `data:image/svg+xml;utf8,${plusSvg}`;
+        } else {
+            img.src = (urls && urls[0]) || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+        }
         img.loading = 'lazy';
         img.alt = `${categoryName} 首图`;
         img.onerror = () => {
@@ -548,7 +640,17 @@ function displayCategory(categoryName) {
         }
     }
 
-    // Populate images
+    // 特殊分类：自定义图片
+    if (categoryName === '自定义图片') {
+        if (customPanel) customPanel.style.display = 'block';
+        if (imageGallery) imageGallery.style.display = 'none';
+        return;
+    } else {
+        if (customPanel) customPanel.style.display = 'none';
+        if (imageGallery) imageGallery.style.display = 'grid';
+    }
+
+    // Populate images for normal categories
     imageGallery.innerHTML = '';
     const urls = galleryData[categoryName] || [];
     urls.forEach(url => {
@@ -573,6 +675,16 @@ function displayCategory(categoryName) {
 }
 
 function openGalleryModal() {
+    // 先锁定页面滚动（移动端）
+    try {
+        const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+        document.body.dataset.scrollY = String(scrollY);
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${scrollY}px`;
+        document.body.style.width = '100%';
+        document.body.classList.add('modal-open');
+    } catch {}
+
     galleryModal.style.display = 'flex';
     // 等待下一帧以触发过渡
     requestAnimationFrame(() => {
@@ -589,6 +701,16 @@ function closeGalleryModal() {
         galleryModal.style.display = 'none';
         galleryModal.classList.remove('closing');
         galleryModal.removeEventListener('transitionend', onEnd);
+        // 恢复页面滚动位置与样式
+        try {
+            const y = parseInt(document.body.dataset.scrollY || '0', 10) || 0;
+            document.body.classList.remove('modal-open');
+            document.body.style.position = '';
+            document.body.style.top = '';
+            document.body.style.width = '';
+            delete document.body.dataset.scrollY;
+            window.scrollTo(0, y);
+        } catch {}
     };
     galleryModal.addEventListener('transitionend', onEnd);
 }
@@ -761,19 +883,41 @@ imageSizeInput.addEventListener('change', () => {
 imageUpload.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const isGifFile = /gif$/i.test(file.type) || /\.gif$/i.test(file.name);
     const reader = new FileReader();
-    reader.onload = async (event) => {
-        const dataURL = event.target.result;
-        // 直接将 dataURL 传给 loadImage（其中会尝试 GIF 解析）
-        await loadImage(dataURL);
+    reader.onload = (event) => {
+        pendingCustomSrc = event.target.result;
+        if (customPreview && customPreviewImg) {
+            customPreviewImg.src = pendingCustomSrc;
+            customPreview.style.display = 'block';
+        }
     };
     reader.readAsDataURL(file);
 });
-imageUrlInput.addEventListener('change', (e) => {
-    const url = e.target.value;
-    if (url) loadImage(url);
+imageUrlInput.addEventListener('input', (e) => {
+    const url = (e.target.value || '').trim();
+    // 基础校验
+    if (!url) {
+        pendingCustomSrc = '';
+        if (customPreview) customPreview.style.display = 'none';
+        return;
+    }
+    pendingCustomSrc = url;
+    if (customPreview && customPreviewImg) {
+        customPreviewImg.src = url;
+        customPreview.style.display = 'block';
+    }
 });
+
+// 自定义图片：使用按钮
+if (customUseBtn) {
+    customUseBtn.addEventListener('click', async () => {
+    const src = (pendingCustomSrc || '').trim();
+    if (!src) { showTipModal('请先上传图片或输入 URL'); return; }
+    await loadImage(src);
+    if (src.startsWith('http')) addToRecents(src, true);
+    if (typeof closeGalleryModal === 'function') closeGalleryModal();
+    });
+}
 
 downloadBtn.addEventListener('click', async () => {
     const format = formatSelect.value;
@@ -861,7 +1005,7 @@ downloadBtn.addEventListener('click', async () => {
             encoder.render();
         } catch (e) {
             console.error(e);
-            alert('GIF 导出失败，请重试。');
+            showTipModal('GIF 导出失败，请重试。', { duration: 2200 });
             restoreBtn();
         }
         return;
@@ -879,15 +1023,15 @@ copyBtn.addEventListener('click', () => {
         if (navigator.clipboard && navigator.clipboard.write) {
             const item = new ClipboardItem({ 'image/png': blob });
             navigator.clipboard.write([item]).then(() => {
-                alert('图片已复制到剪贴板！');
-            }).catch(err => alert('复制失败！'));
+                showTipModal('图片已复制到剪贴板！', { duration: 1400 });
+            }).catch(err => showTipModal('复制失败！', { duration: 1800 }));
         } else {
-            alert('浏览器不支持复制功能。');
+            showTipModal('浏览器不支持复制功能。', { duration: 2000 });
         }
     }, 'image/png');
 });
 
-// Initialize the gallery
-initGallery();
-// Show first-load tip modal once per browser
+// Show first-load tip modal once per browser (先显示以便统计进度)
 showFirstLoadTipIfNeeded();
+// Initialize the gallery（开始加载分类 JSON，会驱动进度条推进）
+initGallery();
