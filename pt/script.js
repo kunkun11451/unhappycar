@@ -8,19 +8,113 @@ const positionYSlider = document.getElementById('position-y-slider');
 const formatSelect = document.getElementById('format-select');
 const imageUpload = document.getElementById('image-upload');
 const imageSizeSlider = document.getElementById('image-size-slider');
+const imageSizeInput = document.getElementById('image-size-input');
 const imageUrlInput = document.getElementById('image-url-input');
 const galleryBtn = document.getElementById('gallery-btn');
 const galleryModal = document.getElementById('gallery-modal');
 const modalClose = document.querySelector('.modal-close');
 const categoryContainer = document.getElementById('category-container');
 const imageGallery = document.getElementById('image-gallery');
+// --- First-load tip modal ---
+const NO_TIP_KEY = 'pt_no_first_load_tip_v1';
+function showFirstLoadTipIfNeeded() {
+    try {
+        if (localStorage.getItem(NO_TIP_KEY) === '1') return;
+    } catch {}
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.7); backdrop-filter: blur(5px);
+        z-index: 10000; display: flex; justify-content: center; align-items: center;
+        opacity: 0; transition: opacity .3s ease;`;
+
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        background: rgb(235,228,214); color: #2c2f36; backdrop-filter: blur(15px);
+        border-radius: 14px; padding: 24px; max-width: 480px; width: 92%;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.15); border: 1px solid rgb(209,191,162);
+        transform: scale(0.96); transition: transform .3s ease; text-align: center;`;
+
+    const title = document.createElement('h2');
+    title.textContent = '提示';
+    title.style.cssText = 'color:#8b6b3e; margin:0 0 10px 0; font-size:20px;';
+
+    const msg = document.createElement('p');
+    msg.textContent = '首次加载需下载字体文件和图片可能较慢，请耐心等待。';
+    msg.style.cssText = 'margin:0 0 18px 0;';
+
+    const btns = document.createElement('div');
+    btns.style.cssText = 'display:flex; justify-content:center; gap:12px;';
+
+    const ok = document.createElement('button');
+    ok.textContent = '我知道了';
+    ok.style.cssText = `
+        background: #2ea043; border: 1px solid #26833a; color:#fff;
+        padding:8px 16px; border-radius:8px; cursor:pointer; font-weight:600;`;
+
+    const dont = document.createElement('button');
+    dont.textContent = '不再提示';
+    dont.style.cssText = `
+        background: #f2f0ea; border: 1px solid rgb(209,191,162);
+        color:#4d4d4d; padding:8px 16px; border-radius:8px; cursor:pointer;`;
+
+    btns.appendChild(ok);
+    btns.appendChild(dont);
+    modal.appendChild(title);
+    modal.appendChild(msg);
+    modal.appendChild(btns);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    setTimeout(() => { overlay.style.opacity = '1'; modal.style.transform = 'scale(1)'; }, 10);
+    const hide = () => { overlay.style.opacity = '0'; modal.style.transform = 'scale(0.96)'; setTimeout(() => overlay.remove(), 300); };
+    ok.addEventListener('click', hide);
+    dont.addEventListener('click', () => { try { localStorage.setItem(NO_TIP_KEY, '1'); } catch {} hide(); });
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) hide(); });
+}
 
 const backgroundImg = new Image();
 backgroundImg.src = 'input.png';
 
-let userImg = null;
+// 静态图像/动图的统一状态
+let userImg = null; // Image 或者 OffscreenCanvas（用于单帧渲染）
 let userImgPos = { x: 100, y: 100 };
 let userImgSize = { width: 200, height: 200 };
+// GIF 状态
+let isGif = false;
+let gifFrames = []; // 解析后的帧数据: {image: ImageBitmap|HTMLImageElement, delay: ms}
+let gifTotalDuration = 0; // ms
+let gifStartTime = 0; // requestAnimationFrame 起始时间
+let gifPaused = false;
+let gifFrameScaleCache = new WeakMap(); // 针对帧 image 的缩放缓存，避免频繁重采样
+let isExportingGif = false; // 导出状态，防止重复点击并做进度提示
+
+// 动态获取 gif.js worker 的同源 Blob URL，避免跨域 Worker 限制
+let gifWorkerURLPromise = null;
+async function getGifWorkerScriptURL() {
+    if (gifWorkerURLPromise) return gifWorkerURLPromise;
+    const candidates = [
+        'https://cdn.jsdelivr.net/npm/gif.js.optimized/dist/gif.worker.js',
+        'https://unpkg.com/gif.js.optimized/dist/gif.worker.js',
+        'https://cdn.jsdelivr.net/npm/gif.js/dist/gif.worker.js'
+    ];
+    gifWorkerURLPromise = (async () => {
+        let lastErr;
+        for (const url of candidates) {
+            try {
+                const res = await fetch(url, { mode: 'cors' });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const code = await res.text();
+                const blob = new Blob([code], { type: 'application/javascript' });
+                return URL.createObjectURL(blob);
+            } catch (e) {
+                lastErr = e;
+            }
+        }
+        throw lastErr || new Error('无法加载 GIF worker 脚本');
+    })();
+    return gifWorkerURLPromise;
+}
 
 let isDragging = false;
 let dragStart = { x: 0, y: 0 };
@@ -30,6 +124,7 @@ let isPointerActive = false; // 避免 pointer 与 mouse 双触发
 // --- Gallery Data ---
 const jsonFiles = [
     "原神×瑞幸咖啡联动.json", "小红书×心海联动.json", "抖音×八重神子联动.json",
+    "达达利亚×小米.json", "原神×必胜客.json", "原神×一加手机.json",
     "派蒙的画作第1-2弹.json", "派蒙的画作第3-4弹.json", "派蒙的画作第5-6弹.json",
     "派蒙的画作第7-8弹.json", "派蒙的画作第9-10弹.json", "派蒙的画作第11-12弹.json",
     "派蒙的画作第13-14弹.json", "派蒙的画作第15-16弹.json", "派蒙的画作第17-18弹.json",
@@ -102,18 +197,26 @@ backgroundImg.onload = () => {
     redrawCanvas();
 };
 
-function redrawCanvas() {
+function redrawCanvas(frameImage = null) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(backgroundImg, 0, 0);
 
-    if (userImg && userImg.complete) {
+    // 绘制用户图（静态或 GIF 当前帧）
+    // 防御：如果外部误传了事件对象，应忽略
+    const maybeImg = frameImage || userImg;
+    const isDrawable = maybeImg && (maybeImg instanceof HTMLImageElement || maybeImg instanceof HTMLCanvasElement || typeof ImageBitmap !== 'undefined' && maybeImg instanceof ImageBitmap);
+    const imgToDraw = isDrawable ? maybeImg : null;
+    if (imgToDraw && (imgToDraw.complete === undefined || imgToDraw.complete)) {
         const scale = imageSizeSlider.value / 100;
-        const w = userImg.width * scale;
-        const h = userImg.height * scale;
+        const baseW = imgToDraw.width || (userImg && userImg.width) || 0;
+        const baseH = imgToDraw.height || (userImg && userImg.height) || 0;
+        const w = baseW * scale;
+        const h = baseH * scale;
         userImgSize = { width: w, height: h };
-        ctx.drawImage(userImg, userImgPos.x, userImgPos.y, w, h);
+        ctx.drawImage(imgToDraw, userImgPos.x, userImgPos.y, w, h);
     }
 
+    // 绘制文字
     const fontSize = fontSizeSlider.value;
     const positionYPercent = positionYSlider.value;
     ctx.fillStyle = 'rgb(59, 66, 85)';
@@ -124,6 +227,65 @@ function redrawCanvas() {
     const x = canvas.width / 2;
     const y = canvas.height * (positionYPercent / 100);
     ctx.fillText(text, x, y);
+}
+
+// 动画循环，用于 GIF 预览
+function tick(timestamp) {
+    if (!isGif || gifPaused || gifFrames.length === 0) {
+        // 非 GIF 或暂停时，不用刷新
+        return;
+    }
+    if (!gifStartTime) gifStartTime = timestamp;
+    const elapsed = (timestamp - gifStartTime) % gifTotalDuration;
+
+    // 找到当前帧
+    let acc = 0, frame = gifFrames[0];
+    for (let i = 0; i < gifFrames.length; i++) {
+        acc += gifFrames[i].delay;
+        if (elapsed < acc) { frame = gifFrames[i]; break; }
+    }
+
+    // 尝试使用缓存的缩放帧，提高预览性能
+    const scale = imageSizeSlider.value / 100;
+    let toDraw = frame.image;
+    try {
+        const cache = gifFrameScaleCache.get(frame.image);
+        if (cache && cache.scale === scale) {
+            toDraw = cache.canvas;
+        } else {
+            const off = document.createElement('canvas');
+            const w = Math.max(1, Math.round(frame.image.width * scale));
+            const h = Math.max(1, Math.round(frame.image.height * scale));
+            off.width = w; off.height = h;
+            const octx = off.getContext('2d', { willReadFrequently: true });
+            // GIF 采用无平滑缩放，减少噪声/边缘出血
+            octx.imageSmoothingEnabled = false;
+            octx.drawImage(frame.image, 0, 0, w, h);
+            gifFrameScaleCache.set(frame.image, { scale, canvas: off });
+            toDraw = off;
+        }
+    } catch {}
+
+    // 在主 canvas 绘制该帧
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(backgroundImg, 0, 0);
+    // 主画布绘制时，同样关闭 GIF 的平滑
+    ctx.imageSmoothingEnabled = isGif ? false : true;
+    ctx.drawImage(toDraw, userImgPos.x, userImgPos.y);
+
+    // 叠加文字
+    const fontSize = fontSizeSlider.value;
+    const positionYPercent = positionYSlider.value;
+    ctx.fillStyle = 'rgb(59, 66, 85)';
+    ctx.font = `${fontSize}px 'HYWenHei-85W'`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const text = textInput.value;
+    const x = canvas.width / 2;
+    const y = canvas.height * (positionYPercent / 100);
+    ctx.fillText(text, x, y);
+
+    requestAnimationFrame(tick);
 }
 
 function drawGuidelines() {
@@ -139,24 +301,158 @@ function drawGuidelines() {
     }
 }
 
-function loadImage(src) {
-    const img = new Image();
-    if (!src.startsWith('data:')) {
-        img.crossOrigin = "anonymous";
+async function loadImage(src) {
+    // 重置 GIF 状态
+    isGif = false;
+    gifFrames = [];
+    gifTotalDuration = 0;
+    gifStartTime = 0;
+    gifPaused = false;
+    gifFrameScaleCache = new WeakMap();
+
+    const lower = src.toLowerCase();
+    const isGifUrl = lower.includes('.gif') || lower.startsWith('data:image/gif');
+
+    // 如果可能是 GIF，则先尝试用 gifuct-js 解析
+    if (isGifUrl) {
+        try {
+            const buf = await fetchArrayBuffer(src);
+            const { parseGIF, decompressFrames } = window.gifuctJs || {};
+            if (!parseGIF) throw new Error('GIF 解析库未加载');
+            const gif = parseGIF(buf);
+            const frames = decompressFrames(gif, true); // 生成每帧 patch（含 ms 级 delay）
+            const gifW = gif.lsd && gif.lsd.width ? gif.lsd.width : (frames[0]?.dims?.width || 0);
+            const gifH = gif.lsd && gif.lsd.height ? gif.lsd.height : (frames[0]?.dims?.height || 0);
+            const comp = document.createElement('canvas');
+            comp.width = gifW; comp.height = gifH;
+            const cctx = comp.getContext('2d', { willReadFrequently: true });
+
+            // 计算 GIF 逻辑屏幕背景色（若存在），用于处置=2 填充
+            let bgFillStyle = null;
+            try {
+                const gct = gif.gct || gif.globalColorTable; // [[r,g,b], ...]
+                const bgIndex = (gif.lsd && (gif.lsd.bgColor ?? gif.lsd.backgroundColor));
+                if (gct && typeof bgIndex === 'number' && gct[bgIndex]) {
+                    const [r, g, b] = gct[bgIndex];
+                    bgFillStyle = `rgba(${r}, ${g}, ${b}, 1)`;
+                }
+            } catch {}
+            // 初始背景填充（如有），符合 GIF 合成规则
+            if (bgFillStyle) {
+                cctx.fillStyle = bgFillStyle;
+                cctx.fillRect(0, 0, comp.width, comp.height);
+            } else {
+                // 否则保持透明背景
+                cctx.clearRect(0, 0, comp.width, comp.height);
+            }
+
+            let prev = null;
+            gifFrames = [];
+            for (const f of frames) {
+                // 应用上一帧处置
+                if (prev) {
+                    if (prev.disposalType === 2) {
+                        const d = prev.dims;
+                        if (bgFillStyle) {
+                            cctx.save();
+                            cctx.fillStyle = bgFillStyle;
+                            cctx.fillRect(d.left, d.top, d.width, d.height);
+                            cctx.restore();
+                        } else {
+                            cctx.clearRect(d.left, d.top, d.width, d.height);
+                        }
+                    } else if (prev.disposalType === 3 && prev._restore) {
+                        const d = prev.dims;
+                        cctx.putImageData(prev._restore, d.left, d.top);
+                    }
+                }
+                // 绘制当前帧 patch 到逻辑屏幕位置（通过中间画布以启用 alpha 混合）
+                const imageData = new ImageData(new Uint8ClampedArray(f.patch), f.dims.width, f.dims.height);
+                // 若本帧需要在下一帧前恢复，则先保存受影响区域（在绘制前保存）
+                if (f.disposalType === 3) {
+                    try {
+                        f._restore = cctx.getImageData(f.dims.left, f.dims.top, f.dims.width, f.dims.height);
+                    } catch {}
+                }
+                const patchCanvas = document.createElement('canvas');
+                patchCanvas.width = f.dims.width;
+                patchCanvas.height = f.dims.height;
+                const pctx = patchCanvas.getContext('2d', { willReadFrequently: true });
+                pctx.putImageData(imageData, 0, 0);
+                cctx.drawImage(patchCanvas, f.dims.left, f.dims.top);
+
+                // 导出合成帧（优先 ImageBitmap，更快；不支持时退回 dataURL）
+                let frameImage;
+                if (typeof createImageBitmap === 'function') {
+                    frameImage = await createImageBitmap(comp);
+                } else {
+                    const dataURL = comp.toDataURL('image/png');
+                    frameImage = await createImage(dataURL);
+                }
+                // 注意：gifuct-js 文档中 delay 已是毫秒，这里不再额外乘以 10
+                gifFrames.push({ image: frameImage, delay: Math.max(20, f.delay || 100), disposalType: f.disposalType, dims: { ...f.dims } });
+                prev = f;
+            }
+            gifTotalDuration = gifFrames.reduce((s, f) => s + f.delay, 0);
+            if (gifFrames.length > 0) {
+                isGif = true;
+                // 以首帧为定位依据
+                userImg = gifFrames[0].image;
+                const scale = imageSizeSlider.value / 100;
+                const w = userImg.width * scale;
+                const h = userImg.height * scale;
+                userImgPos.x = (canvas.width - w) / 2;
+                userImgPos.y = (canvas.height - h) / 2;
+                redrawCanvas(userImg);
+                requestAnimationFrame(tick);
+                return;
+            }
+        } catch (e) {
+            console.warn('GIF 解析失败，回退为静态图加载: ', e);
+        }
     }
-    img.onload = () => {
-        userImg = img;
-        const scale = imageSizeSlider.value / 100;
-        const w = userImg.width * scale;
-        const h = userImg.height * scale;
-        userImgPos.x = (canvas.width - w) / 2;
-        userImgPos.y = (canvas.height - h) / 2;
+
+    // 非 GIF 或解析失败：按静态图加载
+    const img = await createImage(src);
+    userImg = img;
+    const scale = imageSizeSlider.value / 100;
+    const w = userImg.width * scale;
+    const h = userImg.height * scale;
+    userImgPos.x = (canvas.width - w) / 2;
+    userImgPos.y = (canvas.height - h) / 2;
     redrawCanvas();
-    };
-    img.onerror = () => {
-        alert('图片加载失败！请检查URL或确保图片服务器允许跨域。');
-    };
-    img.src = src;
+}
+
+function fetchArrayBuffer(src) {
+    // 支持 data:URL 及跨域资源
+    if (src.startsWith('data:')) {
+        // data:[<mediatype>][;base64],<data>
+        const comma = src.indexOf(',');
+        const header = src.substring(0, comma);
+        const data = src.substring(comma + 1);
+        const isBase64 = /;base64/i.test(header);
+        let binaryString;
+        if (isBase64) {
+            binaryString = atob(data);
+        } else {
+            binaryString = decodeURIComponent(data);
+        }
+        const len = binaryString.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) bytes[i] = binaryString.charCodeAt(i);
+        return Promise.resolve(bytes.buffer);
+    }
+    return fetch(src, { mode: 'cors' }).then(r => r.arrayBuffer());
+}
+
+function createImage(src) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        if (!src.startsWith('data:')) img.crossOrigin = 'anonymous';
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('图片加载失败'));
+        img.src = src;
+    });
 }
 
 // --- Gallery Modal Logic ---
@@ -265,25 +561,41 @@ function displayCategory(categoryName) {
             loadImage(url);
             // 仅在选择图库图片时计入最近使用
             addToRecents(url, true);
-            galleryModal.style.display = 'none';
+            // 使用带动画的关闭
+            if (typeof closeGalleryModal === 'function') {
+                closeGalleryModal();
+            } else {
+                galleryModal.style.display = 'none';
+            }
         });
         imageGallery.appendChild(img);
     });
 }
 
-galleryBtn.addEventListener('click', () => {
+function openGalleryModal() {
     galleryModal.style.display = 'flex';
-});
+    // 等待下一帧以触发过渡
+    requestAnimationFrame(() => {
+        galleryModal.classList.remove('closing');
+        galleryModal.classList.add('active');
+    });
+}
 
-modalClose.addEventListener('click', () => {
-    galleryModal.style.display = 'none';
-});
-
-galleryModal.addEventListener('click', (e) => {
-    if (e.target === galleryModal) {
+function closeGalleryModal() {
+    galleryModal.classList.remove('active');
+    galleryModal.classList.add('closing');
+    const onEnd = (e) => {
+        if (e.target !== galleryModal) return;
         galleryModal.style.display = 'none';
-    }
-});
+        galleryModal.classList.remove('closing');
+        galleryModal.removeEventListener('transitionend', onEnd);
+    };
+    galleryModal.addEventListener('transitionend', onEnd);
+}
+
+galleryBtn.addEventListener('click', openGalleryModal);
+modalClose.addEventListener('click', closeGalleryModal);
+galleryModal.addEventListener('click', (e) => { if (e.target === galleryModal) closeGalleryModal(); });
 
 // --- Event Listeners & Init ---
 
@@ -292,10 +604,55 @@ function getCanvasPos(evt) {
     const rect = canvas.getBoundingClientRect();
     const clientX = evt.clientX ?? (evt.touches && evt.touches[0] && evt.touches[0].clientX) ?? 0;
     const clientY = evt.clientY ?? (evt.touches && evt.touches[0] && evt.touches[0].clientY) ?? 0;
+    // 将 CSS 像素转换为 canvas 内部像素，避免在缩放/高 DPR 下拖动灵敏度偏低
+    const cssX = clientX - rect.left;
+    const cssY = clientY - rect.top;
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
     return {
-        x: clientX - rect.left,
-        y: clientY - rect.top
+        x: cssX * scaleX,
+        y: cssY * scaleY
     };
+}
+
+// 滚轮缩放：在鼠标位于图片区域时，按光标为中心缩放图片
+function onCanvasWheel(e) {
+    if (!userImg) return; // 无图片不处理
+    const { x: mx, y: my } = getCanvasPos(e);
+    // 判断是否在当前图片范围内
+    const within = mx > userImgPos.x && mx < userImgPos.x + userImgSize.width &&
+                   my > userImgPos.y && my < userImgPos.y + userImgSize.height;
+    if (!within) return; // 只在图片上缩放
+
+    e.preventDefault(); // 避免页面滚动
+
+    const cur = parseFloat(imageSizeSlider.value);
+    const min = parseFloat(imageSizeSlider.min || '1');
+    const max = parseFloat(imageSizeSlider.max || '500');
+    // 每次滚动“变动 1 单位”（向上放大 +1，向下缩小 -1）
+    let next = cur + (e.deltaY < 0 ? 1 : -1);
+    next = Math.max(min, Math.min(max, next));
+    if (next === cur) return;
+
+    // 以鼠标处为缩放锚点，保持该点在图像上的相对位置不变
+    const px = (mx - userImgPos.x) / (userImgSize.width || 1);
+    const py = (my - userImgPos.y) / (userImgSize.height || 1);
+
+    // 基于当前显示尺寸按比例推算新尺寸（避免依赖原始像素宽高）
+    const scaleRatio = next / cur;
+    const newW = Math.max(1, userImgSize.width * scaleRatio);
+    const newH = Math.max(1, userImgSize.height * scaleRatio);
+
+    // 调整位置以实现光标居中缩放
+    userImgPos.x = mx - px * newW;
+    userImgPos.y = my - py * newH;
+    userImgSize.width = newW;
+    userImgSize.height = newH;
+
+    // 同步控件并重绘
+    imageSizeSlider.value = String(next);
+    if (imageSizeInput) imageSizeInput.value = String(next);
+    redrawCanvas();
 }
 
 function onPointerDown(e) {
@@ -343,11 +700,11 @@ canvas.addEventListener('pointerdown', onPointerDown, { passive: false });
 canvas.addEventListener('pointermove', onPointerMove, { passive: false });
 canvas.addEventListener('pointerup', onPointerUp, { passive: false });
 canvas.addEventListener('pointercancel', onPointerUp, { passive: false });
+canvas.addEventListener('wheel', onCanvasWheel, { passive: false });
 
 canvas.addEventListener('mousedown', (e) => {
     if (isPointerActive) return; // 避免重复
-    const mouseX = e.offsetX;
-    const mouseY = e.offsetY;
+    const { x: mouseX, y: mouseY } = getCanvasPos(e);
     if (userImg && mouseX > userImgPos.x && mouseX < userImgPos.x + userImgSize.width &&
         mouseY > userImgPos.y && mouseY < userImgPos.y + userImgSize.height) {
         isDragging = true;
@@ -359,8 +716,9 @@ canvas.addEventListener('mousedown', (e) => {
 canvas.addEventListener('mousemove', (e) => {
     if (isPointerActive) return; // 避免重复
     if (isDragging) {
-        let newX = e.offsetX - dragStart.x;
-        let newY = e.offsetY - dragStart.y;
+        const { x, y } = getCanvasPos(e);
+        let newX = x - dragStart.x;
+        let newY = y - dragStart.y;
         const imgCenterX = newX + userImgSize.width / 2;
         const canvasCenterX = canvas.width / 2;
         if (Math.abs(imgCenterX - canvasCenterX) < snapThreshold) {
@@ -385,25 +743,130 @@ canvas.addEventListener('mouseout', () => {
     redrawCanvas();
 });
 
-textInput.addEventListener('input', redrawCanvas);
-fontSizeSlider.addEventListener('input', redrawCanvas);
-positionYSlider.addEventListener('input', redrawCanvas);
-imageSizeSlider.addEventListener('input', redrawCanvas);
-imageUpload.addEventListener('change', (e) => {
+textInput.addEventListener('input', () => redrawCanvas());
+fontSizeSlider.addEventListener('input', () => redrawCanvas());
+positionYSlider.addEventListener('input', () => redrawCanvas());
+imageSizeSlider.addEventListener('input', () => {
+    imageSizeInput.value = imageSizeSlider.value;
+    redrawCanvas();
+});
+imageSizeInput.addEventListener('change', () => {
+    let v = parseInt(imageSizeInput.value, 10);
+    if (Number.isNaN(v)) v = parseInt(imageSizeSlider.value, 10);
+    v = Math.min(parseInt(imageSizeSlider.max,10), Math.max(parseInt(imageSizeSlider.min,10), v));
+    imageSizeInput.value = String(v);
+    imageSizeSlider.value = String(v);
+    redrawCanvas();
+});
+imageUpload.addEventListener('change', async (e) => {
     const file = e.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = (event) => loadImage(event.target.result);
-        reader.readAsDataURL(file);
-    }
+    if (!file) return;
+    const isGifFile = /gif$/i.test(file.type) || /\.gif$/i.test(file.name);
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+        const dataURL = event.target.result;
+        // 直接将 dataURL 传给 loadImage（其中会尝试 GIF 解析）
+        await loadImage(dataURL);
+    };
+    reader.readAsDataURL(file);
 });
 imageUrlInput.addEventListener('change', (e) => {
     const url = e.target.value;
     if (url) loadImage(url);
 });
 
-downloadBtn.addEventListener('click', () => {
+downloadBtn.addEventListener('click', async () => {
     const format = formatSelect.value;
+    if (format === 'gif') {
+        if (isExportingGif) return;
+        isExportingGif = true;
+        const originalText = downloadBtn.textContent;
+        const restoreBtn = () => { downloadBtn.textContent = originalText; downloadBtn.disabled = false; isExportingGif = false; };
+        downloadBtn.disabled = true;
+        downloadBtn.textContent = '准备中…';
+        // 导出为 GIF：对于静态图也可导出为单帧动图
+        try {
+            const workerScriptURL = await getGifWorkerScriptURL();
+            const encoder = new window.GIF({
+                workers: 2,
+                quality: 10,
+                width: canvas.width,
+                height: canvas.height,
+                repeat: 0,
+                workerScript: workerScriptURL
+            });
+            encoder.on('progress', (p) => {
+                const pct = Math.max(0, Math.min(100, Math.round(p * 100)));
+                downloadBtn.textContent = `渲染中 ${pct}%`;
+            });
+            // 将每一帧渲染到离屏 canvas 后加入 encoder
+            const off = document.createElement('canvas');
+            off.width = canvas.width; off.height = canvas.height;
+            const octx = off.getContext('2d', { willReadFrequently: true });
+
+            if (isGif && gifFrames.length > 0) {
+                for (const fr of gifFrames) {
+                    octx.clearRect(0, 0, off.width, off.height);
+                    octx.drawImage(backgroundImg, 0, 0);
+                    // 根据当前缩放绘制
+                    const scale = imageSizeSlider.value / 100;
+                    const w = Math.max(1, Math.round(fr.image.width * scale));
+                    const h = Math.max(1, Math.round(fr.image.height * scale));
+                    octx.imageSmoothingEnabled = false;
+                    octx.drawImage(fr.image, userImgPos.x, userImgPos.y, w, h);
+                    // 叠加文字
+                    const fontSize = fontSizeSlider.value;
+                    const positionYPercent = positionYSlider.value;
+                    octx.fillStyle = 'rgb(59, 66, 85)';
+                    octx.font = `${fontSize}px 'HYWenHei-85W'`;
+                    octx.textAlign = 'center';
+                    octx.textBaseline = 'middle';
+                    const text = textInput.value;
+                    const x = off.width / 2;
+                    const y = off.height * (positionYPercent / 100);
+                    octx.fillText(text, x, y);
+                    encoder.addFrame(octx, { copy: true, delay: Math.max(20, fr.delay) });
+                }
+            } else {
+                // 单帧导出
+                octx.clearRect(0, 0, off.width, off.height);
+                octx.drawImage(backgroundImg, 0, 0);
+                if (userImg) {
+                    const scale = imageSizeSlider.value / 100;
+                    const w = Math.max(1, Math.round(userImg.width * scale));
+                    const h = Math.max(1, Math.round(userImg.height * scale));
+                    octx.drawImage(userImg, userImgPos.x, userImgPos.y, w, h);
+                }
+                const fontSize = fontSizeSlider.value;
+                const positionYPercent = positionYSlider.value;
+                octx.fillStyle = 'rgb(59, 66, 85)';
+                octx.font = `${fontSize}px 'HYWenHei-85W'`;
+                octx.textAlign = 'center';
+                octx.textBaseline = 'middle';
+                const text = textInput.value;
+                const x = off.width / 2;
+                const y = off.height * (positionYPercent / 100);
+                octx.fillText(text, x, y);
+                encoder.addFrame(octx, { copy: true, delay: 200 });
+            }
+
+            encoder.on('finished', function (blob) {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'image-with-text.gif';
+                link.click();
+                setTimeout(() => URL.revokeObjectURL(link.href), 5000);
+                restoreBtn();
+            });
+            encoder.render();
+        } catch (e) {
+            console.error(e);
+            alert('GIF 导出失败，请重试。');
+            restoreBtn();
+        }
+        return;
+    }
+    // 其他格式按原逻辑
     const dataURL = canvas.toDataURL(`image/${format}`);
     const link = document.createElement('a');
     link.href = dataURL;
@@ -426,3 +889,5 @@ copyBtn.addEventListener('click', () => {
 
 // Initialize the gallery
 initGallery();
+// Show first-load tip modal once per browser
+showFirstLoadTipIfNeeded();

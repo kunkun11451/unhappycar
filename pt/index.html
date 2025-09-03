@@ -11,14 +11,18 @@
     <div class="container">
         <canvas id="canvas"></canvas>
         <div class="controls">
-            <a>首次加载需下载字体文件和图片可能较慢，请耐心等待。</a>
-            <textarea id="text-input" placeholder="输入文案..."></textarea>
+            <label>文案...</label>
+            <textarea id="text-input" placeholder="..."></textarea>
             <label for="font-size-slider">字体大小:</label>
-            <input type="range" id="font-size-slider" min="10" max="100" value="48">
+            <input type="range" id="font-size-slider" min="10" max="100" value="70">
             <label for="position-y-slider">文字垂直位置:</label>
-            <input type="range" id="position-y-slider" min="80" max="90" value="85">
-            <label for="image-size-slider">图片大小:</label>
-            <input type="range" id="image-size-slider" min="10" max="100" value="50">
+            <input type="range" id="position-y-slider" min="80" max="90" value="87">
+            <div class="control-row">
+                <label for="image-size-slider">图片大小:</label>
+                <input type="number" id="image-size-input" min="10" max="250" value="50" title="图片大小（%）">
+            </div>
+            <input type="range" id="image-size-slider" min="10" max="250" value="50">
+            <label>图片位置可直接拖动调整</label>
             <label for="image-upload">上传图片:</label>
             <input type="file" id="image-upload" accept="image/*">
             <label for="image-url-input">或输入图片URL:</label>
@@ -27,10 +31,10 @@
             <label for="format-select">图片格式:</label>
             <select id="format-select">
                 <option value="png">PNG</option>
-                <option value="gif">GIF</option>
+                <option value="gif">GIF（导入了动图请选择此格式）</option>
             </select>
             <button id="download-btn">下载图片</button>
-            <button id="copy-btn">复制图片</button>
+            <button id="copy-btn">复制图片（仅PNG）</button>
         </div>
     </div>
 
@@ -48,6 +52,13 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- GIF 解码库：通过 ESM CDN 引入并挂到 window 供 script.js 使用 -->
+    <script type="module">
+        import { parseGIF, decompressFrames } from 'https://esm.sh/gifuct-js@2.1.2';
+        window.gifuctJs = { parseGIF, decompressFrames };
+    </script>
+    <!-- GIF 编码库（gif.js.optimized）用于导出动图 -->
+    <script src="https://unpkg.com/gif.js.optimized/dist/gif.js"></script>
+    <script src="script.js" defer></script>
 </body>
 </html>
