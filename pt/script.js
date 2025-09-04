@@ -206,6 +206,12 @@ let dragStart = { x: 0, y: 0 };
 const snapThreshold = 10;
 let isPointerActive = false; // 避免 pointer 与 mouse 双触发
 
+// 多指缩放（捏合）状态
+const activePointers = new Map(); // pointerId -> { x, y }
+let isPinching = false;
+let lastPinchAppliedValue = null; // 上次应用到 slider 的值，避免重复重绘
+let pinchPrevDist = null; // 上一帧两指距离
+
 // --- Gallery Data ---
 const jsonFiles = [
     "原神×瑞幸咖啡联动.json", "小红书×心海联动.json", "抖音×八重神子联动.json",
@@ -737,6 +743,17 @@ function getCanvasPos(evt) {
     };
 }
 
+function getPinchInfo() {
+    const pts = Array.from(activePointers.values());
+    if (pts.length < 2) return null;
+    const [p1, p2] = pts;
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
+    const dist = Math.hypot(dx, dy) || 0.0001;
+    const center = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+    return { dist, center };
+}
+
 // 滚轮缩放：在鼠标位于图片区域时，按光标为中心缩放图片
 function onCanvasWheel(e) {
     if (!userImg) return; // 无图片不处理
@@ -779,6 +796,18 @@ function onCanvasWheel(e) {
 
 function onPointerDown(e) {
     isPointerActive = true;
+    // 记录多指位置
+    try { activePointers.set(e.pointerId, getCanvasPos(e)); } catch {}
+    if (activePointers.size >= 2) {
+        // 进入捏合模式，关闭拖动
+        isPinching = true;
+        isDragging = false;
+    lastPinchAppliedValue = parseFloat(imageSizeSlider.value);
+    const info = getPinchInfo();
+    pinchPrevDist = info ? info.dist : null;
+        e.preventDefault();
+        return;
+    }
     const { x: mouseX, y: mouseY } = getCanvasPos(e);
     if (userImg && mouseX > userImgPos.x && mouseX < userImgPos.x + userImgSize.width &&
         mouseY > userImgPos.y && mouseY < userImgPos.y + userImgSize.height) {
@@ -793,6 +822,57 @@ function onPointerDown(e) {
 }
 
 function onPointerMove(e) {
+    // 更新指针位置（用于捏合）
+    try { if (activePointers.has(e.pointerId)) activePointers.set(e.pointerId, getCanvasPos(e)); } catch {}
+
+    // 捏合缩放
+    if (isPinching && userImg) {
+        const info = getPinchInfo();
+        if (info && pinchPrevDist) {
+            const center = info.center;
+            // 仅当中心位于图像内部时才缩放，避免误操作
+            const within = center.x > userImgPos.x && center.x < userImgPos.x + userImgSize.width &&
+                           center.y > userImgPos.y && center.y < userImgPos.y + userImgSize.height;
+            if (within) {
+                const curVal = parseFloat(imageSizeSlider.value);
+                const min = parseFloat(imageSizeSlider.min || '1');
+                const max = parseFloat(imageSizeSlider.max || '500');
+                // 距离比例（加入阻尼，降低灵敏度）
+                const rawRatio = info.dist / pinchPrevDist;
+                let ratio = (!Number.isFinite(rawRatio) || rawRatio <= 0) ? 1 : rawRatio;
+                // 应用阻尼：只取真实变化的 30%
+                ratio = 1 + (ratio - 1) * 0.7;
+                // 单次变化再夹到 ±10% 以内，进一步降低灵敏度
+                ratio = Math.max(0.9, Math.min(1.1, ratio));
+
+                let nextVal = Math.max(min, Math.min(max, curVal * ratio));
+                // 提高触发阈值，避免频繁微动
+                if (Math.abs(nextVal - curVal) >= 0.5) {
+                    const scaleRatio = nextVal / curVal;
+                    const newW = Math.max(1, userImgSize.width * scaleRatio);
+                    const newH = Math.max(1, userImgSize.height * scaleRatio);
+                    // 以两指中心为锚点保持相对位置
+                    const px = (center.x - userImgPos.x) / (userImgSize.width || 1);
+                    const py = (center.y - userImgPos.y) / (userImgSize.height || 1);
+                    userImgPos.x = center.x - px * newW;
+                    userImgPos.y = center.y - py * newH;
+                    userImgSize.width = newW;
+                    userImgSize.height = newH;
+                    // 同步 UI
+                    imageSizeSlider.value = String(Math.round(nextVal));
+                    if (imageSizeInput) imageSizeInput.value = String(Math.round(nextVal));
+                    redrawCanvas();
+                    lastPinchAppliedValue = nextVal;
+                }
+                pinchPrevDist = info.dist;
+            } else {
+                // 中心不在图像上，不缩放但更新参考距离，等待进入图像
+                pinchPrevDist = info.dist;
+            }
+        }
+        e.preventDefault();
+        return;
+    }
     if (!isDragging) return;
     const { x, y } = getCanvasPos(e);
     let newX = x - dragStart.x;
@@ -812,16 +892,33 @@ function onPointerMove(e) {
 function onPointerUp(e) {
     isDragging = false;
     isPointerActive = false;
+    try { activePointers.delete(e.pointerId); } catch {}
+    if (activePointers.size < 2) {
+        isPinching = false;
+        lastPinchAppliedValue = null;
+        // 清理上次距离记录
+        pinchPrevDist = null;
+    }
     redrawCanvas();
     if (canvas.releasePointerCapture && e.pointerId !== undefined) {
         try { canvas.releasePointerCapture(e.pointerId); } catch {}
     }
 }
 
+function onPointerCancel(e) {
+    try { activePointers.delete(e.pointerId); } catch {}
+    if (activePointers.size < 2) {
+        isPinching = false;
+        pinchPrevDist = null;
+    }
+    isDragging = false;
+    redrawCanvas();
+}
+
 canvas.addEventListener('pointerdown', onPointerDown, { passive: false });
 canvas.addEventListener('pointermove', onPointerMove, { passive: false });
 canvas.addEventListener('pointerup', onPointerUp, { passive: false });
-canvas.addEventListener('pointercancel', onPointerUp, { passive: false });
+canvas.addEventListener('pointercancel', onPointerCancel, { passive: false });
 canvas.addEventListener('wheel', onCanvasWheel, { passive: false });
 
 canvas.addEventListener('mousedown', (e) => {
@@ -872,10 +969,23 @@ imageSizeSlider.addEventListener('input', () => {
     imageSizeInput.value = imageSizeSlider.value;
     redrawCanvas();
 });
+function clampImageSizeValue(raw) {
+    const minV = parseInt(imageSizeSlider.min, 10) || 1;
+    const maxV = parseInt(imageSizeSlider.max, 10) || 500;
+    let v = parseInt(raw, 10);
+    if (Number.isNaN(v)) v = parseInt(imageSizeSlider.value, 10) || minV;
+    return Math.min(maxV, Math.max(minV, v));
+}
+// 实时输入：边输入边更新画布，体验更顺滑
+imageSizeInput.addEventListener('input', () => {
+    const v = clampImageSizeValue(imageSizeInput.value);
+    imageSizeSlider.value = String(v);
+    // 不改写 input 的值，允许继续编辑，但画布先跟随
+    redrawCanvas();
+});
+// 失焦或回车：规范化值并重绘
 imageSizeInput.addEventListener('change', () => {
-    let v = parseInt(imageSizeInput.value, 10);
-    if (Number.isNaN(v)) v = parseInt(imageSizeSlider.value, 10);
-    v = Math.min(parseInt(imageSizeSlider.max,10), Math.max(parseInt(imageSizeSlider.min,10), v));
+    const v = clampImageSizeValue(imageSizeInput.value);
     imageSizeInput.value = String(v);
     imageSizeSlider.value = String(v);
     redrawCanvas();

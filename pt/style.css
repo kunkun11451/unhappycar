@@ -65,6 +65,7 @@ canvas {
     border-radius: 12px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     max-width: 100%;
+    max-height: 90vh; 
     height: auto;
     touch-action: none; 
 }
@@ -93,6 +94,46 @@ canvas {
 .control-row > label { margin: 0; white-space: nowrap; }
 .control-row > input[type="number"] { width: 80px; padding: 8px; }
 
+/* 主题化数字输入框（含 image-size-input） */
+input[type="number"] {
+    font-family: inherit;
+    font-size: 16px;
+    color: #2c2f36;
+    background: #fff;
+    border: 1px solid rgb(209,191,162);
+    border-radius: 8px;
+    padding: 8px 10px;
+    box-sizing: border-box;
+    transition: background-color .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+input[type="number"]:hover { background: #faf7f0; }
+input[type="number"]:focus-visible {
+    outline: 2px solid rgba(209,191,162,0.9);
+    outline-offset: 2px;
+}
+input[type="number"]:disabled { opacity: .6; cursor: not-allowed; }
+input[type="number"]:out-of-range,
+input[type="number"]:invalid {
+    border-color: #d18b8b;
+    box-shadow: 0 0 0 3px rgba(209, 139, 139, 0.2);
+}
+
+/* WebKit 数字输入微调按钮适配 */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    opacity: .75;
+}
+input[type="number"]:hover::-webkit-outer-spin-button,
+input[type="number"]:hover::-webkit-inner-spin-button {
+    opacity: 1;
+}
+
+/* 在 <=1136px 下提升触控可用性 */
+@media (max-width: 1136px) {
+    .control-row > input[type="number"] { width: 96px; padding: 10px; }
+    input[type="number"] { font-size: 18px; }
+}
+
 /* 独立的滑块行占满宽度并与上方留距 */
 #image-size-slider { width: 90%; margin-top: 6px; }
 
@@ -116,7 +157,108 @@ input[type="text"] {
 }
 
 input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
     width: 100%;
+    background: transparent; /* 让自定义轨道可见 */
+    height: 28px; /* 提升可点击区域 */
+    margin: 0;
+    padding: 0;
+}
+
+/* WebKit (Chrome/Edge/Safari) 轨道与拇指 */
+input[type="range"]::-webkit-slider-runnable-track {
+    height: 8px;
+    background: rgb(235, 228, 214);
+    border: 1px solid rgb(209, 191, 162);
+    border-radius: 999px;
+}
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    margin-top: -6px; /* 使拇指垂直居中到 8px 轨道上： (18-8)/2=5 => 取-6微调阴影 */
+    background: rgb(209, 191, 162);
+    border: 2px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    cursor: pointer;
+    transition: transform .12s ease, background-color .2s ease, box-shadow .2s ease;
+}
+input[type="range"]:hover::-webkit-slider-thumb {
+    background: rgb(196, 177, 147);
+}
+input[type="range"]:active::-webkit-slider-thumb {
+    transform: scale(0.98);
+}
+input[type="range"]:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 4px rgba(209, 191, 162, 0.35);
+}
+
+/* Firefox 轨道、进度与拇指 */
+input[type="range"]::-moz-range-track {
+    height: 8px;
+    background: rgb(235, 228, 214);
+    border: 1px solid rgb(209, 191, 162);
+    border-radius: 999px;
+}
+/* 左侧已滑过的进度条颜色稍深一点 */
+input[type="range"]::-moz-range-progress {
+    height: 8px;
+    background: #e7dfcd;
+    border: 1px solid rgb(209, 191, 162);
+    border-radius: 999px 0 0 999px;
+}
+input[type="range"]::-moz-range-thumb {
+    width: 18px; height: 18px;
+    background: rgb(209, 191, 162);
+    border: 2px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    cursor: pointer;
+    transition: transform .12s ease, background-color .2s ease, box-shadow .2s ease;
+}
+input[type="range"]:hover::-moz-range-thumb { background: rgb(196, 177, 147); }
+input[type="range"]:active::-moz-range-thumb { transform: scale(0.98); }
+input[type="range"]:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 4px rgba(209,191,162,.35); }
+
+/* 旧版 IE/Edge (可选) */
+input[type="range"]::-ms-track {
+    height: 8px;
+    background: transparent;
+    border-color: transparent;
+    color: transparent; /* 隐藏默认轨道 */
+}
+input[type="range"]::-ms-fill-lower {
+    background: #e7dfcd;
+    border: 1px solid rgb(209, 191, 162);
+    border-radius: 999px 0 0 999px;
+}
+input[type="range"]::-ms-fill-upper {
+    background: rgb(235, 228, 214);
+    border: 1px solid rgb(209, 191, 162);
+    border-radius: 0 999px 999px 0;
+}
+input[type="range"]::-ms-thumb {
+    width: 18px; height: 18px;
+    background: rgb(209, 191, 162);
+    border: 2px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    cursor: pointer;
+}
+
+/* 禁用态 */
+input[type="range"]:disabled { opacity: .6; cursor: not-allowed; }
+input[type="range"]:disabled::-webkit-slider-thumb,
+input[type="range"]:disabled::-moz-range-thumb,
+input[type="range"]:disabled::-ms-thumb { cursor: not-allowed; }
+
+/* 在 <=1136px 提升触控友好度：更大的拇指 */
+@media (max-width: 1136px) {
+    input[type="range"] { height: 34px; }
+    input[type="range"]::-webkit-slider-thumb { width: 22px; height: 22px; margin-top: -8px; }
+    input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; }
+    input[type="range"]::-ms-thumb { width: 22px; height: 22px; }
 }
 
 select, button {
@@ -350,8 +492,8 @@ input[type="file"] {
 ::selection { background: rgba(209, 191, 162, 0.65); color: #2c2f36; }
 ::-moz-selection { background: rgba(209, 191, 162, 0.65); color: #2c2f36; }
 
-/* 移动端适配 */
-@media (max-width: 768px) {
+/* 移动端适配（阈值调整为 1136px） */
+@media (max-width: 1136px) {
     html, body { 
         overflow-x: hidden; 
     }
@@ -384,8 +526,6 @@ input[type="file"] {
     }
 
     canvas {
-        width: 100%;
-        max-width: 100%; 
         height: auto;
         box-sizing: border-box;
     }
@@ -494,10 +634,27 @@ input[type="file"] {
 }
 .custom-file:hover::-webkit-file-upload-button { background:#e7dfcd; }
 
-@media (max-width: 768px) {
+@media (max-width: 1136px) {
     .custom-file::file-selector-button,
     .custom-file::-webkit-file-upload-button { padding: 10px 14px; }
 }
 
 /* Disable page scroll when modal is open */
 body.modal-open { overflow: hidden; }
+
+/* Tip style for operation hints */
+.tip {
+    background: rgba(209, 191, 162, 0.15);
+    color: #6b5b45;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    line-height: 1.4;
+    border: 1px solid rgba(209, 191, 162, 0.3);
+    margin: 6px 0;
+    text-align: center;
+}
+
+@media (max-width: 1136px) {
+    .tip { font-size: 11px; padding: 6px 10px; }
+}
