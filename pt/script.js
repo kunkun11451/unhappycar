@@ -6,6 +6,8 @@ const copyBtn = document.getElementById('copy-btn');
 const fontSizeSlider = document.getElementById('font-size-slider');
 const positionYSlider = document.getElementById('position-y-slider');
 const formatSelect = document.getElementById('format-select');
+const qualitySelect = document.getElementById('quality-select');
+const qualityLabel = document.querySelector('label[for="quality-select"]');
 const imageUpload = document.getElementById('image-upload');
 const imageSizeSlider = document.getElementById('image-size-slider');
 const imageSizeInput = document.getElementById('image-size-input');
@@ -496,6 +498,7 @@ async function loadImage(src) {
                 userImgPos.y = (canvas.height - h) / 2;
                 redrawCanvas(userImg);
                 requestAnimationFrame(tick);
+                if (formatSelect.value === 'gif') updateQualityEstimates();
                 return;
             }
         } catch (e) {
@@ -512,6 +515,7 @@ async function loadImage(src) {
     userImgPos.x = (canvas.width - w) / 2;
     userImgPos.y = (canvas.height - h) / 2;
     redrawCanvas();
+    if (formatSelect.value === 'gif') updateQualityEstimates();
 }
 
 function fetchArrayBuffer(src) {
@@ -962,12 +966,13 @@ canvas.addEventListener('mouseout', () => {
     redrawCanvas();
 });
 
-textInput.addEventListener('input', () => redrawCanvas());
-fontSizeSlider.addEventListener('input', () => redrawCanvas());
-positionYSlider.addEventListener('input', () => redrawCanvas());
+textInput.addEventListener('input', () => { redrawCanvas(); if (formatSelect.value === 'gif') updateQualityEstimates(); });
+fontSizeSlider.addEventListener('input', () => { redrawCanvas(); if (formatSelect.value === 'gif') updateQualityEstimates(); });
+positionYSlider.addEventListener('input', () => { redrawCanvas(); if (formatSelect.value === 'gif') updateQualityEstimates(); });
 imageSizeSlider.addEventListener('input', () => {
     imageSizeInput.value = imageSizeSlider.value;
     redrawCanvas();
+    if (formatSelect.value === 'gif') updateQualityEstimates();
 });
 function clampImageSizeValue(raw) {
     const minV = parseInt(imageSizeSlider.min, 10) || 1;
@@ -982,6 +987,7 @@ imageSizeInput.addEventListener('input', () => {
     imageSizeSlider.value = String(v);
     // 不改写 input 的值，允许继续编辑，但画布先跟随
     redrawCanvas();
+    if (formatSelect.value === 'gif') updateQualityEstimates();
 });
 // 失焦或回车：规范化值并重绘
 imageSizeInput.addEventListener('change', () => {
@@ -1035,41 +1041,54 @@ downloadBtn.addEventListener('click', async () => {
         if (isExportingGif) return;
         isExportingGif = true;
         const originalText = downloadBtn.textContent;
-        const restoreBtn = () => { downloadBtn.textContent = originalText; downloadBtn.disabled = false; isExportingGif = false; };
+        const restoreBtn = () => { 
+            downloadBtn.textContent = originalText; 
+            downloadBtn.disabled = false; 
+            downloadBtn.classList.remove('btn-progress');
+            downloadBtn.style.removeProperty('--progress');
+            isExportingGif = false; 
+        };
         downloadBtn.disabled = true;
         downloadBtn.textContent = '准备中…';
+        downloadBtn.classList.add('btn-progress');
+        downloadBtn.style.setProperty('--progress', '0%');
         // 导出为 GIF：对于静态图也可导出为单帧动图
         try {
             const workerScriptURL = await getGifWorkerScriptURL();
+            const qp = getQualityParams();
+            const outW = Math.max(1, Math.round(canvas.width * qp.scale));
+            const outH = Math.max(1, Math.round(canvas.height * qp.scale));
             const encoder = new window.GIF({
                 workers: 2,
-                quality: 10,
-                width: canvas.width,
-                height: canvas.height,
+                quality: qp.encoderQuality,
+                width: outW,
+                height: outH,
                 repeat: 0,
                 workerScript: workerScriptURL
             });
             encoder.on('progress', (p) => {
                 const pct = Math.max(0, Math.min(100, Math.round(p * 100)));
                 downloadBtn.textContent = `渲染中 ${pct}%`;
+                downloadBtn.style.setProperty('--progress', pct + '%');
             });
             // 将每一帧渲染到离屏 canvas 后加入 encoder
             const off = document.createElement('canvas');
-            off.width = canvas.width; off.height = canvas.height;
+            off.width = outW; off.height = outH;
             const octx = off.getContext('2d', { willReadFrequently: true });
 
             if (isGif && gifFrames.length > 0) {
                 for (const fr of gifFrames) {
                     octx.clearRect(0, 0, off.width, off.height);
-                    octx.drawImage(backgroundImg, 0, 0);
+                    // 背景缩放绘制
+                    octx.drawImage(backgroundImg, 0, 0, off.width, off.height);
                     // 根据当前缩放绘制
-                    const scale = imageSizeSlider.value / 100;
-                    const w = Math.max(1, Math.round(fr.image.width * scale));
-                    const h = Math.max(1, Math.round(fr.image.height * scale));
+                    const scaleBase = imageSizeSlider.value / 100;
+                    const w = Math.max(1, Math.round(fr.image.width * scaleBase * qp.scale));
+                    const h = Math.max(1, Math.round(fr.image.height * scaleBase * qp.scale));
                     octx.imageSmoothingEnabled = false;
-                    octx.drawImage(fr.image, userImgPos.x, userImgPos.y, w, h);
+                    octx.drawImage(fr.image, Math.round(userImgPos.x * qp.scale), Math.round(userImgPos.y * qp.scale), w, h);
                     // 叠加文字
-                    const fontSize = fontSizeSlider.value;
+                    const fontSize = fontSizeSlider.value * qp.scale;
                     const positionYPercent = positionYSlider.value;
                     octx.fillStyle = 'rgb(59, 66, 85)';
                     octx.font = `${fontSize}px 'HYWenHei-85W'`;
@@ -1084,14 +1103,14 @@ downloadBtn.addEventListener('click', async () => {
             } else {
                 // 单帧导出
                 octx.clearRect(0, 0, off.width, off.height);
-                octx.drawImage(backgroundImg, 0, 0);
+                octx.drawImage(backgroundImg, 0, 0, off.width, off.height);
                 if (userImg) {
-                    const scale = imageSizeSlider.value / 100;
-                    const w = Math.max(1, Math.round(userImg.width * scale));
-                    const h = Math.max(1, Math.round(userImg.height * scale));
-                    octx.drawImage(userImg, userImgPos.x, userImgPos.y, w, h);
+                    const scaleBase = imageSizeSlider.value / 100;
+                    const w = Math.max(1, Math.round(userImg.width * scaleBase * qp.scale));
+                    const h = Math.max(1, Math.round(userImg.height * scaleBase * qp.scale));
+                    octx.drawImage(userImg, Math.round(userImgPos.x * qp.scale), Math.round(userImgPos.y * qp.scale), w, h);
                 }
-                const fontSize = fontSizeSlider.value;
+                const fontSize = fontSizeSlider.value * qp.scale;
                 const positionYPercent = positionYSlider.value;
                 octx.fillStyle = 'rgb(59, 66, 85)';
                 octx.font = `${fontSize}px 'HYWenHei-85W'`;
@@ -1140,6 +1159,163 @@ copyBtn.addEventListener('click', () => {
         }
     }, 'image/png');
 });
+
+// 根据导出格式控制复制按钮的显示/隐藏
+function updateCopyButtonVisibility() {
+    const format = formatSelect.value;
+    if (format === 'gif') {
+        copyBtn.style.display = 'none';
+    } else {
+        copyBtn.style.display = '';
+    }
+}
+
+// 监听格式选择变化
+formatSelect.addEventListener('change', updateCopyButtonVisibility);
+
+// 初始化时设置按钮状态
+updateCopyButtonVisibility();
+
+// 根据导出格式显示/隐藏质量选择（仅 GIF 有效）
+function updateQualityVisibility() {
+    const isGifFmt = formatSelect.value === 'gif';
+    if (qualitySelect && qualityLabel) {
+        qualitySelect.style.display = isGifFmt ? '' : 'none';
+        qualityLabel.style.display = isGifFmt ? '' : 'none';
+    }
+}
+formatSelect.addEventListener('change', () => {
+    updateQualityVisibility();
+    if (formatSelect.value === 'gif') {
+        // 切换到 GIF 时刷新预估
+        updateQualityEstimates();
+    }
+});
+updateQualityVisibility();
+
+// 质量对应的缩放因子与编码采样参数
+function getQualityParams() {
+    const v = (qualitySelect && qualitySelect.value) || 'none';
+    switch (v) {
+        case '20': return { scale: 0.2, encoderQuality: 24 };
+        case '40': return { scale: 0.4, encoderQuality: 20 };
+        case '60': return { scale: 0.6, encoderQuality: 16 };
+        case '80': return { scale: 0.8, encoderQuality: 12 };
+        default:   return { scale: 1.0, encoderQuality: 10 }; // 不压缩
+    }
+}
+
+// 简易 bytes 格式化
+function formatBytes(bytes) {
+    if (!Number.isFinite(bytes) || bytes <= 0) return '—';
+    const units = ['B','KB','MB','GB'];
+    let i = 0; let val = bytes;
+    while (val >= 1024 && i < units.length - 1) { val /= 1024; i++; }
+    return `${val.toFixed(i === 0 ? 0 : (i === 1 ? 0 : 1))}${units[i]}`;
+}
+
+// 估算 GIF 大小：抽样 2-3 帧，将缩放后的帧导出为 PNG 估算帧体积，乘以帧数再乘以折扣系数
+async function estimateGifSizeBytes(scale) {
+    try {
+        const off = document.createElement('canvas');
+        const w = Math.max(1, Math.round(canvas.width * scale));
+        const h = Math.max(1, Math.round(canvas.height * scale));
+        off.width = w; off.height = h;
+        const octx = off.getContext('2d', { willReadFrequently: true });
+
+        // 选择要采样的帧
+        let samples = [];
+        if (isGif && gifFrames.length > 0) {
+            const idxs = new Set([0, Math.floor(gifFrames.length / 2), gifFrames.length - 1]);
+            samples = Array.from(idxs).filter(i => i >= 0 && i < gifFrames.length).map(i => gifFrames[i]);
+        } else {
+            samples = [{ image: userImg }];
+        }
+        if (samples.length === 0) return 0;
+
+        const getBlobSize = (canvasEl) => new Promise(resolve => {
+            if (canvasEl.toBlob) {
+                canvasEl.toBlob(b => resolve(b ? b.size : 0), 'image/png');
+            } else {
+                try {
+                    const dataURL = canvasEl.toDataURL('image/png');
+                    const size = Math.max(0, Math.floor((dataURL.length - 'data:image/png;base64,'.length) * 3 / 4));
+                    resolve(size);
+                } catch { resolve(0); }
+            }
+        });
+
+        let totalSampleBytes = 0;
+        for (const fr of samples) {
+            octx.clearRect(0, 0, w, h);
+            // 背景
+            octx.drawImage(backgroundImg, 0, 0, w, h);
+            // 图像
+            if (fr.image || userImg) {
+                const img = fr.image || userImg;
+                const baseScale = imageSizeSlider.value / 100;
+                const drawW = Math.max(1, Math.round((img.width || 0) * baseScale * scale));
+                const drawH = Math.max(1, Math.round((img.height || 0) * baseScale * scale));
+                const drawX = Math.round(userImgPos.x * scale);
+                const drawY = Math.round(userImgPos.y * scale);
+                octx.imageSmoothingEnabled = false;
+                octx.drawImage(img, drawX, drawY, drawW, drawH);
+            }
+            // 文本
+            const fontSize = fontSizeSlider.value * scale;
+            const positionYPercent = positionYSlider.value;
+            octx.fillStyle = 'rgb(59, 66, 85)';
+            octx.font = `${fontSize}px 'HYWenHei-85W'`;
+            octx.textAlign = 'center';
+            octx.textBaseline = 'middle';
+            const text = textInput.value;
+            const x = w / 2;
+            const y = h * (positionYPercent / 100);
+            octx.fillText(text, x, y);
+
+            totalSampleBytes += await getBlobSize(off);
+        }
+        const avgPerFrame = totalSampleBytes / samples.length;
+        const framesCount = isGif && gifFrames.length > 0 ? gifFrames.length : 1;
+        // GIF 通常比 PNG 更小，取 0.6 系数粗略估计
+        const estimate = avgPerFrame * framesCount * 0.6;
+        return Math.floor(estimate);
+    } catch { return 0; }
+}
+
+let qualityEstimateTimer = null;
+async function updateQualityEstimates() {
+    if (!qualitySelect) return;
+    // 去抖
+    if (qualityEstimateTimer) clearTimeout(qualityEstimateTimer);
+    qualityEstimateTimer = setTimeout(async () => {
+        const opts = Array.from(qualitySelect.options);
+        // 顺序：none, 80, 60, 40, 20
+        const mapping = {
+            '80': 0.8,
+            '60': 0.6,
+            '40': 0.4,
+            '20': 0.2
+        };
+        for (const opt of opts) {
+            const isNone = opt.value === 'none';
+            const scale = isNone ? 1.0 : mapping[opt.value];
+            const bytes = await estimateGifSizeBytes(scale || 1.0);
+            if (isNone) {
+                opt.textContent = `100%（预计${formatBytes(bytes)}）`;
+            } else {
+                opt.textContent = `${opt.value}%（预计${formatBytes(bytes)}）`;
+            }
+        }
+    }, 150);
+}
+
+if (qualitySelect) {
+    qualitySelect.addEventListener('change', () => {
+        // 选择质量时，若当前是 GIF，刷新一次预估
+        if (formatSelect.value === 'gif') updateQualityEstimates();
+    });
+}
 
 // Show first-load tip modal once per browser (先显示以便统计进度)
 showFirstLoadTipIfNeeded();

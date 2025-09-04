@@ -24,14 +24,22 @@
                 <input type="number" id="image-size-input" min="10" max="250" step="1" value="50" title="图片大小（%）">
             </div>
             <input type="range" id="image-size-slider" min="10" max="250" value="50">
-            <div class="tip">图片位置可直接拖动调整，滚轮/双指捏合调整图片大小</div>
+            <div class="tip">图片位置可直接拖动调整，滚轮/双指捏合调整图片大小<br>动图请选择GIF格式导出</div>
             <label for="format-select">导出格式:</label>
             <select id="format-select">
                 <option value="png">PNG</option>
-                <option value="gif">GIF（导入了动图请选择此格式）</option>
+                <option value="gif">GIF</option>
+            </select>
+            <label for="quality-select">导出质量:（预计大小仅参考）</label>
+            <select id="quality-select">
+                <option value="none">100%</option>
+                <option value="80">80%（预估中…）</option>
+                <option value="60">60%（预估中…）</option>
+                <option value="40">40%（预估中…）</option>
+                <option value="20">20%（预估中…）</option>
             </select>
             <button id="download-btn">下载图片</button>
-            <button id="copy-btn">复制图片（仅PNG）</button>
+            <button id="copy-btn">复制图片</button>
         </div>
     </div>
 

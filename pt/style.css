@@ -135,7 +135,7 @@ input[type="number"]:hover::-webkit-inner-spin-button {
 }
 
 /* 独立的滑块行占满宽度并与上方留距 */
-#image-size-slider { width: 90%; margin-top: 6px; }
+#image-size-slider { width: 100%; margin-top: 6px; }
 
 textarea, input[type="text"] {
     width: 100%;
@@ -658,3 +658,14 @@ body.modal-open { overflow: hidden; }
 @media (max-width: 1136px) {
     .tip { font-size: 11px; padding: 6px 10px; }
 }
+
+/* --- Download button inline progress bar (background-based so text stays above) --- */
+button.btn-progress {
+    position: relative;
+    overflow: hidden; /* 保持圆角内 */
+    background-image: linear-gradient(90deg, rgba(209,191,162,0.55), rgba(209,191,162,0.8));
+    background-size: var(--progress, 0%) 100%;
+    background-repeat: no-repeat;
+    transition: background-size .15s ease;
+}
+button.btn-progress::before { content: none; }
