@@ -162,18 +162,16 @@
                                     </label>
                                 </div>
                             </div>
+                        <!-- 自定义模式 -->
+                        <div class="custom-mode-section" style="border-top: 1px solid #e9ecef; padding-top: 15px; margin-top: 15px;">
+                            <h4 style="color: #555; margin-bottom: 15px; font-size: 1rem; text-align: center;">🎨 自定义模式</h4>
+                            <div class="custom-mode-controls" style="display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
+                                <input type="text" id="customModeName" placeholder="输入名称" style="max-width: 120px;">
+                                <button onclick="showCustomModeDetail()">详情设置</button>
+                                <button onclick="addCustomMode()">添加模式</button>
+                            </div>
+                            <div id="customModesList" class="custom-modes-list"></div>
                         </div>
-                    </div>
-
-                    <!-- 自定义模式 -->
-                    <div class="custom-mode-section" style="border-top: 1px solid #e9ecef; padding-top: 15px; margin-top: 15px;">
-                        <h4 style="color: #555; margin-bottom: 15px; font-size: 1rem; text-align: center;">🎨 自定义模式</h4>
-                        <div class="custom-mode-controls" style="display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
-                            <input type="text" id="customModeName" placeholder="输入名称" style="max-width: 120px;">
-                            <button onclick="showCustomModeDetail()">详情设置</button>
-                            <button onclick="addCustomMode()">添加模式</button>
-                        </div>
-                        <div id="customModesList" class="custom-modes-list"></div>
                     </div>
 
                     <!-- 规则说明 -->
