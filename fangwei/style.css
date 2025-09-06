@@ -1,4 +1,85 @@
 /* 方位抽取器样式文件 */
+@font-face {
+    font-family: 'HYWenHei-85W';
+    src: url('../pt/HYWenHei-85W.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* 统一所有按钮与下拉框样式 */
+select, button {
+    padding: 12px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-family: inherit;
+    font-size: 16px;
+    transition: background-color .2s ease, border-color .2s ease, box-shadow .2s ease, color .2s ease;
+    background: rgb(235, 228, 214);
+    border: 1px solid rgb(209, 191, 162);
+    color: #2c2f36;
+}
+
+/* 文本输入与多行输入统一样式 */
+input[type="text"],
+input[type="search"],
+input[type="number"],
+textarea {
+    padding: 12px 18px;
+    border-radius: 8px;
+    border: 1px solid rgb(209, 191, 162);
+    background: rgb(235, 228, 214);
+    color: #2c2f36;
+    font-family: inherit;
+    font-size: 16px;
+    transition: background-color .2s ease, border-color .2s ease, box-shadow .2s ease, color .2s ease;
+    outline: none;
+}
+
+input[type="text"]::placeholder,
+input[type="search"]::placeholder,
+input[type="number"]::placeholder,
+textarea::placeholder {
+    color: #7a7f8a;
+}
+
+input[type="text"]:hover,
+input[type="search"]:hover,
+input[type="number"]:hover,
+textarea:hover {
+    background-color: #EFE9DF;
+}
+
+input[type="text"]:focus,
+input[type="search"]:focus,
+input[type="number"]:focus,
+textarea:focus {
+    border-color: #B09D80;
+    box-shadow: 0 0 0 3px rgba(209, 191, 162, 0.35);
+}
+
+textarea {
+    min-height: 120px;
+    resize: vertical;
+    line-height: 1.5;
+}
+
+input[disabled],
+textarea[disabled] {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* 弹窗内的输入默认占满宽度（自定义名称设置了 max-width 不受影响） */
+.modal-body input[type="text"],
+.modal-body input[type="search"],
+.modal-body input[type="number"],
+.modal-body textarea {
+    width: 100%;
+}
 * {
     margin: 0;
     padding: 0;
@@ -6,8 +87,9 @@
 }
 
 body {
-    font-family: 'Microsoft YaHei', Arial, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: 'HYWenHei-85W', 'Microsoft YaHei', Arial, sans-serif;
+    background: #EBE4D7; 
+    color: #3B4255;     
     min-height: 100vh;
     display: flex;
     justify-content: center;
@@ -16,23 +98,21 @@ body {
 }
 
 .container {
-    background: rgba(255, 255, 255, 0.95);
+    background: #EBE4D6; 
+    border: 8px solid #D1BFA2; 
     border-radius: 20px;
     padding: 40px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 12px 24px rgba(59, 66, 85, 0.08);
     max-width: 600px;
     width: 100%;
     text-align: center;
+    position: relative;
 }
 
 h1 {
-    color: #333;
+    color: #3B4255;
     margin-bottom: 30px;
     font-size: 2.5rem;
-    background: linear-gradient(45deg, #667eea, #764ba2);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
 }
 
 .draw-section {
@@ -40,42 +120,30 @@ h1 {
 }
 
 .draw-button {
-    background: linear-gradient(45deg, #667eea, #764ba2);
-    color: white;
-    border: none;
-    padding: 15px 30px;
-    font-size: 1.2rem;
-    border-radius: 50px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
     margin: 10px;
 }
 
-.draw-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-}
+.draw-button:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(59, 66, 85, 0.2); }
 
 .draw-button:active {
     transform: translateY(0);
 }
 
 .result-container {
-    background: #f8f9fa;
+    background: #F5F2EC;
     border-radius: 15px;
     padding: 25px;
     margin: 20px 0;
-    border-left: 5px solid #667eea;
-    border-right: 5px solid #667eea;
+    border-left: 5px solid #D8D1C3;
+    border-right: 5px solid #D8D1C3;
 }
 
 .result-item {
     margin: 15px 0;
     padding: 15px;
-    background: white;
+    background: #FFFFFF;
     border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 10px rgba(59, 66, 85, 0.08);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -83,7 +151,7 @@ h1 {
 
 .result-label {
     font-weight: bold;
-    color: #666;
+    color: #3B4255;
     min-width: 80px;
     text-align: left;
 }
@@ -92,71 +160,98 @@ h1 {
     flex: 1;
     text-align: center;
     font-size: 1.1rem;
-    color: #333;
+    color: #3B4255;
     font-weight: 600;
 }
 
 .mode-result {
-    color: #e74c3c;
+    color: #3B4255;
 }
 
 .direction-result {
-    color: #3498db;
+    color: #3B4255;
 }
 .point-result {
-    color: #27ae60;
+    color: #3B4255;
 }
 
-.event-result {
-    color: #9b59b6; /* A purple color for events */
-}
+/* 事件抽取相关样式已移除 */
 
-.copy-event-button {
-    background: linear-gradient(45deg, #9b59b6, #8e44ad);
-    color: white;
-    border: none;
-    padding: 8px 12px;
+/* 左上角设置图标按钮 */
+.settings-icon-button {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
     border-radius: 8px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
-    margin-left: 10px;
+    background: rgb(235, 228, 214);
+    border: 1px solid rgb(209, 191, 162);
+    color: #2c2f36;
+}
+.settings-icon-button:hover {
+    background-color: #EFE9DF;
+}
+.settings-icon-button:active {
+    transform: scale(0.98);
 }
 
-.copy-event-button:hover {
-    background: linear-gradient(45deg, #8e44ad, #9b59b6);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(155, 89, 182, 0.4);
+/* Toast 提示样式 */
+#toastContainer {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 2000;
+    pointer-events: none; /* 不阻挡页面交互 */
 }
+.toast {
+    background: #FFFFFF;
+    border: 1px solid #D1BFA2;
+    color: #3B4255;
+    padding: 10px 14px;
+    border-radius: 10px;
+    box-shadow: 0 8px 16px rgba(59,66,85,0.12);
+    transform: translateY(-8px);
+    opacity: 0;
+    transition: opacity 180ms ease, transform 180ms ease;
+    pointer-events: auto;
+    max-width: 80vw;
+    text-align: center;
+}
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+.toast.hide {
+    opacity: 0;
+    transform: translateY(-8px);
+}
+.toast-success { border-color: #7BC67B; }
+.toast-error { border-color: #E07A7A; }
+.toast-info { border-color: #D1BFA2; }
 
-.redraw-button {
-    background: linear-gradient(45deg, #667eea, #764ba2);
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
-    margin-left: 10px;
-}
+.redraw-button { margin-left: 10px; }
 
-.redraw-button:hover {
-    background: linear-gradient(45deg, #5a67d8, #6b46c1);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
+.redraw-button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(59, 66, 85, 0.18); }
 
 .copy-section {
     margin-top: 25px;
     padding: 20px;
-    background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+    background: #E0D8C9;
     border-radius: 15px;
-    color: white;
+    color: #3B4255;
 }
 
 .copy-text {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.6);
     padding: 15px;
     border-radius: 10px;
     margin: 10px 0;
@@ -165,21 +260,8 @@ h1 {
     word-break: break-all;
 }
 
-.copy-button {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    border: 2px solid white;
-    padding: 10px 25px;
-    border-radius: 25px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 1rem;
-}
 
-.copy-button:hover {
-    background: white;
-    color: #f5576c;
-}
+.copy-button:hover { box-shadow: 0 4px 10px rgba(59,66,85,0.15); }
 
 .copy-success {
     background: #27ae60 !important;
@@ -189,20 +271,20 @@ h1 {
 .rules-section {
     margin-top: 30px;
     text-align: left;
-    background: #f8f9fa;
+    background: #F5F2EC;
     padding: 20px;
     border-radius: 15px;
 }
 
 .rules-title {
-    color: #333;
+    color: #3B4255;
     margin-bottom: 15px;
     font-size: 1.3rem;
     text-align: center;
 }
 
 .rules-content {
-    color: #666;
+    color: #3B4255;
     line-height: 1.6;
 }
 
@@ -221,27 +303,33 @@ h1 {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0); /* 初始透明 */
+    opacity: 0; /* 初始透明度 */
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 1000;
+    transition: opacity 180ms ease, background-color 180ms ease; /* 平滑过渡 */
 }
 
 .modal-content {
-    background: white;
-    border-radius: 15px;
-    max-width: 500px;
-    width: 90%;
+    background: #FFFFFF;
+    border: 10px solid #D1BFA2; /* 与 .container 保持一致 */
+    border-radius: 20px;
+    max-width: 720px;
+    width: 92%;
     max-height: 80vh;
     overflow: hidden;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 12px 24px rgba(59, 66, 85, 0.12);
+    transform: scale(0.96);
+    opacity: 0;
+    transition: transform 180ms ease, opacity 180ms ease;
 }
 
 .modal-header {
     padding: 20px;
-    background: linear-gradient(45deg, #667eea, #764ba2);
-    color: white;
+    background: #3B4255;
+    color: #EBE4D7;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -263,7 +351,7 @@ h1 {
 }
 
 .modal-close:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(235, 228, 215, 0.2);
 }
 
 .modal-body {
@@ -272,12 +360,35 @@ h1 {
     overflow-y: auto;
 }
 
+/* 打开/关闭浮现动画状态类 */
+.modal-overlay.show { /* 覆盖层显现 */
+    opacity: 1;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+.modal-overlay.hide { /* 覆盖层隐藏 */
+    opacity: 0;
+    background-color: rgba(0, 0, 0, 0);
+}
+.modal-overlay.show .modal-content {
+    transform: scale(1);
+    opacity: 1;
+}
+.modal-overlay.hide .modal-content {
+    transform: scale(0.96);
+    opacity: 0;
+}
+
+/* 叠层顺序：自定义详情弹窗应高于设置弹窗 */
+#customDetailModal {
+    z-index: 1100;
+}
+
 .history-item {
-    background: #f8f9fa;
+    background: #F5F2EC;
     border-radius: 10px;
     padding: 15px;
     margin: 10px 0;
-    border-left: 4px solid #667eea;
+    border-left: 4px solid #D8D1C3;
 }
 
 .history-time {
@@ -294,24 +405,46 @@ h1 {
 
 .modal-footer {
     padding: 15px 20px;
-    background: #f8f9fa;
+    background: #F5F2EC;
     display: flex;
     justify-content: flex-end;
     gap: 10px;
 }
 
-.modal-button {
-    background: #667eea;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 20px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}        .modal-button:hover {
-    background: #5a6fd8;
-    transform: translateY(-1px);
-}
+    /* 自定义模式卡片区域 */
+    .custom-mode-item {
+        background: #FFFFFF;
+        border: 1px solid #D1BFA2;
+        border-radius: 12px;
+        padding: 10px 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        box-shadow: 0 4px 12px rgba(59, 66, 85, 0.08);
+    }
+    .custom-mode-item.disabled { opacity: 0.6; }
+    .custom-mode-info { flex: 1; text-align: left; }
+    .custom-mode-name { font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .custom-mode-name input[type="checkbox"] { transform: translateY(1px); }
+    .custom-mode-detail { font-size: 12px; color: #666; margin-top: 4px; }
+    .custom-mode-actions { display: flex; align-items: center; gap: 6px; }
+
+    /* 小号按钮与变体 */
+    .btn-sm { padding: 6px 10px; font-size: 14px; }
+    .btn-danger { border-color: #E07A7A; }
+    .btn-danger:hover { box-shadow: 0 0 0 3px rgba(224, 122, 122, 0.25); }
+
+    /* 自定义模式列表为单列布局 */
+    .custom-modes-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-width: 520px;
+        margin: 0 auto;
+    }
+
+.modal-button:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(59,66,85,0.15); }
 
 /* 自定义模式详情弹窗特殊样式 */
 .custom-detail-section {
@@ -351,7 +484,7 @@ h1 {
 
 /* 设置区域样式 */
 .settings-section {
-    background: #f8f9fa;
+    background: #F5F2EC;
     border-radius: 15px;
     padding: 20px;
     margin-bottom: 25px;
@@ -359,7 +492,7 @@ h1 {
 }
 
 .settings-section h3 {
-    color: #333;
+    color: #3B4255;
     margin-bottom: 15px;
     font-size: 1.2rem;
     text-align: center;
@@ -385,7 +518,7 @@ h1 {
 }
 
 .mode-settings h4 {
-    color: #555;
+    color: #3B4255;
     margin-bottom: 15px;
     font-size: 1rem;
     text-align: center;
@@ -409,7 +542,7 @@ h1 {
     align-items: center;
     cursor: pointer;
     font-size: 0.9rem;
-    color: #555;
+    color: #3B4255;
     user-select: none;
     padding: 5px 10px;
     border-radius: 8px;
@@ -417,7 +550,7 @@ h1 {
 }
 
 .setting-label:hover {
-    background-color: rgba(102, 126, 234, 0.1);
+    background-color: rgba(59, 66, 85, 0.08);
 }
 
 .setting-label input[type="checkbox"] {
@@ -427,22 +560,22 @@ h1 {
 .checkmark {
     height: 18px;
     width: 18px;
-    background-color: #eee;
+    background-color: #fff;
     border-radius: 4px;
     margin-right: 8px;
     position: relative;
     transition: all 0.3s ease;
-    border: 2px solid #ddd;
+    border: 2px solid #3B4255;
     flex-shrink: 0;
 }
 
 .setting-label:hover .checkmark {
-    background-color: #ccc;
+    background-color: #F5F2EC;
 }
 
 .setting-label input:checked ~ .checkmark {
-    background-color: #667eea;
-    border-color: #667eea;
+    background-color: #3B4255;
+    border-color: #3B4255;
 }
 
 .checkmark:after {
@@ -517,7 +650,6 @@ h1 {
     }
 
     .result-item {
-        flex-direction: column;
         text-align: center;
     }
 
