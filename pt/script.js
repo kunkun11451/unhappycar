@@ -161,7 +161,7 @@ function showTipModal(message, { duration = 1800 } = {}) {
 }
 
 const backgroundImg = new Image();
-backgroundImg.src = 'input.png';
+backgroundImg.src = 'background.svg';
 
 // 静态图像/动图的统一状态
 let userImg = null; // Image 或者 OffscreenCanvas（用于单帧渲染）
@@ -285,14 +285,14 @@ function addToRecents(url, refreshUI = false) {
 // --- Main Drawing Logic ---
 
 backgroundImg.onload = () => {
-    canvas.width = backgroundImg.width;
-    canvas.height = backgroundImg.height;
+    canvas.width = 886;
+    canvas.height = 999;
     redrawCanvas();
 };
 
 function redrawCanvas(frameImage = null) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(backgroundImg, 0, 0);
+    ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
 
     // 绘制用户图（静态或 GIF 当前帧）
     // 防御：如果外部误传了事件对象，应忽略
@@ -361,7 +361,7 @@ function tick(timestamp) {
 
     // 在主 canvas 绘制该帧
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(backgroundImg, 0, 0);
+    ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
     // 主画布绘制时，同样关闭 GIF 的平滑
     ctx.imageSmoothingEnabled = isGif ? false : true;
     ctx.drawImage(toDraw, userImgPos.x, userImgPos.y);
