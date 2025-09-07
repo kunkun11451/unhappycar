@@ -66,7 +66,7 @@
                     <button class="modal-close" onclick="hideHistory()">✕</button>
                 </div>
                 <div class="modal-body" id="historyContent">
-                    <p style="text-align: center; color: #999;">暂无历史记录</p>
+                    <p class="modal-empty">暂无历史记录</p>
                 </div>
                 <div class="modal-footer">
                     <button class="modal-button" onclick="clearHistory()">🗑️ 清空历史</button>
@@ -82,7 +82,7 @@
                 </div>
                 <div class="modal-body">
                     <div style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #555;">模式类型：</label>
+                        <label class="modal-label">模式类型：</label>
                         <select id="customModeType">
                             <option value="text">固定文本</option>
                             <option value="random">随机抽取</option>
@@ -90,14 +90,14 @@
                     </div>
                     
                     <div id="textDetailSection" style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #555;">固定文本：</label>
+                        <label class="modal-label">固定文本：</label>
                         <input type="text" id="customModeText" placeholder="输入固定的模式描述">
                     </div>
                     
                     <div id="randomDetailSection" style="display: none;">
-                        <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #555;">抽取元素（每行一个）：</label>
+                        <label class="modal-label">抽取元素（每行一个）：</label>
                         <textarea id="customModeElements" placeholder="输入可抽取的元素，每行一个&#10;例如：&#10;元素A&#10;元素B&#10;元素C"></textarea>
-                        <small style="color: #666; font-size: 12px;">每次抽取时会从这些元素中随机选择一个</small>
+                        <small class="modal-hint">每次抽取时会从这些元素中随机选择一个</small>
                     </div>
                 </div>
                 <div class="modal-footer">

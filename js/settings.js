@@ -965,7 +965,10 @@ document.addEventListener('DOMContentLoaded', () => {
             { name: "方位抽取器", file: "fangwei"},
             { name: "选角禁技", file: "xjjj"},
             { name: "表情包编辑", file: "pt"},
-            { name: "赤石6", }
+            { name: "史镶金随机数生成器", file: "dice" },
+            { name: "赤石7",},
+            { name: "赤石8",},
+            { name: "赤石9",}
         ];
 
         projects.forEach(project => {

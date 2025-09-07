@@ -484,6 +484,72 @@ body.dark-mode .modal-header {
     overflow-y: auto;
 }
 
+.modal-label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 700;
+    color: #3B4255;
+}
+body.dark-mode .modal-label {
+    color: #f5f5f5;
+}
+.modal-hint {
+    display: inline-block;
+    color: #666;
+    font-size: 12px;
+    margin-top: 6px;
+}
+body.dark-mode .modal-hint {
+    color: #aaa;
+}
+.modal-empty {
+    text-align: center;
+    color: #999;
+}
+body.dark-mode .modal-empty {
+    color: #aaa;
+}
+
+body.dark-mode .modal-body select,
+body.dark-mode .modal-body textarea {
+    background: #3b4255;
+    border-color: #5a6175;
+    color: #f5f5f5;
+}
+body.dark-mode .modal-body select:hover,
+body.dark-mode .modal-body textarea:hover {
+    background: #444b5e;
+}
+body.dark-mode .modal-body select:focus,
+body.dark-mode .modal-body textarea:focus {
+    border-color: #7a86a7;
+    box-shadow: 0 0 0 3px rgba(122, 134, 167, 0.35);
+}
+
+body.dark-mode .modal-body input[type="text"],
+body.dark-mode .modal-body input[type="search"],
+body.dark-mode .modal-body input[type="number"] {
+    background: #3b4255;
+    border-color: #5a6175;
+    color: #f5f5f5;
+}
+body.dark-mode .modal-body input[type="text"]:hover,
+body.dark-mode .modal-body input[type="search"]:hover,
+body.dark-mode .modal-body input[type="number"]:hover {
+    background: #444b5e;
+}
+body.dark-mode .modal-body input[type="text"]:focus,
+body.dark-mode .modal-body input[type="search"]:focus,
+body.dark-mode .modal-body input[type="number"]:focus {
+    border-color: #7a86a7;
+    box-shadow: 0 0 0 3px rgba(122, 134, 167, 0.35);
+}
+body.dark-mode .modal-body input[type="text"]::placeholder,
+body.dark-mode .modal-body input[type="search"]::placeholder,
+body.dark-mode .modal-body input[type="number"]::placeholder {
+    color: #aaa;
+}
+
 /* 打开/关闭浮现动画状态类 */
 .modal-overlay.show { /* 覆盖层显现 */
     opacity: 1;
@@ -1000,6 +1066,27 @@ body.dark-mode .custom-mode-controls button:hover {
         padding: 6px 10px;
         font-size: 0.9rem;
         line-height: 1;
+    }
+
+    /* 禁止主页面滚动，固定容器在屏幕中间（移动端） */
+    html, body {
+        height: 100%;
+        overflow: hidden;         
+        overscroll-behavior: none;  
+    }
+    body { padding: 0; }
+
+    .container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: calc(100vw - 24px);    
+        max-width: calc(100vw - 24px);
+        max-height: calc(100vh - 24px);
+        max-height: calc(100dvh - 24px); 
+        overflow: auto;        
+        -webkit-overflow-scrolling: touch;
     }
 }
 
