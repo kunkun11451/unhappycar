@@ -95,6 +95,12 @@ body {
     justify-content: center;
     align-items: center;
     padding: 20px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+body.dark-mode {
+    background: #2c2f36;
+    color: #f5f5f5;
 }
 
 .container {
@@ -107,12 +113,23 @@ body {
     width: 100%;
     text-align: center;
     position: relative;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+body.dark-mode .container {
+    background: #3b4255;
+    border-color: #5a6175;
 }
 
 h1 {
     color: #3B4255;
     margin-bottom: 30px;
     font-size: 2.5rem;
+    transition: color 0.3s;
+}
+
+body.dark-mode h1 {
+    color: #f5f5f5;
 }
 
 .draw-section {
@@ -136,6 +153,12 @@ h1 {
     margin: 20px 0;
     border-left: 5px solid #D8D1C3;
     border-right: 5px solid #D8D1C3;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+body.dark-mode .result-container {
+    background: #2c2f36;
+    border-color: #5a6175;
 }
 
 .result-item {
@@ -147,6 +170,11 @@ h1 {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    transition: background-color 0.3s;
+}
+
+body.dark-mode .result-item {
+    background: #3b4255;
 }
 
 .result-label {
@@ -154,6 +182,11 @@ h1 {
     color: #3B4255;
     min-width: 80px;
     text-align: left;
+    transition: color 0.3s;
+}
+
+body.dark-mode .result-label {
+    color: #f5f5f5;
 }
 
 .result-value {
@@ -162,6 +195,31 @@ h1 {
     font-size: 1.1rem;
     color: #3B4255;
     font-weight: 600;
+    transition: color 0.3s;
+}
+
+body.dark-mode .result-value {
+    color: #f5f5f5;
+}
+
+/* 溢出滚动展示（由 JS 动态添加 .marquee 与 .marquee-inner） */
+.result-value.marquee {
+    position: relative;
+    overflow: hidden;
+    text-overflow: clip;
+    text-align: left;  
+}
+.result-value.marquee .marquee-inner {
+    display: inline-block;
+    white-space: nowrap;
+    will-change: transform;
+    animation: marquee-pan 10s ease-in-out infinite;
+}
+
+@keyframes marquee-pan {
+    0%, 10% { transform: translateX(0); }
+    50%     { transform: translateX(var(--marquee-shift, 0)); }
+    90%,100%{ transform: translateX(0); }
 }
 
 .mode-result {
@@ -198,6 +256,20 @@ h1 {
 }
 .settings-icon-button:active {
     transform: scale(0.98);
+}
+
+.settings-icon-button svg,
+.settings-icon-button svg path {
+    fill: currentColor !important;
+}
+
+body.dark-mode .settings-icon-button {
+    background: #3b4255;
+    border-color: #5a6175;
+    color: #f5f5f5;
+}
+body.dark-mode .settings-icon-button:hover {
+    background: #444b5e;
 }
 
 /* Toast 提示样式 */
@@ -242,12 +314,31 @@ h1 {
 
 .redraw-button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(59, 66, 85, 0.18); }
 
+body.dark-mode .draw-button,
+body.dark-mode .redraw-button,
+body.dark-mode .copy-button {
+    background: #3b4255;
+    border-color: #5a6175;
+    color: #f5f5f5;
+}
+body.dark-mode .draw-button:hover,
+body.dark-mode .redraw-button:hover,
+body.dark-mode .copy-button:hover {
+    background: #444b5e;
+}
+
 .copy-section {
     margin-top: 25px;
     padding: 20px;
     background: #E0D8C9;
     border-radius: 15px;
     color: #3B4255;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+body.dark-mode .copy-section {
+    background: #2c2f36;
+    color: #f5f5f5;
 }
 
 .copy-text {
@@ -258,6 +349,11 @@ h1 {
     font-size: 1.1rem;
     font-weight: bold;
     word-break: break-all;
+    transition: background-color 0.3s;
+}
+
+body.dark-mode .copy-text {
+    background: rgba(0, 0, 0, 0.2);
 }
 
 
@@ -275,6 +371,12 @@ h1 {
     padding: 20px;
     border-radius: 15px;
     border-top: 1px solid #e9ecef;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+body.dark-mode .rules-section {
+    background: #3b4255;
+    border-color: #5a6175;
 }
 
 .rules-title {
@@ -282,11 +384,21 @@ h1 {
     margin-bottom: 15px;
     font-size: 1.3rem;
     text-align: center;
+    transition: color 0.3s;
+}
+
+body.dark-mode .rules-title {
+    color: #f5f5f5;
 }
 
 .rules-content {
     color: #3B4255;
     line-height: 1.6;
+    transition: color 0.3s;
+}
+
+body.dark-mode .rules-content {
+    color: #f5f5f5;
 }
 
 .rules-content ul {
@@ -324,7 +436,12 @@ h1 {
     box-shadow: 0 12px 24px rgba(59, 66, 85, 0.12);
     transform: scale(0.96);
     opacity: 0;
-    transition: transform 180ms ease, opacity 180ms ease;
+    transition: transform 180ms ease, opacity 180ms ease, background-color 0.3s, border-color 0.3s;
+}
+
+body.dark-mode .modal-content {
+    background: #3b4255;
+    border-color: #5a6175;
 }
 
 .modal-header {
@@ -334,6 +451,12 @@ h1 {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+body.dark-mode .modal-header {
+    background: #2c2f36;
+    color: #f5f5f5;
 }
 
 .modal-header h3 {
@@ -390,18 +513,34 @@ h1 {
     padding: 15px;
     margin: 10px 0;
     border-left: 4px solid #D8D1C3;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+body.dark-mode .history-item {
+    background: #2c2f36;
+    border-color: #5a6175;
 }
 
 .history-time {
     font-size: 0.9rem;
     color: #999;
     margin-bottom: 5px;
+    transition: color 0.3s;
+}
+
+body.dark-mode .history-time {
+    color: #aaa;
 }
 
 .history-result {
     font-weight: bold;
     color: #333;
     font-size: 1.1rem;
+    transition: color 0.3s;
+}
+
+body.dark-mode .history-result {
+    color: #f5f5f5;
 }
 
 .modal-footer {
@@ -410,6 +549,11 @@ h1 {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
+    transition: background-color 0.3s;
+}
+
+body.dark-mode .modal-footer {
+    background: #2c2f36;
 }
 
     /* 自定义模式卡片区域 */
@@ -423,12 +567,24 @@ h1 {
         justify-content: space-between;
         gap: 10px;
         box-shadow: 0 4px 12px rgba(59, 66, 85, 0.08);
+        transition: background-color 0.3s, border-color 0.3s;
     }
+
+    body.dark-mode .custom-mode-item {
+        background: #3b4255;
+        border-color: #5a6175;
+    }
+
     .custom-mode-item.disabled { opacity: 0.6; }
     .custom-mode-info { flex: 1; text-align: left; }
     .custom-mode-name { font-weight: 700; display: flex; align-items: center; gap: 8px; }
     .custom-mode-name input[type="checkbox"] { transform: translateY(1px); }
-    .custom-mode-detail { font-size: 12px; color: #666; margin-top: 4px; }
+    .custom-mode-detail { font-size: 12px; color: #666; margin-top: 4px; transition: color 0.3s; }
+
+    body.dark-mode .custom-mode-detail {
+        color: #aaa;
+    }
+
     .custom-mode-actions { display: flex; align-items: center; gap: 6px; }
 
     /* 小号按钮与变体 */
@@ -445,7 +601,30 @@ h1 {
         margin: 0 auto;
     }
 
-.modal-button:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(59,66,85,0.15); }
+/* 弹窗按钮基础样式（亮色） */
+.modal-button {
+    background: rgb(235, 228, 214);
+    border: 1px solid rgb(209, 191, 162);
+    color: #2c2f36;
+    transition: background-color .2s ease, border-color .2s ease, box-shadow .2s ease, color .2s ease, transform .1s ease;
+}
+
+.modal-button:hover {
+    background-color: #EFE9DF;
+    border-color: #B09D80;
+    box-shadow: 0 4px 10px rgba(59,66,85,0.15);
+    transform: translateY(-1px);
+}
+
+/* 弹窗按钮暗色样式 */
+body.dark-mode .modal-button {
+    background: #3b4255;
+    border-color: #5a6175;
+    color: #f5f5f5;
+}
+body.dark-mode .modal-button:hover {
+    background: #444b5e;
+}
 
 /* 自定义模式详情弹窗特殊样式 */
 .custom-detail-section {
@@ -490,6 +669,12 @@ h1 {
     padding: 20px;
     margin-bottom: 25px;
     border: 1px solid #e9ecef;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+body.dark-mode .settings-section {
+    background: #2c2f36;
+    border-color: #5a6175;
 }
 
 .settings-section h3 {
@@ -497,6 +682,11 @@ h1 {
     margin-bottom: 15px;
     font-size: 1.2rem;
     text-align: center;
+    transition: color 0.3s;
+}
+
+body.dark-mode .settings-section h3 {
+    color: #f5f5f5;
 }
 
 .setting-row {
@@ -516,6 +706,11 @@ h1 {
     border-top: 1px solid #e9ecef;
     padding-top: 15px;
     margin-top: 15px;
+    transition: border-color 0.3s;
+}
+
+body.dark-mode .mode-settings {
+    border-color: #5a6175;
 }
 
 .mode-settings h4 {
@@ -523,6 +718,11 @@ h1 {
     margin-bottom: 15px;
     font-size: 1rem;
     text-align: center;
+    transition: color 0.3s;
+}
+
+body.dark-mode .mode-settings h4 {
+    color: #f5f5f5;
 }
 
 .mode-grid {
@@ -547,11 +747,19 @@ h1 {
     user-select: none;
     padding: 5px 10px;
     border-radius: 8px;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease, color 0.3s;
+}
+
+body.dark-mode .setting-label {
+    color: #f5f5f5;
 }
 
 .setting-label:hover {
     background-color: rgba(59, 66, 85, 0.08);
+}
+
+body.dark-mode .setting-label:hover {
+    background-color: rgba(245, 245, 245, 0.1);
 }
 
 .setting-label input[type="checkbox"] {
@@ -570,6 +778,11 @@ h1 {
     flex-shrink: 0;
 }
 
+body.dark-mode .checkmark {
+    background-color: #2c2f36;
+    border-color: #f5f5f5;
+}
+
 .setting-label:hover .checkmark {
     background-color: #F5F2EC;
 }
@@ -577,6 +790,11 @@ h1 {
 .setting-label input:checked ~ .checkmark {
     background-color: #3B4255;
     border-color: #3B4255;
+}
+
+body.dark-mode .setting-label input:checked ~ .checkmark {
+    background-color: #f5f5f5;
+    border-color: #f5f5f5;
 }
 
 .checkmark:after {
@@ -597,6 +815,10 @@ h1 {
     border: solid white;
     border-width: 0 2px 2px 0;
     transform: rotate(45deg);
+}
+
+body.dark-mode .setting-label input:checked ~ .checkmark:after {
+    border-color: #2c2f36;
 }
 
 .test-button {
@@ -629,6 +851,33 @@ h1 {
     border-color: #B09D80;
     box-shadow: 0 4px 10px rgba(59,66,85,0.12);
     transform: translateY(-1px);
+}
+
+body.dark-mode .custom-mode-controls input[type="text"] {
+    background: #3b4255;
+    border-color: #5a6175;
+    color: #f5f5f5;
+}
+body.dark-mode .custom-mode-controls input[type="text"]::placeholder {
+    color: #aaa;
+}
+body.dark-mode .custom-mode-controls input[type="text"]:hover {
+    background: #444b5e;
+}
+body.dark-mode .custom-mode-controls input[type="text"]:focus {
+    border-color: #7a86a7;
+    box-shadow: 0 0 0 3px rgba(122, 134, 167, 0.35);
+}
+
+body.dark-mode .custom-mode-controls button {
+    background: #3b4255;
+    border-color: #5a6175;
+    color: #f5f5f5;
+}
+body.dark-mode .custom-mode-controls button:hover {
+    background: #444b5e;
+    border-color: #6b738a;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.25);
 }
 
 .custom-mode-item {
@@ -713,15 +962,159 @@ h1 {
     }
 
     .result-container {
-    background: #f8f9fa;
-    border-radius: 15px;
-    padding: 0;
-    margin: 20px 0;
-    border-left: none;
-    border-right: none;
+        background: #F5F2EC;
+        border-radius: 15px;
+        padding: 12px;
+        margin: 16px 0;
+    }
+    body.dark-mode .result-container {
+        background: #2c2f36;
     }
 
-    .redraw-button {
-    margin-top: 10px;
+    .result-item {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 10px;
+        margin: 10px 0;
     }
+    .result-label {
+        min-width: 56px;
+        margin-bottom: 0;
+        font-size: 0.95rem;
+        text-align: left;
+    }
+    .result-value {
+        flex: 1 1 auto;
+        font-size: 0.95rem;
+        padding: 0 6px;
+        white-space: nowrap; /* 默认单行，溢出时由 .marquee 覆盖 */
+        overflow: hidden;    /* 容器裁剪 */
+        text-overflow: ellipsis; /* 默认省略 */
+        text-align: center;
+    }
+    .redraw-button {
+        margin-top: 0;
+        margin-left: 6px;
+        padding: 6px 10px;
+        font-size: 0.9rem;
+        line-height: 1;
+    }
+}
+
+.themeToggle {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border-radius: 8px;
+    background: rgb(235, 228, 214);
+    border: 1px solid rgb(209, 191, 162);
+    color: #2c2f36; /* 图标颜色 */
+    transition: background-color .2s ease, border-color .2s ease, box-shadow .2s ease, color .2s ease, transform .1s ease;
+}
+
+.themeToggle:hover {
+    background-color: #EFE9DF;
+}
+
+.themeToggle:active {
+    transform: scale(0.98);
+}
+
+/* 深色模式适配主题切换按钮颜色 */
+body.dark-mode .themeToggle {
+    background: #3b4255;
+    border-color: #5a6175;
+    color: #f5f5f5;
+}
+
+body.dark-mode .themeToggle:hover {
+    background: #444b5e;
+}
+
+.st-sunMoonThemeToggleBtn {
+  position: relative;
+  cursor: pointer;
+}
+
+.themeToggle.st-sunMoonThemeToggleBtn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+.st-sunMoonThemeToggleBtn .themeToggleInput {
+  opacity: 0;
+  width: 100%;
+  aspect-ratio: 1;
+}
+
+.st-sunMoonThemeToggleBtn svg {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.4s ease;
+  transform: rotate(40deg);
+}
+
+.st-sunMoonThemeToggleBtn svg .sunMoon {
+  transform-origin: center center;
+  transition: inherit;
+  transform: scale(1);
+}
+
+.st-sunMoonThemeToggleBtn svg .sunRay {
+  transform-origin: center center;
+  transform: scale(0);
+}
+
+.st-sunMoonThemeToggleBtn svg mask > circle {
+  transition: transform 0.64s cubic-bezier(0.41, 0.64, 0.32, 1.575);
+  transform: translate(0px, 0px);
+}
+
+.st-sunMoonThemeToggleBtn svg .sunRay2 {
+  animation-delay: 0.05s !important;
+}
+.st-sunMoonThemeToggleBtn svg .sunRay3 {
+  animation-delay: 0.1s !important;
+}
+.st-sunMoonThemeToggleBtn svg .sunRay4 {
+  animation-delay: 0.17s !important;
+}
+.st-sunMoonThemeToggleBtn svg .sunRay5 {
+  animation-delay: 0.25s !important;
+}
+.st-sunMoonThemeToggleBtn svg .sunRay5 {
+  animation-delay: 0.29s !important;
+}
+
+.st-sunMoonThemeToggleBtn .themeToggleInput:checked + svg {
+  transform: rotate(90deg);
+}
+.st-sunMoonThemeToggleBtn .themeToggleInput:checked + svg mask > circle {
+  transform: translate(16px, -3px);
+}
+.st-sunMoonThemeToggleBtn .themeToggleInput:checked + svg .sunMoon {
+  transform: scale(0.55);
+}
+.st-sunMoonThemeToggleBtn .themeToggleInput:checked + svg .sunRay {
+  animation: showRay1832 0.4s ease 0s 1 forwards;
+}
+
+@keyframes showRay1832 {
+  0% {
+    transform: scale(0);
+  }
+  100% {
+    transform: scale(1);
+  }
 }

@@ -179,14 +179,19 @@ class FangweiDrawer {
         } else {
             modeElement.textContent = '-';
         }
+    applyResultMarquee(modeElement);
     }
 
     updateDirectionDisplay() {
-        document.getElementById('directionResult').textContent = this.currentResults.direction || '-';
+        const el = document.getElementById('directionResult');
+        el.textContent = this.currentResults.direction || '-';
+        applyResultMarquee(el);
     }
 
     updatePointDisplay() {
-        document.getElementById('pointResult').textContent = (this.settings.enablePoint && this.currentResults.point) ? this.currentResults.point : '-';
+        const el = document.getElementById('pointResult');
+        el.textContent = (this.settings.enablePoint && this.currentResults.point) ? this.currentResults.point : '-';
+        applyResultMarquee(el);
     }
 
     updateCopyText() {
@@ -480,10 +485,6 @@ class FangweiDrawer {
 }
 
 let fangweiDrawer;
-document.addEventListener('DOMContentLoaded', () => {
-    fangweiDrawer = new FangweiDrawer();
-});
-
 // Global functions for HTML
 function drawAll() { fangweiDrawer.drawAll(); }
 function drawMode() { fangweiDrawer.drawMode(); }
@@ -582,8 +583,42 @@ function updateCustomDetailDisplay() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    fangweiDrawer = new FangweiDrawer();
+
+    const themeToggle = document.getElementById('theme-toggle-checkbox');
+    const currentTheme = localStorage.getItem('theme');
+
+    if (currentTheme) {
+        document.body.classList.add(currentTheme);
+        if (currentTheme === 'dark-mode') {
+            themeToggle.checked = true;
+        }
+    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark-mode');
+        themeToggle.checked = true;
+        localStorage.setItem('theme', 'dark-mode');
+    }
+
+    themeToggle.addEventListener('change', function() {
+        if (this.checked) {
+            document.body.classList.add('dark-mode');
+            localStorage.setItem('theme', 'dark-mode');
+        } else {
+            document.body.classList.remove('dark-mode');
+            localStorage.setItem('theme', 'light-mode');
+        }
+    });
+
     const typeEl = document.getElementById('customModeType');
     if (typeEl) typeEl.addEventListener('change', updateCustomDetailDisplay);
+
+    // 窗口尺寸变化时，重新评估滚动效果
+    window.addEventListener('resize', () => {
+        ['modeResult','directionResult','pointResult'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) applyResultMarquee(el);
+        });
+    });
 });
 
 // Toast 提示
@@ -668,4 +703,40 @@ function showConfirm(message, { okText = '确定', cancelText = '取消' } = {})
         const onKey = (e) => { if (e.key === 'Escape') { cleanup(false); window.removeEventListener('keydown', onKey); } };
         window.addEventListener('keydown', onKey);
     });
+}
+
+// 结果文本溢出时的左右往返滚动
+function applyResultMarquee(el) {
+    if (!el) return;
+    // 清理旧结构
+    const oldInner = el.querySelector('.marquee-inner');
+    if (oldInner) {
+        el.textContent = oldInner.textContent;
+    }
+    el.classList.remove('marquee');
+    el.style.removeProperty('--marquee-shift');
+
+    // 仅在移动端并且文本溢出时启用
+    const isMobile = window.matchMedia('(max-width: 480px)').matches;
+    if (!isMobile) return;
+
+    // 稍后测量，确保样式已应用
+    requestAnimationFrame(() => {
+        const overflow = el.scrollWidth > el.clientWidth + 4; // 容差
+        if (!overflow) return;
+        const text = el.textContent;
+        const shift = Math.min(0, el.clientWidth - el.scrollWidth - 12); // 往左负值位移
+        el.classList.add('marquee');
+        el.style.setProperty('--marquee-shift', `${shift}px`);
+        el.innerHTML = `<span class="marquee-inner">${escapeHtml(text)}</span>`;
+    });
+}
+
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 }
