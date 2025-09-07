@@ -19,12 +19,52 @@
             <input type="range" id="font-size-slider" min="10" max="100" value="70">
             <label for="position-y-slider">文字垂直位置:</label>
             <input type="range" id="position-y-slider" min="80" max="90" value="87">
-            <div class="control-row">
+            <!-- 移除图片大小控件（直接在画布上拖动/缩放） -->
+            <div class="control-row" style="display:none">
                 <label for="image-size-slider">图片大小:</label>
                 <input type="number" id="image-size-input" min="10" max="250" step="1" value="50" title="图片大小（%）">
             </div>
-            <input type="range" id="image-size-slider" min="10" max="250" value="50">
-            <div class="tip">图片位置可直接拖动调整，滚轮/双指捏合调整图片大小<br>动图请选择GIF格式导出</div>
+            <input type="range" id="image-size-slider" min="10" max="250" value="50" style="display:none">
+            <div class="tip">
+                <h2>操作提示</h2>
+                <div style="margin-top:6px; display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:center;">
+                    <span style="display:inline-flex; align-items:center; gap:6px;">
+                        <span style="display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:6px; background:#e74c3c;">
+                            <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;color:#fff;fill:currentColor;">
+                                <path d="M571.01312 523.776l311.3472-311.35232c15.7184-15.71328 15.7184-41.6256 0-57.344l-1.69472-1.69984c-15.7184-15.71328-41.6256-15.71328-57.34912 0l-311.3472 311.77728-311.35232-311.77728c-15.7184-15.71328-41.63072-15.71328-57.344 0l-1.69984 1.69984a40.0128 40.0128 0 0 0 0 57.344L452.92544 523.776l-311.35232 311.35744c-15.71328 15.71328-15.71328 41.63072 0 57.33888l1.69984 1.69984c15.71328 15.7184 41.6256 15.7184 57.344 0l311.35232-311.35232 311.3472 311.35232c15.72352 15.7184 41.63072 15.7184 57.34912 0l1.69472-1.69984c15.7184-15.70816 15.7184-41.6256 0-57.33888l-311.3472-311.35744z"></path>
+                            </svg>
+                        </span>
+                        关闭
+                    </span>
+                    <span style="display:inline-flex; align-items:center; gap:6px;">
+                        <span style="display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:6px; background:rgb(231,223,205);">
+                            <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;color:#2E2F30;fill:currentColor;">
+                                <path d="M164.778667 263.978667a425.258667 425.258667 0 0 1 236.8-164.096C629.162667 38.826667 863.146667 173.952 924.117333 401.493333c61.013333 227.626667-74.069333 461.610667-301.653333 522.581334C394.794667 985.173333 160.853333 850.048 99.84 622.506667l82.432-22.101334a341.333333 341.333333 0 1 0 54.570667-290.432l80.384 51.2-182.912 54.101334L85.333333 213.333333l79.445334 50.645334z"></path>
+                                <path d="M512 512m-85.333333 0a85.333333 85.333333 0 1 0 170.666666 0 85.333333 85.333333 0 1 0-170.666666 0Z"></path>
+                            </svg>
+                        </span>
+                        旋转
+                    </span>
+                    <span style="display:inline-flex; align-items:center; gap:6px;">
+                        <span style="display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:6px; background:rgb(231,223,205);">
+                            <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;color:#2E2F30;fill:currentColor;">
+                                <path d="M476.8 889.6h-176c-91.2 0-164.8-74.4-164.8-165.6v-424c0-91.2 73.6-165.6 164.8-165.6h422.4c91.2 0 164.8 74.4 164.8 165.6v176.8c0 13.6-10.4 24-24 24s-24-10.4-24-24V300c0-64.8-52-117.6-116.8-117.6H300.8c-64.8 0-116.8 52.8-116.8 117.6v424c0 64.8 52 117.6 116.8 117.6h176c13.6 0 24 10.4 24 24s-10.4 24-24 24z"></path>
+                                <path d="M806.4 889.6H633.6c-44.8 0-81.6-36.8-81.6-81.6V635.2c0-44.8 36.8-81.6 81.6-81.6h172.8c44.8 0 81.6 36.8 81.6 81.6V808c0 44.8-36.8 81.6-81.6 81.6z m-172.8-288c-19.2 0-33.6 14.4-33.6 33.6V808c0 19.2 14.4 33.6 33.6 33.6h172.8c19.2 0 33.6-14.4 33.6-33.6V635.2c0-19.2-14.4-33.6-33.6-33.6H633.6z"></path>
+                            </svg>
+                        </span>
+                        缩放
+                    </span>
+                    <span style="display:inline-flex; align-items:center; gap:6px;">
+                        <span style="display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:6px; background:rgb(231,223,205);">
+                            <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" style="width:16px;height:16px;color:#2E2F30;fill:currentColor;">
+                                <path d="M128.1536 160.9216A21.0944 21.0944 0 0 1 134.144 143.36c4.9664-15.2064 15.7696-27.8528 30.0032-35.1232C170.1888 102.4 182.1696 102.4 188.2112 102.4h647.8336c35.9936 0 59.9552 23.3984 59.9552 58.5216 0 11.6736 0 17.5104-5.9904 23.3984L770.048 418.304c-12.032 23.4496-30.0032 35.1232-54.016 35.1232H308.1216c-24.0128 0-41.984-11.7248-54.016-35.1232L134.1952 184.32c0-5.888-6.0416-11.7248-6.0416-23.4496z m707.8912 0H188.16l119.9616 234.0352h407.9104l120.0128-234.0352zM128.1536 863.0784c0-11.6736 0-17.5616 5.9904-23.3984l120.0128-234.0352c11.9808-23.4496 29.952-35.1232 53.9648-35.1232h407.9104c24.0128 0 41.984 11.6736 54.016 35.072l119.9616 234.0864c5.9904 5.8368 5.9904 17.5616 5.9904 23.3984 0 35.1232-23.9616 58.5216-60.0064 58.5216H188.16c-11.9808 0-17.9712 0-24.0128-5.8368a60.3648 60.3648 0 0 1-29.952-35.1232 21.248 21.248 0 0 1-6.0416-17.5616z m707.84 0l-119.9616-234.0352H308.1216l-119.9616 234.0352h647.8848z"></path>
+                            </svg>
+                        </span>
+                        镜像
+                    </span>
+                </div>
+                <br>旋转和缩放需按住并拖动<br>动图请选择GIF格式导出
+            </div>
             <label for="format-select">导出格式:</label>
             <select id="format-select">
                 <option value="png">PNG</option>

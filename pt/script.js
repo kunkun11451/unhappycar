@@ -205,7 +205,124 @@ async function getGifWorkerScriptURL() {
 
 let isDragging = false;
 let dragStart = { x: 0, y: 0 };
+
+// 选择与变换状态
+let isSelected = false;            // 是否选中用户图片
+let rotationRad = 0;               // 旋转角（弧度）（主图）
+let isRotating = false;            // 正在旋转
+let isScaling = false;             // 正在缩放
+let activeHandle = null;           // 当前激活句柄：'rotate'|'scale-br'|'scale-bl'|'delete'
+const HANDLE_RADIUS = 14;          // 句柄半径（画布像素）- 再次放大以提升可点性
+let gestureCenter = null;          // 旋转/缩放时以中心为锚点
+let startAngle = 0;                // 旋转起始角
+let startRotation = 0;             // 旋转开始时角度
+let startDist = 0;                 // （保留）
+let startSliderValue = 0;          // 缩放起始时 slider 值
+// 以左上角为锚点的缩放参数
+let scaleAnchorTL = null;          // {x,y} 左上角世界坐标（旋转后）
+let scaleStartDiag = 0;            // 起始对角距离（锚点到右下点）
+let scaleStartW = 0, scaleStartH = 0; // 起始宽高
+// 旋转吸附阈值（弧度），约 ±1°
+const ROTATE_SNAP_RAD = Math.PI / 180;
+// 新图片默认导入大小（百分比）
+const DEFAULT_IMPORT_PCT = 50;
+// 句柄图标（SVG path）
+const ICON_PATHS = {
+    scale: [
+        // 两段路径
+        'M476.8 889.6h-176c-91.2 0-164.8-74.4-164.8-165.6v-424c0-91.2 73.6-165.6 164.8-165.6h422.4c91.2 0 164.8 74.4 164.8 165.6v176.8c0 13.6-10.4 24-24 24s-24-10.4-24-24V300c0-64.8-52-117.6-116.8-117.6H300.8c-64.8 0-116.8 52.8-116.8 117.6v424c0 64.8 52 117.6 116.8 117.6h176c13.6 0 24 10.4 24 24s-10.4 24-24 24z',
+        'M806.4 889.6H633.6c-44.8 0-81.6-36.8-81.6-81.6V635.2c0-44.8 36.8-81.6 81.6-81.6h172.8c44.8 0 81.6 36.8 81.6 81.6V808c0 44.8-36.8 81.6-81.6 81.6z m-172.8-288c-19.2 0-33.6 14.4-33.6 33.6V808c0 19.2 14.4 33.6 33.6 33.6h172.8c19.2 0 33.6-14.4 33.6-33.6V635.2c0-19.2-14.4-33.6-33.6-33.6H633.6z'
+    ],
+    close: [
+        'M571.01312 523.776l311.3472-311.35232c15.7184-15.71328 15.7184-41.6256 0-57.344l-1.69472-1.69984c-15.7184-15.71328-41.6256-15.71328-57.34912 0l-311.3472 311.77728-311.35232-311.77728c-15.7184-15.71328-41.63072-15.71328-57.344 0l-1.69984 1.69984a40.0128 40.0128 0 0 0 0 57.344L452.92544 523.776l-311.35232 311.35744c-15.71328 15.71328-15.71328 41.63072 0 57.33888l1.69984 1.69984c15.71328 15.7184 41.6256 15.7184 57.344 0l311.35232-311.35232 311.3472 311.35232c15.72352 15.7184 41.63072 15.7184 57.34912 0l1.69472-1.69984c15.7184-15.70816 15.7184-41.6256 0-57.33888l-311.3472-311.35744z'
+    ],
+    rotate: [
+        'M164.778667 263.978667a425.258667 425.258667 0 0 1 236.8-164.096C629.162667 38.826667 863.146667 173.952 924.117333 401.493333c61.013333 227.626667-74.069333 461.610667-301.653333 522.581334C394.794667 985.173333 160.853333 850.048 99.84 622.506667l82.432-22.101334a341.333333 341.333333 0 1 0 54.570667-290.432l80.384 51.2-182.912 54.101334L85.333333 213.333333l79.445334 50.645334z',
+        'M512 512m-85.333333 0a85.333333 85.333333 0 1 0 170.666666 0 85.333333 85.333333 0 1 0-170.666666 0Z'
+    ],
+    flipH: [
+        'M160.9216 895.8464a21.1456 21.1456 0 0 1-17.5616-5.9904 60.3136 60.3136 0 0 1-35.072-30.0032C102.4 853.8112 102.4 841.8304 102.4 835.7888V188.0064C102.4 151.9616 125.7984 128 160.9216 128c11.6736 0 17.5616 0 23.3984 5.9904L418.304 254.0032c23.4496 11.9808 35.1232 29.952 35.1232 53.9648v407.9104c0 24.0128-11.6736 41.984-35.1232 54.016L184.32 889.7536c-5.8368 0-11.7248 6.0416-23.3984 6.0416z m0-707.8912v647.8848l234.0352-119.9616V307.968L160.9216 187.904z m702.1568 707.8912c-11.6736 0-17.5616 0-23.3984-5.9904l-234.0352-120.0128c-23.4496-11.9808-35.1232-29.952-35.1232-53.9648V307.968c0-24.0128 11.6736-41.984 35.1232-54.016L839.68 133.9904c5.8368-5.9904 17.5616-5.9904 23.3984-5.9904 35.1232 0 58.5216 24.0128 58.5216 60.0064v647.8336c0 11.9808 0 18.0224-5.8368 24.0128-7.2704 14.2848-19.968 25.088-35.1232 29.952a21.1456 21.1456 0 0 1-17.5616 6.0416z m0-707.84l-234.0352 119.9616v407.9104l234.0352 119.9616V187.9552z'
+    ],
+    flipV: [
+        'M128.1536 160.9216A21.0944 21.0944 0 0 1 134.144 143.36c4.9664-15.2064 15.7696-27.8528 30.0032-35.1232C170.1888 102.4 182.1696 102.4 188.2112 102.4h647.8336c35.9936 0 59.9552 23.3984 59.9552 58.5216 0 11.6736 0 17.5104-5.9904 23.3984L770.048 418.304c-12.032 23.4496-30.0032 35.1232-54.016 35.1232H308.1216c-24.0128 0-41.984-11.7248-54.016-35.1232L134.1952 184.32c0-5.888-6.0416-11.7248-6.0416-23.4496z m707.8912 0H188.16l119.9616 234.0352h407.9104l120.0128-234.0352zM128.1536 863.0784c0-11.6736 0-17.5616 5.9904-23.3984l120.0128-234.0352c11.9808-23.4496 29.952-35.1232 53.9648-35.1232h407.9104c24.0128 0 41.984 11.6736 54.016 35.072l119.9616 234.0864c5.9904 5.8368 5.9904 17.5616 5.9904 23.3984 0 35.1232-23.9616 58.5216-60.0064 58.5216H188.16c-11.9808 0-17.9712 0-24.0128-5.8368a60.3648 60.3648 0 0 1-29.952-35.1232 21.248 21.248 0 0 1-6.0416-17.5616z m707.84 0l-119.9616-234.0352H308.1216l-119.9616 234.0352h647.8848z'
+    ]
+};
+const HANDLE_BG_NEUTRAL = 'rgb(231, 223, 205)';
+function drawIconPaths(pathList, x, y, sizePx, color = '#ffffff') {
+    try {
+        const s = sizePx / 1024;
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.scale(s, s);
+        ctx.translate(-512, -512);
+        ctx.fillStyle = color;
+        for (const d of pathList) {
+            const p = new Path2D(d);
+            ctx.fill(p);
+        }
+        ctx.restore();
+    } catch (e) {
+        // Fallback will be handled by caller (draw text glyph)
+        return false;
+    }
+    return true;
+}
+function drawHandleBox(cx, cy, size, fillColor) {
+    const x = cx - size/2, y = cy - size/2;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(x, y, size, size, Math.max(4, Math.floor(size*0.22)));
+    else ctx.rect(x, y, size, size);
+    ctx.fillStyle = fillColor;
+    ctx.fill();
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(0,0,0,0.7)';
+    ctx.stroke();
+}
+
+// 叠加层：支持插入多张静态图片（保持顺序绘制）。
+// 每个元素：{ img, pos:{x,y}, size:{width,height}, rotationRad:number, scaleX:number, scaleY:number }
+const overlays = [];
+// 当前激活层：{ type: 'main' } 或 { type: 'overlay', index: number }
+let activeLayer = { type: 'main', index: null };
+// 主图镜像（缩放符号）
+let mainScaleX = 1, mainScaleY = 1;
+
+// 工具：获取指定层的属性引用
+function getLayerProps(layer = activeLayer) {
+    if (layer?.type === 'overlay' && typeof layer.index === 'number' && overlays[layer.index]) {
+        const ol = overlays[layer.index];
+        return { img: ol.img, pos: ol.pos, size: ol.size, rotationRad: ol.rotationRad ?? 0, scaleX: ol.scaleX ?? 1, scaleY: ol.scaleY ?? 1, _isMain: false, _ol: ol };
+    }
+    return { img: userImg, pos: userImgPos, size: userImgSize, rotationRad: rotationRad || 0, scaleX: mainScaleX, scaleY: mainScaleY, _isMain: true };
+}
+function setLayerRotation(rad, layer = activeLayer) {
+    if (layer?.type === 'overlay' && overlays[layer.index]) overlays[layer.index].rotationRad = rad;
+    else rotationRad = rad;
+}
+function setLayerPos(x, y, layer = activeLayer) {
+    const p = getLayerProps(layer).pos; p.x = x; p.y = y;
+}
+function setLayerSize(w, h, layer = activeLayer) {
+    const s = getLayerProps(layer).size; s.width = w; s.height = h;
+}
+function toggleLayerFlipH(layer = activeLayer) {
+    if (layer?.type === 'overlay' && overlays[layer.index]) overlays[layer.index].scaleX = (overlays[layer.index].scaleX ?? 1) * -1;
+    else mainScaleX *= -1;
+}
+function toggleLayerFlipV(layer = activeLayer) {
+    if (layer?.type === 'overlay' && overlays[layer.index]) overlays[layer.index].scaleY = (overlays[layer.index].scaleY ?? 1) * -1;
+    else mainScaleY *= -1;
+}
+function getLayerCenter(layer = activeLayer) {
+    const lp = getLayerProps(layer);
+    return { x: lp.pos.x + (lp.size.width || lp.img?.width || 0) / 2, y: lp.pos.y + (lp.size.height || lp.img?.height || 0) / 2 };
+}
 const snapThreshold = 10;
+// 垂直吸附线：
+const VERTICAL_SNAP_PCT = 0.4;
+function getContentMidY() {
+    return canvas.height * VERTICAL_SNAP_PCT;
+}
 let isPointerActive = false; // 避免 pointer 与 mouse 双触发
 
 // 多指缩放（捏合）状态
@@ -294,19 +411,37 @@ function redrawCanvas(frameImage = null) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
 
-    // 绘制用户图（静态或 GIF 当前帧）
-    // 防御：如果外部误传了事件对象，应忽略
-    const maybeImg = frameImage || userImg;
-    const isDrawable = maybeImg && (maybeImg instanceof HTMLImageElement || maybeImg instanceof HTMLCanvasElement || typeof ImageBitmap !== 'undefined' && maybeImg instanceof ImageBitmap);
-    const imgToDraw = isDrawable ? maybeImg : null;
-    if (imgToDraw && (imgToDraw.complete === undefined || imgToDraw.complete)) {
-        const scale = imageSizeSlider.value / 100;
-        const baseW = imgToDraw.width || (userImg && userImg.width) || 0;
-        const baseH = imgToDraw.height || (userImg && userImg.height) || 0;
-        const w = baseW * scale;
-        const h = baseH * scale;
-        userImgSize = { width: w, height: h };
-        ctx.drawImage(imgToDraw, userImgPos.x, userImgPos.y, w, h);
+    // 先绘制叠加层
+    for (const ol of overlays) {
+        if (!ol || !ol.img) continue;
+        const w = ol.size?.width || ol.img.width || 0;
+        const h = ol.size?.height || ol.img.height || 0;
+        const cx = (ol.pos?.x || 0) + w / 2;
+        const cy = (ol.pos?.y || 0) + h / 2;
+        ctx.save();
+        ctx.translate(cx, cy);
+        if (ol.rotationRad) ctx.rotate(ol.rotationRad);
+        const sX = (ol.scaleX ?? 1), sY = (ol.scaleY ?? 1);
+        if (sX !== 1 || sY !== 1) ctx.scale(sX, sY);
+        ctx.drawImage(ol.img, -w / 2, -h / 2, w, h);
+        ctx.restore();
+    }
+
+    // 绘制用户图（静态图）。GIF 动画在 tick 中绘制，这里仅用于静态或暂停状态
+    const imgToDraw = frameImage || userImg;
+    const canDraw = imgToDraw && (imgToDraw instanceof HTMLImageElement || imgToDraw instanceof HTMLCanvasElement || (typeof ImageBitmap !== 'undefined' && imgToDraw instanceof ImageBitmap));
+    if (canDraw && (imgToDraw.complete === undefined || imgToDraw.complete)) {
+        const w = Math.max(1, Math.round(userImgSize.width || imgToDraw.width || 0));
+        const h = Math.max(1, Math.round(userImgSize.height || imgToDraw.height || 0));
+        const cx = userImgPos.x + w / 2;
+        const cy = userImgPos.y + h / 2;
+        ctx.save();
+        ctx.translate(cx, cy);
+    if (rotationRad) ctx.rotate(rotationRad);
+    const apMain = getLayerProps({ type: 'main' });
+    if (apMain.scaleX !== 1 || apMain.scaleY !== 1) ctx.scale(apMain.scaleX, apMain.scaleY);
+        ctx.drawImage(imgToDraw, -w / 2, -h / 2, w, h);
+        ctx.restore();
     }
 
     // 绘制文字
@@ -320,6 +455,10 @@ function redrawCanvas(frameImage = null) {
     const x = canvas.width / 2;
     const y = canvas.height * (positionYPercent / 100);
     ctx.fillText(text, x, y);
+
+    // 选中态叠加：虚线边框与四角句柄；仅在交互中显示辅助线
+    drawSelectionOverlay();
+    if (isDragging || isRotating || isScaling) drawGuidelines();
 }
 
 // 动画循环，用于 GIF 预览
@@ -364,7 +503,33 @@ function tick(timestamp) {
     ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
     // 主画布绘制时，同样关闭 GIF 的平滑
     ctx.imageSmoothingEnabled = isGif ? false : true;
-    ctx.drawImage(toDraw, userImgPos.x, userImgPos.y);
+    // 覆盖层先绘制
+    for (const ol of overlays) {
+        if (!ol || !ol.img) continue;
+        const w1 = ol.size?.width || ol.img.width || 0;
+        const h1 = ol.size?.height || ol.img.height || 0;
+        const ocx = (ol.pos?.x || 0) + w1 / 2;
+        const ocy = (ol.pos?.y || 0) + h1 / 2;
+        ctx.save();
+        ctx.translate(ocx, ocy);
+        if (ol.rotationRad) ctx.rotate(ol.rotationRad);
+    const sX = (ol.scaleX ?? 1), sY = (ol.scaleY ?? 1);
+    if (sX !== 1 || sY !== 1) ctx.scale(sX, sY);
+        ctx.drawImage(ol.img, -w1 / 2, -h1 / 2, w1, h1);
+        ctx.restore();
+    }
+    // 旋转绘制 GIF 当前帧，使用当前 userImgSize
+    const w = Math.max(1, Math.round(userImgSize.width || toDraw.width));
+    const h = Math.max(1, Math.round(userImgSize.height || toDraw.height));
+    const cx = userImgPos.x + w / 2;
+    const cy = userImgPos.y + h / 2;
+    ctx.save();
+    ctx.translate(cx, cy);
+    if (rotationRad) ctx.rotate(rotationRad);
+    const apMain = getLayerProps({ type: 'main' });
+    if (apMain.scaleX !== 1 || apMain.scaleY !== 1) ctx.scale(apMain.scaleX, apMain.scaleY);
+    ctx.drawImage(toDraw, -w / 2, -h / 2, w, h);
+    ctx.restore();
 
     // 叠加文字
     const fontSize = fontSizeSlider.value;
@@ -378,24 +543,259 @@ function tick(timestamp) {
     const y = canvas.height * (positionYPercent / 100);
     ctx.fillText(text, x, y);
 
+    // 选中态叠加：虚线边框与四角句柄；仅在交互中显示辅助线
+    drawSelectionOverlay();
+    if (isDragging || isRotating || isScaling) drawGuidelines();
+
     requestAnimationFrame(tick);
 }
 
+// 计算图像中心点
+function getImageCenter(layer = activeLayer) { return getLayerCenter(layer); }
+
+// 将画布坐标点转换到图像局部坐标（考虑旋转，图像中心为原点）
+function pointToLocal(px, py, layer = activeLayer) {
+    const c = getImageCenter(layer);
+    const dx = px - c.x;
+    const dy = py - c.y;
+    const rot = getLayerProps(layer).rotationRad || 0;
+    const cosA = Math.cos(-rot);
+    const sinA = Math.sin(-rot);
+    return {
+        x: dx * cosA - dy * sinA,
+        y: dx * sinA + dy * cosA
+    };
+}
+
+// 命中测试：点是否在旋转后的图像矩形内
+function isPointInImage(px, py, layer = activeLayer) {
+    const local = pointToLocal(px, py, layer);
+    const lp = getLayerProps(layer);
+    const hw = (lp.size.width) / 2;
+    const hh = (lp.size.height) / 2;
+    return Math.abs(local.x) <= hw && Math.abs(local.y) <= hh;
+}
+
+// 计算四个角的坐标（考虑旋转）
+function getImageCorners(layer = activeLayer) {
+    const c = getImageCenter(layer);
+    const lp = getLayerProps(layer);
+    const hw = lp.size.width / 2;
+    const hh = lp.size.height / 2;
+    const rot = lp.rotationRad || 0;
+    const cosA = Math.cos(rot);
+    const sinA = Math.sin(rot);
+    function rotp(dx, dy) { return { x: c.x + dx * cosA - dy * sinA, y: c.y + dx * sinA + dy * cosA }; }
+    return {
+        tl: rotp(-hw, -hh),
+        tr: rotp(hw, -hh),
+        br: rotp(hw, hh),
+        bl: rotp(-hw, hh),
+        c
+    };
+}
+
+// 若命中任何句柄，返回句柄类型
+function getHandleAtPoint(px, py) {
+    if (!isSelected) return null;
+    const ap = getLayerProps();
+    if (!ap.img) return null;
+    const { tl, tr, br, bl } = getImageCorners();
+    function hit(p) { const dx = px - p.x, dy = py - p.y; return Math.hypot(dx, dy) <= HANDLE_RADIUS * 1.2; }
+    if (hit(tl)) return 'delete';     // 左上角：删除
+    if (hit(tr)) return 'rotate';     // 右上角：旋转
+    if (hit(br)) return 'scale-br';   // 右下角：缩放
+    // 镜像按钮命中
+    const fh = drawSelectionOverlay._flipHPos, fv = drawSelectionOverlay._flipVPos;
+    if (fh && hit(fh)) return 'flip-h';
+    if (fv && hit(fv)) return 'flip-v';
+    return null;
+}
+
+// 绘制选中态叠加：虚线框和句柄
+function drawSelectionOverlay() {
+    if (!isSelected) return;
+    const ap = getLayerProps();
+    if (!ap.img || !ap.size.width || !ap.size.height) return;
+    const { tl, tr, br, bl, c } = getImageCorners();
+    // 虚线边框：使用变换简化
+    const hw = ap.size.width / 2, hh = ap.size.height / 2;
+    ctx.save();
+    ctx.translate(c.x, c.y);
+    if (ap.rotationRad) ctx.rotate(ap.rotationRad);
+    ctx.setLineDash([8, 6]);
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = 'rgba(0,0,0,0.6)';
+    ctx.strokeRect(-hw, -hh, hw * 2, hh * 2);
+    ctx.setLineDash([]);
+    ctx.restore();
+    // 四角句柄
+    function drawHandle(p, fill, glyph) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, HANDLE_RADIUS, 0, Math.PI * 2);
+        ctx.fillStyle = fill;
+        ctx.fill();
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(0,0,0,0.7)';
+        ctx.stroke();
+        if (glyph) {
+            ctx.fillStyle = '#fff';
+            ctx.font = '12px system-ui, Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(glyph, p.x, p.y + 0.5);
+        }
+    }
+    // 左上角：关闭（红色背景）
+    (function(){
+        const p = tl;
+        drawHandleBox(p.x, p.y, HANDLE_RADIUS * 2, '#e74c3c');
+        const ok = drawIconPaths(ICON_PATHS.close, p.x, p.y, HANDLE_RADIUS * 2.0, '#ffffff');
+        if (!ok) {
+            ctx.fillStyle = '#fff';
+            ctx.font = '12px system-ui, Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('×', p.x, p.y + 0.5);
+        }
+    })();
+    // 右上角：旋转（统一中性背景）
+    (function(){
+        const p = tr;
+        drawHandleBox(p.x, p.y, HANDLE_RADIUS * 2, HANDLE_BG_NEUTRAL);
+        const ok = drawIconPaths(ICON_PATHS.rotate, p.x, p.y, HANDLE_RADIUS * 2.0, '#2E2F30');
+        if (!ok) {
+            ctx.fillStyle = '#2E2F30';
+            ctx.font = '12px system-ui, Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('⟳', p.x, p.y + 0.5);
+        }
+    })();
+    // 缩放（仅右下）：统一中性背景
+    (function(){
+        const p = br;
+        drawHandleBox(p.x, p.y, HANDLE_RADIUS * 2, HANDLE_BG_NEUTRAL);
+        const ok = drawIconPaths(ICON_PATHS.scale, p.x, p.y, HANDLE_RADIUS * 2.1, '#2E2F30');
+        if (!ok) {
+            // 兼容降级
+            ctx.fillStyle = '#2E2F30';
+            ctx.font = '12px system-ui, Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('↔', p.x, p.y + 0.5);
+        }
+    })();
+    // 左下角：镜像按钮（左右/上下）
+    const offset = Math.round(HANDLE_RADIUS * 1.9); // 间距
+    const flipHPos = { x: bl.x + offset, y: bl.y };      // 水平镜像按钮在左下角的右侧
+    const flipVPos = { x: bl.x, y: bl.y - offset };      // 垂直镜像按钮在左下角的上方
+    // 水平镜像：统一中性背景
+    (function(){
+        const p = flipHPos;
+        drawHandleBox(p.x, p.y, HANDLE_RADIUS * 2, HANDLE_BG_NEUTRAL);
+        const ok = drawIconPaths(ICON_PATHS.flipH, p.x, p.y, HANDLE_RADIUS * 2.1, '#2E2F30');
+        if (!ok) {
+            ctx.fillStyle = '#2E2F30';
+            ctx.font = '12px system-ui, Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('↔', p.x, p.y + 0.5);
+        }
+    })();
+    // 垂直镜像：统一中性背景
+    (function(){
+        const p = flipVPos;
+        drawHandleBox(p.x, p.y, HANDLE_RADIUS * 2, HANDLE_BG_NEUTRAL);
+        const ok = drawIconPaths(ICON_PATHS.flipV, p.x, p.y, HANDLE_RADIUS * 2.1, '#2E2F30');
+        if (!ok) {
+            ctx.fillStyle = '#2E2F30';
+            ctx.font = '12px system-ui, Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('↕', p.x, p.y + 0.5);
+        }
+    })();
+    // 保存按钮位置供命中检测
+    drawSelectionOverlay._flipHPos = flipHPos;
+    drawSelectionOverlay._flipVPos = flipVPos;
+
+    // 旋转时在右上角旁显示角度标签
+    if (isRotating) {
+        const rot = getLayerProps().rotationRad || 0;
+        const deg = Math.round(((rot % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI) * 180 / Math.PI);
+        const text = `${deg}°`;
+        const offset = { x: 18, y: -18 };
+        const tx = tr.x + offset.x;
+        const ty = tr.y + offset.y;
+        ctx.save();
+        ctx.font = '12px system-ui, Arial';
+        const padding = 6;
+        const metrics = ctx.measureText(text);
+        const tw = Math.ceil(metrics.width) + padding * 2;
+        const th = 18 + 2; // 高度近似
+        ctx.fillStyle = 'rgba(0,0,0,0.65)';
+        ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+        ctx.lineWidth = 1;
+        // 背板矩形
+        ctx.beginPath();
+        ctx.roundRect ? ctx.roundRect(tx, ty - th/2, tw, th, 6) : ctx.rect(tx, ty - th/2, tw, th);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#fff';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(text, tx + padding, ty);
+        ctx.restore();
+    }
+}
+
 function drawGuidelines() {
-    const imgCenterX = userImgPos.x + userImgSize.width / 2;
+    const ap = getLayerProps();
+    const imgCenterX = ap.pos.x + ap.size.width / 2;
     const canvasCenterX = canvas.width / 2;
-    ctx.strokeStyle = 'red';
+    const imgCenterY = ap.pos.y + ap.size.height / 2;
+    const contentMidY = getContentMidY();
+    ctx.save();
+    ctx.strokeStyle = 'rgba(0, 0, 0, 1)';
     ctx.lineWidth = 1;
+    ctx.setLineDash([6, 6]);
     if (Math.abs(imgCenterX - canvasCenterX) < 1) {
         ctx.beginPath();
         ctx.moveTo(canvasCenterX, 0);
         ctx.lineTo(canvasCenterX, canvas.height);
         ctx.stroke();
     }
+    if (Math.abs(imgCenterY - contentMidY) < 1) {
+        ctx.beginPath();
+        ctx.moveTo(0, contentMidY);
+        ctx.lineTo(canvas.width, contentMidY);
+        ctx.stroke();
+    }
+    ctx.restore();
 }
 
 async function loadImage(src) {
-    // 重置 GIF 状态
+    // 若已有主图，将其转存为静态叠加层（不移除）
+    if (userImg) {
+        overlays.push({
+            img: userImg,
+            pos: { x: userImgPos.x, y: userImgPos.y },
+            size: { width: userImgSize.width, height: userImgSize.height },
+            rotationRad: rotationRad || 0,
+            scaleX: mainScaleX,
+            scaleY: mainScaleY
+        });
+        // 选中状态重置为新图
+        isSelected = false;
+        activeLayer = { type: 'main', index: null };
+    // 下一张主图不继承上一张的旋转/镜像
+    rotationRad = 0;
+    mainScaleX = 1;
+    mainScaleY = 1;
+    }
+
+    // 重置 GIF 状态（用于新主图）
     isGif = false;
     gifFrames = [];
     gifTotalDuration = 0;
@@ -491,11 +891,17 @@ async function loadImage(src) {
                 isGif = true;
                 // 以首帧为定位依据
                 userImg = gifFrames[0].image;
-                const scale = imageSizeSlider.value / 100;
-                const w = userImg.width * scale;
-                const h = userImg.height * scale;
+                // 新主图：重置旋转与镜像状态
+                rotationRad = 0; mainScaleX = 1; mainScaleY = 1;
+                // 重置导入尺寸为默认 50%
+                imageSizeSlider.value = String(DEFAULT_IMPORT_PCT);
+                if (imageSizeInput) imageSizeInput.value = String(DEFAULT_IMPORT_PCT);
+                const scale = DEFAULT_IMPORT_PCT / 100;
+                const w = Math.max(1, Math.round(userImg.width * scale));
+                const h = Math.max(1, Math.round(userImg.height * scale));
                 userImgPos.x = (canvas.width - w) / 2;
                 userImgPos.y = (canvas.height - h) / 2;
+                userImgSize.width = w; userImgSize.height = h;
                 redrawCanvas(userImg);
                 requestAnimationFrame(tick);
                 if (formatSelect.value === 'gif') updateQualityEstimates();
@@ -509,11 +915,18 @@ async function loadImage(src) {
     // 非 GIF 或解析失败：按静态图加载
     const img = await createImage(src);
     userImg = img;
-    const scale = imageSizeSlider.value / 100;
-    const w = userImg.width * scale;
-    const h = userImg.height * scale;
+    // 新主图：重置旋转与镜像状态
+    rotationRad = 0; mainScaleX = 1; mainScaleY = 1;
+    // 重置导入尺寸为默认 50%
+    imageSizeSlider.value = String(DEFAULT_IMPORT_PCT);
+    if (imageSizeInput) imageSizeInput.value = String(DEFAULT_IMPORT_PCT);
+    const scale = DEFAULT_IMPORT_PCT / 100;
+    const w = Math.max(1, Math.round(userImg.width * scale));
+    const h = Math.max(1, Math.round(userImg.height * scale));
     userImgPos.x = (canvas.width - w) / 2;
     userImgPos.y = (canvas.height - h) / 2;
+    userImgSize.width = w; userImgSize.height = h;
+    activeLayer = { type: 'main', index: null };
     redrawCanvas();
     if (formatSelect.value === 'gif') updateQualityEstimates();
 }
@@ -760,12 +1173,17 @@ function getPinchInfo() {
 
 // 滚轮缩放：在鼠标位于图片区域时，按光标为中心缩放图片
 function onCanvasWheel(e) {
-    if (!userImg) return; // 无图片不处理
+    // 命中顶层图层后，对该图层缩放
     const { x: mx, y: my } = getCanvasPos(e);
-    // 判断是否在当前图片范围内
-    const within = mx > userImgPos.x && mx < userImgPos.x + userImgSize.width &&
-                   my > userImgPos.y && my < userImgPos.y + userImgSize.height;
-    if (!within) return; // 只在图片上缩放
+    // 命中顺序：主图在最上层，然后叠加层从后往前
+    let target = null;
+    if (userImg && isPointInImage(mx, my, { type: 'main' })) target = { type: 'main' };
+    if (!target) {
+        for (let i = overlays.length - 1; i >= 0; i--) {
+            if (isPointInImage(mx, my, { type: 'overlay', index: i })) { target = { type: 'overlay', index: i }; break; }
+        }
+    }
+    if (!target) return;
 
     e.preventDefault(); // 避免页面滚动
 
@@ -778,19 +1196,20 @@ function onCanvasWheel(e) {
     if (next === cur) return;
 
     // 以鼠标处为缩放锚点，保持该点在图像上的相对位置不变
-    const px = (mx - userImgPos.x) / (userImgSize.width || 1);
-    const py = (my - userImgPos.y) / (userImgSize.height || 1);
+    const tp = getLayerProps(target);
+    const px = (mx - tp.pos.x) / (tp.size.width || 1);
+    const py = (my - tp.pos.y) / (tp.size.height || 1);
 
     // 基于当前显示尺寸按比例推算新尺寸（避免依赖原始像素宽高）
     const scaleRatio = next / cur;
-    const newW = Math.max(1, userImgSize.width * scaleRatio);
-    const newH = Math.max(1, userImgSize.height * scaleRatio);
+    const newW = Math.max(1, tp.size.width * scaleRatio);
+    const newH = Math.max(1, tp.size.height * scaleRatio);
 
     // 调整位置以实现光标居中缩放
-    userImgPos.x = mx - px * newW;
-    userImgPos.y = my - py * newH;
-    userImgSize.width = newW;
-    userImgSize.height = newH;
+    setLayerPos(mx - px * newW, my - py * newH, target);
+    setLayerSize(newW, newH, target);
+    // 选中命中的图层
+    activeLayer = target; isSelected = true;
 
     // 同步控件并重绘
     imageSizeSlider.value = String(next);
@@ -813,31 +1232,96 @@ function onPointerDown(e) {
         return;
     }
     const { x: mouseX, y: mouseY } = getCanvasPos(e);
-    if (userImg && mouseX > userImgPos.x && mouseX < userImgPos.x + userImgSize.width &&
-        mouseY > userImgPos.y && mouseY < userImgPos.y + userImgSize.height) {
-        isDragging = true;
-        dragStart.x = mouseX - userImgPos.x;
-        dragStart.y = mouseY - userImgPos.y;
-        if (canvas.setPointerCapture && e.pointerId !== undefined) {
-            try { canvas.setPointerCapture(e.pointerId); } catch {}
+    // 点击先尝试命中句柄（当前选中层）
+        // 句柄命中优先
+        const handle = getHandleAtPoint(mouseX, mouseY);
+        if (isSelected && handle) {
+            activeHandle = handle;
+            if (handle === 'delete') {
+                // 移除当前层
+                if (activeLayer?.type === 'overlay' && overlays[activeLayer.index]) {
+                    overlays.splice(activeLayer.index, 1);
+                } else {
+                    userImg = null; isGif = false; gifFrames = []; gifFrameScaleCache.clear();
+                }
+                isSelected = false; activeLayer = { type: 'main', index: null };
+                redrawCanvas();
+            } else if (handle === 'rotate') {
+                isRotating = true;
+                const c = getImageCenter();
+                gestureCenter = c;
+                startAngle = Math.atan2(mouseY - c.y, mouseX - c.x);
+                startRotation = getLayerProps().rotationRad || 0;
+            } else if (handle === 'scale-br') {
+                isScaling = true;
+                // 缩放锚定左上角（旋转后）
+                const corners = getImageCorners();
+                scaleAnchorTL = { x: corners.tl.x, y: corners.tl.y };
+                // 起始对角距离（锚点到当前指针）
+                scaleStartDiag = Math.max(1, Math.hypot(mouseX - scaleAnchorTL.x, mouseY - scaleAnchorTL.y));
+                startSliderValue = parseFloat(imageSizeSlider.value);
+                const ap = getLayerProps();
+                scaleStartW = ap.size.width; scaleStartH = ap.size.height;
+            } else if (handle === 'flip-h') {
+                toggleLayerFlipH();
+                redrawCanvas();
+                e.preventDefault();
+                return;
+            } else if (handle === 'flip-v') {
+                toggleLayerFlipV();
+                redrawCanvas();
+                e.preventDefault();
+                return;
+            }
+            if (canvas.setPointerCapture && e.pointerId !== undefined) {
+                try { canvas.setPointerCapture(e.pointerId); } catch {}
+            }
+            e.preventDefault();
+            return;
         }
-        e.preventDefault();
+    // 命中任一图层：主图优先，其次叠加层自上而下
+    if (userImg && isPointInImage(mouseX, mouseY, { type: 'main' })) {
+        activeLayer = { type: 'main', index: null }; isSelected = true; isDragging = true;
+        dragStart = { x: mouseX, y: mouseY, imgX: userImgPos.x, imgY: userImgPos.y };
+        if (canvas.setPointerCapture && e.pointerId !== undefined) { try { canvas.setPointerCapture(e.pointerId); } catch {} }
+        e.preventDefault(); redrawCanvas(); return;
     }
+    for (let i = overlays.length - 1; i >= 0; i--) {
+        if (isPointInImage(mouseX, mouseY, { type: 'overlay', index: i })) {
+            activeLayer = { type: 'overlay', index: i }; isSelected = true; isDragging = true;
+            const ol = overlays[i];
+            dragStart = { x: mouseX, y: mouseY, imgX: ol.pos.x, imgY: ol.pos.y };
+            if (canvas.setPointerCapture && e.pointerId !== undefined) { try { canvas.setPointerCapture(e.pointerId); } catch {} }
+            e.preventDefault(); redrawCanvas(); return;
+        }
+    }
+    
+    // 点击空白处取消选中
+    if (isSelected) { isSelected = false; redrawCanvas(); }
 }
 
 function onPointerMove(e) {
     // 更新指针位置（用于捏合）
     try { if (activePointers.has(e.pointerId)) activePointers.set(e.pointerId, getCanvasPos(e)); } catch {}
 
-    // 捏合缩放
-    if (isPinching && userImg) {
+    // 捏合缩放（命中当前选中层或最上层命中图层）
+    if (isPinching) {
         const info = getPinchInfo();
         if (info && pinchPrevDist) {
             const center = info.center;
-            // 仅当中心位于图像内部时才缩放，避免误操作
-            const within = center.x > userImgPos.x && center.x < userImgPos.x + userImgSize.width &&
-                           center.y > userImgPos.y && center.y < userImgPos.y + userImgSize.height;
-            if (within) {
+            // 选中层优先，否则命中最上层
+            let target = null;
+            if (isSelected && getLayerProps().img && isPointInImage(center.x, center.y)) {
+                target = activeLayer;
+            } else {
+                if (userImg && isPointInImage(center.x, center.y, { type: 'main' })) target = { type: 'main' };
+                if (!target) {
+                    for (let i = overlays.length - 1; i >= 0; i--) {
+                        if (isPointInImage(center.x, center.y, { type: 'overlay', index: i })) { target = { type: 'overlay', index: i }; break; }
+                    }
+                }
+            }
+            if (target) {
                 const curVal = parseFloat(imageSizeSlider.value);
                 const min = parseFloat(imageSizeSlider.min || '1');
                 const max = parseFloat(imageSizeSlider.max || '500');
@@ -852,16 +1336,16 @@ function onPointerMove(e) {
                 let nextVal = Math.max(min, Math.min(max, curVal * ratio));
                 // 提高触发阈值，避免频繁微动
                 if (Math.abs(nextVal - curVal) >= 0.5) {
+                    const tp = getLayerProps(target);
                     const scaleRatio = nextVal / curVal;
-                    const newW = Math.max(1, userImgSize.width * scaleRatio);
-                    const newH = Math.max(1, userImgSize.height * scaleRatio);
+                    const newW = Math.max(1, tp.size.width * scaleRatio);
+                    const newH = Math.max(1, tp.size.height * scaleRatio);
                     // 以两指中心为锚点保持相对位置
-                    const px = (center.x - userImgPos.x) / (userImgSize.width || 1);
-                    const py = (center.y - userImgPos.y) / (userImgSize.height || 1);
-                    userImgPos.x = center.x - px * newW;
-                    userImgPos.y = center.y - py * newH;
-                    userImgSize.width = newW;
-                    userImgSize.height = newH;
+                    const px = (center.x - tp.pos.x) / (tp.size.width || 1);
+                    const py = (center.y - tp.pos.y) / (tp.size.height || 1);
+                    setLayerPos(center.x - px * newW, center.y - py * newH, target);
+                    setLayerSize(newW, newH, target);
+                    activeLayer = target; isSelected = true;
                     // 同步 UI
                     imageSizeSlider.value = String(Math.round(nextVal));
                     if (imageSizeInput) imageSizeInput.value = String(Math.round(nextVal));
@@ -877,19 +1361,68 @@ function onPointerMove(e) {
         e.preventDefault();
         return;
     }
+    // 旋转
+    if (isRotating && getLayerProps().img && gestureCenter) {
+        const { x, y } = getCanvasPos(e);
+        const ang = Math.atan2(y - gestureCenter.y, x - gestureCenter.x);
+        let next = startRotation + (ang - startAngle);
+        // 对 0°, 90°, 180°, 270°（即 90°的整数倍）进行吸附
+        const HALF_PI = Math.PI / 2;
+        const nearest = Math.round(next / HALF_PI) * HALF_PI; // 最近的 90°倍数
+        if (Math.abs(next - nearest) < ROTATE_SNAP_RAD) next = nearest;
+        setLayerRotation(next);
+        redrawCanvas();
+        e.preventDefault();
+        return;
+    }
+    // 句柄缩放（以中心为锚点等比缩放）
+    if (isScaling && getLayerProps().img && scaleAnchorTL) {
+        const { x, y } = getCanvasPos(e);
+        const curDist = Math.max(1, Math.hypot(x - scaleAnchorTL.x, y - scaleAnchorTL.y));
+        let ratio = curDist / (scaleStartDiag || 1);
+        ratio = Math.max(0.1, Math.min(10, ratio));
+        const min = parseFloat(imageSizeSlider.min || '1');
+        const max = parseFloat(imageSizeSlider.max || '500');
+        let nextVal = Math.max(min, Math.min(max, startSliderValue * ratio));
+        // 新宽高
+        const newW = Math.max(1, scaleStartW * (nextVal / startSliderValue));
+        const newH = Math.max(1, scaleStartH * (nextVal / startSliderValue));
+        const ap2 = getLayerProps();
+        ap2.size.width = newW; ap2.size.height = newH;
+        // 计算新的中心，让左上角（旋转后的 tl）保持不动
+        const hw = newW / 2, hh = newH / 2;
+        const rot = getLayerProps().rotationRad || 0; const cosA = Math.cos(rot), sinA = Math.sin(rot);
+        const dx = hw * cosA - hh * sinA;
+        const dy = hw * sinA + hh * cosA;
+        const newCenterX = scaleAnchorTL.x + dx;
+        const newCenterY = scaleAnchorTL.y + dy;
+        setLayerPos(newCenterX - newW / 2, newCenterY - newH / 2);
+        // 同步控件
+        imageSizeSlider.value = String(Math.round(nextVal));
+        if (imageSizeInput) imageSizeInput.value = String(Math.round(nextVal));
+        redrawCanvas();
+        e.preventDefault();
+        return;
+    }
     if (!isDragging) return;
     const { x, y } = getCanvasPos(e);
-    let newX = x - dragStart.x;
-    let newY = y - dragStart.y;
-    const imgCenterX = newX + userImgSize.width / 2;
+    // 以起点差值移动（不依赖旋转）
+    let newX = dragStart.imgX + (x - dragStart.x);
+    let newY = dragStart.imgY + (y - dragStart.y);
+    const ap3 = getLayerProps();
+    const imgCenterX = newX + ap3.size.width / 2;
     const canvasCenterX = canvas.width / 2;
     if (Math.abs(imgCenterX - canvasCenterX) < snapThreshold) {
-        newX = canvasCenterX - userImgSize.width / 2;
+        newX = canvasCenterX - ap3.size.width / 2;
     }
-    userImgPos.x = newX;
-    userImgPos.y = newY;
+    // 垂直吸附到内容中线
+    const contentMidY = getContentMidY();
+    const imgCenterY = newY + ap3.size.height / 2;
+    if (Math.abs(imgCenterY - contentMidY) < snapThreshold) {
+        newY = contentMidY - ap3.size.height / 2;
+    }
+    setLayerPos(newX, newY);
     redrawCanvas();
-    drawGuidelines();
     e.preventDefault();
 }
 
@@ -903,6 +1436,11 @@ function onPointerUp(e) {
         // 清理上次距离记录
         pinchPrevDist = null;
     }
+    isRotating = false;
+    isScaling = false;
+    activeHandle = null;
+    gestureCenter = null;
+    scaleAnchorTL = null;
     redrawCanvas();
     if (canvas.releasePointerCapture && e.pointerId !== undefined) {
         try { canvas.releasePointerCapture(e.pointerId); } catch {}
@@ -916,6 +1454,11 @@ function onPointerCancel(e) {
         pinchPrevDist = null;
     }
     isDragging = false;
+    isRotating = false;
+    isScaling = false;
+    activeHandle = null;
+    gestureCenter = null;
+    scaleAnchorTL = null;
     redrawCanvas();
 }
 
@@ -925,46 +1468,7 @@ canvas.addEventListener('pointerup', onPointerUp, { passive: false });
 canvas.addEventListener('pointercancel', onPointerCancel, { passive: false });
 canvas.addEventListener('wheel', onCanvasWheel, { passive: false });
 
-canvas.addEventListener('mousedown', (e) => {
-    if (isPointerActive) return; // 避免重复
-    const { x: mouseX, y: mouseY } = getCanvasPos(e);
-    if (userImg && mouseX > userImgPos.x && mouseX < userImgPos.x + userImgSize.width &&
-        mouseY > userImgPos.y && mouseY < userImgPos.y + userImgSize.height) {
-        isDragging = true;
-        dragStart.x = mouseX - userImgPos.x;
-        dragStart.y = mouseY - userImgPos.y;
-    }
-});
-
-canvas.addEventListener('mousemove', (e) => {
-    if (isPointerActive) return; // 避免重复
-    if (isDragging) {
-        const { x, y } = getCanvasPos(e);
-        let newX = x - dragStart.x;
-        let newY = y - dragStart.y;
-        const imgCenterX = newX + userImgSize.width / 2;
-        const canvasCenterX = canvas.width / 2;
-        if (Math.abs(imgCenterX - canvasCenterX) < snapThreshold) {
-            newX = canvasCenterX - userImgSize.width / 2;
-        }
-        userImgPos.x = newX;
-        userImgPos.y = newY;
-        redrawCanvas();
-        drawGuidelines();
-    }
-});
-
-canvas.addEventListener('mouseup', () => {
-    if (isPointerActive) return; // 避免重复
-    isDragging = false;
-    redrawCanvas();
-});
-
-canvas.addEventListener('mouseout', () => {
-    if (isPointerActive) return; // 避免重复
-    isDragging = false;
-    redrawCanvas();
-});
+// 使用 pointer 事件统一处理拖动/缩放/旋转
 
 textInput.addEventListener('input', () => { redrawCanvas(); if (formatSelect.value === 'gif') updateQualityEstimates(); });
 fontSizeSlider.addEventListener('input', () => { redrawCanvas(); if (formatSelect.value === 'gif') updateQualityEstimates(); });
@@ -1037,6 +1541,9 @@ if (customUseBtn) {
 
 downloadBtn.addEventListener('click', async () => {
     const format = formatSelect.value;
+    // 导出前暂时隐藏编辑框（虚线与句柄）
+    const prevSelected = isSelected; const prevRotating = isRotating; const prevScaling = isScaling; const prevHandle = activeHandle;
+    isSelected = false; isRotating = false; isScaling = false; activeHandle = null; redrawCanvas();
     if (format === 'gif') {
         if (isExportingGif) return;
         isExportingGif = true;
@@ -1081,12 +1588,34 @@ downloadBtn.addEventListener('click', async () => {
                     octx.clearRect(0, 0, off.width, off.height);
                     // 背景缩放绘制
                     octx.drawImage(backgroundImg, 0, 0, off.width, off.height);
-                    // 根据当前缩放绘制
-                    const scaleBase = imageSizeSlider.value / 100;
-                    const w = Math.max(1, Math.round(fr.image.width * scaleBase * qp.scale));
-                    const h = Math.max(1, Math.round(fr.image.height * scaleBase * qp.scale));
+                    // 叠加层先绘制
+                    for (const ol of overlays) {
+                        if (!ol || !ol.img) continue;
+                        const ow = Math.max(1, Math.round((ol.size?.width || ol.img.width) * qp.scale));
+                        const oh = Math.max(1, Math.round((ol.size?.height || ol.img.height) * qp.scale));
+                        const ox = Math.round((ol.pos?.x || 0) * qp.scale);
+                        const oy = Math.round((ol.pos?.y || 0) * qp.scale);
+                        octx.save();
+                        octx.translate(ox + ow / 2, oy + oh / 2);
+                        if (ol.rotationRad) octx.rotate(ol.rotationRad);
+                        const sX = (ol.scaleX ?? 1), sY = (ol.scaleY ?? 1);
+                        if (sX !== 1 || sY !== 1) octx.scale(sX, sY);
+                        octx.drawImage(ol.img, -ow / 2, -oh / 2, ow, oh);
+                        octx.restore();
+                    }
+                    // 主图旋转绘制（使用当前尺寸与角度）
+                    const w = Math.max(1, Math.round((userImgSize.width || fr.image.width) * qp.scale));
+                    const h = Math.max(1, Math.round((userImgSize.height || fr.image.height) * qp.scale));
+                    const ox = Math.round(userImgPos.x * qp.scale);
+                    const oy = Math.round(userImgPos.y * qp.scale);
+                    const cx = ox + w / 2, cy = oy + h / 2;
                     octx.imageSmoothingEnabled = false;
-                    octx.drawImage(fr.image, Math.round(userImgPos.x * qp.scale), Math.round(userImgPos.y * qp.scale), w, h);
+                    octx.save();
+                    octx.translate(cx, cy);
+                    if (rotationRad) octx.rotate(rotationRad);
+                    if (mainScaleX !== 1 || mainScaleY !== 1) octx.scale(mainScaleX, mainScaleY);
+                    octx.drawImage(fr.image, -w / 2, -h / 2, w, h);
+                    octx.restore();
                     // 叠加文字
                     const fontSize = fontSizeSlider.value * qp.scale;
                     const positionYPercent = positionYSlider.value;
@@ -1104,11 +1633,33 @@ downloadBtn.addEventListener('click', async () => {
                 // 单帧导出
                 octx.clearRect(0, 0, off.width, off.height);
                 octx.drawImage(backgroundImg, 0, 0, off.width, off.height);
+                // 叠加层
+                for (const ol of overlays) {
+                    if (!ol || !ol.img) continue;
+                    const ow = Math.max(1, Math.round((ol.size?.width || ol.img.width) * qp.scale));
+                    const oh = Math.max(1, Math.round((ol.size?.height || ol.img.height) * qp.scale));
+                    const ox = Math.round((ol.pos?.x || 0) * qp.scale);
+                    const oy = Math.round((ol.pos?.y || 0) * qp.scale);
+                    octx.save();
+                    octx.translate(ox + ow / 2, oy + oh / 2);
+                    if (ol.rotationRad) octx.rotate(ol.rotationRad);
+                    const sX = (ol.scaleX ?? 1), sY = (ol.scaleY ?? 1);
+                    if (sX !== 1 || sY !== 1) octx.scale(sX, sY);
+                    octx.drawImage(ol.img, -ow / 2, -oh / 2, ow, oh);
+                    octx.restore();
+                }
                 if (userImg) {
-                    const scaleBase = imageSizeSlider.value / 100;
-                    const w = Math.max(1, Math.round(userImg.width * scaleBase * qp.scale));
-                    const h = Math.max(1, Math.round(userImg.height * scaleBase * qp.scale));
-                    octx.drawImage(userImg, Math.round(userImgPos.x * qp.scale), Math.round(userImgPos.y * qp.scale), w, h);
+                    const w = Math.max(1, Math.round((userImgSize.width || userImg.width) * qp.scale));
+                    const h = Math.max(1, Math.round((userImgSize.height || userImg.height) * qp.scale));
+                    const ox = Math.round(userImgPos.x * qp.scale);
+                    const oy = Math.round(userImgPos.y * qp.scale);
+                    const cx = ox + w / 2, cy = oy + h / 2;
+                    octx.save();
+                    octx.translate(cx, cy);
+                    if (rotationRad) octx.rotate(rotationRad);
+                    if (mainScaleX !== 1 || mainScaleY !== 1) octx.scale(mainScaleX, mainScaleY);
+                    octx.drawImage(userImg, -w / 2, -h / 2, w, h);
+                    octx.restore();
                 }
                 const fontSize = fontSizeSlider.value * qp.scale;
                 const positionYPercent = positionYSlider.value;
@@ -1130,12 +1681,16 @@ downloadBtn.addEventListener('click', async () => {
                 link.click();
                 setTimeout(() => URL.revokeObjectURL(link.href), 5000);
                 restoreBtn();
+                // 恢复编辑框显示状态
+                isSelected = prevSelected; isRotating = prevRotating; isScaling = prevScaling; activeHandle = prevHandle; redrawCanvas();
             });
             encoder.render();
         } catch (e) {
             console.error(e);
             showTipModal('GIF 导出失败，请重试。', { duration: 2200 });
             restoreBtn();
+            // 恢复编辑框显示状态
+            isSelected = prevSelected; isRotating = prevRotating; isScaling = prevScaling; activeHandle = prevHandle; redrawCanvas();
         }
         return;
     }
@@ -1145,9 +1700,14 @@ downloadBtn.addEventListener('click', async () => {
     link.href = dataURL;
     link.download = `image-with-text.${format}`;
     link.click();
+    // 恢复编辑框显示状态
+    isSelected = prevSelected; isRotating = prevRotating; isScaling = prevScaling; activeHandle = prevHandle; redrawCanvas();
 });
 
 copyBtn.addEventListener('click', () => {
+    // 复制前隐藏编辑框
+    const prevSelected = isSelected; const prevRotating = isRotating; const prevScaling = isScaling; const prevHandle = activeHandle;
+    isSelected = false; isRotating = false; isScaling = false; activeHandle = null; redrawCanvas();
     canvas.toBlob(blob => {
         if (navigator.clipboard && navigator.clipboard.write) {
             const item = new ClipboardItem({ 'image/png': blob });
@@ -1157,6 +1717,8 @@ copyBtn.addEventListener('click', () => {
         } else {
             showTipModal('浏览器不支持复制功能。', { duration: 2000 });
         }
+        // 恢复编辑框显示状态
+        isSelected = prevSelected; isRotating = prevRotating; isScaling = prevScaling; activeHandle = prevHandle; redrawCanvas();
     }, 'image/png');
 });
 
@@ -1250,17 +1812,22 @@ async function estimateGifSizeBytes(scale) {
             octx.clearRect(0, 0, w, h);
             // 背景
             octx.drawImage(backgroundImg, 0, 0, w, h);
-            // 图像
-            if (fr.image || userImg) {
-                const img = fr.image || userImg;
-                const baseScale = imageSizeSlider.value / 100;
-                const drawW = Math.max(1, Math.round((img.width || 0) * baseScale * scale));
-                const drawH = Math.max(1, Math.round((img.height || 0) * baseScale * scale));
-                const drawX = Math.round(userImgPos.x * scale);
-                const drawY = Math.round(userImgPos.y * scale);
-                octx.imageSmoothingEnabled = false;
-                octx.drawImage(img, drawX, drawY, drawW, drawH);
+            // 叠加层（粗略估算，不计旋转差异）
+            for (const ol of overlays) {
+                if (!ol || !ol.img) continue;
+                const ow = Math.max(1, Math.round((ol.size?.width || ol.img.width) * scale));
+                const oh = Math.max(1, Math.round((ol.size?.height || ol.img.height) * scale));
+                const ox = Math.round((ol.pos?.x || 0) * scale);
+                const oy = Math.round((ol.pos?.y || 0) * scale);
+                octx.drawImage(ol.img, ox, oy, ow, oh);
             }
+            // 主图
+            const drawW = Math.max(1, Math.round((userImgSize.width || (fr.image?.width || userImg?.width || 0)) * scale));
+            const drawH = Math.max(1, Math.round((userImgSize.height || (fr.image?.height || userImg?.height || 0)) * scale));
+            const drawX = Math.round(userImgPos.x * scale);
+            const drawY = Math.round(userImgPos.y * scale);
+            octx.imageSmoothingEnabled = false;
+            octx.drawImage(fr.image || userImg, drawX, drawY, drawW, drawH);
             // 文本
             const fontSize = fontSizeSlider.value * scale;
             const positionYPercent = positionYSlider.value;
