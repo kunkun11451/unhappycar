@@ -1067,27 +1067,6 @@ body.dark-mode .custom-mode-controls button:hover {
         font-size: 0.9rem;
         line-height: 1;
     }
-
-    /* 禁止主页面滚动，固定容器在屏幕中间（移动端） */
-    html, body {
-        height: 100%;
-        overflow: hidden;         
-        overscroll-behavior: none;  
-    }
-    body { padding: 0; }
-
-    .container {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: calc(100vw - 24px);    
-        max-width: calc(100vw - 24px);
-        max-height: calc(100vh - 24px);
-        max-height: calc(100dvh - 24px); 
-        overflow: auto;        
-        -webkit-overflow-scrolling: touch;
-    }
 }
 
 .themeToggle {
