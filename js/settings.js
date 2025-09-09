@@ -966,7 +966,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { name: "选角禁技", file: "xjjj"},
             { name: "表情包编辑", file: "pt"},
             { name: "史镶金随机数生成器", file: "dice" },
-            { name: "赤石7",},
+            { name: "随机ban位抽取", file: "recorder"},
             { name: "赤石8",},
             { name: "赤石9",}
         ];
