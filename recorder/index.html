@@ -3,30 +3,40 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>test</title>
+  <title>随机ban位</title>
+  <link rel="icon" href="https://upload-bbs.miyoushe.com/upload/2024/06/29/273489775/4be47bf1376bfb4f69c1e3fe26c8a8e8_8119842655567179283.png" type="image/png">
   <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
   <div class="container">
-
+    <h1 style="text-align: center;">随机ban位</h1>  
     <div class="controls">
       <button id="drawBtn" class="btn primary">抽取一次</button>
       <button id="resetBtn" class="btn">重置</button>
     </div>
 
+    
+
     <section class="panel">
-      <h2>上次抽取</h2>
+      <h2>本次抽取</h2>
+      <div class="controls hidden" id="lastCopyBar">
+        <button id="copyLastBtn" class="btn">复制本次抽取</button>
+      </div>
       <div class="rows" id="lastDraw"></div>
     </section>
 
     <section class="panel">
-      <h2>当前记录（对称差集，重复项抵消）</h2>
+      <h2>当前记录</h2>
+      <div class="controls hidden" id="recordCopyBar">
+        <button id="copyRecordBtn" class="btn">复制当前记录</button>
+      </div>
       <div class="rows" id="record"></div>
     </section>
 
-    <section class="panel">
+  <section class="panel hidden" id="availablePanel">
       <h2>当前可用角色</h2>
       <div class="stats" id="stats"></div>
+  <div id="copyAvailable" class="copy-container hidden"></div>
       <div class="card-grid" id="complementList"></div>
     </section>
   </div>

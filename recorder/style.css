@@ -2,11 +2,61 @@
 .panel{background:#111827;border:1px solid #374151;border-radius:12px;padding:14px;margin:14px 0}
 .rows{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
 .badge{display:inline-flex;align-items:center;justify-content:center;padding:6px 10px;border-radius:999px;border:1px solid #334155;background:#0b1220;min-height:32px}
+.badge-add{background:#065f46;border-color:#047857;color:#d1fae5}
+.badge-remove{background:#7f1d1d;border-color:#991b1b;color:#fee2e2}
 .group{display:flex;flex-wrap:wrap;gap:8px}
 .label{font-size:.9rem;color:#94a3b8;margin-bottom:6px}
 .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
 .card{background:#0b1220;border:1px solid #334155;border-radius:12px;padding:10px;display:flex;flex-direction:column;align-items:center;gap:8px}
-.card .avatar{width:100%;height:140px;object-fit:cover;border-radius:8px;background:#111827}
+.card .avatar{
+	width:100%;
+	aspect-ratio:1/1; /* 圆角正方形 */
+	object-fit:cover;
+	border-radius:12px;
+	background:#111827;
+}
 .card h3{margin:0;font-size:.95rem;text-align:center}
 .card .meta{display:none}
 .stats{font-size:.9rem;color:#94a3b8;margin-bottom:8px}
+
+.text{flex:1;min-width:200px;padding:8px 10px;border-radius:8px;border:1px solid #334155;background:#0b1220;color:#e2e8f0}
+
+.copy-container{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.copy-chip{display:flex;gap:8px;align-items:center;width:100%}
+.copy-chip .text{flex:1}
+
+/* Copy success state */
+.btn.success{background:#065f46;border-color:#047857;color:#d1fae5}
+
+/* Utilities */
+.hidden{display:none !important}
+
+/* ====== 响应式优化（手机端） ====== */
+@media (max-width: 900px){
+	.rows{grid-template-columns:repeat(2,1fr)}
+	.container{padding:16px}
+}
+
+@media (max-width: 560px){
+	/* 顶部控件竖排，按钮更易点按 */
+	.controls{flex-direction:column;gap:8px}
+	.btn{width:100%;min-height:40px}
+
+	/* 列表行改为单列 */
+	.rows{grid-template-columns:1fr}
+
+	/* 卡片网格更紧凑 */
+		.card-grid{grid-template-columns:repeat(3,1fr)}
+	.card{padding:8px}
+	.card h3{font-size:.9rem}
+		.card .avatar{width:85%;margin:0 auto}
+
+	/* 徽标更紧凑 */
+	.badge{padding:4px 8px}
+
+	/* 复制片段上下堆叠 */
+	.copy-chip{flex-direction:column;align-items:stretch}
+	.copy-chip .btn{width:100%}
+
+	.container{padding:12px}
+}
