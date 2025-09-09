@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>test</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div class="container">
+
+    <div class="controls">
+      <button id="drawBtn" class="btn primary">抽取一次</button>
+      <button id="resetBtn" class="btn">重置</button>
+    </div>
+
+    <section class="panel">
+      <h2>上次抽取</h2>
+      <div class="rows" id="lastDraw"></div>
+    </section>
+
+    <section class="panel">
+      <h2>当前记录（对称差集，重复项抵消）</h2>
+      <div class="rows" id="record"></div>
+    </section>
+
+    <section class="panel">
+      <h2>当前可用角色</h2>
+      <div class="stats" id="stats"></div>
+      <div class="card-grid" id="complementList"></div>
+    </section>
+  </div>
+
+  <!-- 载入角色数据（含体型/国家） -->
+  <script src="./characters.js"></script>
+  <script src="./script.js"></script>
+</body>
+</html>
