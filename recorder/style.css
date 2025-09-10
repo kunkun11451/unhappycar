@@ -1,13 +1,17 @@
-*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Noto Sans",sans-serif;background:#0f172a;color:#e2e8f0}h1,h2{margin:0 0 .5rem}.container{max-width:1100px;margin:0 auto;padding:20px}.controls{display:flex;gap:10px;margin-bottom:16px}.btn{padding:8px 14px;border-radius:8px;border:1px solid #334155;background:#1f2937;color:#e2e8f0;cursor:pointer}.btn.primary{background:#2563eb;border-color:#1d4ed8}.btn:disabled{opacity:.6;cursor:not-allowed}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Noto Sans",sans-serif;background:#0f172a;color:#e2e8f0}h1,h2{margin:0 0 .5rem}.container{max-width:1100px;margin:0 auto;padding:20px}.controls{display:flex;gap:10px}.btn{padding:8px 14px;border-radius:8px;border:1px solid #334155;background:#1f2937;color:#e2e8f0;cursor:pointer}.btn.primary{background:#2563eb;border-color:#1d4ed8}.btn:disabled{opacity:.6;cursor:not-allowed}
+.panel-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px}
+.panel-header h2{margin:0}
+.inline-controls .btn{margin:0}
 .panel{background:#111827;border:1px solid #374151;border-radius:12px;padding:14px;margin:14px 0}
 .rows{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
 .badge{display:inline-flex;align-items:center;justify-content:center;padding:6px 10px;border-radius:999px;border:1px solid #334155;background:#0b1220;min-height:32px}
+.badge,.badge-add,.badge-remove{transition:background-color .3s ease,border-color .3s ease,color .3s ease}
 .badge-add{background:#065f46;border-color:#047857;color:#d1fae5}
 .badge-remove{background:#7f1d1d;border-color:#991b1b;color:#fee2e2}
 .group{display:flex;flex-wrap:wrap;gap:8px}
 .label{font-size:.9rem;color:#94a3b8;margin-bottom:6px}
-.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
-.card{background:#0b1220;border:1px solid #334155;border-radius:12px;padding:10px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px} /* 调整最小宽度与间距让卡片更紧凑排列 */
+.card{background:#0b1220;border:1px solid #334155;border-radius:12px;padding:8px;display:flex;flex-direction:column;align-items:center;gap:6px}
 .card .avatar{
 	width:100%;
 	aspect-ratio:1/1; /* 圆角正方形 */
@@ -15,7 +19,7 @@
 	border-radius:12px;
 	background:#111827;
 }
-.card h3{margin:0;font-size:.95rem;text-align:center}
+.card h3{margin:0;font-size:.85rem;text-align:center}
 .card .meta{display:none}
 .stats{font-size:.9rem;color:#94a3b8;margin-bottom:8px}
 
@@ -27,11 +31,71 @@
 
 /* Copy success state */
 .btn.success{background:#065f46;border-color:#047857;color:#d1fae5}
+.btn,.btn.success{transition:background-color .28s ease,border-color .28s ease,color .28s ease}
 
 /* Utilities */
 .hidden{display:none !important}
 
+/* 删除平滑收缩动画（占位宽度逐渐归零，后续徽标平滑前移） */
+.removal-flash{
+	overflow:hidden;
+	display:inline-flex;
+	align-items:center;
+	white-space:nowrap; /* 防止收缩时文本换行导致高度变化 */
+	will-change:width,transform,opacity;
+	/* 仅在进入 collapsing 时再触发收缩过渡 */
+}
+.removal-flash.flash-phase{
+	animation:removalFlashPulse .42s ease;
+}
+.removal-flash.collapsing{
+	transition:width .48s ease, padding .48s ease, margin .48s ease, opacity .48s ease, transform .48s ease;
+}
+.removal-flash.collapsing{
+	width:0 !important;
+	padding-left:0 !important;
+	padding-right:0 !important;
+	margin-right:0 !important;
+	opacity:0;
+	transform:scale(.65);
+}
+
+@keyframes removalFlashPulse{
+	0%{transform:scale(1);box-shadow:0 0 0 0 rgba(239,68,68,.55);}
+	45%{transform:scale(1.15);box-shadow:0 0 0 6px rgba(239,68,68,.18);}
+	70%{transform:scale(1.05);box-shadow:0 0 0 2px rgba(239,68,68,.10);}
+	100%{transform:scale(1);box-shadow:0 0 0 0 rgba(239,68,68,0);}
+}
+
+/* 新增徽标浮现动画 */
+.add-anim{animation:addPop .45s cubic-bezier(.25,.8,.35,1.2)}
+@keyframes addPop{
+	0%{transform:scale(.55);opacity:0}
+	55%{transform:scale(1.18);opacity:1}
+	100%{transform:scale(1);opacity:1}
+}
+
+/* 可用角色卡片依次排开动画 */
+.card-appear{opacity:0;transform:scale(.82) translateY(14px);animation:cardEnter .4s cubic-bezier(.25,.8,.3,1) forwards;animation-delay:calc(var(--stagger,0)*35ms)}
+@keyframes cardEnter{to{opacity:1;transform:scale(1) translateY(0)}}
+
 /* ====== 响应式优化（手机端） ====== */
+/* 桌面两列布局 */
+@media (min-width: 961px){
+	.layout-desktop{display:flex;gap:20px;align-items:flex-start}
+	.left-column{flex:1;display:flex;flex-direction:column;gap:16px}
+	.right-column{flex:1;display:flex;flex-direction:column;gap:16px}
+	.left-column .panel{margin:0}
+	.right-column .panel{margin:0}
+
+	/* 桌面端卡片网格固定 5 列 */
+	.card-grid{grid-template-columns:repeat(5,1fr)}
+}
+
+/* 当前记录：每类别独占一行（覆盖通用 .rows 四列设置） */
+#record.rows{display:flex;flex-direction:column;gap:12px}
+#record.rows > div{width:100%}
+
 @media (max-width: 900px){
 	.rows{grid-template-columns:repeat(2,1fr)}
 	.container{padding:16px}
@@ -40,13 +104,16 @@
 @media (max-width: 560px){
 	/* 顶部控件竖排，按钮更易点按 */
 	.controls{flex-direction:column;gap:8px}
+	.panel-header .controls{flex-direction:row;gap:8px} /* 标题行按钮保持一行 */
 	.btn{width:100%;min-height:40px}
 
 	/* 列表行改为单列 */
 	.rows{grid-template-columns:1fr}
+	/* 仅“本次抽取”保持四列并排显示 */
+	#lastDraw.rows{grid-template-columns:repeat(4,1fr)}
 
 	/* 卡片网格更紧凑 */
-		.card-grid{grid-template-columns:repeat(3,1fr)}
+		.card-grid{grid-template-columns:repeat(3,1fr)} /* 保持手机端大小不变 */
 	.card{padding:8px}
 	.card h3{font-size:.9rem}
 		.card .avatar{width:85%;margin:0 auto}

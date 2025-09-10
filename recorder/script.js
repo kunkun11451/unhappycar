@@ -1,5 +1,13 @@
 (function(){
   let hasLastDraw = false;
+  let currentAnimationToken = 0; // 用于防止快速多次抽取导致回调错乱
+  // 维护显示顺序（与 Set 中内容同步；新增放末尾，删除时移除）
+  const order = {
+    元素类型: [],
+    国家: [],
+    武器类型: [],
+    体型: [],
+  };
   // 取值池
   const POOLS = {
     元素类型: ["水","火","冰","雷","草","风","岩"],
@@ -28,32 +36,55 @@
 
   // 抽取一次
   function drawOnce(){
+    const token = ++currentAnimationToken;
     const last = {
       元素类型: pickRandom(POOLS.元素类型),
       国家: pickRandom(POOLS.国家),
       武器类型: pickRandom(POOLS.武器类型),
       体型: pickRandom(POOLS.体型),
     };
-    // 计算本次对称差效果：true=新增，false=删除
-    const lastChanges = {
-      元素类型: { value: last.元素类型, op: record.元素类型.has(last.元素类型) ? 'remove' : 'add' },
-      国家: { value: last.国家, op: record.国家.has(last.国家) ? 'remove' : 'add' },
-      武器类型: { value: last.武器类型, op: record.武器类型.has(last.武器类型) ? 'remove' : 'add' },
-      体型: { value: last.体型, op: record.体型.has(last.体型) ? 'remove' : 'add' },
-    };
-
-    // 更新记录
-    toggle(record.元素类型, last.元素类型);
-    toggle(record.国家, last.国家);
-    toggle(record.武器类型, last.武器类型);
-    toggle(record.体型, last.体型);
+    // 计算并记录操作 + 原位置索引（删除时用）
+    const lastChanges = {};
+    ["元素类型","国家","武器类型","体型"].forEach(cat=>{
+      const val = last[cat];
+      const isRemove = (record[cat].has ? record[cat].has(val) : false);
+      const change = { value: val, op: isRemove ? 'remove' : 'add', index: -1 };
+      if(isRemove){
+        change.index = order[cat].indexOf(val); // 原位置
+      }
+      lastChanges[cat] = change;
+    });
+    // 应用对称差 + 更新顺序
+    ["元素类型","国家","武器类型","体型"].forEach(cat=>{
+      const { value, op, index } = lastChanges[cat];
+      if(op === 'remove'){
+        // 从 Set 删除
+        toggle(record[cat], value);
+        // 从顺序数组中移除
+        const i = order[cat].indexOf(value);
+        if(i>-1) order[cat].splice(i,1);
+      }else{
+        // 添加
+        toggle(record[cat], value);
+        if(!order[cat].includes(value)) order[cat].push(value);
+        // 记录新增后的索引（末尾）
+        lastChanges[cat].index = order[cat].length - 1;
+      }
+    });
 
     // 渲染
   // 缓存本次抽取，供复制
   window.__recorder_lastDraw = last;
-  renderLast(last, lastChanges);
-  renderRecord(lastChanges);
-    renderComplement();
+    renderLast(last, lastChanges);
+    // 延迟显示当前记录动画（0.8s）
+    setTimeout(()=>{
+      renderRecord(lastChanges, ()=>{
+        // 仅在仍是最新一次抽取时渲染可用角色
+        if(token === currentAnimationToken){
+          renderComplement();
+        }
+      });
+    }, 800);
   // 显示复制控件与可用复制区域
   hasLastDraw = true;
   const lastBar = document.getElementById('lastCopyBar');
@@ -68,9 +99,9 @@
 
   function reset(){
     Object.values(record).forEach(s=>s.clear());
+  Object.keys(order).forEach(k=> order[k].length = 0);
     document.getElementById('lastDraw').innerHTML = '';
-    renderRecord();
-    renderComplement();
+  renderRecord(null, ()=>{ renderComplement(); });
   // 隐藏复制控件与可用复制区域
   hasLastDraw = false;
   const lastBar = document.getElementById('lastCopyBar');
@@ -80,23 +111,31 @@
   if(lastBar) lastBar.classList.add('hidden');
   if(recBar) recBar.classList.add('hidden');
   if(copyAvail) copyAvail.classList.add('hidden');
-  if(availPanel) availPanel.classList.add('hidden');
+  // availablePanel 不再隐藏，仅清空内容并提示
+  if(availPanel){
+    const grid = document.getElementById('complementList');
+    if(grid) grid.innerHTML = '<div style="padding:12px;color:#94a3b8;font-size:.95rem">开始游戏以记录并查看可用角色列表</div>';
+  }
   }
 
-  function renderListRow(label, values, change){
-    // values: Set 或 数组（上次抽取传数组，当前记录传 Set）
-    const arr = Array.isArray(values) ? values.slice() : (values && values.size ? [...values] : []);
-    arr.sort();
-    const parts = arr.map(v=>{
+  function renderListRow(label, arr, change){
+    // arr 为字符串或包含 {removed:true,value} 占位的对象
+    const parts = arr.map(item=>{
+      if(item && typeof item === 'object' && item.removed){
+        const classes = ['badge','badge-remove'];
+        if(item.noAnim){
+          if(item.pulse) classes.push('add-anim');
+        }else{
+          classes.push('removal-flash');
+        }
+        return `<span class="${classes.join(' ')}">${item.value}</span>`;
+      }
+      const v = item;
       if(change && change.op === 'add' && change.value === v){
-        return `<span class="badge badge-add">${v}</span>`;
+        return `<span class="badge badge-add add-anim">${v}</span>`;
       }
       return `<span class="badge">${v}</span>`;
     });
-    // 若本次操作是删除，则额外显示被删的值（即使不在集合中）
-    if(change && change.op === 'remove' && change.value){
-      parts.push(`<span class="badge badge-remove">✕ ${change.value}</span>`);
-    }
     const chips = parts.join('');
     return `<div><div class="label">${label}</div><div class="group">${chips || '<span class="badge">—</span>'}</div></div>`;
   }
@@ -104,21 +143,75 @@
   function renderLast(last, changes){
     const el = document.getElementById('lastDraw');
     el.innerHTML = [
-  (()=>{ const c = changes && changes.元素类型; return renderListRow('元素类型', (c && c.op==='remove')?[]:[last.元素类型], c); })(),
-  (()=>{ const c = changes && changes.国家; return renderListRow('国家', (c && c.op==='remove')?[]:[last.国家], c); })(),
-  (()=>{ const c = changes && changes.武器类型; return renderListRow('武器类型', (c && c.op==='remove')?[]:[last.武器类型], c); })(),
-  (()=>{ const c = changes && changes.体型; return renderListRow('体型', (c && c.op==='remove')?[]:[last.体型], c); })(),
+  (()=>{ const c = changes && changes.元素类型; const arr = (c && c.op==='remove')?[{removed:true,noAnim:true,pulse:true,value:last.元素类型}]:[last.元素类型]; return renderListRow('元素类型', arr, c); })(),
+  (()=>{ const c = changes && changes.国家; const arr = (c && c.op==='remove')?[{removed:true,noAnim:true,pulse:true,value:last.国家}]:[last.国家]; return renderListRow('国家', arr, c); })(),
+  (()=>{ const c = changes && changes.武器类型; const arr = (c && c.op==='remove')?[{removed:true,noAnim:true,pulse:true,value:last.武器类型}]:[last.武器类型]; return renderListRow('武器类型', arr, c); })(),
+  (()=>{ const c = changes && changes.体型; const arr = (c && c.op==='remove')?[{removed:true,noAnim:true,pulse:true,value:last.体型}]:[last.体型]; return renderListRow('体型', arr, c); })(),
     ].join('');
   }
 
-  function renderRecord(changes){
+  function renderRecord(changes, done){
     const el = document.getElementById('record');
-    el.innerHTML = [
-      renderListRow('元素类型', record.元素类型, changes && changes.元素类型),
-      renderListRow('国家', record.国家, changes && changes.国家),
-      renderListRow('武器类型', record.武器类型, changes && changes.武器类型),
-      renderListRow('体型', record.体型, changes && changes.体型),
-    ].join('');
+    const rows = ["元素类型","国家","武器类型","体型"].map(cat=>{
+      let base = order[cat].slice();
+      const ch = changes && changes[cat];
+      if(ch && ch.op==='remove'){
+        // 在原位置插入一个移除占位，动画后消失
+        let insertIdx = ch.index;
+        if(insertIdx < 0) insertIdx = base.length; // fallback
+        base.splice(insertIdx,0,{removed:true,value:ch.value});
+      }
+      return renderListRow(cat, base, ch);
+    });
+  el.innerHTML = rows.join('');
+    // 删除徽标：先闪烁（flash-phase），再收缩消失
+    const FLASH_DURATION = 1000; 
+    requestAnimationFrame(()=>{
+      const removalNodes = el.querySelectorAll('.removal-flash');
+      let finished = 0;
+      const total = removalNodes.length;
+      removalNodes.forEach(node=>{
+        node.classList.add('flash-phase');
+        const w = node.getBoundingClientRect().width;
+        node.style.width = w + 'px';
+        setTimeout(()=>{
+          // 进入收缩阶段
+          node.classList.add('collapsing');
+          // 再下一帧应用收缩属性（类里已定义）
+          requestAnimationFrame(()=>{
+            // nothing extra
+          });
+        }, FLASH_DURATION);
+        node.addEventListener('transitionend', (e)=>{
+          if(e.propertyName === 'width'){
+            const parent = node.parentElement;
+            if(parent){
+              parent.removeChild(node);
+              // 若该组已无其他非删除徽标，补一个占位
+              const hasReal = parent.querySelector('.badge:not(.badge-remove)');
+              const hasRemove = parent.querySelector('.badge-remove');
+              if(!hasReal && !hasRemove){
+                const placeholder = document.createElement('span');
+                placeholder.className = 'badge';
+                placeholder.textContent = '—';
+                parent.appendChild(placeholder);
+              }
+            }
+            finished++;
+            if(finished === total && typeof done === 'function'){
+              // 所有删除动画完成（包含收缩）
+              done();
+            }
+          }
+        });
+      });
+      if(total === 0){
+        // 没有删除：等待可能存在的新增弹跳动画（约 450ms），再调用回调
+        if(typeof done === 'function'){
+          setTimeout(()=>done(), 460);
+        }
+      }
+    });
   }
 
   // 生成用于复制的文本
@@ -178,11 +271,20 @@
 
     const list = entries.filter(([name, data])=> isComplement(data)).map(([name, data])=>({name, data}));
 
-  stats.textContent = `排除当前记录类型后剩余：${list.length} / ${entries.length}`;
+  if(stats) stats.textContent = `排除当前记录类型后剩余：${list.length} / ${entries.length}`;
 
-    grid.innerHTML = list.map(({name, data})=>{
+    // 未进行首次抽取：显示提示，不展示角色卡片
+    if(!hasLastDraw){
+      if(grid){
+        grid.innerHTML = '<div style="padding:12px;color:#94a3b8;font-size:.95rem">开始游戏以记录并查看可用角色列表</div>';
+      }
+      if(copyBox) copyBox.classList.add('hidden');
+      return;
+    }
+
+    grid.innerHTML = list.map(({name, data},i)=>{
       const avatar = data.头像 || '';
-      return `<div class="card" title="${name}">
+      return `<div class="card card-appear" style="--stagger:${i}" title="${name}">
         ${avatar?`<img src="${avatar}" alt="${name}" class="avatar">`:''}
         <h3>${name}</h3>
       </div>`;
@@ -190,29 +292,38 @@
 
     // 生成可复制的名字段落，规则：
     // - 以空格分隔名字；
-    // - 每段长度尽量不超过40字符；
+    // - 每段严格 <=40 字符；
     // - 不拆分名字；若加入下一个名字会超过40，则开启新段；
-    // - 允许最后一段超过40一点点，以保证最后一个名字完整（仅当当前段为空时）。
+    // - 若单个名字本身 >40，则它单独成段（无法再分）。
     const N = 40;
     const names = list.map(x=>x.name);
     const chunks = [];
     let current = '';
     for(const n of names){
       if(!current){
-        // 段首直接放，即便超过N也允许（避免截断名字）。
+        // 段首放入；若已超限，直接推入并清空
         current = n;
+        if(current.length > N){
+          chunks.push(current);
+          current = '';
+        }
       }else{
         const candidate = current + ' ' + n;
         if(candidate.length <= N){
           current = candidate;
         }else{
-          // 超过限制，推入当前段，另起一段
           chunks.push(current);
-          current = n;
+          if(n.length > N){
+            // 过长名字单独成段
+            chunks.push(n);
+            current = '';
+          }else{
+            current = n;
+          }
         }
       }
     }
-    if(current) chunks.push(current);
+    if(current) chunks.push(current); // 最后残余
 
     // 渲染复制块
     if(copyBox){
@@ -228,11 +339,14 @@
         btn.addEventListener('click', async (e)=>{
           const i = parseInt(btn.getAttribute('data-copy-idx'),10);
           const text = chunks[i] || '';
-          copyWithFeedback(text, e.currentTarget);
+          try{ await navigator.clipboard.writeText(text); }catch{}
+          // 持久显示已复制状态，不禁用，供用户作为“已复制”标记
+          btn.classList.add('success');
+          btn.textContent = '✔ 已复制';
         });
       });
       // 如果已有抽取且存在可复制段，则显示该区域
-      if(hasLastDraw && chunks.length){
+  if(hasLastDraw && chunks.length){
         copyBox.classList.remove('hidden');
       }else{
         copyBox.classList.add('hidden');
@@ -251,8 +365,7 @@
     if(copyRecordBtn){
       copyRecordBtn.addEventListener('click', (e)=> copyWithFeedback(formatCurrentRecordText(), e.currentTarget));
     }
-  renderRecord();
-  renderComplement();
+  renderRecord(null, ()=>{ renderComplement(); });
   // 初始隐藏复制控件
   const lastBar = document.getElementById('lastCopyBar');
   const recBar = document.getElementById('recordCopyBar');
