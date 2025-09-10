@@ -15,23 +15,24 @@
       <div class="left-column">
         <section class="panel">
           <div class="panel-header">
-            <h2>本次抽取</h2>
+            <h2>本次Ban位抽取</h2>
             <div class="controls inline-controls">
               <button id="drawBtn" class="btn primary">抽取</button>
               <button id="resetBtn" class="btn">重置</button>
+               <button id="historyBtn" class="btn">历史</button>
             </div>
           </div>
-          <div class="controls hidden" id="lastCopyBar">
-            <button id="copyLastBtn" class="btn">复制本次抽取</button>
-          </div>
           <div class="rows" id="lastDraw"></div>
+          <div class="controls hidden copy-bottom" id="lastCopyBar">
+            <button id="copyLastBtn" class="btn">复制</button>
+          </div>
         </section>
         <section class="panel">
-          <h2>当前记录</h2>
-          <div class="controls hidden" id="recordCopyBar">
-            <button id="copyRecordBtn" class="btn">复制当前记录</button>
-          </div>
+          <h2>当前Ban位记录</h2>
           <div class="rows" id="record"></div>
+          <div class="controls hidden copy-bottom" id="recordCopyBar">
+            <button id="copyRecordBtn" class="btn">复制</button>
+          </div>
         </section>
   <!-- 可用角色分段复制区域移至左侧 -->
   <div id="copyAvailable" class="copy-container hidden"></div>
@@ -49,5 +50,33 @@
   <!-- 载入角色数据（含体型/国家） -->
   <script src="./characters.js"></script>
   <script src="./script.js"></script>
+  
+    <!-- 抽取历史弹窗 -->
+    <div id="historyModal" class="modal hidden">
+      <div class="modal-backdrop" data-history-close></div>
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h3>抽取历史</h3>
+          <button class="btn close-btn" data-history-close>×</button>
+        </div>
+        <div class="modal-body">
+          <table class="history-table" id="historyTable">
+            <thead>
+              <tr>
+                <th>轮次</th>
+                <th>元素</th>
+                <th>国家</th>
+                <th>武器</th>
+                <th>体型</th>
+                <th>可用</th>
+              </tr>
+            </thead>
+            <tbody id="historyTbody">
+              <tr class="empty"><td colspan="6">暂无记录</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
 </body>
 </html>

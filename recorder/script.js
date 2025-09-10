@@ -1,6 +1,7 @@
 (function(){
   let hasLastDraw = false;
   let currentAnimationToken = 0; // 用于防止快速多次抽取导致回调错乱
+  const history = []; // {round, 元素类型, 国家, 武器类型, 体型, changes}
   // 维护显示顺序（与 Set 中内容同步；新增放末尾，删除时移除）
   const order = {
     元素类型: [],
@@ -76,6 +77,26 @@
   // 缓存本次抽取，供复制
   window.__recorder_lastDraw = last;
     renderLast(last, lastChanges);
+    // 记录历史
+    // 记录当前记录快照（使用顺序数组保持展示顺序）
+    const snapshot = {
+      元素类型: order.元素类型.slice(),
+      国家: order.国家.slice(),
+      武器类型: order.武器类型.slice(),
+      体型: order.体型.slice(),
+    };
+    // 计算当前可用角色数量（基于最新记录）
+    const all = window.characterData || {};
+    const entries = Object.entries(all);
+    const availableCount = entries.filter(([name,data])=> isComplement(data)).length;
+    history.push({
+      round: history.length + 1,
+      last,
+      snapshot,
+      available: availableCount,
+      changes: lastChanges
+    });
+    renderHistoryTable();
     // 延迟显示当前记录动画（0.8s）
     setTimeout(()=>{
       renderRecord(lastChanges, ()=>{
@@ -101,6 +122,7 @@
     Object.values(record).forEach(s=>s.clear());
   Object.keys(order).forEach(k=> order[k].length = 0);
     document.getElementById('lastDraw').innerHTML = '';
+  history.length = 0; renderHistoryTable();
   renderRecord(null, ()=>{ renderComplement(); });
   // 隐藏复制控件与可用复制区域
   hasLastDraw = false;
@@ -271,7 +293,7 @@
 
     const list = entries.filter(([name, data])=> isComplement(data)).map(([name, data])=>({name, data}));
 
-  if(stats) stats.textContent = `排除当前记录类型后剩余：${list.length} / ${entries.length}`;
+  if(stats) stats.textContent = `排除当前Ban位后剩余：${list.length} / ${entries.length}`;
 
     // 未进行首次抽取：显示提示，不展示角色卡片
     if(!hasLastDraw){
@@ -354,9 +376,68 @@
     }
   }
 
+  // ===== 历史表格 =====
+  function renderHistoryTable(){
+    const tbody = document.getElementById('historyTbody');
+    if(!tbody) return;
+    if(history.length === 0){
+      tbody.innerHTML = '<tr class="empty"><td colspan="5">暂无记录</td></tr>';
+      return;
+    }
+    tbody.innerHTML = history.map(h=>{
+      const c = h.changes || {};
+      const last = h.last;
+      const snap = h.snapshot;
+      function tdLast(cat){
+        const ch = c[cat];
+        if(!ch){
+          return `<td>${last[cat]}</td>`;
+        }
+        const badgeClass = ch.op==='add' ? 'hist-badge hist-badge-add' : 'hist-badge hist-badge-remove';
+        return `<td><span class="${badgeClass}">${last[cat]}</span></td>`;
+      }
+      function tdSnap(cat){
+        const arr = snap[cat] || [];
+        const text = arr.length ? arr.join(' ') : '—';
+        return `<td class="snapshot-cell">${text}</td>`;
+      }
+  return `<tr class="history-last"><td class="round-cell" rowspan="2">${h.round}</td>${tdLast('元素类型')}${tdLast('国家')}${tdLast('武器类型')}${tdLast('体型')}<td class="avail-cell" rowspan="2">${h.available}</td></tr>
+      <tr class="history-snapshot">${tdSnap('元素类型')}${tdSnap('国家')}${tdSnap('武器类型')}${tdSnap('体型')}</tr>`;
+    }).join('');
+  }
+
+  function openHistory(){
+    const modal = document.getElementById('historyModal');
+    if(modal){
+      modal.classList.remove('hidden','closing');
+      document.body.classList.add('modal-open');
+    }
+  }
+  function closeHistory(){
+    const modal = document.getElementById('historyModal');
+    if(modal){
+      modal.classList.add('closing');
+      // 等待动画结束后隐藏
+      const handle = (e)=>{
+        if(e.target.classList && e.target.classList.contains('modal-dialog')){
+          modal.classList.add('hidden');
+          modal.classList.remove('closing');
+          document.body.classList.remove('modal-open');
+          modal.removeEventListener('animationend', handle);
+        }
+      };
+      modal.addEventListener('animationend', handle);
+    }
+  }
+
   function init(){
     document.getElementById('drawBtn').addEventListener('click', drawOnce);
     document.getElementById('resetBtn').addEventListener('click', reset);
+    const historyBtn = document.getElementById('historyBtn');
+    if(historyBtn) historyBtn.addEventListener('click', openHistory);
+    document.querySelectorAll('[data-history-close]').forEach(el=>{
+      el.addEventListener('click', closeHistory);
+    });
     const copyLastBtn = document.getElementById('copyLastBtn');
     const copyRecordBtn = document.getElementById('copyRecordBtn');
     if(copyLastBtn){
