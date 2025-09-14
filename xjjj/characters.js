@@ -1,5 +1,22 @@
-// 角色数据
 window.characterData = {
+    "菈乌玛": {
+        "头像": "https://act-upload.mihoyo.com/wiki-user-upload/2025/09/01/50494840/45dc7f4d9f71563546e664ed68e56d72_604412205691851460.png",
+        "元素类型": "草",
+        "武器类型": "法器",
+        "星级": "五星"
+    },
+    "爱诺": {
+        "头像": "https://act-upload.mihoyo.com/wiki-user-upload/2025/09/02/50494840/b1ee842a84eca650e1bfe380113e02bd_7400282632413554498.png",
+        "元素类型": "水",
+        "武器类型": "大剑",
+        "星级": "四星"
+    },
+    "伊涅芙": {
+        "头像": "https://act-upload.mihoyo.com/wiki-user-upload/2025/07/21/50494840/bd297354e4709df7963f6dc976ab8784_5144561901319432302.png",
+        "元素类型": "雷",
+        "武器类型": "长枪",
+        "星级": "五星"
+    },
     "丝柯克": {
         "头像": "https://act-upload.mihoyo.com/ys-obc/2025/06/12/73740358/867b0b36bfd629cd5ce88443cc5816c6_8276246094525984208.png",
         "元素类型": "冰",
@@ -255,7 +272,7 @@ window.characterData = {
     "莱依拉": {
         "头像": "https://uploadstatic.mihoyo.com/ys-obc/2022/10/24/4328207/f7f5c758e157cc6d6ca7b7a378d665e6_8346107013175588314.png",
         "元素类型": "冰",
-        "武器类型": "法器",
+        "武器类型": "单手剑",
         "星级": "四星"
     },
     "纳西妲": {
