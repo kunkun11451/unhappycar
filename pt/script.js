@@ -899,8 +899,11 @@ async function loadImage(src) {
                 const scale = DEFAULT_IMPORT_PCT / 100;
                 const w = Math.max(1, Math.round(userImg.width * scale));
                 const h = Math.max(1, Math.round(userImg.height * scale));
-                userImgPos.x = (canvas.width - w) / 2;
-                userImgPos.y = (canvas.height - h) / 2;
+                // 默认位置：使图片中心位于吸附线交点（水平居中 + VERTICAL_SNAP_PCT 高度）
+                const targetCx = canvas.width / 2;
+                const targetCy = canvas.height * VERTICAL_SNAP_PCT;
+                userImgPos.x = targetCx - w / 2;
+                userImgPos.y = targetCy - h / 2;
                 userImgSize.width = w; userImgSize.height = h;
                 redrawCanvas(userImg);
                 requestAnimationFrame(tick);
@@ -923,8 +926,11 @@ async function loadImage(src) {
     const scale = DEFAULT_IMPORT_PCT / 100;
     const w = Math.max(1, Math.round(userImg.width * scale));
     const h = Math.max(1, Math.round(userImg.height * scale));
-    userImgPos.x = (canvas.width - w) / 2;
-    userImgPos.y = (canvas.height - h) / 2;
+    // 默认位置：使图片中心位于吸附线交点（水平居中 + VERTICAL_SNAP_PCT 高度）
+    const targetCx = canvas.width / 2;
+    const targetCy = canvas.height * VERTICAL_SNAP_PCT;
+    userImgPos.x = targetCx - w / 2;
+    userImgPos.y = targetCy - h / 2;
     userImgSize.width = w; userImgSize.height = h;
     activeLayer = { type: 'main', index: null };
     redrawCanvas();
