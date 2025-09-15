@@ -237,7 +237,7 @@ window.characterData = {
     "米卡": {
         "头像": "https://uploadstatic.mihoyo.com/ys-obc/2023/03/18/4328207/37fed1b2ed047eeea78833328ffb27e4_8054575673536318186.png",
         "元素类型": "冰",
-        "武器类型": "弓",
+        "武器类型": "长枪",
         "星级": "四星"
     },
     "迪希雅": {

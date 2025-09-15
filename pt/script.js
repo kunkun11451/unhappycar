@@ -4,7 +4,7 @@ const textInput = document.getElementById('text-input');
 const downloadBtn = document.getElementById('download-btn');
 const copyBtn = document.getElementById('copy-btn');
 const fontSizeSlider = document.getElementById('font-size-slider');
-const positionYSlider = document.getElementById('position-y-slider');
+const TEXT_Y_PCT = 0.866;
 const formatSelect = document.getElementById('format-select');
 const qualitySelect = document.getElementById('quality-select');
 const qualityLabel = document.querySelector('label[for="quality-select"]');
@@ -212,7 +212,11 @@ let rotationRad = 0;               // 旋转角（弧度）（主图）
 let isRotating = false;            // 正在旋转
 let isScaling = false;             // 正在缩放
 let activeHandle = null;           // 当前激活句柄：'rotate'|'scale-br'|'scale-bl'|'delete'
-const HANDLE_RADIUS = 14;          // 句柄半径（画布像素）- 再次放大以提升可点性
+// 根据是否为触摸设备调整句柄大小（移动端更大）
+const IS_TOUCH_DEVICE = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+const HANDLE_BASE_RADIUS = 14;
+const IS_NARROW_SCREEN = (typeof window !== 'undefined') ? window.innerWidth < 768 : false;
+const HANDLE_RADIUS = (IS_NARROW_SCREEN ? Math.round(HANDLE_BASE_RADIUS * 2) : HANDLE_BASE_RADIUS);
 let gestureCenter = null;          // 旋转/缩放时以中心为锚点
 let startAngle = 0;                // 旋转起始角
 let startRotation = 0;             // 旋转开始时角度
@@ -224,8 +228,8 @@ let scaleStartDiag = 0;            // 起始对角距离（锚点到右下点）
 let scaleStartW = 0, scaleStartH = 0; // 起始宽高
 // 旋转吸附阈值（弧度），约 ±1°
 const ROTATE_SNAP_RAD = Math.PI / 180;
-// 新图片默认导入大小（百分比）
-const DEFAULT_IMPORT_PCT = 50;
+// 新图片默认导入：宽度占画布宽度的 75%，高度按原始宽高比缩放
+const DEFAULT_IMPORT_WIDTH_RATIO = 0.75; // 75%
 // 句柄图标（SVG path）
 const ICON_PATHS = {
     scale: [
@@ -319,7 +323,7 @@ function getLayerCenter(layer = activeLayer) {
 }
 const snapThreshold = 10;
 // 垂直吸附线：
-const VERTICAL_SNAP_PCT = 0.4;
+const VERTICAL_SNAP_PCT = 0.38816;
 function getContentMidY() {
     return canvas.height * VERTICAL_SNAP_PCT;
 }
@@ -446,7 +450,7 @@ function redrawCanvas(frameImage = null) {
 
     // 绘制文字
     const fontSize = fontSizeSlider.value;
-    const positionYPercent = positionYSlider.value;
+    const positionYPercent = TEXT_Y_PCT * 100;
     ctx.fillStyle = 'rgb(59, 66, 85)';
     ctx.font = `${fontSize}px 'HYWenHei-85W'`;
     ctx.textAlign = 'center';
@@ -533,7 +537,7 @@ function tick(timestamp) {
 
     // 叠加文字
     const fontSize = fontSizeSlider.value;
-    const positionYPercent = positionYSlider.value;
+    const positionYPercent = TEXT_Y_PCT * 100;
     ctx.fillStyle = 'rgb(59, 66, 85)';
     ctx.font = `${fontSize}px 'HYWenHei-85W'`;
     ctx.textAlign = 'center';
@@ -687,34 +691,52 @@ function drawSelectionOverlay() {
         }
     })();
     // 左下角：镜像按钮（左右/上下）
-    const offset = Math.round(HANDLE_RADIUS * 1.9); // 间距
-    const flipHPos = { x: bl.x + offset, y: bl.y };      // 水平镜像按钮在左下角的右侧
-    const flipVPos = { x: bl.x, y: bl.y - offset };      // 垂直镜像按钮在左下角的上方
-    // 水平镜像：统一中性背景
+    const offset = Math.round(HANDLE_RADIUS * 1.9); // 间距（在图像局部坐标系内）
+    // 以左下角 bl 为基点，沿图像局部 +X（右）方向放置水平镜像按钮，沿 -Y（上）方向放置垂直镜像按钮
+    const apRot = ap.rotationRad || 0;
+    const cosR = Math.cos(apRot), sinR = Math.sin(apRot);
+    // 局部 (dx,dy) 旋转到全局： (dx*cos - dy*sin, dx*sin + dy*cos)
+    const flipHPos = {
+        x: bl.x + offset * cosR - 0 * sinR,
+        y: bl.y + offset * sinR + 0 * cosR
+    };
+    const flipVPos = {
+        x: bl.x + 0 * cosR - (-offset) * sinR, // dy = -offset
+        y: bl.y + 0 * sinR + (-offset) * cosR
+    };
+    // 水平镜像：
     (function(){
         const p = flipHPos;
-        drawHandleBox(p.x, p.y, HANDLE_RADIUS * 2, HANDLE_BG_NEUTRAL);
-        const ok = drawIconPaths(ICON_PATHS.flipH, p.x, p.y, HANDLE_RADIUS * 2.1, '#2E2F30');
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(apRot); // 跟随选区旋转
+        drawHandleBox(0, 0, HANDLE_RADIUS * 2, HANDLE_BG_NEUTRAL);
+        const ok = drawIconPaths(ICON_PATHS.flipH, 0, 0, HANDLE_RADIUS * 2.1, '#2E2F30');
         if (!ok) {
             ctx.fillStyle = '#2E2F30';
             ctx.font = '12px system-ui, Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText('↔', p.x, p.y + 0.5);
+            ctx.fillText('↔', 0, 0.5);
         }
+        ctx.restore();
     })();
-    // 垂直镜像：统一中性背景
+    // 垂直镜像：按钮与图层一起旋转
     (function(){
         const p = flipVPos;
-        drawHandleBox(p.x, p.y, HANDLE_RADIUS * 2, HANDLE_BG_NEUTRAL);
-        const ok = drawIconPaths(ICON_PATHS.flipV, p.x, p.y, HANDLE_RADIUS * 2.1, '#2E2F30');
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(apRot);
+        drawHandleBox(0, 0, HANDLE_RADIUS * 2, HANDLE_BG_NEUTRAL);
+        const ok = drawIconPaths(ICON_PATHS.flipV, 0, 0, HANDLE_RADIUS * 2.1, '#2E2F30');
         if (!ok) {
             ctx.fillStyle = '#2E2F30';
             ctx.font = '12px system-ui, Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText('↕', p.x, p.y + 0.5);
+            ctx.fillText('↕', 0, 0.5);
         }
+        ctx.restore();
     })();
     // 保存按钮位置供命中检测
     drawSelectionOverlay._flipHPos = flipHPos;
@@ -894,11 +916,14 @@ async function loadImage(src) {
                 // 新主图：重置旋转与镜像状态
                 rotationRad = 0; mainScaleX = 1; mainScaleY = 1;
                 // 重置导入尺寸为默认 50%
-                imageSizeSlider.value = String(DEFAULT_IMPORT_PCT);
-                if (imageSizeInput) imageSizeInput.value = String(DEFAULT_IMPORT_PCT);
-                const scale = DEFAULT_IMPORT_PCT / 100;
-                const w = Math.max(1, Math.round(userImg.width * scale));
+                const targetW = Math.max(1, Math.round(canvas.width * DEFAULT_IMPORT_WIDTH_RATIO));
+                const scale = targetW / Math.max(1, userImg.width);
+                const w = targetW;
                 const h = Math.max(1, Math.round(userImg.height * scale));
+                // 同步（隐藏的）slider/input 值为按百分比估算（与之前逻辑兼容缩放手势）
+                const pct = Math.round(scale * 100);
+                imageSizeSlider.value = String(pct);
+                if (imageSizeInput) imageSizeInput.value = String(pct);
                 // 默认位置：使图片中心位于吸附线交点（水平居中 + VERTICAL_SNAP_PCT 高度）
                 const targetCx = canvas.width / 2;
                 const targetCy = canvas.height * VERTICAL_SNAP_PCT;
@@ -921,11 +946,13 @@ async function loadImage(src) {
     // 新主图：重置旋转与镜像状态
     rotationRad = 0; mainScaleX = 1; mainScaleY = 1;
     // 重置导入尺寸为默认 50%
-    imageSizeSlider.value = String(DEFAULT_IMPORT_PCT);
-    if (imageSizeInput) imageSizeInput.value = String(DEFAULT_IMPORT_PCT);
-    const scale = DEFAULT_IMPORT_PCT / 100;
-    const w = Math.max(1, Math.round(userImg.width * scale));
+    const targetW = Math.max(1, Math.round(canvas.width * DEFAULT_IMPORT_WIDTH_RATIO));
+    const scale = targetW / Math.max(1, userImg.width);
+    const w = targetW;
     const h = Math.max(1, Math.round(userImg.height * scale));
+    const pct = Math.round(scale * 100);
+    imageSizeSlider.value = String(pct);
+    if (imageSizeInput) imageSizeInput.value = String(pct);
     // 默认位置：使图片中心位于吸附线交点（水平居中 + VERTICAL_SNAP_PCT 高度）
     const targetCx = canvas.width / 2;
     const targetCy = canvas.height * VERTICAL_SNAP_PCT;
@@ -1478,7 +1505,7 @@ canvas.addEventListener('wheel', onCanvasWheel, { passive: false });
 
 textInput.addEventListener('input', () => { redrawCanvas(); if (formatSelect.value === 'gif') updateQualityEstimates(); });
 fontSizeSlider.addEventListener('input', () => { redrawCanvas(); if (formatSelect.value === 'gif') updateQualityEstimates(); });
-positionYSlider.addEventListener('input', () => { redrawCanvas(); if (formatSelect.value === 'gif') updateQualityEstimates(); });
+// 已移除文字垂直位置滑块（固定为 TEXT_Y_PCT）
 imageSizeSlider.addEventListener('input', () => {
     imageSizeInput.value = imageSizeSlider.value;
     redrawCanvas();
@@ -1624,7 +1651,7 @@ downloadBtn.addEventListener('click', async () => {
                     octx.restore();
                     // 叠加文字
                     const fontSize = fontSizeSlider.value * qp.scale;
-                    const positionYPercent = positionYSlider.value;
+                    const positionYPercent = TEXT_Y_PCT * 100;
                     octx.fillStyle = 'rgb(59, 66, 85)';
                     octx.font = `${fontSize}px 'HYWenHei-85W'`;
                     octx.textAlign = 'center';
@@ -1668,7 +1695,7 @@ downloadBtn.addEventListener('click', async () => {
                     octx.restore();
                 }
                 const fontSize = fontSizeSlider.value * qp.scale;
-                const positionYPercent = positionYSlider.value;
+                const positionYPercent = TEXT_Y_PCT * 100;
                 octx.fillStyle = 'rgb(59, 66, 85)';
                 octx.font = `${fontSize}px 'HYWenHei-85W'`;
                 octx.textAlign = 'center';
@@ -1836,7 +1863,7 @@ async function estimateGifSizeBytes(scale) {
             octx.drawImage(fr.image || userImg, drawX, drawY, drawW, drawH);
             // 文本
             const fontSize = fontSizeSlider.value * scale;
-            const positionYPercent = positionYSlider.value;
+            const positionYPercent = TEXT_Y_PCT * 100;
             octx.fillStyle = 'rgb(59, 66, 85)';
             octx.font = `${fontSize}px 'HYWenHei-85W'`;
             octx.textAlign = 'center';

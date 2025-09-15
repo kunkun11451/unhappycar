@@ -29,6 +29,7 @@ class FangweiDrawer {
         this.settings = {
             enableMode: false,
             enablePoint: true,
+            enableModeDetail: true,
             modes: {
                 clone: true, swap: true, surprise: true,
                 audience: true, normal: true, jushi: true
@@ -111,16 +112,20 @@ class FangweiDrawer {
         const customMode = this.customModes.find(m => m.id === selectedMode);
         if (customMode) {
             this.currentResults.mode = customMode.name;
-            this.currentResults.modeDetail = this.generateCustomModeDetail(customMode);
+            this.currentResults.modeDetail = this.settings.enableModeDetail ? this.generateCustomModeDetail(customMode) : '';
         } else {
             this.currentResults.mode = this.modes[selectedMode].name;
-            switch (selectedMode) {
-                case 'clone': this.currentResults.modeDetail = `克隆 ${this.randomChoice(this.players)}`; break;
-                case 'swap': this.currentResults.modeDetail = this.generateSwapPairs(); break;
-                case 'surprise': this.currentResults.modeDetail = this.randomChoice(this.surpriseItems); break;
-                case 'audience': this.currentResults.modeDetail = this.generateAudienceGroups(); break;
-                case 'jushi': this.currentResults.modeDetail = this.generateJushiElements(); break;
-                default: this.currentResults.modeDetail = '';
+            if (this.settings.enableModeDetail) {
+                switch (selectedMode) {
+                    case 'clone': this.currentResults.modeDetail = `克隆 ${this.randomChoice(this.players)}`; break;
+                    case 'swap': this.currentResults.modeDetail = this.generateSwapPairs(); break;
+                    case 'surprise': this.currentResults.modeDetail = this.randomChoice(this.surpriseItems); break;
+                    case 'audience': this.currentResults.modeDetail = this.generateAudienceGroups(); break;
+                    case 'jushi': this.currentResults.modeDetail = this.generateJushiElements(); break;
+                    default: this.currentResults.modeDetail = '';
+                }
+            } else {
+                this.currentResults.modeDetail = '';
             }
         }
         this.updateModeDisplay();
@@ -406,6 +411,8 @@ class FangweiDrawer {
     updateSettingsUI() {
         document.getElementById('enableMode').checked = this.settings.enableMode;
         document.getElementById('enablePoint').checked = this.settings.enablePoint;
+        const enableModeDetailEl = document.getElementById('enableModeDetail');
+        if (enableModeDetailEl) enableModeDetailEl.checked = this.settings.enableModeDetail;
         Object.keys(this.modes).forEach(key => {
             const checkbox = document.getElementById(`mode${key.charAt(0).toUpperCase() + key.slice(1)}`);
             if (checkbox) checkbox.checked = this.settings.modes[key] !== false;
@@ -444,6 +451,34 @@ class FangweiDrawer {
     setupEventListeners() {
         document.getElementById('enableMode').addEventListener('change', e => { this.settings.enableMode = e.target.checked; this.saveSettings(); this.updateDrawButtonsVisibility(); });
     document.getElementById('enablePoint').addEventListener('change', e => { this.settings.enablePoint = e.target.checked; this.saveSettings(); this.updateDrawButtonsVisibility(); });
+    const enableModeDetailEl = document.getElementById('enableModeDetail');
+    if (enableModeDetailEl) {
+        enableModeDetailEl.addEventListener('change', e => {
+            this.settings.enableModeDetail = e.target.checked;
+            if (!this.settings.enableModeDetail) {
+                this.currentResults.modeDetail = '';
+            } else if (this.settings.enableMode && this.currentResults.mode) {
+                // 重新生成当前模式详情
+                const key = Object.keys(this.modes).find(k => this.modes[k].name === this.currentResults.mode);
+                const custom = this.customModes.find(m => m.name === this.currentResults.mode);
+                if (custom) {
+                    this.currentResults.modeDetail = this.generateCustomModeDetail(custom);
+                } else if (key) {
+                    switch (key) {
+                        case 'clone': this.currentResults.modeDetail = `克隆 ${this.randomChoice(this.players)}`; break;
+                        case 'swap': this.currentResults.modeDetail = this.generateSwapPairs(); break;
+                        case 'surprise': this.currentResults.modeDetail = this.randomChoice(this.surpriseItems); break;
+                        case 'audience': this.currentResults.modeDetail = this.generateAudienceGroups(); break;
+                        case 'jushi': this.currentResults.modeDetail = this.generateJushiElements(); break;
+                        default: this.currentResults.modeDetail = '';
+                    }
+                }
+            }
+            this.saveSettings();
+            this.updateModeDisplay();
+            this.updateCopyText();
+        });
+    }
     // 事件抽取已移除
 
         Object.keys(this.modes).forEach(key => {
