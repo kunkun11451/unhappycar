@@ -58,6 +58,7 @@
             <div class="copy-text" id="copyText">-</div>
             <button class="copy-button" id="copyButton" onclick="copyResult()">📋 复制结果</button>
         </div>
+        <!-- 下次抽取提示区移动到底部 -->
 
         <div class="modal-overlay" id="historyModal" style="display: none;">
             <div class="modal-content">
@@ -139,6 +140,21 @@
                                     <span class="checkmark"></span>
                                     抽取模式详情
                                 </label>
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-item">
+                                <label class="setting-label">
+                                    <input type="checkbox" id="enableNextDrawHint">
+                                    <span class="checkmark"></span>
+                                    开启下次抽取提示
+                                </label>
+                            </div>
+                            <div class="setting-item" id="nextDrawStartPointContainer" style="display: none;">
+                                <label class="setting-label" for="nextDrawStartPoint">
+                                    起始点位：
+                                </label>
+                                <input type="number" id="nextDrawStartPoint" class="setting-input" value="1" min="1">
                             </div>
                         </div>
 
@@ -227,6 +243,10 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <div class="hint-section" id="hintSection" style="display: none;">
+        <div class="hint-text" id="hintText"></div>
     </div>
 
     <script src="script.js"></script>

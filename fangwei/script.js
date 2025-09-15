@@ -33,8 +33,14 @@ class FangweiDrawer {
             modes: {
                 clone: true, swap: true, surprise: true,
                 audience: true, normal: true, jushi: true
-            }
+            },
+            enableNextDrawHint: false,
+            nextDrawStartPoint: 1
         };
+
+        this.nextDrawCounter = 0;
+        this.lastPointValue = 0;
+        this.hintActive = false;
 
         this.history = [];
         this.maxHistory = 10;
@@ -142,19 +148,46 @@ class FangweiDrawer {
         this.addAnimation('directionResult');
     }
 
-    drawPoint() {
-        this.currentResults.point = `${this.randomChoice(this.points)}点`;
+    drawPoint(isRedraw = false) {
+        const pointValue = parseInt(this.randomChoice(this.points));
+        this.currentResults.point = `${pointValue}点`;
+
+        if (this.settings.enableNextDrawHint) {
+            if (isRedraw) {
+                // 单独重抽：撤销上次点数，加上新的点数
+                this.nextDrawCounter = (this.nextDrawCounter - this.lastPointValue) + pointValue;
+            } else {
+                // 全部抽取中的点位抽取：直接累加
+                this.nextDrawCounter += pointValue;
+            }
+            this.lastPointValue = pointValue;
+            this.updateHint();
+        }
+
         this.updatePointDisplay();
         this.updateCopyText();
         this.addAnimation('pointResult');
     }
 
     drawAll() {
+        // 点位抽取提示逻辑：
+        // 期望：通过“开始抽取”按钮的点位结果应继续在之前的累计基础上叠加。
+        // 只有在尚未激活提示或手动关闭后重新开启时才初始化起始点。
+        if (this.settings.enableNextDrawHint) {
+            if (!this.hintActive) {
+                // 首次激活，初始化为起始点位的前一位（这样第一次加上 pointValue 后就是起始点）
+                this.nextDrawCounter = this.settings.nextDrawStartPoint - 1;
+                this.lastPointValue = 0;
+                this.hintActive = true;
+            }
+            // 如果已经 active，则不重置，保持累加，由后续 drawPoint(false) 完成叠加
+        }
         if (this.settings.enableMode) this.drawMode();
         this.drawDirection();
-        if (this.settings.enablePoint) this.drawPoint();
+        if (this.settings.enablePoint) this.drawPoint(false);
         this.showResults();
         this.addToHistory();
+        this.toggleHintUI();
     }
 
     showResults() {
@@ -411,6 +444,9 @@ class FangweiDrawer {
     updateSettingsUI() {
         document.getElementById('enableMode').checked = this.settings.enableMode;
         document.getElementById('enablePoint').checked = this.settings.enablePoint;
+        document.getElementById('enableNextDrawHint').checked = this.settings.enableNextDrawHint;
+        document.getElementById('nextDrawStartPoint').value = this.settings.nextDrawStartPoint;
+        this.toggleHintUI();
         const enableModeDetailEl = document.getElementById('enableModeDetail');
         if (enableModeDetailEl) enableModeDetailEl.checked = this.settings.enableModeDetail;
         Object.keys(this.modes).forEach(key => {
@@ -423,6 +459,7 @@ class FangweiDrawer {
     updateDrawButtonsVisibility() {
         const modeResultItem = document.getElementById('modeResultItem');
         const pointResultItem = document.getElementById('pointResultItem');
+        const nextDrawHintRow = document.getElementById('enableNextDrawHint').closest('.setting-row');
         const modeSettings = document.getElementById('modeSettings');
         const customModeSection = document.querySelector('.custom-mode-section');
 
@@ -440,9 +477,15 @@ class FangweiDrawer {
         }
 
         pointResultItem.style.display = this.settings.enablePoint ? 'flex' : 'none';
+        if (nextDrawHintRow) {
+            nextDrawHintRow.style.display = this.settings.enablePoint ? 'flex' : 'none';
+        }
         if (!this.settings.enablePoint) {
             this.currentResults.point = '';
             this.updatePointDisplay();
+            this.settings.enableNextDrawHint = false;
+            this.updateSettingsUI();
+            this.resetHint();
         }
 
         this.updateCopyText();
@@ -450,8 +493,38 @@ class FangweiDrawer {
 
     setupEventListeners() {
         document.getElementById('enableMode').addEventListener('change', e => { this.settings.enableMode = e.target.checked; this.saveSettings(); this.updateDrawButtonsVisibility(); });
-    document.getElementById('enablePoint').addEventListener('change', e => { this.settings.enablePoint = e.target.checked; this.saveSettings(); this.updateDrawButtonsVisibility(); });
-    const enableModeDetailEl = document.getElementById('enableModeDetail');
+        document.getElementById('enablePoint').addEventListener('change', e => {
+            this.settings.enablePoint = e.target.checked;
+            if (e.target.checked) {
+                this.settings.enableNextDrawHint = true;
+            }
+            this.saveSettings();
+            this.updateDrawButtonsVisibility();
+            this.updateSettingsUI();
+        });
+        
+        const enableNextDrawHintEl = document.getElementById('enableNextDrawHint');
+        enableNextDrawHintEl.addEventListener('change', e => {
+            this.settings.enableNextDrawHint = e.target.checked;
+            this.saveSettings();
+            this.toggleHintUI();
+            if (!e.target.checked) {
+                this.resetHint();
+            }
+        });
+
+        const nextDrawStartPointEl = document.getElementById('nextDrawStartPoint');
+        nextDrawStartPointEl.addEventListener('change', e => {
+            let value = parseInt(e.target.value);
+            if (isNaN(value) || value < 1) {
+                value = 1;
+                e.target.value = 1;
+            }
+            this.settings.nextDrawStartPoint = value;
+            this.saveSettings();
+        });
+
+        const enableModeDetailEl = document.getElementById('enableModeDetail');
     if (enableModeDetailEl) {
         enableModeDetailEl.addEventListener('change', e => {
             this.settings.enableModeDetail = e.target.checked;
@@ -517,6 +590,33 @@ class FangweiDrawer {
             });
         });
     }
+
+    toggleHintUI() {
+        const startPointContainer = document.getElementById('nextDrawStartPointContainer');
+        const hintSection = document.getElementById('hintSection');
+        if (this.settings.enableNextDrawHint) {
+            startPointContainer.style.display = 'block';
+            hintSection.style.display = this.hintActive ? 'block' : 'none';
+            this.updateHint();
+        } else {
+            startPointContainer.style.display = 'none';
+            hintSection.style.display = 'none';
+        }
+    }
+
+    updateHint() {
+        const hintText = document.getElementById('hintText');
+        if (this.settings.enableNextDrawHint) {
+            hintText.textContent = `下次在第 ${this.nextDrawCounter + 1} 点开始时重抽`;
+        }
+    }
+
+    resetHint() {
+        this.nextDrawCounter = 0;
+        this.lastPointValue = 0;
+        this.hintActive = false;
+        document.getElementById('hintSection').style.display = 'none';
+    }
 }
 
 let fangweiDrawer;
@@ -524,7 +624,7 @@ let fangweiDrawer;
 function drawAll() { fangweiDrawer.drawAll(); }
 function drawMode() { fangweiDrawer.drawMode(); }
 function drawDirection() { fangweiDrawer.drawDirection(); }
-function drawPoint() { fangweiDrawer.drawPoint(); }
+function drawPoint() { fangweiDrawer.drawPoint(true); }
 function copyResult() { fangweiDrawer.copyResult(); }
 function showHistory() { fangweiDrawer.showHistory(); }
 function hideHistory() { fangweiDrawer.hideHistory(); }
