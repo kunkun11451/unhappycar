@@ -1,0 +1,6 @@
+window.RouteConfig = {
+    imageData: {
+        '-6': ['-61 yxg.jpg', '-62 yxg.jpg', '-63 yxg.jpg', '-64 yxg.jpg', '-65 yxg.jpg', '-66 cy.jpg', '-67 cy.jpg', '-68 cy.jpg', '-69 cy.jpg', '-610 cy.jpg', '-611 fd.jpg', '-612 fd.jpg', '-613 fd.jpg', '-614 fd.jpg', '-615 ly.jpg', '-616 ly.jpg', '-617 ly.jpg', '-618 ly.jpg', '-619 xm.jpg', '-620 xm.jpg', '-621 xm.jpg', '-622 xm.jpg', '-623 xm.jpg', '-624 xm.jpg', '-625 ly.jpg', '-626 ly.jpg', '-627 dq.jpg', '-628 dq.jpg', '-629 dq.jpg', '-630 dq.jpg'],
+        'y7': ['y71 yxg.jpg', 'y72 yxg.jpg', 'y73 yxg.jpg', 'y74 yxg.jpg', 'y75 yxg.jpg', 'y76 yxg.jpg', 'y77 cy.jpg', 'y78 cy.jpg', 'y79 cy.jpg', 'y710 cy.jpg', 'y711 cy.jpg', 'y712 cy.jpg', 'y713 fd.jpg', 'y714 fd.jpg', 'y715 fd.jpg', 'y716 fd.jpg', 'y717 fd.jpg', 'y718 fd.jpg', 'y719 fd.jpg', 'y720 fd.jpg', 'y721 ly.jpg', 'y722 ly.jpg', 'y723 ly.jpg', 'y724 ly.jpg', 'y725 ly.jpg', 'y726 ly.jpg', 'y727 xm.jpg', 'y728 sm.jpg', 'y729 sm.jpg', 'y730 xm.jpg', 'y731 sm.jpg', 'y732 sm.jpg', 'y733 sm.jpg', 'y734 sm.jpg', 'y735 dq.jpg', 'y736 dq.jpg', 'y737 dq.jpg', 'y738 dq.jpg', 'y739 dq.jpg', 'y740 dq.jpg', 'y741 nt.jpg', 'y742 nt.jpg', 'y743 nt.jpg', 'y744 nt.jpg', 'y745 nt.jpg', 'y746 nt.jpg']
+    }
+};

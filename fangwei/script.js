@@ -35,7 +35,9 @@ class FangweiDrawer {
                 audience: true, normal: true, jushi: true
             },
             enableNextDrawHint: false,
-            nextDrawStartPoint: 1
+            nextDrawStartPoint: 1,
+            // 路线选择: 'none' | 'y7' | '-6'
+            routeSelection: 'none'
         };
 
         this.nextDrawCounter = 0;
@@ -54,6 +56,8 @@ class FangweiDrawer {
         this.loadSettings();
         this.setupEventListeners();
         this.updateCustomModesList();
+        // 构建路线映射索引
+        this.buildRouteIndexMap();
         this.showResults();
     }
 
@@ -167,6 +171,8 @@ class FangweiDrawer {
         this.updatePointDisplay();
         this.updateCopyText();
         this.addAnimation('pointResult');
+        // 更新路线图片（仅在已选择路线时显示）
+        this.updateRouteImage();
     }
 
     drawAll() {
@@ -188,6 +194,8 @@ class FangweiDrawer {
         this.showResults();
         this.addToHistory();
         this.toggleHintUI();
+        // 全部抽取后再次尝试更新路线图片
+        this.updateRouteImage();
     }
 
     showResults() {
@@ -446,6 +454,8 @@ class FangweiDrawer {
         document.getElementById('enablePoint').checked = this.settings.enablePoint;
         document.getElementById('enableNextDrawHint').checked = this.settings.enableNextDrawHint;
         document.getElementById('nextDrawStartPoint').value = this.settings.nextDrawStartPoint;
+        const routeSel = document.getElementById('routeSelection');
+        if (routeSel) routeSel.value = this.settings.routeSelection || 'none';
         this.toggleHintUI();
         const enableModeDetailEl = document.getElementById('enableModeDetail');
         if (enableModeDetailEl) enableModeDetailEl.checked = this.settings.enableModeDetail;
@@ -454,6 +464,8 @@ class FangweiDrawer {
             if (checkbox) checkbox.checked = this.settings.modes[key] !== false;
         });
         this.updateDrawButtonsVisibility();
+        // 设置界面加载时尝试更新一次
+        this.updateRouteImage();
     }
 
     updateDrawButtonsVisibility() {
@@ -502,6 +514,16 @@ class FangweiDrawer {
             this.updateDrawButtonsVisibility();
             this.updateSettingsUI();
         });
+        const routeSel = document.getElementById('routeSelection');
+        if (routeSel) {
+            routeSel.addEventListener('change', e => {
+                this.settings.routeSelection = e.target.value;
+                this.saveSettings();
+                // 切换路线时重建索引并刷新图片
+                this.buildRouteIndexMap();
+                this.updateRouteImage();
+            });
+        }
         
         const enableNextDrawHintEl = document.getElementById('enableNextDrawHint');
         enableNextDrawHintEl.addEventListener('change', e => {
@@ -607,7 +629,9 @@ class FangweiDrawer {
     updateHint() {
         const hintText = document.getElementById('hintText');
         if (this.settings.enableNextDrawHint) {
-            hintText.textContent = `下次在第 ${this.nextDrawCounter + 1} 点开始时重抽`;
+            hintText.textContent = `下次在第 ${this.nextDrawCounter + 1} 点重抽`;
+            // 提示更新时刷新路线图片
+            this.updateRouteImage();
         }
     }
 
@@ -616,6 +640,65 @@ class FangweiDrawer {
         this.lastPointValue = 0;
         this.hintActive = false;
         document.getElementById('hintSection').style.display = 'none';
+    }
+
+    /* ================= 路线图片相关 ================= */
+    buildRouteIndexMap() {
+        // 将 RouteConfig.imageData 中的数组转换为: 线路 -> [{name, index, raw}]
+        this.routeIndexMap = {};
+        if (!window.RouteConfig || !window.RouteConfig.imageData) return;
+        const data = window.RouteConfig.imageData;
+        Object.keys(data).forEach(routeKey => {
+            this.routeIndexMap[routeKey] = data[routeKey].map((fileName, idx) => {
+                // 解析 y7 / -6 后的数字：例如 y713 fd.jpg -> 713 -> 第13? 需求：关注数字中 y7 后面的数字部分
+                // 实际逻辑：文件名以 routeKey 开头，后面紧跟数字(可能多位)和空格
+                let pointNumber = null;
+                const routePrefix = routeKey;
+                // 去掉扩展名与前缀中文件
+                // 匹配: ^(prefix)(\d+)\s
+                const regex = new RegExp('^' + routePrefix.replace(/[-/\\]/g,'\\$&') + '(\\d+)\\s');
+                const m = fileName.match(regex);
+                if (m) {
+                    // 将字符串数字转为序号: 需求说明: “y7后面的数字是几就是第几个点”
+                    // 例如 y71 -> 第1个点, y746 -> 第46个点
+                    pointNumber = parseInt(m[1], 10); // 直接用其数字值
+                } else {
+                    // 备用：按数组下标+1
+                    pointNumber = idx + 1;
+                }
+                return { name: fileName, raw: fileName, pointNumber };
+            });
+        });
+    }
+
+    getRouteImageByPoint(pointStr) {
+        // 已废弃旧逻辑；保留兼容调用（pointStr 未再使用）
+        const route = this.settings.routeSelection;
+        if (!route || route === 'none') return null;
+        if (!this.routeIndexMap || !this.routeIndexMap[route]) return null;
+        // 新逻辑：直接匹配完整数字 = 下次重抽点 (nextDrawCounter + 1)
+        const targetPoint = this.nextDrawCounter + 1;
+        return this.routeIndexMap[route].find(it => it.pointNumber === targetPoint) || null;
+    }
+
+    updateRouteImage() {
+        const container = document.getElementById('routeImageSection');
+        const imgEl = document.getElementById('routeImage');
+        if (!container || !imgEl) return;
+        const route = this.settings.routeSelection;
+        if (!route || route === 'none') { container.style.display = 'none'; return; }
+        // 仅在启用提示并已经激活（或已进行至少一次累加）时显示；否则不显示
+        if (!this.settings.enableNextDrawHint || !this.hintActive) { container.style.display = 'none'; return; }
+        const imageInfo = this.getRouteImageByPoint();
+        if (!imageInfo) {
+            container.style.display = 'none';
+            return;
+        }
+        // 图片路径：./<route>/<filename>
+        const src = `${route}/${imageInfo.raw}`;
+        imgEl.src = src;
+        imgEl.alt = imageInfo.raw;
+        container.style.display = 'block';
     }
 }
 

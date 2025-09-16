@@ -147,9 +147,22 @@
                                 <label class="setting-label">
                                     <input type="checkbox" id="enableNextDrawHint">
                                     <span class="checkmark"></span>
-                                    开启下次抽取提示
+                                   下次抽取点位提示
                                 </label>
                             </div>
+                        <div class="setting-row">
+                            <div class="setting-item" style="flex:1 1 100%;">
+                                <label class="setting-label" for="routeSelection">
+                                    路线：
+                                </label>
+                                <select id="routeSelection" class="setting-input">
+                                    <option value="none">不使用路线</option>
+                                    <option value="y7">Y7</option>
+                                    <option value="-6">-6</option>
+                                </select>
+                            </div>
+                        </div>
+
                             <div class="setting-item" id="nextDrawStartPointContainer" style="display: none;">
                                 <label class="setting-label" for="nextDrawStartPoint">
                                     起始点位：
@@ -249,6 +262,13 @@
         <div class="hint-text" id="hintText"></div>
     </div>
 
+    <!-- 路线图片展示 -->
+    <div id="routeImageSection" style="display:none;margin:12px auto 0;max-width:360px;text-align:center;">
+        <div style="font-size:14px;color:#666;margin-bottom:4px;">传送到此处后重抽</div>
+        <img id="routeImage" src="" alt="路线图片" style="max-width:100%;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.15);">
+    </div>
+
+    <script src="route-config.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
