@@ -1,5 +1,11 @@
 // 角色数据
 window.characterData = {
+    "菲林斯": {
+        "头像": "https://act-upload.mihoyo.com/wiki-user-upload/2025/08/29/50494840/580bb3983dcd02b1deee98cbdab99f0b_8777161852000493899.png",
+        "元素类型": "雷",
+        "武器类型": "长枪",
+        "星级": "五星"
+    },
     "菈乌玛": {
         "头像": "https://act-upload.mihoyo.com/wiki-user-upload/2025/09/01/50494840/45dc7f4d9f71563546e664ed68e56d72_604412205691851460.png",
         "元素类型": "草",
