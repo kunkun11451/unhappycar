@@ -16,6 +16,190 @@ const customUseBtn = document.getElementById('custom-use-btn');
 const customPanel = document.getElementById('custom-image-panel');
 const customPreview = document.getElementById('custom-preview');
 const customPreviewImg = document.getElementById('custom-preview-img');
+// 抠图相关元素
+const bgRemoveTools = document.getElementById('bg-remove-tools');
+const pickedColorSwatch = document.getElementById('picked-color-swatch');
+const bgThresholdSlider = document.getElementById('bg-threshold');
+const bgThresholdVal = document.getElementById('bg-threshold-val');
+const bgResetBtn = document.getElementById('bg-reset-btn');
+const pickedColorInfo = document.getElementById('picked-color-info');
+const pickedRangePreview = document.getElementById('picked-range-preview');
+const pickedColorPlaceholder = document.getElementById('picked-color-placeholder');
+const bgThresholdWrapper = document.getElementById('bg-threshold-wrapper');
+
+// 抠图状态
+let originalPreviewImageData = null; // 原始像素缓存（ImageData）
+let workingPreviewCanvas = null;     // 离屏 canvas 用于处理
+let workingPreviewCtx = null;
+let pickedColor = null;              // {r,g,b}
+let lastAppliedThreshold = null;
+let processedPreviewDataURL = null;  // 当前处理后的 dataURL
+let suppressPreviewReimport = false; // 避免处理结果再次触发覆盖原始像素缓存
+
+function ensureWorkingPreviewCanvas() {
+    if (!customPreviewImg || !customPreviewImg.complete) return null;
+    if (!workingPreviewCanvas) {
+        workingPreviewCanvas = document.createElement('canvas');
+        workingPreviewCtx = workingPreviewCanvas.getContext('2d', { willReadFrequently: true });
+    }
+    // 以图片天然尺寸绘制
+    workingPreviewCanvas.width = customPreviewImg.naturalWidth;
+    workingPreviewCanvas.height = customPreviewImg.naturalHeight;
+    workingPreviewCtx.clearRect(0,0,workingPreviewCanvas.width, workingPreviewCanvas.height);
+    workingPreviewCtx.drawImage(customPreviewImg, 0, 0);
+    try {
+        originalPreviewImageData = workingPreviewCtx.getImageData(0,0,workingPreviewCanvas.width, workingPreviewCanvas.height);
+    } catch(e) {
+        // 跨域取像素失败
+        originalPreviewImageData = null;
+    }
+    return originalPreviewImageData;
+}
+
+function applyBackgroundRemoval(threshold) {
+    if (!originalPreviewImageData || !pickedColor || !workingPreviewCtx) return;
+    threshold = Math.max(0, Math.min(255, threshold|0));
+    const { data, width, height } = originalPreviewImageData;
+    const out = workingPreviewCtx.createImageData(width, height);
+    const outData = out.data;
+    const pr = pickedColor.r, pg = pickedColor.g, pb = pickedColor.b;
+    const tSq = threshold * threshold; // 使用平方距离加速比较
+    for (let i=0; i<data.length; i+=4) {
+        const r = data[i], g = data[i+1], b = data[i+2], a = data[i+3];
+        const dr = r - pr, dg = g - pg, db = b - pb;
+        const distSq = dr*dr + dg*dg + db*db;
+        if (distSq <= tSq) {
+            // 设透明
+            outData[i] = r; outData[i+1] = g; outData[i+2] = b; outData[i+3] = 0;
+        } else {
+            outData[i] = r; outData[i+1] = g; outData[i+2] = b; outData[i+3] = a;
+        }
+    }
+    workingPreviewCtx.putImageData(out, 0, 0);
+    // 使用 dataURL（同步），并阻止重新抓取为“原始”
+    suppressPreviewReimport = true;
+    processedPreviewDataURL = workingPreviewCanvas.toDataURL('image/png');
+    customPreviewImg.src = processedPreviewDataURL;
+}
+
+function updateThresholdUI() {
+    if (bgThresholdVal && bgThresholdSlider) bgThresholdVal.textContent = bgThresholdSlider.value;
+    updatePickedColorInfo();
+}
+
+function resetPreviewRemoval() {
+    if (!customPreviewImg || !pendingCustomSrc) return;
+    customPreviewImg.src = pendingCustomSrc; // 恢复原图
+    pickedColor = null;
+    lastAppliedThreshold = null;
+    processedPreviewDataURL = null;
+    if (pickedColorSwatch) {
+        pickedColorSwatch.style.background = 'linear-gradient(45deg,#ccc,#eee)';
+    }
+    updatePickedColorInfo();
+    if (pickedColorPlaceholder) pickedColorPlaceholder.style.display = 'inline';
+    if (pickedColorInfo) pickedColorInfo.style.display = 'none';
+    if (bgThresholdWrapper) bgThresholdWrapper.style.display = 'none';
+    if (bgResetBtn) bgResetBtn.style.display = 'none';
+}
+
+if (bgThresholdSlider) {
+    bgThresholdSlider.addEventListener('input', () => {
+        updateThresholdUI();
+        const th = parseInt(bgThresholdSlider.value,10);
+        if (pickedColor && th !== lastAppliedThreshold) {
+            // 重新从原始数据开始（避免累积精度丢失）
+            if (originalPreviewImageData) {
+                workingPreviewCtx.putImageData(originalPreviewImageData,0,0);
+            } else {
+                ensureWorkingPreviewCanvas();
+            }
+            applyBackgroundRemoval(th);
+            lastAppliedThreshold = th;
+        }
+    });
+}
+if (bgResetBtn) {
+    bgResetBtn.addEventListener('click', () => {
+        resetPreviewRemoval();
+    });
+}
+
+function enableBgRemoveToolsIfPossible() {
+    if (!bgRemoveTools) return;
+    // 如果图片跨域且无法访问像素，则隐藏
+    if (!originalPreviewImageData) {
+        // 尝试创建一次（可能刚加载完）
+        ensureWorkingPreviewCanvas();
+    }
+    if (originalPreviewImageData) {
+        bgRemoveTools.style.display = 'block';
+    } else {
+        bgRemoveTools.style.display = 'none';
+    }
+}
+
+if (customPreviewImg) {
+    customPreviewImg.addEventListener('load', () => {
+        if (suppressPreviewReimport) {
+            // 这次是处理结果回写，跳过覆盖 original
+            suppressPreviewReimport = false;
+            enableBgRemoveToolsIfPossible();
+            return;
+        }
+        // 新原图 / 重置后的图：重新建立原始数据
+        ensureWorkingPreviewCanvas();
+        enableBgRemoveToolsIfPossible();
+    });
+    // 取色点击
+    customPreviewImg.addEventListener('click', (e) => {
+        if (!bgRemoveTools || bgRemoveTools.style.display === 'none') return; // 无法取色
+        if (!originalPreviewImageData) return;
+        // 计算点击在图片中的相对坐标（考虑图片可能被 CSS 缩放）
+        const rect = customPreviewImg.getBoundingClientRect();
+        const scaleX = customPreviewImg.naturalWidth / rect.width;
+        const scaleY = customPreviewImg.naturalHeight / rect.height;
+        const x = Math.floor((e.clientX - rect.left) * scaleX);
+        const y = Math.floor((e.clientY - rect.top) * scaleY);
+        if (x < 0 || y < 0 || x >= originalPreviewImageData.width || y >= originalPreviewImageData.height) return;
+        const idx = (y * originalPreviewImageData.width + x) * 4;
+        const d = originalPreviewImageData.data;
+        const r = d[idx], g = d[idx+1], b = d[idx+2];
+        pickedColor = { r, g, b };
+        if (pickedColorSwatch) {
+            pickedColorSwatch.style.background = `rgb(${r},${g},${b})`;
+        }
+        updatePickedColorInfo();
+        if (pickedColorPlaceholder) pickedColorPlaceholder.style.display = 'none';
+        if (pickedColorInfo) pickedColorInfo.style.display = 'block';
+        if (bgThresholdWrapper) bgThresholdWrapper.style.display = 'flex';
+        if (bgResetBtn) bgResetBtn.style.display = 'inline-block';
+        // 立即应用当前阈值
+        const th = parseInt(bgThresholdSlider.value,10) || 0;
+        if (originalPreviewImageData) workingPreviewCtx.putImageData(originalPreviewImageData,0,0);
+        applyBackgroundRemoval(th);
+        lastAppliedThreshold = th;
+    });
+}
+
+updateThresholdUI();
+
+function clamp01(v){ return Math.max(0, Math.min(255, v)); }
+function updatePickedColorInfo(){
+    if (!pickedColorInfo) return;
+    if (!pickedColor || !bgThresholdSlider){
+        pickedColorInfo.innerHTML = '颜色: -  <br>阈值范围: -   <span id="picked-range-preview" style="display:inline-block; width:80px; height:14px; vertical-align:middle; border:1px solid #aaa; border-radius:4px; background:repeating-linear-gradient(45deg,#ddd,#ddd 6px,#f3f3f3 6px,#f3f3f3 12px);"></span>';
+        return;
+    }
+    const t = parseInt(bgThresholdSlider.value,10) || 0;
+    const {r,g,b} = pickedColor;
+    const rMin = clamp01(r - t), rMax = clamp01(r + t);
+    const gMin = clamp01(g - t), gMax = clamp01(g + t);
+    const bMin = clamp01(b - t), bMax = clamp01(b + t);
+    // 生成简易渐变：从 (rMin,g,b) -> (r,gMin,b) -> (r,g,bMin) -> (rMax,gMax,bMax)
+    const grad = `linear-gradient(90deg, rgb(${rMin},${g},${b}) 0%, rgb(${r},${gMin},${b}) 33%, rgb(${r},${g},${bMin}) 66%, rgb(${rMax},${gMax},${bMax}) 100%)`;
+    pickedColorInfo.innerHTML = `颜色: rgb(${r},${g},${b})  <br>阈值范围: (${rMin}-${rMax}, ${gMin}-${gMax}, ${bMin}-${bMax})  <span id="picked-range-preview" style="display:inline-block; width:110px; height:14px; vertical-align:middle; border:1px solid #aaa; border-radius:4px; background:${grad};"></span>`;
+}
 let pendingCustomSrc = '';
 const galleryBtn = document.getElementById('gallery-btn');
 const galleryModal = document.getElementById('gallery-modal');
@@ -1542,6 +1726,8 @@ imageUpload.addEventListener('change', async (e) => {
         if (customPreview && customPreviewImg) {
             customPreviewImg.src = pendingCustomSrc;
             customPreview.style.display = 'block';
+            // 每次新图重置抠图状态
+            resetPreviewRemoval();
         }
     };
     reader.readAsDataURL(file);
@@ -1558,16 +1744,19 @@ imageUrlInput.addEventListener('input', (e) => {
     if (customPreview && customPreviewImg) {
         customPreviewImg.src = url;
         customPreview.style.display = 'block';
+        resetPreviewRemoval();
     }
 });
 
 // 自定义图片：使用按钮
 if (customUseBtn) {
     customUseBtn.addEventListener('click', async () => {
-    const src = (pendingCustomSrc || '').trim();
-    if (!src) { showTipModal('请先上传图片或输入 URL'); return; }
-    await loadImage(src);
-    if (src.startsWith('http')) addToRecents(src, true);
+    const raw = (pendingCustomSrc || '').trim();
+    if (!raw) { showTipModal('请先上传图片或输入 URL'); return; }
+    // 如果有处理结果且已经应用过阈值（pickedColor != null），使用处理后的 dataURL
+    const finalSrc = (processedPreviewDataURL && pickedColor && lastAppliedThreshold !== null) ? processedPreviewDataURL : raw;
+    await loadImage(finalSrc);
+    if (raw.startsWith('http')) addToRecents(raw, true); // 记录原始 URL（而不是 dataURL）
     if (typeof closeGalleryModal === 'function') closeGalleryModal();
     });
 }

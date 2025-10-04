@@ -101,6 +101,30 @@
                     <div class="custom-preview" id="custom-preview" style="display:none;">
                         <img id="custom-preview-img" alt="预览" />
                     </div>
+                    <!-- 简易抠图工具 -->
+                    <div id="bg-remove-tools" style="display:none; margin-top:10px; padding:8px 10px; background:rgba(0,0,0,0.05); border:1px solid #d3c7b3; border-radius:8px;">
+                        <div style="font-size:12px; color:#444; line-height:1.4;">
+                            简单去除背景：精确点击上方预览图选择背景颜色位置，被选颜色及其阈值范围内的像素将被设为透明。
+                        </div>
+                        <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:8px;" id="bg-tools-inner">
+                            <div id="picked-color-box" style="display:flex; align-items:center; gap:6px;">
+                                <span style="font-size:12px; color:#555;">当前颜色:</span>
+                                <span id="picked-color-swatch" style="width:28px; height:28px; border-radius:6px; border:1px solid #888; background:linear-gradient(45deg,#ccc,#eee); display:inline-block;"></span>
+                                <span id="picked-color-placeholder" style="font-size:11px; color:#888;">请点击选择颜色</span>
+                            </div>
+                            <div id="picked-color-info" style="flex:1 1 100%; font-size:11px; color:#666; line-height:1.4; padding-left:2px; display:none;">
+                                颜色: -  阈值范围: -  示例: 
+                                <span id="picked-range-preview" style="display:inline-block; width:80px; height:14px; vertical-align:middle; border:1px solid #aaa; border-radius:4px; background:repeating-linear-gradient(45deg,#ddd,#ddd 6px,#f3f3f3 6px,#f3f3f3 12px);"></span>
+                            </div>
+                            <div id="bg-threshold-wrapper" style="display:none; align-items:center; gap:4px;">
+                                <label for="bg-threshold" style="font-size:12px; color:#555;">阈值</label>
+                                <input type="range" id="bg-threshold" min="0" max="180" value="40" style="width:140px;">
+                                <span id="bg-threshold-val" style="font-size:12px; color:#333; width:32px; text-align:right;">40</span>
+                            </div>
+                            <button id="bg-reset-btn" type="button" style="display:none; font-size:12px; padding:4px 10px; background:#e7dfcd; border:1px solid #c9bba2; border-radius:6px; cursor:pointer;">重置</button>
+                        </div>
+                        <div style="margin-top:4px; font-size:11px; color:#666;">提示：背景扣除不完全请加大阈值，主体被扣除请减小阈值。</div>
+                    </div>
                     <button id="custom-use-btn" class="custom-use-btn">使用该图片</button>
                 </div>
             </div>

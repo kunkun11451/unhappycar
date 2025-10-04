@@ -572,6 +572,8 @@ input[type="file"] {
     border-radius: 10px; 
     padding: 12px; 
     margin: 12px 0; 
+    max-height: 56vh;
+    overflow: auto;
 }
 .custom-inputs { display: grid; grid-template-columns: 1fr; gap: 8px; }
 .custom-label { color:#6b5b45; font-weight:600; font-size: 14px; }
@@ -588,7 +590,9 @@ input[type="file"] {
 .or-divider span { background:#f2efe6; padding: 0 6px; }
 .custom-preview { 
     margin: 8px 0; padding: 8px; border: 1px dashed rgb(209,191,162); border-radius: 8px; 
-    background:#fff;
+    /* 透明棋盘背景 */
+    --checker-size: 12px;
+    background: repeating-conic-gradient(#d8d2c6 0% 25%, #f5f1ea 0% 50%) 0 0 / var(--checker-size) var(--checker-size);
     max-height: 40vh;
     overflow: auto;
     display: flex;
@@ -596,7 +600,10 @@ input[type="file"] {
     align-items: center;
     text-align: center;
 }
-.custom-preview img { max-width: 100%; max-height: 200px; height: auto; display: block; border-radius: 6px; object-fit: contain; margin: 0 auto; }
+.custom-preview img { 
+    max-width: 100%; max-height: 200px; height: auto; display: block; border-radius: 6px; object-fit: contain; margin: 0 auto; 
+    background: transparent; 
+}
 
 /* File input button theming */
 .custom-file {
