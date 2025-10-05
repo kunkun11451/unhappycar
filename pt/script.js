@@ -26,6 +26,20 @@ const pickedColorInfo = document.getElementById('picked-color-info');
 const pickedRangePreview = document.getElementById('picked-range-preview');
 const pickedColorPlaceholder = document.getElementById('picked-color-placeholder');
 const bgThresholdWrapper = document.getElementById('bg-threshold-wrapper');
+// Zoom preview elements
+const previewZoomBtn = document.getElementById('preview-zoom-btn');
+const zoomModal = document.getElementById('zoom-preview-modal');
+const zoomCloseBtn = document.getElementById('zoom-close-btn');
+const zoomPreviewImg = document.getElementById('zoom-preview-img');
+// Big tool mirrors
+const pickedColorSwatchBig = document.getElementById('picked-color-swatch-big');
+const pickedColorPlaceholderBig = document.getElementById('picked-color-placeholder-big');
+const pickedColorInfoBig = document.getElementById('picked-color-info-big');
+const pickedRangePreviewBig = document.getElementById('picked-range-preview-big');
+const bgThresholdWrapperBig = document.getElementById('bg-threshold-wrapper-big');
+const bgThresholdSliderBig = document.getElementById('bg-threshold-big');
+const bgThresholdValBig = document.getElementById('bg-threshold-val-big');
+const bgResetBtnBig = document.getElementById('bg-reset-btn-big');
 
 // 抠图状态
 let originalPreviewImageData = null; // 原始像素缓存（ImageData）
@@ -85,6 +99,7 @@ function applyBackgroundRemoval(threshold) {
 function updateThresholdUI() {
     if (bgThresholdVal && bgThresholdSlider) bgThresholdVal.textContent = bgThresholdSlider.value;
     updatePickedColorInfo();
+    if (bgThresholdValBig && bgThresholdSliderBig) bgThresholdValBig.textContent = bgThresholdSliderBig.value;
 }
 
 function resetPreviewRemoval() {
@@ -101,6 +116,12 @@ function resetPreviewRemoval() {
     if (pickedColorInfo) pickedColorInfo.style.display = 'none';
     if (bgThresholdWrapper) bgThresholdWrapper.style.display = 'none';
     if (bgResetBtn) bgResetBtn.style.display = 'none';
+    // Big mirror reset
+    if (pickedColorSwatchBig) pickedColorSwatchBig.style.background = 'linear-gradient(45deg,#ccc,#eee)';
+    if (pickedColorPlaceholderBig) pickedColorPlaceholderBig.style.display = 'inline';
+    if (pickedColorInfoBig) pickedColorInfoBig.style.display = 'none';
+    if (bgThresholdWrapperBig) bgThresholdWrapperBig.style.display = 'none';
+    if (bgResetBtnBig) bgResetBtnBig.style.display = 'none';
 }
 
 if (bgThresholdSlider) {
@@ -174,11 +195,49 @@ if (customPreviewImg) {
         if (pickedColorInfo) pickedColorInfo.style.display = 'block';
         if (bgThresholdWrapper) bgThresholdWrapper.style.display = 'flex';
         if (bgResetBtn) bgResetBtn.style.display = 'inline-block';
+        // Sync big tools if open
+        syncBigToolsFromSmall();
         // 立即应用当前阈值
         const th = parseInt(bgThresholdSlider.value,10) || 0;
         if (originalPreviewImageData) workingPreviewCtx.putImageData(originalPreviewImageData,0,0);
         applyBackgroundRemoval(th);
         lastAppliedThreshold = th;
+    });
+}
+
+// 为放大预览添加取色能力（与小预览逻辑一致）
+if (zoomPreviewImg) {
+    zoomPreviewImg.addEventListener('click', (e) => {
+        // 只有在已加载原始数据且工具可用时才能取色
+        if (!originalPreviewImageData) return;
+        // 如果小工具区由于跨域被隐藏，这里同样不提供取色（保持一致性）
+        if (!bgRemoveTools || bgRemoveTools.style.display === 'none') return;
+        const rect = zoomPreviewImg.getBoundingClientRect();
+        const scaleX = zoomPreviewImg.naturalWidth / rect.width;
+        const scaleY = zoomPreviewImg.naturalHeight / rect.height;
+        const x = Math.floor((e.clientX - rect.left) * scaleX);
+        const y = Math.floor((e.clientY - rect.top) * scaleY);
+        if (x < 0 || y < 0 || x >= originalPreviewImageData.width || y >= originalPreviewImageData.height) return;
+        const idx = (y * originalPreviewImageData.width + x) * 4;
+        const d = originalPreviewImageData.data;
+        const r = d[idx], g = d[idx+1], b = d[idx+2];
+        pickedColor = { r, g, b };
+        // 更新小预览侧 UI（作为主状态）
+        if (pickedColorSwatch) pickedColorSwatch.style.background = `rgb(${r},${g},${b})`;
+        updatePickedColorInfo();
+        if (pickedColorPlaceholder) pickedColorPlaceholder.style.display = 'none';
+        if (pickedColorInfo) pickedColorInfo.style.display = 'block';
+        if (bgThresholdWrapper) bgThresholdWrapper.style.display = 'flex';
+        if (bgResetBtn) bgResetBtn.style.display = 'inline-block';
+        // 同步到大预览工具
+        syncBigToolsFromSmall();
+        // 应用当前阈值
+        const th = parseInt(bgThresholdSlider.value,10) || 0;
+        if (originalPreviewImageData) workingPreviewCtx.putImageData(originalPreviewImageData,0,0);
+        applyBackgroundRemoval(th);
+        lastAppliedThreshold = th;
+        // 更新大图展示（因为应用后的 processed 会写回 customPreviewImg.src）
+        if (zoomPreviewImg && customPreviewImg) zoomPreviewImg.src = customPreviewImg.src;
     });
 }
 
@@ -188,7 +247,7 @@ function clamp01(v){ return Math.max(0, Math.min(255, v)); }
 function updatePickedColorInfo(){
     if (!pickedColorInfo) return;
     if (!pickedColor || !bgThresholdSlider){
-        pickedColorInfo.innerHTML = '颜色: -  <br>阈值范围: -   <span id="picked-range-preview" style="display:inline-block; width:80px; height:14px; vertical-align:middle; border:1px solid #aaa; border-radius:4px; background:repeating-linear-gradient(45deg,#ddd,#ddd 6px,#f3f3f3 6px,#f3f3f3 12px);"></span>';
+        pickedColorInfo.innerHTML = '颜色: -  <br>阈值范围: -   <br><span id="picked-range-preview" style="display:inline-block; width:80px; height:14px; vertical-align:middle; border:1px solid #aaa; border-radius:4px; background:repeating-linear-gradient(45deg,#ddd,#ddd 6px,#f3f3f3 6px,#f3f3f3 12px);"></span>';
         return;
     }
     const t = parseInt(bgThresholdSlider.value,10) || 0;
@@ -198,7 +257,73 @@ function updatePickedColorInfo(){
     const bMin = clamp01(b - t), bMax = clamp01(b + t);
     // 生成简易渐变：从 (rMin,g,b) -> (r,gMin,b) -> (r,g,bMin) -> (rMax,gMax,bMax)
     const grad = `linear-gradient(90deg, rgb(${rMin},${g},${b}) 0%, rgb(${r},${gMin},${b}) 33%, rgb(${r},${g},${bMin}) 66%, rgb(${rMax},${gMax},${bMax}) 100%)`;
-    pickedColorInfo.innerHTML = `颜色: rgb(${r},${g},${b})  <br>阈值范围: (${rMin}-${rMax}, ${gMin}-${gMax}, ${bMin}-${bMax})  <span id="picked-range-preview" style="display:inline-block; width:110px; height:14px; vertical-align:middle; border:1px solid #aaa; border-radius:4px; background:${grad};"></span>`;
+    pickedColorInfo.innerHTML = `颜色: rgb(${r},${g},${b})  <br>阈值范围: (${rMin}-${rMax}, ${gMin}-${gMax}, ${bMin}-${bMax})  <br><span id="picked-range-preview" style="display:inline-block; width:110px; height:14px; vertical-align:middle; border:1px solid #aaa; border-radius:4px; background:${grad};"></span>`;
+}
+
+// ---- Zoom (Large Preview) logic ----
+function openZoomModal(){
+    if (!zoomModal) return;
+    if (zoomPreviewImg && customPreviewImg) {
+        zoomPreviewImg.src = customPreviewImg.src;
+    }
+    zoomModal.style.display = 'flex';
+    requestAnimationFrame(()=>zoomModal.classList.add('active'));
+    // Sync state
+    syncBigToolsFromSmall();
+}
+function closeZoomModal(){
+    if (!zoomModal) return;
+    zoomModal.classList.remove('active');
+    setTimeout(()=>{ if (!zoomModal.classList.contains('active')) zoomModal.style.display='none'; }, 220);
+}
+function syncBigToolsFromSmall(){
+    if (!pickedColorSwatchBig) return;
+    if (pickedColor){
+        pickedColorSwatchBig.style.background = pickedColorSwatch.style.background;
+        if (pickedColorPlaceholderBig) pickedColorPlaceholderBig.style.display='none';
+        if (pickedColorInfoBig) pickedColorInfoBig.style.display='block';
+        if (bgThresholdWrapperBig) bgThresholdWrapperBig.style.display='flex';
+        if (bgResetBtnBig) bgResetBtnBig.style.display='inline-block';
+        if (bgThresholdSliderBig && bgThresholdSlider) bgThresholdSliderBig.value = bgThresholdSlider.value;
+        if (bgThresholdValBig && bgThresholdSliderBig) bgThresholdValBig.textContent = bgThresholdSliderBig.value;
+        // Range preview replicate
+        if (pickedColorInfoBig && pickedColorInfo){
+            // 简化：直接复制小 info 的 innerHTML
+            pickedColorInfoBig.innerHTML = pickedColorInfo.innerHTML.replace('picked-range-preview','picked-range-preview-big');
+        }
+    } else {
+        if (pickedColorPlaceholderBig) pickedColorPlaceholderBig.style.display='inline';
+        if (pickedColorInfoBig) pickedColorInfoBig.style.display='none';
+        if (bgThresholdWrapperBig) bgThresholdWrapperBig.style.display='none';
+        if (bgResetBtnBig) bgResetBtnBig.style.display='none';
+    }
+}
+// Big threshold changes sync back
+if (bgThresholdSliderBig){
+    bgThresholdSliderBig.addEventListener('input', ()=>{
+        if (!pickedColor) return; // ignore until color selected
+        bgThresholdSlider.value = bgThresholdSliderBig.value;
+        updateThresholdUI();
+        const th = parseInt(bgThresholdSlider.value,10) || 0;
+        if (originalPreviewImageData) workingPreviewCtx.putImageData(originalPreviewImageData,0,0);
+        applyBackgroundRemoval(th);
+        lastAppliedThreshold = th;
+        // 更新大预览图片
+        if (zoomPreviewImg && customPreviewImg) zoomPreviewImg.src = customPreviewImg.src;
+    });
+}
+if (bgResetBtnBig){
+    bgResetBtnBig.addEventListener('click', ()=>{ resetPreviewRemoval(); if (zoomPreviewImg && customPreviewImg) zoomPreviewImg.src = customPreviewImg.src; });
+}
+if (previewZoomBtn){
+    // 按需显示
+    const showZoomBtn = ()=>{ if (customPreview.style.display!=='none') previewZoomBtn.style.display='flex'; };
+    showZoomBtn();
+    previewZoomBtn.addEventListener('click', openZoomModal);
+}
+if (zoomCloseBtn){
+    zoomCloseBtn.addEventListener('click', closeZoomModal);
+    if (zoomModal) zoomModal.addEventListener('click', (e)=>{ if (e.target===zoomModal) closeZoomModal(); });
 }
 let pendingCustomSrc = '';
 const galleryBtn = document.getElementById('gallery-btn');
