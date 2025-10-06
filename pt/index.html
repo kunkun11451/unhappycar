@@ -62,7 +62,9 @@
                         镜像
                     </span>
                 </div>
-                <br>旋转和缩放需按住并拖动<br>动图请选择GIF格式导出
+                <br>旋转和缩放需按住并拖动<br>动图请选择GIF格式导出<br>
+                <a id="show-guide-link" href="javascript:void(0);" style="display:inline-block; margin-top:6px; font-size:13px; color:#8b6b3e; text-decoration:underline; cursor:pointer;">详细提示</a><br>
+                <button id="usage-tip-dismiss-btn" type="button" style="margin-top:10px; padding:6px 14px; background:#e7dfcd; border:1px solid #c9bba2; border-radius:8px; cursor:pointer; font-size:13px; color:#2c2f36; display:inline-block;">我知道了(不再提示)</button>
             </div>
             <label for="format-select">导出格式:</label>
             <select id="format-select">
@@ -182,5 +184,12 @@
     <!-- GIF 编码库（gif.js.optimized）用于导出动图 -->
     <script src="https://unpkg.com/gif.js.optimized/dist/gif.js"></script>
     <script src="script.js" defer></script>
+    <!-- 详细提示弹窗结构 -->
+    <div id="guide-overlay" class="guide-overlay" style="display:none;">
+        <div class="guide-wrapper">
+            <button id="guide-close-btn" class="guide-close" aria-label="关闭">&times;</button>
+            <img src="Guide.png" alt="详细操作指南" class="guide-image" />
+        </div>
+    </div>
 </body>
 </html>

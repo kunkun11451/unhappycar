@@ -333,6 +333,7 @@ const categoryContainer = document.getElementById('category-container');
 const imageGallery = document.getElementById('image-gallery');
 // --- First-load tip modal ---
 const NO_TIP_KEY = 'pt_no_first_load_tip_v1';
+const USAGE_TIP_DISMISS_KEY = 'pt_usage_tip_dismiss_v1';
 function showFirstLoadTipIfNeeded() {
     try {
         if (localStorage.getItem(NO_TIP_KEY) === '1') return;
@@ -433,6 +434,52 @@ function showFirstLoadTipIfNeeded() {
         }
     } catch { tick(); }
 }
+
+// 使用提示区域的“一次性关闭”逻辑
+(() => {
+    const usageTip = document.querySelector('.tip');
+    const dismissBtn = document.getElementById('usage-tip-dismiss-btn');
+    if (!usageTip || !dismissBtn) return;
+    try {
+        if (localStorage.getItem(USAGE_TIP_DISMISS_KEY) === '1') {
+            // 记录原始高度占位，防止宽度变化的视觉跳动（初次就不渲染可直接隐藏，高度占位意义不大）
+            usageTip.style.display = 'none';
+            return;
+        }
+    } catch {}
+    dismissBtn.addEventListener('click', () => {
+        const h = usageTip.offsetHeight;
+        usageTip.style.transition = 'opacity .25s ease';
+        usageTip.style.opacity = '1';
+        // 占位保持整体高度，避免 flex 重新布局引起的宽度变化
+        usageTip.style.height = h + 'px';
+        usageTip.style.boxSizing = 'border-box';
+        requestAnimationFrame(() => { usageTip.style.opacity = '0'; });
+        setTimeout(() => { usageTip.style.display = 'none'; }, 260);
+        try { localStorage.setItem(USAGE_TIP_DISMISS_KEY, '1'); } catch {}
+    });
+})();
+
+// 详细提示（Guide.png）弹窗逻辑
+(() => {
+    const link = document.getElementById('show-guide-link');
+    const overlay = document.getElementById('guide-overlay');
+    const closeBtn = document.getElementById('guide-close-btn');
+    if (!link || !overlay) return;
+    const open = () => {
+        overlay.style.display = 'flex';
+        overlay.style.opacity = '0';
+        requestAnimationFrame(()=>{ overlay.style.transition='opacity .25s ease'; overlay.style.opacity='1'; });
+    };
+    const close = () => {
+        overlay.style.opacity='0';
+        setTimeout(()=>{ if(overlay.style.opacity==='0') overlay.style.display='none'; }, 260);
+    };
+    link.addEventListener('click', open);
+    if (closeBtn) closeBtn.addEventListener('click', close);
+    overlay.addEventListener('click', (e)=>{ if (e.target===overlay) close(); });
+    window.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && overlay.style.display!=='none') close(); });
+})();
 
 // 统一的轻量提示弹窗
 function showTipModal(message, { duration = 1800 } = {}) {
