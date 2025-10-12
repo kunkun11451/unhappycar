@@ -191,5 +191,15 @@
             <img src="Guide.png" alt="详细操作指南" class="guide-image" />
         </div>
     </div>
+    <!-- 复制失败备用弹窗：展示图片，方便用户长按/系统菜单复制 -->
+    <div id="copy-fallback-overlay" class="guide-overlay" style="display:none;">
+        <div class="guide-wrapper" style="display:flex; flex-direction:column; gap:10px; align-items:center;">
+            <button id="copy-fallback-close" class="guide-close" aria-label="关闭">&times;</button>
+            <div style="background:#fff; border:1px solid rgb(209,191,162); border-radius:10px; padding:10px 12px; color:#2c2f36; font-size:14px; text-align:center; max-width:min(92vw, 1000px);">
+                复制失败或浏览器不支持，请长按图片通过浏览器菜单进行复制。
+            </div>
+            <img id="copy-fallback-img" class="guide-image" alt="复制备用图片" />
+        </div>
+    </div>
 </body>
 </html>

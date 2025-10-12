@@ -2103,13 +2103,54 @@ copyBtn.addEventListener('click', () => {
     const prevSelected = isSelected; const prevRotating = isRotating; const prevScaling = isScaling; const prevHandle = activeHandle;
     isSelected = false; isRotating = false; isScaling = false; activeHandle = null; redrawCanvas();
     canvas.toBlob(blob => {
+        const showFallback = (blobOrDataUrl) => {
+            try {
+                const overlay = document.getElementById('copy-fallback-overlay');
+                const imgEl = document.getElementById('copy-fallback-img');
+                const closeBtn = document.getElementById('copy-fallback-close');
+                if (!overlay || !imgEl) { showTipModal('复制失败！', { duration: 1800 }); return; }
+                if (typeof blobOrDataUrl === 'string') {
+                    imgEl.src = blobOrDataUrl;
+                } else if (blobOrDataUrl instanceof Blob) {
+                    imgEl.src = URL.createObjectURL(blobOrDataUrl);
+                }
+                // 允许该图片上的长按/右键菜单（覆盖可能存在的全局阻止）
+                try {
+                    imgEl.oncontextmenu = null; // 清除可能的阻止
+                    imgEl.addEventListener('contextmenu', (e) => { /* 允许默认菜单 */ }, { once: true });
+                } catch {}
+                overlay.style.display = 'flex';
+                overlay.style.opacity = '0';
+                requestAnimationFrame(()=>{ overlay.style.transition='opacity .25s ease'; overlay.style.opacity='1'; });
+                const hide = () => {
+                    overlay.style.opacity='0';
+                    setTimeout(()=>{ if(overlay.style.opacity==='0'){ overlay.style.display='none'; if (imgEl.src.startsWith('blob:')) URL.revokeObjectURL(imgEl.src); imgEl.src=''; } }, 260);
+                };
+                if (closeBtn) closeBtn.onclick = hide;
+                overlay.onclick = (e)=>{ if (e.target===overlay) hide(); };
+                window.addEventListener('keydown', function onKey(e){ if(e.key==='Escape' && overlay.style.display!=='none'){ hide(); window.removeEventListener('keydown', onKey);} });
+            } catch { showTipModal('复制失败！', { duration: 1800 }); }
+        };
+
         if (navigator.clipboard && navigator.clipboard.write) {
             const item = new ClipboardItem({ 'image/png': blob });
             navigator.clipboard.write([item]).then(() => {
                 showTipModal('图片已复制到剪贴板！', { duration: 1400 });
-            }).catch(err => showTipModal('复制失败！', { duration: 1800 }));
+            }).catch(err => {
+                // 失败时回退展示图片，便于用户手动复制
+                try {
+                    const reader = new FileReader();
+                    reader.onload = () => showFallback(reader.result);
+                    reader.readAsDataURL(blob);
+                } catch { showFallback(blob); }
+            });
         } else {
-            showTipModal('浏览器不支持复制功能。', { duration: 2000 });
+            // 不支持 clipboard API，直接回退
+            try {
+                const reader = new FileReader();
+                reader.onload = () => showFallback(reader.result);
+                reader.readAsDataURL(blob);
+            } catch { showFallback(blob); }
         }
         // 恢复编辑框显示状态
         isSelected = prevSelected; isRotating = prevRotating; isScaling = prevScaling; activeHandle = prevHandle; redrawCanvas();
