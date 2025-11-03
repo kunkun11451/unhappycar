@@ -702,7 +702,7 @@ const jsonFiles = [
     "派蒙的画作第25-26弹.json", "派蒙的画作第27-28弹.json", "派蒙的画作第29-30弹.json",
     "派蒙的画作第31-32弹.json", "派蒙的画作第33-34弹.json", "派蒙的画作第35-36弹.json",
     "派蒙的画作第37-38弹.json", "派蒙的画作第39-40弹.json", "派蒙的画作第41-42弹.json",
-    "派蒙的画作第43-44弹.json"
+    "派蒙的画作第43-44弹.json","崩铁.json"
 ];
 const galleryData = {};
 // ---- Recents (最近使用) ----
@@ -1386,6 +1386,14 @@ async function initGallery() {
 }
 
 function populateCategories() {
+    let wrap = categoryContainer.parentElement;
+    if (!wrap || !wrap.classList || !wrap.classList.contains('category-wrap')) {
+        wrap = document.createElement('div');
+        wrap.className = 'category-wrap';
+        const parent = categoryContainer.parentNode;
+        parent.insertBefore(wrap, categoryContainer);
+        wrap.appendChild(categoryContainer);
+    }
     // 重建分类条，保证顺序：最近使用 -> 其他
     categoryContainer.innerHTML = '';
     const order = ['自定义图片', '最近使用', ...Object.keys(galleryData).filter(n => n !== '最近使用')];
@@ -1428,13 +1436,85 @@ function populateCategories() {
 
     // 鼠标滚轮横向滚动支持
     categoryContainer.addEventListener('wheel', (e) => {
-        if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-            e.preventDefault();
-            categoryContainer.scrollLeft += e.deltaY;
+        if (!categoryContainer.classList.contains('expanded')) {
+            if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+                e.preventDefault();
+                categoryContainer.scrollLeft += e.deltaY;
+            }
         }
     }, { passive: false });
     // 初始化“最近使用”缩略图可见性
     updateRecentsButtonThumb();
+    try {
+        if (!categoryContainer.classList.contains('expanded')) {
+            categoryContainer._collapsedH = categoryContainer.getBoundingClientRect().height;
+        }
+        if (!categoryContainer._resizeBound) {
+            window.addEventListener('resize', () => {
+                if (!categoryContainer.classList.contains('expanded')) {
+                    categoryContainer._collapsedH = categoryContainer.getBoundingClientRect().height;
+                }
+            });
+            categoryContainer._resizeBound = true;
+        }
+    } catch {}
+
+    let toggle = wrap.querySelector('.category-expand-toggle');
+    if (!toggle) {
+        toggle = document.createElement('div');
+        toggle.className = 'category-expand-toggle';
+        toggle.textContent = '展开';
+        wrap.appendChild(toggle);
+        const setExpanded = (expanded) => {
+            const el = categoryContainer;
+            const w = wrap;
+            const D = 280; 
+            if (el.classList.contains('animating')) return;
+            const endCleanup = () => {
+                el.style.transition = '';
+                el.style.height = '';
+                el.classList.remove('animating');
+            };
+            if (expanded) {
+                const fromH = el.getBoundingClientRect().height;
+                el.style.height = fromH + 'px';
+                el.classList.add('animating');
+                requestAnimationFrame(() => {
+                    el.classList.add('expanded');
+                    w.classList.add('expanded');
+                    toggle.textContent = '收起';
+                    const maxPx = Math.max(80, Math.round(window.innerHeight * 0.42));
+                    const toH = Math.min(el.scrollHeight, maxPx);
+                    el.style.transition = `height ${D}ms ease`;
+                    requestAnimationFrame(() => { el.style.height = toH + 'px'; });
+                });
+                const onEnd = (ev) => { if (ev.propertyName === 'height') { el.removeEventListener('transitionend', onEnd); endCleanup(); } };
+                el.addEventListener('transitionend', onEnd);
+            } else {
+                const fromH = el.getBoundingClientRect().height;
+                const collapsedH = Math.max(1, Math.round(el._collapsedH || 140));
+                el.style.height = fromH + 'px';
+                el.classList.add('animating');
+                el.style.transition = `height ${D}ms ease`;
+                requestAnimationFrame(() => { el.style.height = collapsedH + 'px'; });
+                const onEnd = (ev) => {
+                    if (ev.propertyName !== 'height') return;
+                    el.removeEventListener('transitionend', onEnd);
+                    el.classList.remove('expanded');
+                    w.classList.remove('expanded');
+                    toggle.textContent = '展开';
+                    endCleanup();
+                };
+                el.addEventListener('transitionend', onEnd);
+            }
+        };
+        toggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const willExpand = !categoryContainer.classList.contains('expanded');
+            setExpanded(willExpand);
+        });
+        categoryContainer._setExpanded = setExpanded;
+    }
 }
 
 function displayCategory(categoryName) {
@@ -1442,6 +1522,18 @@ function displayCategory(categoryName) {
     document.querySelectorAll('.category-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.category === categoryName);
     });
+
+    // 若当前为“展开”多行模式，选择后自动收起
+    if (categoryContainer && categoryContainer.classList.contains('expanded')) {
+        if (typeof categoryContainer._setExpanded === 'function') {
+            categoryContainer._setExpanded(false);
+        } else {
+            categoryContainer.classList.remove('expanded');
+            if (categoryContainer.parentElement && categoryContainer.parentElement.classList.contains('category-wrap')) {
+                categoryContainer.parentElement.classList.remove('expanded');
+            }
+        }
+    }
 
     // 自动滚动激活项到可视范围
     const activeBtn = [...categoryContainer.children].find(el => el.dataset.category === categoryName);

@@ -381,7 +381,6 @@ input[type="file"] {
     scrollbar-width: thin;           /* Firefox */
     scrollbar-color: rgb(209, 191, 162) rgb(235, 228, 214); /* Firefox */
     scroll-snap-type: x proximity;
-    /* 防止水平滚动条遮挡下方文字，保持高度稳定 */
     min-height: 130px;
     scrollbar-gutter: stable both-edges;
 }
@@ -489,6 +488,48 @@ input[type="file"] {
 }
 .category-container::-webkit-scrollbar-thumb:hover { background: rgb(196, 177, 147); }
 
+.category-container.expanded {
+    flex-wrap: wrap;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scroll-snap-type: none;
+    justify-content: center; 
+    padding-top: 8px;
+    max-height: 42vh;
+}
+.category-container.animating { overflow: hidden !important; }
+.category-container.expanded::before,
+.category-container.expanded::after {
+    content: none;
+    display: none;
+    width: 0; height: 0;
+}
+
+.category-expand-toggle {
+    position: static;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin: 8px 0 0;
+    font-size: 12px;
+    color: #8b6b3e;
+    background: rgba(235,228,214,0.9);
+    border: 1px solid var(--c-border);
+    border-radius: 12px;
+    padding: 4px 12px;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    line-height: 18px;
+    user-select: none;
+}
+.category-expand-toggle:hover { background: rgba(231,223,205,0.95); }
+
+.category-wrap { position: relative; text-align: center; }
+
+.category-btn { width: 110px; }
+.category-btn span { max-width: 100%; }
+
 /* 文本选中高亮配色（全局） */
 ::selection { background: rgba(209, 191, 162, 0.65); color: #2c2f36; }
 ::-moz-selection { background: rgba(209, 191, 162, 0.65); color: #2c2f36; }
@@ -546,8 +587,8 @@ input[type="file"] {
         padding: 6px 4px; 
     }
     .category-btn img { 
-        width: 64px; 
-        height: 64px; 
+        width: 80px; 
+        height: 80px; 
         border-radius: 8px;
     }
     .category-btn span { 
@@ -737,3 +778,9 @@ button.btn-progress {
     transition: background-size .15s ease;
 }
 button.btn-progress::before { content: none; }
+
+@media (max-width: 1136px) {
+    .category-container.expanded { max-height: 50vh; padding-top: 8px; }
+    .category-expand-toggle { font-size: 11px; padding: 2px 8px; }
+    .category-btn { width: 96px; }
+}
