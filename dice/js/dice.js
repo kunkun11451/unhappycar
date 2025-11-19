@@ -29,11 +29,11 @@ class DiceSimulator {
         this.mainLight = null;
         this.spotLight = null;
         
-        // 音频相关
-        this.diceTableSound = null;  // 骰子与桌子碰撞音效
-        this.diceDiceSound = null;   // 骰子与骰子碰撞音效
+        // 音频相关 (Web Audio API)
+        this.audioContext = null;
+        this.masterGain = null;
         this.lastCollisionTime = 0;
-        this.collisionCooldown = 30; // 碰撞音效冷却时间（毫秒）
+        this.diceHitBuffer = null; // 存储加载的骰子碰撞音效
         
         // UI控制
         this.uiVisible = true; // UI显示状态
@@ -89,69 +89,58 @@ class DiceSimulator {
     }
 
     setupLighting() {
-        // 环境光
-        const ambientLight = new THREE.AmbientLight(0x404040, 0.3);
-        this.scene.add(ambientLight);
+        // 1. 环境光 - 使用半球光模拟天空和地面的自然光照
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
+        hemiLight.position.set(0, 20, 0);
+        this.scene.add(hemiLight);
 
-        // 主光源 - 使用更大的阴影范围来适应大场地
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
-        directionalLight.position.set(15, 20, 10);
-        directionalLight.castShadow = true;
-        directionalLight.shadow.mapSize.width = 4096;  
-        directionalLight.shadow.mapSize.height = 4096;
-        directionalLight.shadow.camera.near = 0.5;
-        directionalLight.shadow.camera.far = 100;     
-        // 扩大阴影相机范围以覆盖最大的场地
-        directionalLight.shadow.camera.left = -30;
-        directionalLight.shadow.camera.right = 30;
-        directionalLight.shadow.camera.top = 30;
-        directionalLight.shadow.camera.bottom = -30;
-        directionalLight.shadow.bias = -0.0001;       
-        this.scene.add(directionalLight);
+        // 2. 主光源 (DirectionalLight) - 模拟主要的室内照明
+        // 调整位置和角度，产生更有立体感的阴影
+        const mainLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        mainLight.position.set(10, 20, 10);
+        mainLight.castShadow = true;
         
-        // 保存主光源引用，以便后续动态调整
-        this.mainLight = directionalLight;
+        // 优化阴影质量
+        mainLight.shadow.mapSize.width = 2048;
+        mainLight.shadow.mapSize.height = 2048;
+        mainLight.shadow.camera.near = 0.5;
+        mainLight.shadow.camera.far = 100;
+        mainLight.shadow.bias = -0.0005; // 减少阴影伪影
+        
+        // 动态调整阴影范围
+        const shadowSize = 30;
+        mainLight.shadow.camera.left = -shadowSize;
+        mainLight.shadow.camera.right = shadowSize;
+        mainLight.shadow.camera.top = shadowSize;
+        mainLight.shadow.camera.bottom = -shadowSize;
+        
+        this.scene.add(mainLight);
+        this.mainLight = mainLight;
 
-        // 点光源1 - 暖色调，配置阴影参数
-        const pointLight1 = new THREE.PointLight(0xff8c42, 0.8, 30);
-        pointLight1.position.set(-8, 12, 8);
-        pointLight1.castShadow = true;
-        pointLight1.shadow.mapSize.width = 1024;
-        pointLight1.shadow.mapSize.height = 1024;
-        pointLight1.shadow.camera.near = 0.1;
-        pointLight1.shadow.camera.far = 50;
-        pointLight1.shadow.bias = -0.0001;
-        this.scene.add(pointLight1);
+        // 3. 补光 (PointLight) - 增加场景的体积感和冷暖对比
+        // 暖色补光
+        const fillLight1 = new THREE.PointLight(0xffaa00, 0.5, 50);
+        fillLight1.position.set(-15, 10, -15);
+        this.scene.add(fillLight1);
 
-        // 点光源2 - 冷色调，配置阴影参数
-        const pointLight2 = new THREE.PointLight(0x42a5ff, 0.6, 25);
-        pointLight2.position.set(12, 10, -6);
-        pointLight2.castShadow = true;
-        pointLight2.shadow.mapSize.width = 1024;
-        pointLight2.shadow.mapSize.height = 1024;
-        pointLight2.shadow.camera.near = 0.1;
-        pointLight2.shadow.camera.far = 40;
-        pointLight2.shadow.bias = -0.0001;
-        this.scene.add(pointLight2);
+        // 冷色补光
+        const fillLight2 = new THREE.PointLight(0x00aaff, 0.4, 50);
+        fillLight2.position.set(15, 10, -15);
+        this.scene.add(fillLight2);
 
-        // 聚光灯 - 调整参数以适应大场地
-        const spotLight = new THREE.SpotLight(0xffffff, 1.2);
-        spotLight.position.set(0, 25, 0);
-        spotLight.target.position.set(0, 0, 0);
-        spotLight.angle = Math.PI / 4;             
-        spotLight.penumbra = 0.3;
-        spotLight.decay = 1.5;
-        spotLight.distance = 60;                     
+        // 4. 聚光灯 (SpotLight) - 聚焦在骰子区域，产生戏剧性的高光
+        const spotLight = new THREE.SpotLight(0xffffff, 0.8);
+        spotLight.position.set(0, 30, 5);
+        spotLight.angle = Math.PI / 6;
+        spotLight.penumbra = 0.5; // 柔和边缘
+        spotLight.decay = 2;
+        spotLight.distance = 100;
         spotLight.castShadow = true;
-        spotLight.shadow.mapSize.width = 2048;       
-        spotLight.shadow.mapSize.height = 2048;
-        spotLight.shadow.camera.near = 1;
-        spotLight.shadow.camera.far = 80;
+        spotLight.shadow.mapSize.width = 1024;
+        spotLight.shadow.mapSize.height = 1024;
         spotLight.shadow.bias = -0.0001;
-        this.scene.add(spotLight);
-        this.scene.add(spotLight.target);
         
-        // 保存聚光灯引用，以便后续调整
+        this.scene.add(spotLight);
         this.spotLight = spotLight;
     }
 
@@ -190,7 +179,15 @@ class DiceSimulator {
     }
 
     create6SidedDice(count) {
-        const diceGeometry = new THREE.BoxGeometry(2, 2, 2);
+        // 尝试使用圆角立方体，如果不可用则回退到普通立方体
+        let diceGeometry;
+        if (THREE.RoundedBoxGeometry) {
+            // 参数: width, height, depth, segments, radius
+            diceGeometry = new THREE.RoundedBoxGeometry(2, 2, 2, 4, 0.25);
+            this.fixMaterialGroups(diceGeometry);
+        } else {
+            diceGeometry = new THREE.BoxGeometry(2, 2, 2);
+        }
         
         this.createDiceTextures().then(materials => {
             const positions = this.calculateDicePositions(count);
@@ -203,7 +200,8 @@ class DiceSimulator {
                 this.scene.add(dice);
                 this.dice.push(dice);
 
-                const diceShape = new CANNON.Box(new CANNON.Vec3(1, 1, 1));
+                // 物理形状保持为盒子，稍微缩小一点以匹配圆角视觉
+                const diceShape = new CANNON.Box(new CANNON.Vec3(0.98, 0.98, 0.98));
                 const diceBody = new CANNON.Body({ mass: 1 });
                 diceBody.addShape(diceShape);
                 diceBody.position.set(...positions[i]);
@@ -214,10 +212,227 @@ class DiceSimulator {
         });
     }
 
+    fixMaterialGroups(geometry) {
+        // 为 RoundedBoxGeometry 重新计算材质组
+        const positionAttribute = geometry.attributes.position;
+        const normalAttribute = geometry.attributes.normal;
+        const indexAttribute = geometry.index;
+        
+        if (!indexAttribute) return;
+        
+        const indices = indexAttribute.array;
+        const triangleCount = indices.length / 3;
+        const triangles = [];
+        
+        // 1. 收集所有三角形及其主要朝向
+        for (let i = 0; i < triangleCount; i++) {
+            const a = indices[i * 3];
+            const b = indices[i * 3 + 1];
+            const c = indices[i * 3 + 2];
+            
+            // 使用第一个顶点的法线来判断朝向
+            const nx = normalAttribute.getX(a);
+            const ny = normalAttribute.getY(a);
+            const nz = normalAttribute.getZ(a);
+            
+            let materialIndex = 0;
+            const absX = Math.abs(nx);
+            const absY = Math.abs(ny);
+            const absZ = Math.abs(nz);
+            
+            // BoxGeometry 的材质顺序: +x, -x, +y, -y, +z, -z
+            if (absX >= absY && absX >= absZ) {
+                materialIndex = nx > 0 ? 0 : 1;
+            } else if (absY >= absX && absY >= absZ) {
+                materialIndex = ny > 0 ? 2 : 3;
+            } else {
+                materialIndex = nz > 0 ? 4 : 5;
+            }
+            
+            triangles.push({ a, b, c, materialIndex });
+        }
+        
+        // 2. 按材质索引排序三角形
+        triangles.sort((t1, t2) => t1.materialIndex - t2.materialIndex);
+        
+        // 3. 重建索引数组并创建组
+        const newIndices = [];
+        const groups = [];
+        let currentMaterialIndex = -1;
+        let groupStart = 0;
+        
+        for (let i = 0; i < triangles.length; i++) {
+            const t = triangles[i];
+            newIndices.push(t.a, t.b, t.c);
+            
+            if (t.materialIndex !== currentMaterialIndex) {
+                if (currentMaterialIndex !== -1) {
+                    groups.push({
+                        start: groupStart,
+                        count: (i * 3) - groupStart,
+                        materialIndex: currentMaterialIndex
+                    });
+                }
+                currentMaterialIndex = t.materialIndex;
+                groupStart = i * 3;
+            }
+        }
+        
+        // 添加最后一个组
+        if (triangles.length > 0) {
+            groups.push({
+                start: groupStart,
+                count: (triangles.length * 3) - groupStart,
+                materialIndex: currentMaterialIndex
+            });
+        }
+        
+        // 4. 更新几何体
+        geometry.setIndex(newIndices);
+        geometry.clearGroups();
+        groups.forEach(g => geometry.addGroup(g.start, g.count, g.materialIndex));
+    }
+
+    // 添加噪点函数，增加材质真实感
+    addNoise(ctx, width, height, amount) {
+        const imageData = ctx.getImageData(0, 0, width, height);
+        const data = imageData.data;
+        for (let i = 0; i < data.length; i += 4) {
+            const noise = (Math.random() - 0.5) * amount * 255;
+            data[i] = Math.min(255, Math.max(0, data[i] + noise));
+            data[i+1] = Math.min(255, Math.max(0, data[i+1] + noise));
+            data[i+2] = Math.min(255, Math.max(0, data[i+2] + noise));
+        }
+        ctx.putImageData(imageData, 0, 0);
+    }
+
+    async createDiceTextures() {
+        const materials = [];
+        
+        // Three.js BoxGeometry 的面顺序：[+X, -X, +Y, -Y, +Z, -Z]
+        // 我们要映射的点数顺序：      [1,  6,  2,  5,  3,  4]
+        const faceNumbers = [1, 6, 2, 5, 3, 4];
+        
+        for (let i = 0; i < 6; i++) {
+            // 1. 创建颜色纹理 (Color Map)
+            const canvasColor = document.createElement('canvas');
+            canvasColor.width = 512; // 提高分辨率
+            canvasColor.height = 512;
+            const ctxColor = canvasColor.getContext('2d');
+            
+            // 绘制材质质感背景 - 象牙白/树脂质感
+            const gradient = ctxColor.createRadialGradient(256, 256, 50, 256, 256, 360);
+            gradient.addColorStop(0, '#ffffff');
+            gradient.addColorStop(1, '#f0f0f0');
+            ctxColor.fillStyle = gradient;
+            ctxColor.fillRect(0, 0, 512, 512);
+            
+            // 添加细微噪点
+            this.addNoise(ctxColor, 512, 512, 0.03);
+            
+            // 绘制点数颜色
+            const isRedDot = (faceNumbers[i] === 1 || faceNumbers[i] === 4);
+            const dotColor = isRedDot ? '#d00000' : '#111111';
+            this.drawDots(ctxColor, faceNumbers[i], dotColor, false);
+
+            // 2. 创建凹凸纹理 (Bump Map)
+            const canvasBump = document.createElement('canvas');
+            canvasBump.width = 512;
+            canvasBump.height = 512;
+            const ctxBump = canvasBump.getContext('2d');
+            
+            // 背景设为中灰色 (基准面)
+            ctxBump.fillStyle = '#808080'; 
+            ctxBump.fillRect(0, 0, 512, 512);
+            
+            // 移除边缘倒角绘制，因为我们现在使用真实的圆角几何体
+            // 这样可以避免"双重圆角"的视觉伪影
+
+            // 绘制点数凹陷
+            this.drawDots(ctxBump, faceNumbers[i], '#000000', true);
+
+            // 创建纹理
+            const textureColor = new THREE.CanvasTexture(canvasColor);
+            const textureBump = new THREE.CanvasTexture(canvasBump);
+            
+            [textureColor, textureBump].forEach(t => {
+                t.wrapS = THREE.ClampToEdgeWrapping;
+                t.wrapT = THREE.ClampToEdgeWrapping;
+                t.minFilter = THREE.LinearFilter;
+                t.magFilter = THREE.LinearFilter;
+                t.needsUpdate = true;
+                if (this.renderer && this.renderer.capabilities) {
+                    t.anisotropy = Math.min(4, this.renderer.capabilities.getMaxAnisotropy());
+                }
+            });
+            
+            const material = new THREE.MeshPhysicalMaterial({
+                map: textureColor,
+                bumpMap: textureBump,
+                bumpScale: 0.15, // 显著的凹凸感
+                color: 0xffffff,
+                metalness: 0.0,
+                roughness: 0.15, // 光滑树脂
+                clearcoat: 1.0,  // 强烈的清漆层
+                clearcoatRoughness: 0.1,
+                reflectivity: 1.0,
+                envMapIntensity: 1.0
+            });
+            
+            materials.push(material);
+        }
+        
+        return materials;
+    }
+
+    drawDots(ctx, number, color, isBump = false) {
+        const dotRadius = 38; // 稍微加大点数
+        // 坐标映射到 512x512
+        const positions = {
+            1: [[256, 256]],
+            2: [[160, 160], [352, 352]],
+            3: [[160, 160], [256, 256], [352, 352]],
+            4: [[160, 160], [352, 160], [160, 352], [352, 352]],
+            5: [[160, 160], [352, 160], [256, 256], [160, 352], [352, 352]],
+            6: [[160, 128], [352, 128], [160, 256], [352, 256], [160, 384], [352, 384]]
+        };
+
+        positions[number].forEach(pos => {
+            ctx.beginPath();
+            if (isBump) {
+                // Bump Map: 径向渐变模拟球形凹陷
+                // 中心黑(深凹)，边缘灰(基准)
+                const g = ctx.createRadialGradient(pos[0], pos[1], 0, pos[0], pos[1], dotRadius);
+                g.addColorStop(0, '#000000'); // 最深
+                g.addColorStop(0.7, '#404040');
+                g.addColorStop(1, '#808080'); // 回到基准
+                ctx.fillStyle = g;
+                // 稍微扩大一点绘制区域以确保平滑过渡
+                ctx.arc(pos[0], pos[1], dotRadius + 2, 0, Math.PI * 2);
+            } else {
+                ctx.fillStyle = color;
+                ctx.arc(pos[0], pos[1], dotRadius, 0, Math.PI * 2);
+            }
+            ctx.fill();
+            
+            // 如果是颜色贴图，添加一点内部高光让它看起来像凹进去的
+            if (!isBump) {
+                ctx.beginPath();
+                ctx.fillStyle = 'rgba(0,0,0,0.1)'; // 内部阴影
+                ctx.arc(pos[0], pos[1], dotRadius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        });
+    }
+
     create20SidedDice(count) {
         // 计算骰子位置
         const positions = this.calculateDicePositions(count);
         
+        const face1Normal = new THREE.Vector3(-1, 1, 1).normalize();
+        const upVector = new THREE.Vector3(0, 1, 0);
+        const targetQuaternion = new THREE.Quaternion().setFromUnitVectors(face1Normal, upVector);
+
         for (let i = 0; i < count; i++) {
             // 创建手动构建的20面体几何体
             const diceGeometry = this.createManualIcosahedronGeometry();
@@ -225,6 +440,10 @@ class DiceSimulator {
             
             const dice = new THREE.Mesh(diceGeometry, diceMaterials);
             dice.position.set(...positions[i]);
+            
+            // 应用旋转
+            dice.quaternion.copy(targetQuaternion);
+
             dice.castShadow = true;
             dice.receiveShadow = true;
             this.scene.add(dice);
@@ -233,6 +452,15 @@ class DiceSimulator {
             // 创建20面体物理体
             const diceBody = this.create20SidedPhysicsBody();
             diceBody.position.set(...positions[i]);
+            
+            // 同步物理体旋转
+            diceBody.quaternion.set(
+                targetQuaternion.x,
+                targetQuaternion.y,
+                targetQuaternion.z,
+                targetQuaternion.w
+            );
+
             this.world.add(diceBody);
             this.diceBody.push(diceBody);
         }
@@ -279,69 +507,133 @@ class DiceSimulator {
         
         // 为20个面创建材质
         for (let i = 1; i <= 20; i++) {
-            const canvas = document.createElement('canvas');
-            canvas.width = 256;
-            canvas.height = 256;
-            const ctx = canvas.getContext('2d');
+            // 1. Color Map
+            const canvasColor = document.createElement('canvas');
+            canvasColor.width = 512; // 提高分辨率
+            canvasColor.height = 512;
+            const ctxColor = canvasColor.getContext('2d');
             
-            // 绘制背景 
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, 256, 256);
+            // 绘制背景 (象牙白/树脂)
+            ctxColor.fillStyle = '#f8f8f8';
+            ctxColor.fillRect(0, 0, 512, 512);
             
-            // 绘制数字
-            ctx.fillStyle = '#000000';
-            ctx.font = 'bold 84px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            
-            // 添加文字阴影
-            ctx.shadowColor = 'rgba(0,0,0,0.8)';
-            ctx.shadowOffsetX = 3;
-            ctx.shadowOffsetY = 3;
-            ctx.shadowBlur = 6;
+            // 添加噪点
+            this.addNoise(ctxColor, 512, 512, 0.03);
             
             // 绘制数字
-            const numberY = 128 + 35; 
-            ctx.fillText(i.toString(), 128, numberY);
+            ctxColor.fillStyle = '#111111';
+            ctxColor.font = 'bold 160px Arial';
+            ctxColor.textAlign = 'center';
+            ctxColor.textBaseline = 'middle';
             
-            // 为数字6和9添加下划线
+            const numberY = 256 + 60; 
+            ctxColor.fillText(i.toString(), 256, numberY);
+            
+            // 下划线
             if (i === 6 || i === 9) {
-                ctx.strokeStyle = '#000000';
-                ctx.lineWidth = 4;
-                const underlineY = numberY + 35; 
-                ctx.beginPath();
-                ctx.moveTo(85, underlineY);
-                ctx.lineTo(171, underlineY);
-                ctx.stroke();
+                ctxColor.strokeStyle = '#111111';
+                ctxColor.lineWidth = 8;
+                const underlineY = numberY + 70; 
+                ctxColor.beginPath();
+                ctxColor.moveTo(170, underlineY);
+                ctxColor.lineTo(342, underlineY);
+                ctxColor.stroke();
             }
             
-            // 添加高光效果
-            ctx.shadowColor = 'transparent';
-            ctx.fillStyle = 'rgba(255,255,255,0.4)';
-            ctx.font = 'bold 84px Arial';
-            ctx.fillText(i.toString(), 126, numberY - 2); 
+            // 2. Bump Map
+            const canvasBump = document.createElement('canvas');
+            canvasBump.width = 512;
+            canvasBump.height = 512;
+            const ctxBump = canvasBump.getContext('2d');
             
-            // 创建纹理
-            const texture = new THREE.CanvasTexture(canvas);
-            texture.wrapS = THREE.ClampToEdgeWrapping;
-            texture.wrapT = THREE.ClampToEdgeWrapping;
-            texture.minFilter = THREE.LinearFilter;
-            texture.magFilter = THREE.LinearFilter;
-            texture.needsUpdate = true;
+            // 背景设为中灰色 (基准面)
+            ctxBump.fillStyle = '#808080';
+            ctxBump.fillRect(0, 0, 512, 512);
             
-            // 设置各向异性过滤
-            if (this.renderer && this.renderer.capabilities) {
-                texture.anisotropy = Math.min(4, this.renderer.capabilities.getMaxAnisotropy());
+            // 绘制边缘圆角模拟
+            // 使用带模糊的描边来模拟圆滑的边缘过渡
+            const drawRoundedEdge = (ctx) => {
+                ctx.lineJoin = 'round';
+                ctx.beginPath();
+                ctx.moveTo(0, 512);
+                ctx.lineTo(512, 512);
+                ctx.lineTo(256, 0);
+                ctx.closePath();
+                
+                // 外层柔和过渡，模拟圆角曲率
+                ctx.shadowBlur = 30;
+                ctx.shadowColor = '#000000';
+                ctx.lineWidth = 30;
+                ctx.strokeStyle = '#606060';
+                ctx.stroke();
+                
+                // 内层加深，强化边缘
+                ctx.shadowBlur = 15;
+                ctx.lineWidth = 15;
+                ctx.strokeStyle = '#404040';
+                ctx.stroke();
+                
+                // 重置阴影
+                ctx.shadowBlur = 0;
+            };
+            
+            drawRoundedEdge(ctxBump);
+            
+            // 绘制数字凹陷 - 加强版
+            ctxBump.fillStyle = '#000000'; // 最深
+            ctxBump.font = 'bold 160px Arial';
+            ctxBump.textAlign = 'center';
+            ctxBump.textBaseline = 'middle';
+            
+            // 添加边缘高光，增强雕刻感
+            ctxBump.shadowColor = 'rgba(255, 255, 255, 0.3)'; 
+            ctxBump.shadowBlur = 2;
+            ctxBump.shadowOffsetX = 2;
+            ctxBump.shadowOffsetY = 2;
+            
+            ctxBump.fillText(i.toString(), 256, numberY);
+            
+            // 再次描边加深轮廓，确保数字清晰凹陷
+            ctxBump.shadowColor = 'transparent';
+            ctxBump.lineWidth = 8;
+            ctxBump.strokeStyle = '#000000';
+            ctxBump.strokeText(i.toString(), 256, numberY);
+            
+            if (i === 6 || i === 9) {
+                ctxBump.strokeStyle = '#000000';
+                ctxBump.lineWidth = 12;
+                const underlineY = numberY + 70; 
+                ctxBump.beginPath();
+                ctxBump.moveTo(170, underlineY);
+                ctxBump.lineTo(342, underlineY);
+                ctxBump.stroke();
             }
 
+            // 创建纹理
+            const textureColor = new THREE.CanvasTexture(canvasColor);
+            const textureBump = new THREE.CanvasTexture(canvasBump);
+            
+            [textureColor, textureBump].forEach(t => {
+                t.wrapS = THREE.ClampToEdgeWrapping;
+                t.wrapT = THREE.ClampToEdgeWrapping;
+                t.minFilter = THREE.LinearFilter;
+                t.magFilter = THREE.LinearFilter;
+                t.needsUpdate = true;
+                if (this.renderer && this.renderer.capabilities) {
+                    t.anisotropy = Math.min(4, this.renderer.capabilities.getMaxAnisotropy());
+                }
+            });
+
             const material = new THREE.MeshPhysicalMaterial({
-                map: texture,
-                metalness: 0.05,
-                roughness: 0.4,
-                clearcoat: 0.9,
-                clearcoatRoughness: 0.05,
-                reflectivity: 0.6,
-                transparent: false
+                map: textureColor,
+                bumpMap: textureBump,
+                bumpScale: 0.35, // 增加凹凸强度
+                color: 0xffffff,
+                metalness: 0.0,
+                roughness: 0.2,
+                clearcoat: 1.0,
+                clearcoatRoughness: 0.1,
+                reflectivity: 0.8
             });
             
             materials.push(material);
@@ -567,101 +859,7 @@ class DiceSimulator {
         return positions;
     }
 
-    async createDiceTextures() {
-        const materials = [];
-        
-        // Three.js BoxGeometry 的面顺序：[+X, -X, +Y, -Y, +Z, -Z]
-        // 我们要映射的点数顺序：      [1,  6,  2,  5,  3,  4]
-        const faceNumbers = [1, 6, 2, 5, 3, 4];
-        
-        for (let i = 0; i < 6; i++) {
-            // 为每个面创建独立的canvas
-            const canvas = document.createElement('canvas');
-            canvas.width = 256;
-            canvas.height = 256;
-            const ctx = canvas.getContext('2d');
-            
-            // 绘制背景
-            const gradient = ctx.createLinearGradient(0, 0, 256, 256);
-            gradient.addColorStop(0, '#ffffff');
-            gradient.addColorStop(1, '#f0f0f0');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, 256, 256);
-            
-            // 绘制边框
-            ctx.strokeStyle = '#cccccc';
-            ctx.lineWidth = 4;
-            ctx.strokeRect(8, 8, 240, 240);
-            
-            // 绘制对应的点数
-            const isRedDot = (faceNumbers[i] === 1 || faceNumbers[i] === 4);
-            ctx.fillStyle = isRedDot ? '#cc0000' : '#333333';
-            this.drawDots(ctx, faceNumbers[i], isRedDot);
-            
-            // 创建纹理
-            const texture = new THREE.CanvasTexture(canvas);
-            
-            // 设置纹理参数（使用更安全的设置）
-            texture.wrapS = THREE.ClampToEdgeWrapping;
-            texture.wrapT = THREE.ClampToEdgeWrapping;
-            texture.minFilter = THREE.LinearFilter;
-            texture.magFilter = THREE.LinearFilter;
-            
-            // 强制更新纹理
-            texture.needsUpdate = true;
-            
-            // 设置合理的各向异性过滤
-            if (this.renderer && this.renderer.capabilities) {
-                texture.anisotropy = Math.min(4, this.renderer.capabilities.getMaxAnisotropy());
-            }
-            
-            const material = new THREE.MeshPhysicalMaterial({
-                map: texture,
-                metalness: 0.1,
-                roughness: 0.3,
-                clearcoat: 0.8,
-                clearcoatRoughness: 0.1,
-                reflectivity: 0.5
-            });
-            
-            materials.push(material);
-        }
-        
-        return materials;
-    }
 
-    drawDots(ctx, number, isRed = false) {
-        const dotRadius = 20;
-        const dotColor = isRed ? '#cc0000' : '#333333';
-        const positions = {
-            1: [[128, 128]],
-            2: [[80, 80], [176, 176]],
-            3: [[80, 80], [128, 128], [176, 176]],
-            4: [[80, 80], [176, 80], [80, 176], [176, 176]],
-            5: [[80, 80], [176, 80], [128, 128], [80, 176], [176, 176]],
-            6: [[80, 64], [176, 64], [80, 128], [176, 128], [80, 192], [176, 192]]
-        };
-
-        positions[number].forEach(pos => {
-            // 绘制阴影
-            ctx.beginPath();
-            ctx.fillStyle = 'rgba(0,0,0,0.2)';
-            ctx.arc(pos[0] + 2, pos[1] + 2, dotRadius, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // 绘制点 - 使用动态颜色
-            ctx.beginPath();
-            ctx.fillStyle = dotColor;
-            ctx.arc(pos[0], pos[1], dotRadius, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // 绘制高光
-            ctx.beginPath();
-            ctx.fillStyle = 'rgba(255,255,255,0.3)';
-            ctx.arc(pos[0] - 5, pos[1] - 5, dotRadius * 0.3, 0, Math.PI * 2);
-            ctx.fill();
-        });
-    }
 
     createSurfaces(diceCount = 1) {
         // 根据骰子数量计算场地大小
@@ -670,35 +868,142 @@ class DiceSimulator {
         // 动态调整阴影范围以适应场地大小
         this.adjustShadowsForTableSize(tableSize);
         
-        // 创建桌面
-        const tableGeometry = new THREE.BoxGeometry(tableSize, 0.5, tableSize);
-        const tableMaterial = new THREE.MeshPhysicalMaterial({
-            color: 0x8B4513,
-            metalness: 0.1,
-            roughness: 0.7,
-            clearcoat: 0.3
-        });
-        const table = new THREE.Mesh(tableGeometry, tableMaterial);
-        table.position.set(0, -0.25, 0);
-        table.receiveShadow = true;
-        this.scene.add(table);
-        this.tableObjects.push(table);
+        // 1. 创建底座 (Table Base) - 模拟木质桌面
+        const baseSize = tableSize + 10;
+        const baseGeometry = new THREE.BoxGeometry(baseSize, 1, baseSize);
+        const baseMaterial = this.createWoodMaterial();
+        const base = new THREE.Mesh(baseGeometry, baseMaterial);
+        base.position.set(0, -1.0, 0); // 在骰子盘下方
+        base.receiveShadow = true;
+        this.scene.add(base);
+        this.tableObjects.push(base);
 
-        // 创建桌面物理体
+        // 2. 创建骰子盘 (Dice Tray)
+        // 盘底 - 毛毡材质
+        const trayGeometry = new THREE.BoxGeometry(tableSize, 0.5, tableSize);
+        const trayMaterial = this.createFeltMaterial();
+        const tray = new THREE.Mesh(trayGeometry, trayMaterial);
+        tray.position.set(0, -0.25, 0);
+        tray.receiveShadow = true;
+        this.scene.add(tray);
+        this.tableObjects.push(tray);
+
+        // 盘边框 - 木质材质
+        const borderHeight = 2.5;
+        const borderThickness = 1.5;
+        const borderMaterial = baseMaterial; // 复用木质材质
+
+        const borders = [
+            // 北
+            { pos: [0, borderHeight/2 - 0.25, -tableSize/2 - borderThickness/2], size: [tableSize + borderThickness*2, borderHeight, borderThickness] },
+            // 南
+            { pos: [0, borderHeight/2 - 0.25, tableSize/2 + borderThickness/2], size: [tableSize + borderThickness*2, borderHeight, borderThickness] },
+            // 东
+            { pos: [tableSize/2 + borderThickness/2, borderHeight/2 - 0.25, 0], size: [borderThickness, borderHeight, tableSize] },
+            // 西
+            { pos: [-tableSize/2 - borderThickness/2, borderHeight/2 - 0.25, 0], size: [borderThickness, borderHeight, tableSize] }
+        ];
+
+        borders.forEach(b => {
+            const borderGeom = new THREE.BoxGeometry(...b.size);
+            const border = new THREE.Mesh(borderGeom, borderMaterial);
+            border.position.set(...b.pos);
+            border.castShadow = true;
+            border.receiveShadow = true;
+            this.scene.add(border);
+            this.tableObjects.push(border);
+        });
+
+        // 3. 创建物理碰撞体
+        // 桌面物理体
         const tableShape = new CANNON.Box(new CANNON.Vec3(tableSize/2, 0.25, tableSize/2));
         const tableBody = new CANNON.Body({ mass: 0 });
         tableBody.addShape(tableShape);
         tableBody.position.set(0, -0.25, 0);
+        // 增加摩擦力，模拟毛毡
+        tableBody.material = new CANNON.Material('felt');
+        tableBody.material.friction = 0.8;
+        tableBody.material.restitution = 0.1; // 低弹性
         this.world.add(tableBody);
         this.tableBodies.push(tableBody);
 
-        // 创建围栏
+        // 围栏物理体 (与视觉边框对齐)
         this.createWalls(tableSize);
         
         // 设置碰撞检测（只在第一次创建时设置）
         if (this.tableBodies.length === 1) {
             this.setupCollisionDetection();
         }
+    }
+
+    createWoodMaterial() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+
+        // 底色
+        ctx.fillStyle = '#5d4037';
+        ctx.fillRect(0, 0, 512, 512);
+
+        // 绘制木纹
+        for (let i = 0; i < 100; i++) {
+            ctx.fillStyle = `rgba(40, 20, 10, ${Math.random() * 0.1})`;
+            const y = Math.random() * 512;
+            const height = Math.random() * 20 + 5;
+            ctx.fillRect(0, y, 512, height);
+            
+            // 扰动线条
+            ctx.beginPath();
+            ctx.strokeStyle = `rgba(30, 15, 5, ${Math.random() * 0.2})`;
+            ctx.lineWidth = Math.random() * 2 + 1;
+            ctx.moveTo(0, Math.random() * 512);
+            ctx.bezierCurveTo(
+                170, Math.random() * 512,
+                340, Math.random() * 512,
+                512, Math.random() * 512
+            );
+            ctx.stroke();
+        }
+
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        
+        return new THREE.MeshStandardMaterial({
+            map: texture,
+            color: 0x8d6e63,
+            roughness: 0.6,
+            metalness: 0.1
+        });
+    }
+
+    createFeltMaterial() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+
+        // 深绿色底色
+        ctx.fillStyle = '#1b5e20';
+        ctx.fillRect(0, 0, 512, 512);
+
+        // 添加大量噪点模拟毛毡
+        this.addNoise(ctx, 512, 512, 0.15);
+
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set(4, 4); // 重复纹理以增加细节密度
+
+        return new THREE.MeshStandardMaterial({
+            map: texture,
+            color: 0x2e7d32,
+            roughness: 0.9, // 非常粗糙
+            metalness: 0.0,
+            bumpMap: texture, // 使用相同的纹理作为凹凸贴图
+            bumpScale: 0.05
+        });
     }
 
     calculateTableSize(diceCount) {
@@ -885,44 +1190,40 @@ class DiceSimulator {
     }
 
     setupAudio() {
-        // 初始化骰子与桌子碰撞音效
+        // 使用 Web Audio API 生成程序化音效，无需加载外部文件
         try {
-            this.diceTableSound = new Audio('./1.mp3'); // 骰子与桌子碰撞
-            this.diceTableSound.volume = 0.3;
-            this.diceTableSound.preload = 'auto';
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            this.audioContext = new AudioContext();
+            this.masterGain = this.audioContext.createGain();
+            this.masterGain.connect(this.audioContext.destination);
+            this.masterGain.gain.value = 0.5; // 主音量
             
-            this.diceTableSound.addEventListener('canplaythrough', () => {
-                // console.log('🔊 骰子与桌子碰撞音效已成功加载');
-            });
+            console.log('🔊 音频系统已初始化 (Web Audio API)');
             
-            this.diceTableSound.addEventListener('error', (e) => {
-                console.warn('⚠️ 桌子碰撞音效加载失败:', e);
-                this.diceTableSound = null;
-            });
-            
-        } catch (error) {
-            console.warn('⚠️ 无法初始化桌子碰撞音效:', error);
-            this.diceTableSound = null;
-        }
+            // 加载外部音效文件 (2.mp3)
+            fetch('2.mp3')
+                .then(response => response.arrayBuffer())
+                .then(arrayBuffer => this.audioContext.decodeAudioData(arrayBuffer))
+                .then(audioBuffer => {
+                    this.diceHitBuffer = audioBuffer;
+                    console.log('🔊 骰子碰撞音效 (2.mp3) 已加载');
+                })
+                .catch(e => console.warn('⚠️ 无法加载骰子碰撞音效:', e));
 
-        // 初始化骰子与骰子碰撞音效
-        try {
-            this.diceDiceSound = new Audio('./2.mp3'); // 骰子与骰子碰撞
-            this.diceDiceSound.volume = 0.3;
-            this.diceDiceSound.preload = 'auto';
-            
-            this.diceDiceSound.addEventListener('canplaythrough', () => {
-                // console.log('🔊 骰子与骰子碰撞音效已成功加载');
-            });
-            
-            this.diceDiceSound.addEventListener('error', (e) => {
-                console.warn('⚠️ 骰子碰撞音效加载失败:', e);
-                this.diceDiceSound = null;
-            });
+            // 添加用户交互监听以解锁音频上下文
+            const resumeAudio = () => {
+                if (this.audioContext && this.audioContext.state === 'suspended') {
+                    this.audioContext.resume();
+                }
+                document.removeEventListener('click', resumeAudio);
+                document.removeEventListener('keydown', resumeAudio);
+            };
+            document.addEventListener('click', resumeAudio);
+            document.addEventListener('keydown', resumeAudio);
             
         } catch (error) {
-            console.warn('⚠️ 无法初始化骰子碰撞音效:', error);
-            this.diceDiceSound = null;
+            console.warn('⚠️ 无法初始化 Web Audio API:', error);
+            this.audioContext = null;
         }
     }
 
@@ -965,102 +1266,150 @@ class DiceSimulator {
     }
 
     playCollisionSound(contact, isDiceDiceCollision = false) {
-        // 根据碰撞类型选择音效
-        const audioSource = isDiceDiceCollision ? this.diceDiceSound : this.diceTableSound;
-        
-        // 检查音频是否可用
-        if (!audioSource) {
-            return;
-        }
-        
+        if (!this.audioContext) return;
+
         // 防止音效播放过于频繁
-        const currentTime = Date.now();
-        if (currentTime - this.lastCollisionTime < this.collisionCooldown) {
-            return;
-        }
+        const currentTime = this.audioContext.currentTime;
         
-        // 计算碰撞强度（基于相对速度）
-        const relativeVelocity = contact.getImpactVelocityAlongNormal();
-        const minVelocity = 1.0; // 最小触发速度
+        // 计算碰撞强度
+        const relativeVelocity = Math.abs(contact.getImpactVelocityAlongNormal());
+        const minVelocity = 0.5; 
         
-        if (Math.abs(relativeVelocity) > minVelocity) {
-            try {
-                // 检查音频是否可以播放
-                if (audioSource.readyState >= 2) { // HAVE_CURRENT_DATA
-                    // 计算碰撞位置
-                    const collisionPosition = this.getCollisionPosition(contact);
-                    
-                    // 根据碰撞强度调整基础音量
-                    let baseVolume = Math.min(0.6, Math.abs(relativeVelocity) * 0.1);
-                    
-                    // 如果是骰子与骰子碰撞，增加音量
-                    if (isDiceDiceCollision) {
-                        baseVolume = Math.min(0.8, baseVolume * 1.2);
-                    }
-                    
-                    // 根据摄像机距离调整音量
-                    const distanceVolume = this.calculateVolumeByDistance(collisionPosition);
-                    const finalVolume = baseVolume * distanceVolume;
-                    
-                    audioSource.volume = finalVolume;
-                    
-                    // 重置音频播放位置并播放
-                    audioSource.currentTime = 0;
-                    const playPromise = audioSource.play();
-                    
-                    if (playPromise !== undefined) {
-                        playPromise.catch(error => {
-                            console.warn('音效播放失败:', error.message);
-                        });
-                    }
-                    
-                    this.lastCollisionTime = currentTime;
-                    const collisionType = isDiceDiceCollision ? '骰子-骰子' : '骰子-桌面';
-                    const audioFile = isDiceDiceCollision ? '2.mp3' : '1.mp3';
-                    // console.log(`🎵 播放${collisionType}碰撞音效(${audioFile})，强度: ${relativeVelocity.toFixed(2)}, 最终音量: ${finalVolume.toFixed(2)}`);
-                } else {
-                    console.log('音频尚未准备就绪，跳过播放');
-                }
-            } catch (error) {
-                console.warn('播放碰撞音效时出错:', error.message);
+        if (relativeVelocity > minVelocity) {
+            // 限制高频触发 (50ms冷却)
+            if (currentTime - this.lastCollisionTime < 0.05) return; 
+            this.lastCollisionTime = currentTime;
+
+            // 计算音量强度 (0.1 - 1.0)
+            const intensity = Math.min(1, Math.max(0.1, (relativeVelocity - minVelocity) / 8));
+            
+            if (isDiceDiceCollision) {
+                this.playDiceHitDiceSound(intensity);
+            } else {
+                this.playDiceHitTableSound(intensity);
             }
         }
     }
 
-    getCollisionPosition(contact) {
-        // 获取碰撞位置的世界坐标
-        const contactPoint = contact.bi.position.clone();
-        if (contact.ri) {
-            contactPoint.vadd(contact.ri, contactPoint);
+    playDiceHitTableSound(intensity) {
+        if (this.audioContext.state === 'suspended') return;
+        
+        const t = this.audioContext.currentTime;
+        
+        // 1. 撞击主体 (厚重的低频) - 模拟台球撞库
+        const osc = this.audioContext.createOscillator();
+        const oscGain = this.audioContext.createGain();
+        
+        osc.type = 'sine';
+        // 频率：从稍高处快速下潜，模拟冲击
+        // 台球撞库通常在 80-200Hz 之间有很强的能量
+        osc.frequency.setValueAtTime(180, t);
+        osc.frequency.exponentialRampToValueAtTime(60, t + 0.1);
+        
+        oscGain.gain.setValueAtTime(0, t);
+        oscGain.gain.linearRampToValueAtTime(intensity * 1.0, t + 0.005); // 快速起音
+        oscGain.gain.exponentialRampToValueAtTime(0.01, t + 0.15); // 较快的衰减，但保留一点厚度
+        
+        osc.connect(oscGain);
+        oscGain.connect(this.masterGain);
+        osc.start(t);
+        osc.stop(t + 0.2);
+
+        // 2. 冲击瞬态 (短促的打击声)
+        // 使用带通滤波的噪声来模拟木质/毛毡的接触声
+        const noiseBufferSize = this.audioContext.sampleRate * 0.05; // 50ms
+        const noiseBuffer = this.audioContext.createBuffer(1, noiseBufferSize, this.audioContext.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < noiseBufferSize; i++) {
+            output[i] = Math.random() * 2 - 1;
         }
-        return new THREE.Vector3(contactPoint.x, contactPoint.y, contactPoint.z);
+        
+        const noise = this.audioContext.createBufferSource();
+        noise.buffer = noiseBuffer;
+        
+        const noiseFilter = this.audioContext.createBiquadFilter();
+        noiseFilter.type = 'lowpass';
+        noiseFilter.frequency.value = 400; // 较低的截止频率，去除高频刺耳声
+        noiseFilter.Q.value = 1;
+        
+        const noiseGain = this.audioContext.createGain();
+        noiseGain.gain.setValueAtTime(0, t);
+        noiseGain.gain.linearRampToValueAtTime(intensity * 0.8, t + 0.002);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.04); // 极短
+        
+        noise.connect(noiseFilter);
+        noiseFilter.connect(noiseGain);
+        noiseGain.connect(this.masterGain);
+        noise.start(t);
     }
 
-    calculateVolumeByDistance(collisionPosition) {
-        // 计算摄像机到碰撞位置的距离
-        const cameraPosition = this.camera.position;
-        const distance = cameraPosition.distanceTo(collisionPosition);
+    playDiceHitDiceSound(intensity) {
+        if (this.audioContext.state === 'suspended') return;
         
-        // 定义音量衰减参数
-        const minDistance = 5;   // 最近距离，此时音量为1
-        const maxDistance = 50;  // 最远距离，此时音量为0.1
-        const minVolume = 0.1;   // 最小音量
+        // 如果已加载外部音效，则优先使用
+        if (this.diceHitBuffer) {
+            const source = this.audioContext.createBufferSource();
+            source.buffer = this.diceHitBuffer;
+            
+            const gainNode = this.audioContext.createGain();
+            // 根据强度调整音量，稍微放大一点因为录音可能比较小
+            gainNode.gain.value = intensity * 1.2; 
+            
+            // 随机改变一点播放速度，增加变化感
+            source.playbackRate.value = 0.9 + Math.random() * 0.2;
+            
+            source.connect(gainNode);
+            gainNode.connect(this.masterGain);
+            source.start(0);
+            return;
+        }
+
+        const t = this.audioContext.currentTime;
         
-        // 如果距离小于最近距离，返回最大音量
-        if (distance <= minDistance) {
-            return 1.0;
+        // 1. 硬物碰撞核心 (清脆的短音)
+        const osc = this.audioContext.createOscillator();
+        const oscGain = this.audioContext.createGain();
+        
+        osc.type = 'sine'; // 正弦波比三角波更干净，像硬塑料/骨头
+        // 频率：高频，且几乎不变化，或者变化极快
+        // 2500Hz - 3500Hz 是比较清脆的范围
+        const baseFreq = 2800 + Math.random() * 400;
+        osc.frequency.setValueAtTime(baseFreq, t);
+        osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.8, t + 0.01); // 极短的频率微降
+        
+        oscGain.gain.setValueAtTime(0, t);
+        oscGain.gain.linearRampToValueAtTime(intensity * 0.5, t + 0.001); // 瞬间起音
+        oscGain.gain.exponentialRampToValueAtTime(0.001, t + 0.015); // 极速衰减 (15ms)
+        
+        osc.connect(oscGain);
+        oscGain.connect(this.masterGain);
+        osc.start(t);
+        osc.stop(t + 0.02);
+        
+        // 2. 碰撞瞬态 (高频点击声)
+        const noiseBufferSize = this.audioContext.sampleRate * 0.01; // 10ms
+        const noiseBuffer = this.audioContext.createBuffer(1, noiseBufferSize, this.audioContext.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < noiseBufferSize; i++) {
+            output[i] = Math.random() * 2 - 1;
         }
         
-        // 如果距离大于最远距离，返回最小音量
-        if (distance >= maxDistance) {
-            return minVolume;
-        }
+        const noise = this.audioContext.createBufferSource();
+        noise.buffer = noiseBuffer;
         
-        // 线性插值计算音量
-        const normalizedDistance = (distance - minDistance) / (maxDistance - minDistance);
-        const volume = 1.0 - normalizedDistance * (1.0 - minVolume);
+        const noiseFilter = this.audioContext.createBiquadFilter();
+        noiseFilter.type = 'highpass'; 
+        noiseFilter.frequency.value = 3000; // 只保留高频
         
-        return Math.max(minVolume, volume);
+        const noiseGain = this.audioContext.createGain();
+        noiseGain.gain.setValueAtTime(0, t);
+        noiseGain.gain.linearRampToValueAtTime(intensity * 0.3, t + 0.001);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.005); // 5ms 极短
+        
+        noise.connect(noiseFilter);
+        noiseFilter.connect(noiseGain);
+        noiseGain.connect(this.masterGain);
+        noise.start(t);
     }
 
     rollDice() {
@@ -1468,12 +1817,30 @@ class DiceSimulator {
         const count = this.diceBody.length;
         const positions = this.calculateDicePositions(count);
         
+        // 准备20面骰子的初始旋转
+        let targetQuaternion = null;
+        if (this.currentDiceType === 20) {
+            const face1Normal = new THREE.Vector3(-1, 1, 1).normalize();
+            const upVector = new THREE.Vector3(0, 1, 0);
+            targetQuaternion = new THREE.Quaternion().setFromUnitVectors(face1Normal, upVector);
+        }
+
         // 重置每个骰子的位置和状态
         this.diceBody.forEach((body, index) => {
             body.position.set(...positions[index]);
             body.velocity.set(0, 0, 0);
             body.angularVelocity.set(0, 0, 0);
-            body.quaternion.set(0, 0, 0, 1);
+            
+            if (this.currentDiceType === 20 && targetQuaternion) {
+                body.quaternion.set(
+                    targetQuaternion.x,
+                    targetQuaternion.y,
+                    targetQuaternion.z,
+                    targetQuaternion.w
+                );
+            } else {
+                body.quaternion.set(0, 0, 0, 1);
+            }
         });
         
         const diceText = count === 1 ? '骰子' : `${count}个骰子`;
@@ -1491,24 +1858,24 @@ class DiceSimulator {
         // 在3D空间中创建提示框和连线
         const dicePosition = dice.position.clone();
         
-        // 创建连线（3D空间中的线段）
+        // 创建连线 - 极简风格
         const lineGeometry = new THREE.BufferGeometry().setFromPoints([
-            new THREE.Vector3(dicePosition.x, dicePosition.y + 2, dicePosition.z),
-            new THREE.Vector3(dicePosition.x, dicePosition.y + 4, dicePosition.z)
+            new THREE.Vector3(dicePosition.x, dicePosition.y + 1.5, dicePosition.z),
+            new THREE.Vector3(dicePosition.x, dicePosition.y + 4.2, dicePosition.z)
         ]);
         const lineMaterial = new THREE.LineBasicMaterial({ 
-            color: 0xffffff, // 白色线条，更明显
-            linewidth: 3, // 稍粗的线条
+            color: 0xffffff, 
+            linewidth: 1, 
             transparent: true,
-            opacity: 0.8
+            opacity: 0.2 // 非常淡的线
         });
         const line = new THREE.Line(lineGeometry, lineMaterial);
-        line.renderOrder = 998; // 确保线条也在前面显示
+        line.renderOrder = 998; 
         this.scene.add(line);
 
         // 创建3D提示框
         const tooltip3D = this.create3DTooltip(index, result);
-        tooltip3D.position.set(dicePosition.x, dicePosition.y + 4.5, dicePosition.z);
+        tooltip3D.position.set(dicePosition.x, dicePosition.y + 5.0, dicePosition.z); // 稍微抬高一点
         
         // 立即让提示框面向摄像机
         if (this.camera) {
@@ -1526,17 +1893,17 @@ class DiceSimulator {
     }
 
     create3DTooltip(index, result) {
-        // 创建3D文本提示框
+        // 创建3D文本提示框 - 极简高级感风格
         const canvas = document.createElement('canvas');
         canvas.width = 512;  
         canvas.height = 256; 
         const ctx = canvas.getContext('2d');
 
         // 绘制圆角矩形背景
-        const radius = 40;
-        const x = 20;
+        const radius = 12; // 小圆角，更现代
+        const x = 60; // 左右留白增加，使卡片更窄
         const y = 20;
-        const width = canvas.width - 40;
+        const width = canvas.width - 120;
         const height = canvas.height - 40;
 
         // 绘制圆角矩形函数
@@ -1557,79 +1924,67 @@ class DiceSimulator {
         // 清除画布
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // 绘制半透明圆角背景
+        // 背景：毛玻璃效果 (浅色，低透明度)
         roundRect(ctx, x, y, width, height, radius);
-        
-        // 半透明渐变背景
-        const gradient = ctx.createLinearGradient(x, y, x, y + height);
-        gradient.addColorStop(0, 'rgba(45, 45, 45, 0.9)');
-        gradient.addColorStop(0.5, 'rgba(35, 35, 35, 0.95)');
-        gradient.addColorStop(1, 'rgba(25, 25, 25, 0.9)');
-        ctx.fillStyle = gradient;
+        // 使用浅蓝灰色，透明度降低，模拟毛玻璃的通透感
+        ctx.fillStyle = 'rgba(60, 70, 90, 0.4)'; 
         ctx.fill();
         
-        // 添加圆角边框
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
-        ctx.lineWidth = 6; 
+        // 顶部装饰线 (Accent Line)
+        ctx.beginPath();
+        ctx.moveTo(x + radius, y);
+        ctx.lineTo(x + width - radius, y);
+        ctx.lineWidth = 6;
+        ctx.strokeStyle = 'rgba(74, 144, 226, 0.8)'; // 稍微透明一点的蓝色
         ctx.stroke();
         
-        // 添加内部高光效果
-        roundRect(ctx, x + 4, y + 4, width - 8, height/3, radius - 4);
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-        ctx.fill();
+        // 极细边框 - 增强一点亮度
+        roundRect(ctx, x, y, width, height, radius);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.stroke();
 
         // 绘制文本 
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 48px Arial'; 
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
-        // 添加文本阴影以增强可读性
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-        ctx.shadowOffsetX = 4; 
-        ctx.shadowOffsetY = 4;
-        ctx.shadowBlur = 6;    
+        // 序号 (顶部小字)
+        ctx.font = '500 50px Arial'; 
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'; // 稍微亮一点
+        ctx.fillText(`DICE ${index + 1}`, canvas.width / 2, y + 45);
         
-        ctx.fillText(`骰子${index + 1}`, canvas.width / 2, canvas.height / 2 - 30);
+        // 结果数字 (核心大字)
+        ctx.font = 'bold 110px Arial'; 
+        ctx.fillStyle = '#ffffff'; 
         
-        // 结果数字用更大更醒目的字体
-        ctx.font = 'bold 56px Arial'; 
-        ctx.fillStyle = '#ffdd44'; 
-        ctx.shadowBlur = 8;
-        ctx.fillText(`${result}点`, canvas.width / 2, canvas.height / 2 + 30);
+        // 数字发光效果
+        ctx.shadowColor = 'rgba(74, 144, 226, 0.6)';
+        ctx.shadowBlur = 20;
+        ctx.fillText(result.toString(), canvas.width / 2, canvas.height / 2 + 25);
+        ctx.shadowBlur = 0;
 
         // 创建纹理和材质
         const texture = new THREE.CanvasTexture(canvas);
         texture.minFilter = THREE.LinearFilter;
         texture.magFilter = THREE.LinearFilter;
-        texture.wrapS = THREE.ClampToEdgeWrapping;
-        texture.wrapT = THREE.ClampToEdgeWrapping;
         texture.needsUpdate = true;
         
-        // 启用各向异性过滤以提高纹理质量
-        if (this.renderer && this.renderer.capabilities) {
-            texture.anisotropy = Math.min(4, this.renderer.capabilities.getMaxAnisotropy());
-        }
-
+        // 使用 MeshPhysicalMaterial 尝试模拟更好的质感，或者保持 Basic 但调整颜色
+        // 这里保持 Basic 以确保 UI 清晰度，通过颜色模拟毛玻璃
         const material = new THREE.MeshBasicMaterial({
             map: texture,
             transparent: true,
-            alphaTest: 0.1,
             side: THREE.DoubleSide,
             depthWrite: false,
-            depthTest: false // 禁用深度测试，确保始终显示在前面
+            depthTest: false 
         });
 
-        // 创建平面几何体
-        const geometry = new THREE.PlaneGeometry(3.7, 2.0); 
+        // 创建平面几何体 - 调整比例
+        const geometry = new THREE.PlaneGeometry(3.0, 1.5); 
         const mesh = new THREE.Mesh(geometry, material);
         
-        // 设置渲染顺序，确保提示框在最前面显示
         mesh.renderOrder = 1000;
-        
-        // 添加自定义属性来标记这是一个固定大小的提示框
         mesh.userData.isTooltip = true;
-        mesh.userData.originalScale = new THREE.Vector3(1, 1, 1);
         
         return mesh;
     }
