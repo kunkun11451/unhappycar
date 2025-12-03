@@ -1,15 +1,16 @@
 // 角色数据
 window.characterData = {
-    "奈芙尔": {
-        "头像": "https://act-upload.mihoyo.com/wiki-user-upload/2025/10/16/50494840/eb6d91e9db4d4811a172c1477fdf4bb3_8055436051310247221.png",
-        "元素类型": "草",
-        "武器类型": "法器",
-        "星级": "五星"
-    },
-    "奇偶": {
-        "头像": "https://act-upload.mihoyo.com/wiki-user-upload/2025/10/22/50494840/7617caf2440cadbe673617c4481a62c9_1933299159986831123.png",
+    "杜林": {
+        "头像": "https://act-upload.mihoyo.com/wiki-user-upload/2025/11/24/50494840/7adbbcee16df7088c22a9c0582f8a5e5_3264399417008532150.png",
+        "元素类型": "火",
         "武器类型": "单手剑",
         "星级": "五星"
+    },
+    "雅珂达": {
+        "头像": "https://act-upload.mihoyo.com/wiki-user-upload/2025/11/28/50494840/2d8bafcf920d23e6b0307bfbb8287547_1851629366329380334.png",
+        "元素类型": "风",
+        "武器类型": "弓",
+        "星级": "四星"
     },
     "菲林斯": {
         "头像": "https://act-upload.mihoyo.com/wiki-user-upload/2025/08/29/50494840/580bb3983dcd02b1deee98cbdab99f0b_8777161852000493899.png",
