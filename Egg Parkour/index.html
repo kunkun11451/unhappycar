@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>鸡蛋跑酷 (Egg Parkour)</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #87CEEB; font-family: 'Arial', sans-serif; touch-action: none; user-select: none; -webkit-user-select: none; }
+        #canvas-container { width: 100vw; height: 100vh; display: block; }
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        #score-board {
+            color: white;
+            font-size: 24px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            font-weight: bold;
+        }
+        #instructions {
+            color: white;
+            text-align: center;
+            font-size: 16px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 8px;
+            pointer-events: auto;
+            align-self: center;
+            margin-bottom: 20px;
+        }
+        #game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            color: #ff4444;
+            text-shadow: 2px 2px 0 #fff;
+            display: none;
+            font-weight: 800;
+            z-index: 200;
+        }
+        .key {
+            display: inline-block;
+            background: #fff;
+            color: #333;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 12px;
+            margin: 0 2px;
+        }
+
+        /* --- 移动端控制 UI --- */
+        #mobile-controls {
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            width: 100%;
+            height: 150px;
+            pointer-events: none; /* 让触摸事件穿透到具体的按钮 */
+            display: flex; /* 默认显示，可以通过 JS 判断设备隐藏，但为了兼容性这里直接显示 */
+            justify-content: space-between;
+            padding: 0 40px;
+            box-sizing: border-box;
+            z-index: 100;
+        }
+
+        #joystick-zone {
+            width: 120px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            position: relative;
+            pointer-events: auto;
+            backdrop-filter: blur(4px);
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+
+        #joystick-knob {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        #jump-btn {
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.3);
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+            user-select: none;
+            backdrop-filter: blur(4px);
+        }
+        #jump-btn:active {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(0.95);
+        }
+        
+        /* 简单的媒体查询：大屏幕可以隐藏移动控件，或者保留 */
+        @media (min-width: 1024px) {
+            #mobile-controls { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="ui-layer">
+    <div id="score-board">高度: 0m</div>
+    <div id="game-over">鸡蛋碎了!</div>
+    <div id="instructions">
+        PC: <span class="key">WASD</span> 移动 | <span class="key">空格</span> 跳跃 | <span class="key">鼠标</span> 视角<br>
+        Mobile: 左侧摇杆移动 | 右侧跳跃 | 屏幕滑动视角
+    </div>
+</div>
+
+<div id="mobile-controls">
+    <div id="joystick-zone">
+        <div id="joystick-knob"></div>
+    </div>
+    <div id="jump-btn">跳</div>
+</div>
+
+<div id="canvas-container"></div>
+
+<!-- Import map for Three.js and Cannon-es -->
+<script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+            "cannon-es": "https://unpkg.com/cannon-es@0.20.0/dist/cannon-es.js"
+        }
+    }
+</script>
+
+<script type="module">
+    import * as THREE from 'three';
+    import * as CANNON from 'cannon-es';
+
+    // --- 全局变量 ---
+    let camera, scene, renderer;
+    let world; // 物理世界
+    let eggBody, eggMesh;
+    let platforms = [];
+    let clouds = []; // 装饰性云朵
+    let physicsMaterials = {};
+    let lastTime;
+    let score = 0;
+    let highestY = 0;
+    let gameOver = false;
+    let platformTexture; // 纹理复用
+
+    // 地图生成状态机
+    let mapState = {
+        mode: 'spiral', // spiral, straight, zigzag, random
+        stepsLeft: 5,
+        currentAngle: 0,
+        difficulty: 1
+    };
+    
+    let lastPlatform = { x: 0, y: -1, z: 0, width: 10, depth: 10 };
+
+    // 视角控制变量
+    let cameraYaw = 0; 
+    let cameraPitch = 0.4; 
+    let cameraRadius = 12; 
+
+    // 输入状态 (向量化)
+    // 键盘输入 (x: -1~1, y: -1~1)
+    const keyInput = { x: 0, y: 0 };
+    // 摇杆输入 (x: -1~1, y: -1~1)
+    const joystickInput = { x: 0, y: 0 };
+    // 是否跳跃
+    let isJumping = false;
+
+    // 按键状态追踪
+    const keysPressed = { w: false, s: false, a: false, d: false };
+
+    const SETTINGS = {
+        eggColor: 0xffeebb,
+        bgColor: 0x87CEEB,
+        fogColor: 0xcce0ff,
+        cloudColor: 0xffffff
+    };
+
+    init();
+    animate();
+
+    function init() {
+        // 1. Three.js 场景设置
+        const container = document.getElementById('canvas-container');
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(SETTINGS.bgColor);
+        scene.fog = new THREE.Fog(SETTINGS.fogColor, 10, 60);
+
+        camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 5, 10);
+
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // 优化移动端性能
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        container.appendChild(renderer.domElement);
+
+        // 灯光
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
+        hemiLight.position.set(0, 20, 0);
+        scene.add(hemiLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(20, 30, 10);
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize.width = 1024; // 移动端适当降低阴影贴图
+        dirLight.shadow.mapSize.height = 1024;
+        scene.add(dirLight);
+
+        platformTexture = createGridTexture();
+
+        // 2. Cannon.js 物理世界设置
+        world = new CANNON.World();
+        world.gravity.set(0, -15, 0);
+        world.broadphase = new CANNON.NaiveBroadphase();
+        world.solver.iterations = 7; // 稍微降低迭代次数优化移动端CPU
+
+        const defaultMaterial = new CANNON.Material('default');
+        const defaultContactMaterial = new CANNON.ContactMaterial(defaultMaterial, defaultMaterial, {
+            friction: 0.4,
+            restitution: 0.2,
+        });
+        world.addContactMaterial(defaultContactMaterial);
+        physicsMaterials.default = defaultMaterial;
+
+        // 3. 创建对象
+        createEgg();
+        createStartingPlatform();
+        createClouds();
+        
+        for(let i=0; i<15; i++) {
+            generateNextPlatform();
+        }
+
+        // 4. 事件监听
+        window.addEventListener('resize', onWindowResize);
+        
+        // 键盘
+        document.addEventListener('keydown', handleKeyDown);
+        document.addEventListener('keyup', handleKeyUp);
+        
+        // 鼠标控制 (Pointer Lock)
+        document.getElementById('canvas-container').addEventListener('click', () => {
+            // 只有非移动端或者明确操作时才锁定，避免干扰触摸
+            if(window.innerWidth > 1024) document.body.requestPointerLock();
+        });
+        document.addEventListener('mousemove', onMouseMove);
+        
+        // 初始化移动端触摸控制
+        initTouchControls();
+        
+        // 防止右键菜单
+        document.addEventListener('contextmenu', event => event.preventDefault());
+    }
+
+    // --- 移动端触摸控制逻辑 ---
+    function initTouchControls() {
+        // 1. 摇杆逻辑
+        const joystickZone = document.getElementById('joystick-zone');
+        const joystickKnob = document.getElementById('joystick-knob');
+        let joystickCenter = { x: 0, y: 0 };
+        let joystickTouchId = null;
+
+        joystickZone.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.changedTouches[0];
+            joystickTouchId = touch.identifier;
+            
+            // 获取中心点 (因为可能是相对视口的)
+            const rect = joystickZone.getBoundingClientRect();
+            joystickCenter = {
+                x: rect.left + rect.width / 2,
+                y: rect.top + rect.height / 2
+            };
+            
+            updateJoystick(touch.clientX, touch.clientY);
+        }, { passive: false });
+
+        joystickZone.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                if (e.changedTouches[i].identifier === joystickTouchId) {
+                    updateJoystick(e.changedTouches[i].clientX, e.changedTouches[i].clientY);
+                    break;
+                }
+            }
+        }, { passive: false });
+
+        const endJoystick = (e) => {
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                if (e.changedTouches[i].identifier === joystickTouchId) {
+                    joystickTouchId = null;
+                    joystickInput.x = 0;
+                    joystickInput.y = 0;
+                    joystickKnob.style.transform = `translate(-50%, -50%) translate(0px, 0px)`;
+                    break;
+                }
+            }
+        };
+
+        joystickZone.addEventListener('touchend', endJoystick);
+        joystickZone.addEventListener('touchcancel', endJoystick);
+
+        function updateJoystick(clientX, clientY) {
+            const maxDist = 35; // 摇杆最大活动半径
+            let dx = clientX - joystickCenter.x;
+            let dy = clientY - joystickCenter.y;
+            
+            const distance = Math.sqrt(dx*dx + dy*dy);
+            
+            // 归一化输入 (-1 到 1)
+            let normalizedDistance = Math.min(distance, maxDist);
+            
+            // 视觉更新
+            const angle = Math.atan2(dy, dx);
+            const visualX = Math.cos(angle) * normalizedDistance;
+            const visualY = Math.sin(angle) * normalizedDistance;
+            
+            joystickKnob.style.transform = `translate(-50%, -50%) translate(${visualX}px, ${visualY}px)`;
+            
+            // 物理输入更新
+            // 注意：屏幕Y轴向下是正，但游戏里我们期望推杆向上(负Y)是前进
+            // 还需要归一化到 0-1 范围
+            const inputScale = Math.min(distance / maxDist, 1.0); 
+            joystickInput.x = Math.cos(angle) * inputScale;
+            joystickInput.y = Math.sin(angle) * inputScale;
+        }
+
+        // 2. 跳跃按钮
+        const jumpBtn = document.getElementById('jump-btn');
+        jumpBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            isJumping = true;
+        });
+        jumpBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            isJumping = false;
+        });
+
+        // 3. 屏幕滑动控制视角 (Camera)
+        let lastTouchX = 0;
+        let lastTouchY = 0;
+        
+        document.addEventListener('touchstart', (e) => {
+            // 忽略在控件上的触摸
+            if (e.target.closest('#mobile-controls')) return;
+            
+            const touch = e.touches[0];
+            lastTouchX = touch.clientX;
+            lastTouchY = touch.clientY;
+        }, { passive: false });
+
+        document.addEventListener('touchmove', (e) => {
+            // 忽略在控件上的触摸
+            if (e.target.closest('#mobile-controls')) return;
+            
+            // 阻止默认滚动行为
+            if(e.cancelable) e.preventDefault();
+
+            const touch = e.touches[0];
+            const dx = touch.clientX - lastTouchX;
+            const dy = touch.clientY - lastTouchY;
+            
+            lastTouchX = touch.clientX;
+            lastTouchY = touch.clientY;
+
+            // 旋转逻辑 (比鼠标灵敏度稍高一点)
+            const rotateSpeed = 0.005;
+            cameraYaw -= dx * rotateSpeed;
+            cameraPitch += dy * rotateSpeed;
+            cameraPitch = Math.max(0.1, Math.min(Math.PI / 2 - 0.1, cameraPitch));
+            
+        }, { passive: false });
+    }
+
+    function createGridTexture() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 64; canvas.height = 64;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#81C784'; ctx.fillRect(0,0,64,64);
+        ctx.strokeStyle = '#4CAF50'; ctx.lineWidth = 4;
+        ctx.strokeRect(0,0,64,64);
+        ctx.beginPath(); ctx.moveTo(32, 0); ctx.lineTo(32, 64); ctx.moveTo(0, 32); ctx.lineTo(64, 32); ctx.stroke();
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping;
+        return tex;
+    }
+
+    // --- 键盘事件处理 (更新为向量逻辑) ---
+    function handleKeyDown(e) { updateKeyInput(e.code, true); }
+    function handleKeyUp(e) { updateKeyInput(e.code, false); }
+
+    function updateKeyInput(code, isPressed) {
+        switch(code) {
+            case 'ArrowUp': case 'KeyW': keysPressed.w = isPressed; break;
+            case 'ArrowDown': case 'KeyS': keysPressed.s = isPressed; break;
+            case 'ArrowLeft': case 'KeyA': keysPressed.a = isPressed; break;
+            case 'ArrowRight': case 'KeyD': keysPressed.d = isPressed; break;
+            case 'Space': isJumping = isPressed; break;
+        }
+
+        // 计算键盘产生的向量
+        let kx = 0, ky = 0;
+        if (keysPressed.w) ky -= 1; // 向前 (负Y方向在摇杆逻辑中通常代表向上/前)
+        if (keysPressed.s) ky += 1;
+        if (keysPressed.a) kx -= 1;
+        if (keysPressed.d) kx += 1;
+        
+        keyInput.x = kx;
+        keyInput.y = ky;
+    }
+
+    function onMouseMove(e) {
+        if (document.pointerLockElement !== document.body) return;
+        const rotateSpeed = 0.002;
+        cameraYaw -= e.movementX * rotateSpeed;
+        cameraPitch += e.movementY * rotateSpeed;
+        cameraPitch = Math.max(0.1, Math.min(Math.PI / 2 - 0.1, cameraPitch));
+    }
+
+    function createEgg() {
+        const radiusBase = 0.5;
+        eggBody = new CANNON.Body({ mass: 5, material: physicsMaterials.default, angularDamping: 0.5, linearDamping: 0.1 });
+        eggBody.addShape(new CANNON.Sphere(radiusBase), new CANNON.Vec3(0, -0.2, 0));
+        eggBody.addShape(new CANNON.Sphere(radiusBase * 0.7), new CANNON.Vec3(0, 0.3, 0));
+        eggBody.position.set(0, 5, 0);
+        world.addBody(eggBody);
+
+        const geometry = new THREE.SphereGeometry(radiusBase, 32, 32);
+        const material = new THREE.MeshStandardMaterial({ color: SETTINGS.eggColor, roughness: 0.4, metalness: 0.1 });
+        eggMesh = new THREE.Mesh(geometry, material);
+        eggMesh.scale.set(1, 1.4, 1); 
+        
+        const textureCanvas = document.createElement('canvas');
+        textureCanvas.width = 128; textureCanvas.height = 128;
+        const ctx = textureCanvas.getContext('2d');
+        ctx.fillStyle = '#ffeebb'; ctx.fillRect(0,0,128,128);
+        ctx.fillStyle = '#eecd99';
+        for(let i=0; i<10; i++) { ctx.beginPath(); ctx.arc(Math.random()*128, Math.random()*128, 5 + Math.random()*10, 0, Math.PI*2); ctx.fill(); }
+        material.map = new THREE.CanvasTexture(textureCanvas);
+        eggMesh.castShadow = true;
+        scene.add(eggMesh);
+    }
+
+    function createPlatform(x, y, z, width, depth) {
+        const body = new CANNON.Body({ mass: 0, type: CANNON.Body.STATIC, material: physicsMaterials.default });
+        body.addShape(new CANNON.Box(new CANNON.Vec3(width/2, 0.5, depth/2)));
+        body.position.set(x, y, z);
+        world.addBody(body);
+
+        const geometry = new THREE.BoxGeometry(width, 1, depth);
+        const texture = platformTexture.clone();
+        texture.repeat.set(width / 2, depth / 2);
+        texture.needsUpdate = true;
+        const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ map: texture, roughness: 0.8 }));
+        mesh.position.copy(body.position);
+        mesh.castShadow = true; mesh.receiveShadow = true;
+        scene.add(mesh);
+        platforms.push({ body, mesh });
+        if (platforms.length > 25) { const old = platforms.shift(); world.removeBody(old.body); scene.remove(old.mesh); }
+        return {x, y, z, width, depth};
+    }
+
+    function createClouds() {
+        const geo = new THREE.BoxGeometry(1, 1, 1);
+        const mat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6 });
+        for(let i=0; i<20; i++) {
+            const cloud = new THREE.Mesh(geo, mat);
+            resetCloud(cloud); scene.add(cloud); clouds.push(cloud);
+        }
+    }
+    function resetCloud(cloud) {
+        const r = 30 + Math.random() * 50; const theta = Math.random() * Math.PI * 2;
+        cloud.position.set(Math.cos(theta) * r, (highestY - 20) + Math.random() * 60, Math.sin(theta) * r);
+        const s = 5 + Math.random() * 15; cloud.scale.set(s, s * 0.4, s);
+    }
+    function updateClouds() {
+        clouds.forEach(c => { c.position.x += 0.02; if (c.position.y < highestY - 50) { resetCloud(c); c.position.y = highestY + 40 + Math.random() * 20; } });
+    }
+
+    function createStartingPlatform() { createPlatform(0, -1, 0, 10, 10); }
+
+    function generateNextPlatform() {
+        if (mapState.stepsLeft <= 0) {
+            const modes = ['spiral', 'straight', 'zigzag', 'random'];
+            mapState.mode = modes[Math.floor(Math.random() * modes.length)];
+            mapState.stepsLeft = 5 + Math.floor(Math.random() * 5);
+        }
+        mapState.stepsLeft--;
+        mapState.difficulty = 1 + highestY / 100;
+
+        let newX, newY, newZ, width, depth;
+        let dist = 3.5 + Math.random();
+        let yGap = 1.0 + Math.random() * 0.5;
+        const sizeFactor = Math.max(0.6, 2.5 - mapState.difficulty * 0.2); 
+        width = Math.max(2, (3 + Math.random() * 2) * sizeFactor);
+        depth = Math.max(2, (3 + Math.random() * 2) * sizeFactor);
+
+        switch (mapState.mode) {
+            case 'spiral':
+                mapState.currentAngle += 0.5;
+                const radius = 6 + Math.random() * 2;
+                const centerX = Math.sin(highestY * 0.05) * 10; const centerZ = Math.cos(highestY * 0.05) * 10;
+                newX = centerX + Math.cos(mapState.currentAngle) * radius;
+                newZ = centerZ + Math.sin(mapState.currentAngle) * radius;
+                newY = lastPlatform.y + yGap;
+                break;
+            case 'straight':
+                newX = lastPlatform.x + Math.cos(mapState.currentAngle) * (dist + width/2);
+                newZ = lastPlatform.z + Math.sin(mapState.currentAngle) * (dist + depth/2);
+                newY = lastPlatform.y + yGap * 0.8;
+                break;
+            case 'zigzag':
+                const zigDir = (mapState.stepsLeft % 2 === 0) ? 1 : -1;
+                const mainX = Math.cos(mapState.currentAngle); const mainZ = Math.sin(mapState.currentAngle);
+                newX = lastPlatform.x + mainX * 3 + -mainZ * zigDir * 4;
+                newZ = lastPlatform.z + mainZ * 3 + mainX * zigDir * 4;
+                newY = lastPlatform.y + yGap * 1.2;
+                break;
+            default:
+                const randAngle = Math.random() * Math.PI * 2;
+                newX = lastPlatform.x + Math.cos(randAngle) * (dist + 1);
+                newZ = lastPlatform.z + Math.sin(randAngle) * (dist + 1);
+                newY = lastPlatform.y + yGap;
+                mapState.currentAngle = randAngle;
+                break;
+        }
+        const distOrigin = Math.sqrt(newX*newX + newZ*newZ);
+        if (distOrigin > 40) { newX *= 0.9; newZ *= 0.9; }
+        lastPlatform = createPlatform(newX, newY, newZ, width, depth);
+    }
+
+    function updatePhysics() {
+        if(gameOver) return;
+        if (eggBody.position.y < lastPlatform.y - 25) triggerGameOver();
+        if (eggBody.position.y > highestY) {
+            highestY = eggBody.position.y;
+            document.getElementById('score-board').innerText = `高度: ${Math.floor(highestY)}m`;
+            if (platforms.length < 20) generateNextPlatform();
+        }
+
+        const torqueStrength = 15; 
+        const cameraDirection = new THREE.Vector3();
+        camera.getWorldDirection(cameraDirection);
+        cameraDirection.y = 0; cameraDirection.normalize();
+        const cameraRight = new THREE.Vector3();
+        cameraRight.crossVectors(cameraDirection, new THREE.Vector3(0, 1, 0));
+
+        // 合并键盘和摇杆输入
+        // 键盘输入优先权较低，或者两者叠加
+        let finalX = 0;
+        let finalY = 0;
+
+        // 如果在使用键盘，就用键盘值
+        if (Math.abs(keyInput.x) > 0.1 || Math.abs(keyInput.y) > 0.1) {
+            finalX = keyInput.x;
+            finalY = keyInput.y;
+        } else {
+            // 否则用摇杆值
+            finalX = joystickInput.x;
+            finalY = joystickInput.y;
+        }
+
+        // 限制向量长度不超过 1
+        const len = Math.sqrt(finalX*finalX + finalY*finalY);
+        if (len > 1) { finalX /= len; finalY /= len; }
+
+        // 应用力矩
+        // 输入Y (前后) -> 对应 相机右向量 的旋转 (绕X轴)
+        // 输入X (左右) -> 对应 相机前向量 的旋转 (绕Z轴)
+        
+        // 注意：摇杆向上是 -Y，向下是 +Y
+        // 向前推(up, -Y) 应该让鸡蛋向前滚 -> 需要 减去 cameraRight
+        // 向后推(down, +Y) 应该让鸡蛋向后滚 -> 需要 加上 cameraRight
+        if (Math.abs(finalY) > 0.05) {
+            eggBody.torque.x += cameraRight.x * torqueStrength * finalY;
+            eggBody.torque.z += cameraRight.z * torqueStrength * finalY;
+        }
+
+        // 向右推(right, +X) 应该让鸡蛋向右滚 -> 需要 加上 cameraDirection
+        // 向左推(left, -X) 应该让鸡蛋向左滚 -> 需要 减去 cameraDirection
+        if (Math.abs(finalX) > 0.05) {
+            eggBody.torque.x += cameraDirection.x * torqueStrength * finalX;
+            eggBody.torque.z += cameraDirection.z * torqueStrength * finalX;
+        }
+
+        if (isJumping) {
+            if (Math.abs(eggBody.velocity.y) < 0.5) {
+                eggBody.velocity.y = 8; 
+                eggBody.angularVelocity.x += (Math.random()-0.5) * 5;
+                eggBody.angularVelocity.z += (Math.random()-0.5) * 5;
+                isJumping = false; // 防止按住连续跳
+            }
+        }
+    }
+
+    function triggerGameOver() {
+        if(gameOver) return;
+        gameOver = true;
+        document.getElementById('game-over').style.display = 'block';
+        setTimeout(resetGame, 2000);
+    }
+
+    function resetGame() {
+        gameOver = false;
+        document.getElementById('game-over').style.display = 'none';
+        eggBody.position.set(0, 5, 0);
+        eggBody.velocity.set(0,0,0);
+        eggBody.angularVelocity.set(0,0,0);
+        eggBody.quaternion.set(0,0,0,1);
+        platforms.forEach(p => { world.removeBody(p.body); scene.remove(p.mesh); });
+        platforms = [];
+        lastPlatform = { x: 0, y: -1, z: 0, width: 10, depth: 10 };
+        highestY = 0; score = 0;
+        mapState = { mode: 'spiral', stepsLeft: 5, currentAngle: 0, difficulty: 1 };
+        document.getElementById('score-board').innerText = `高度: 0m`;
+        createStartingPlatform();
+        for(let i=0; i<15; i++) { generateNextPlatform(); }
+    }
+
+    function animate(time) {
+        requestAnimationFrame(animate);
+        if (lastTime !== undefined) {
+            const dt = (time - lastTime) / 1000;
+            world.step(1 / 60, dt, 3);
+        }
+        lastTime = time;
+        updatePhysics();
+        updateClouds();
+        eggMesh.position.copy(eggBody.position);
+        eggMesh.quaternion.copy(eggBody.quaternion);
+
+        const offsetY = cameraRadius * Math.sin(cameraPitch);
+        const horizontalRadius = cameraRadius * Math.cos(cameraPitch);
+        const offsetX = horizontalRadius * Math.sin(cameraYaw);
+        const offsetZ = horizontalRadius * Math.cos(cameraYaw);
+        const targetPos = new THREE.Vector3(eggMesh.position.x + offsetX, eggMesh.position.y + offsetY, eggMesh.position.z + offsetZ);
+        camera.position.lerp(targetPos, 0.1);
+        camera.lookAt(eggMesh.position);
+        renderer.render(scene, camera);
+    }
+
+    function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+</script>
+</body>
+</html>
