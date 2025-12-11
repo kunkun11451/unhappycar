@@ -2,11 +2,11 @@ name: Process Body Type Update
 
 on:
   issue_comment:
-    types: [created]
+    types: [created, edited]
 
 jobs:
   update-body-type:
-    if: github.event.issue.pull_request && contains(github.event.comment.body, '/update-body-type')
+    if: github.event.issue.pull_request && github.event.comment.user.type != 'Bot' && contains(github.event.comment.body, '/update-body-type')
     runs-on: ubuntu-latest
     permissions:
       contents: write
