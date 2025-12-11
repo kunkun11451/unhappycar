@@ -1,11 +1,5 @@
 /* 方位抽取器样式文件 */
-@font-face {
-    font-family: 'HYWenHei-85W';
-    src: url('../pt/HYWenHei-85W.ttf') format('truetype');
-    font-weight: normal;
-    font-style: normal;
-    font-display: swap;
-}
+@import url('HYWenHei-85W.css');
 
 /* 统一所有按钮与下拉框样式 */
 select, button {
