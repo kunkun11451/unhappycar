@@ -1,0 +1,101 @@
+name: Process Body Type Update
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  update-body-type:
+    if: github.event.issue.pull_request && contains(github.event.comment.body, '/update-body-type')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: refs/pull/${{ github.event.issue.number }}/head
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Parse comment and update
+        id: parse_update
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body }}
+        run: |
+          python -c "
+          import os
+          import json
+          import sys
+          
+          comment = os.environ['COMMENT_BODY']
+          lines = comment.split('\n')
+          
+          updates = {}
+          start_parsing = False
+          
+          for line in lines:
+              line = line.strip()
+              if '/update-body-type' in line:
+                  start_parsing = True
+                  continue
+              
+              if start_parsing and ':' in line:
+                  parts = line.split(':', 1)
+                  name = parts[0].strip()
+                  body_type = parts[1].strip()
+                  if name and body_type:
+                      updates[name] = body_type
+          
+          if not updates:
+              print('No updates found in comment.')
+              sys.exit(0)
+              
+          print(f'Updates found: {updates}')
+          
+          # Call the update script
+          # We need to import the update_characters module or run it as subprocess
+          # Since we are in the repo root, we can run it.
+          
+          import subprocess
+          
+          json_data = json.dumps(updates, ensure_ascii=False)
+          result = subprocess.run(['python', 'update_characters.py', 'update-body', '--data', json_data], capture_output=True, text=True)
+          
+          print(result.stdout)
+          if result.stderr:
+              print(result.stderr, file=sys.stderr)
+              
+          if result.returncode != 0:
+              sys.exit(result.returncode)
+          "
+
+      - name: Commit and Push changes
+        run: |
+          git config --global user.name "Genshin Data Bot"
+          git config --global user.email "noreply@github.com"
+          
+          if [[ -n $(git status -s) ]]; then
+            git add .
+            git commit -m "chore: update body types from comment"
+            git push
+            echo "Changes pushed successfully."
+          else
+            echo "No changes to commit."
+          fi
+
+      - name: React to comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: 'rocket'
+            });

@@ -1,0 +1,96 @@
+name: Update Characters
+
+on:
+  schedule:
+    - cron: '0 4 * * 3' # Run every Wednesday at 04:00 UTC (12:00 Beijing Time)
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  update-characters:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Check schedule
+        id: check_schedule
+        run: |
+          python -c "
+          import os
+          from datetime import datetime
+          
+          # Start date: 2025-12-03 (Wednesday)
+          start_date = datetime(2025, 12, 3).date()
+          today = datetime.utcnow().date()
+          
+          days_diff = (today - start_date).days
+          
+          should_run = 'false'
+          # Check if it's a multiple of 42 days (6 weeks)
+          if days_diff >= 0 and days_diff % 42 == 0:
+              should_run = 'true'
+          
+          # Always run if manually triggered
+          if os.environ.get('GITHUB_EVENT_NAME') != 'schedule':
+              should_run = 'true'
+          
+          print(f'Today: {today}, Start Date: {start_date}, Diff: {days_diff}, Should Run: {should_run}')
+          
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+              print(f'should_run={should_run}', file=fh)
+          "
+
+      - name: Install dependencies
+        if: steps.check_schedule.outputs.should_run == 'true'
+        run: |
+          python -m pip install --upgrade pip
+          pip install playwright
+          playwright install --with-deps chromium
+
+      - name: Run update script
+        id: update_script
+        if: steps.check_schedule.outputs.should_run == 'true'
+        run: python update_characters.py scrape
+
+      - name: Check for changes
+        if: steps.check_schedule.outputs.should_run == 'true'
+        id: git-check
+        run: |
+          git diff --quiet || echo "changes=true" >> $GITHUB_OUTPUT
+
+      - name: Create Pull Request
+        if: steps.check_schedule.outputs.should_run == 'true' && steps.git-check.outputs.changes == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: update characters data"
+          committer: "Characters Data Update Bot <noreply@github.com>"
+          author: "Characters Data Update Bot <noreply@github.com>"
+          title: "Update Characters Data"
+          body: |
+            此 PR 使用从 wiki 抓取的最新数据更新了 `js/characters.js`、`recorder/characters.js` 和 `xjjj/characters.js` 中的角色数据。
+            
+            ${{ steps.update_script.outputs.new_characters != '' && format('### ⚠️ 缺少体型信息
+            检测到以下新角色缺少体型信息：
+            {0}
+            
+            请在评论区回复以下格式的内容以更新这些信息：
+            ```
+            /update-body-type
+            角色名1: 体型1
+            角色名2: 体型2
+            ```
+            
+            cc @{1}', steps.update_script.outputs.new_characters, github.repository_owner) || '' }}
+          branch: "update-characters-data"
+          base: "main"
+          delete-branch: true
