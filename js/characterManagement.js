@@ -325,9 +325,9 @@ function initCharacterManagement() {
 
     const weaponTypes = {
         "弓": "https://homdgcat.wiki/homdgcat-res/AvatarSkill/Skill_A_02.png",
-        "长枪": "https://homdgcat.wiki/homdgcat-res/AvatarSkill/Skill_A_03.png",
+        "长柄武器": "https://homdgcat.wiki/homdgcat-res/AvatarSkill/Skill_A_03.png",
         "法器": "https://homdgcat.wiki/homdgcat-res/AvatarSkill/Skill_A_Catalyst_MD.png",
-        "大剑": "https://homdgcat.wiki/homdgcat-res/AvatarSkill/Skill_A_04.png",
+        "双手剑": "https://homdgcat.wiki/homdgcat-res/AvatarSkill/Skill_A_04.png",
         "单手剑": "https://homdgcat.wiki/homdgcat-res/AvatarSkill/Skill_A_01.png"
     };
 

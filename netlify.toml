@@ -1,5 +1,5 @@
 [build]
-  # 如果提交信息包含特定关键词，则忽略构建
-  # exit 0 = 忽略构建 (Cancel)
-  # exit 1 = 继续构建 (Proceed)
-  ignore = "git log -1 --pretty=%B | grep -q 'chore: update characters data' && exit 0 || exit 1"
+  # 仅允许 main 分支构建
+  # 如果是 main 分支，exit 1 (继续构建)
+  # 其他任何分支，exit 0 (忽略构建)
+  ignore = "if [ \"$BRANCH\" = \"main\" ]; then exit 1; else exit 0; fi"
