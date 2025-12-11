@@ -87,7 +87,8 @@ jobs:
           if [[ -n $(git status -s) ]]; then
             git add .
             git commit -m "chore: update body types from comment"
-            git push
+            # Push to the PR branch explicitly
+            git push origin HEAD:refs/heads/${{ github.head_ref || github.event.pull_request.head.ref || 'update-characters-data' }}
             echo "Changes pushed successfully."
           else
             echo "No changes to commit."
