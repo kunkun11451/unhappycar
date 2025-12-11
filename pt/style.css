@@ -1,7 +1,4 @@
-@font-face {
-    font-family: 'HYWenHei-85W';
-    src: url('HYWenHei-85W.ttf') format('truetype');
-}
+@import url('HYWenHei-85W.css');
 
 /* 全局禁用文字选中（含移动端），输入类控件稍后恢复 */
 html, body, .container, .controls, .modal-content, .category-container, .image-gallery,

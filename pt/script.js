@@ -517,7 +517,9 @@ function showTipModal(message, { duration = 1800 } = {}) {
 }
 
 const backgroundImg = new Image();
-backgroundImg.src = 'background.svg';
+// 自动适配路径：若当前页面在 full/ 目录下，则回退一级访问 background.svg
+const isFullVersion = window.location.pathname.includes('/full/');
+backgroundImg.src = isFullVersion ? '../background.svg' : 'background.svg';
 
 // 静态图像/动图的统一状态
 let userImg = null; // Image 或者 OffscreenCanvas（用于单帧渲染）
@@ -1358,7 +1360,7 @@ function createImage(src) {
 
 async function initGallery() {
     const promises = jsonFiles.map(file => 
-                fetch(`pic/${file}`).then(res => {
+                fetch(isFullVersion ? `../pic/${file}` : `pic/${file}`).then(res => {
             if (!res.ok) throw new Error(`加载失败: ${file}`);
             return res.json();
                 }).then(data => ({ status: 'fulfilled', value: data }))
