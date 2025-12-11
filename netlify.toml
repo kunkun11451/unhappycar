@@ -1,0 +1,2 @@
+[build]
+  ignore = "if [ \"$BRANCH\" = \"update-characters-data\" ]; then exit 0; else exit 1; fi"
