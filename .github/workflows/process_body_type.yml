@@ -41,6 +41,10 @@ jobs:
           
           for line in lines:
               line = line.strip()
+              # Remove markdown quote symbols if present
+              while line.startswith('>'):
+                  line = line[1:].strip()
+                  
               if '/update-body-type' in line:
                   start_parsing = True
                   continue

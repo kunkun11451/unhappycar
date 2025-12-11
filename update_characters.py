@@ -326,6 +326,16 @@ def main():
                 with open(os.environ["GITHUB_OUTPUT"], "a") as f:
                     f.write(f"new_characters={json.dumps(new_chars_list, ensure_ascii=False)}\n")
                     
+                    # Generate template for copy-pasting
+                    template_str = "\n".join([f"{name}: " for name in new_chars_list])
+                    
+                    # Write multiline output using delimiter
+                    import uuid
+                    delimiter = f"EOF_{uuid.uuid4().hex}"
+                    f.write(f"new_characters_template<<{delimiter}\n")
+                    f.write(template_str + "\n")
+                    f.write(f"{delimiter}\n")
+                    
     elif args.command == "update-body":
         try:
             updates = json.loads(args.data)

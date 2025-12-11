@@ -86,11 +86,10 @@ jobs:
             请在评论区回复以下格式的内容以更新这些信息：
             ```
             /update-body-type
-            角色名1: 体型1
-            角色名2: 体型2
+            {2}
             ```
             
-            cc @{1}', steps.update_script.outputs.new_characters, github.repository_owner) || '' }}
+            cc @{1}', steps.update_script.outputs.new_characters, github.repository_owner, steps.update_script.outputs.new_characters_template) || '' }}
           branch: "update-characters-data"
           base: "main"
           delete-branch: true
