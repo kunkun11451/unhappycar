@@ -25,6 +25,76 @@
     体型: new Set(),
   };
 
+  // ===== 持久化存储 =====
+  const STORAGE_KEY = 'recorder_data_v1';
+
+  function saveState(){
+    const state = {
+      history,
+      order,
+      hasLastDraw,
+      lastDraw: window.__recorder_lastDraw
+    };
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch(e) {
+      console.error('Failed to save state', e);
+    }
+  }
+
+  function loadState(){
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return;
+      const state = JSON.parse(raw);
+      
+      // 恢复 history
+      if(Array.isArray(state.history)){
+        history.length = 0;
+        history.push(...state.history);
+      }
+      
+      // 恢复 order 和 record
+      if(state.order){
+        Object.keys(order).forEach(k => {
+          order[k] = state.order[k] || [];
+          record[k] = new Set(order[k]);
+        });
+      }
+      
+      // 恢复其他状态
+      hasLastDraw = !!state.hasLastDraw;
+      window.__recorder_lastDraw = state.lastDraw;
+
+      // 恢复界面
+      if(hasLastDraw && window.__recorder_lastDraw){
+        // 恢复上次抽取显示（不带动画）
+        renderLast(window.__recorder_lastDraw, null);
+        
+        // 显示相关控件
+        const lastBar = document.getElementById('lastCopyBar');
+        const recBar = document.getElementById('recordCopyBar');
+        const availPanel = document.getElementById('availablePanel');
+        if(lastBar) lastBar.classList.remove('hidden');
+        if(recBar) recBar.classList.remove('hidden');
+        if(availPanel) availPanel.classList.remove('hidden');
+      }
+
+      // 恢复历史表格
+      renderHistoryTable();
+      
+      // 恢复当前记录显示（不带动画）
+      renderRecord(null, ()=>{ renderComplement(); });
+
+    } catch(e) {
+      console.error('Failed to load state', e);
+    }
+  }
+
+  function clearState(){
+    localStorage.removeItem(STORAGE_KEY);
+  }
+
   // 工具：随机从数组取一个
   function pickRandom(arr){
     return arr[Math.floor(Math.random()*arr.length)];
@@ -116,6 +186,62 @@
   if(recBar) recBar.classList.remove('hidden');
   if(copyAvail && copyAvail.children.length) copyAvail.classList.remove('hidden');
   if(availPanel) availPanel.classList.remove('hidden');
+  
+  saveState();
+  }
+
+  function undo(){
+    if(history.length === 0) return;
+    history.pop();
+
+    if(history.length === 0){
+      Object.values(record).forEach(s=>s.clear());
+      Object.keys(order).forEach(k=> order[k].length = 0);
+      document.getElementById('lastDraw').innerHTML = '';
+      hasLastDraw = false;
+      window.__recorder_lastDraw = null;
+
+      const lastBar = document.getElementById('lastCopyBar');
+      const recBar = document.getElementById('recordCopyBar');
+      const copyAvail = document.getElementById('copyAvailable');
+      const availPanel = document.getElementById('availablePanel');
+      if(lastBar) lastBar.classList.add('hidden');
+      if(recBar) recBar.classList.add('hidden');
+      if(copyAvail) copyAvail.classList.add('hidden');
+
+      if(availPanel){
+        const grid = document.getElementById('complementList');
+        if(grid) grid.innerHTML = '<div style="padding:12px;color:#94a3b8;font-size:.95rem">开始游戏以记录并查看可用角色列表</div>';
+      }
+    } else {
+      const lastEntry = history[history.length - 1];
+      const snapshot = lastEntry.snapshot;
+
+      order.元素类型 = snapshot.元素类型.slice();
+      order.国家 = snapshot.国家.slice();
+      order.武器类型 = snapshot.武器类型.slice();
+      order.体型 = snapshot.体型.slice();
+
+      record.元素类型 = new Set(order.元素类型);
+      record.国家 = new Set(order.国家);
+      record.武器类型 = new Set(order.武器类型);
+      record.体型 = new Set(order.体型);
+
+      window.__recorder_lastDraw = lastEntry.last;
+      renderLast(lastEntry.last, lastEntry.changes);
+
+      hasLastDraw = true;
+      const lastBar = document.getElementById('lastCopyBar');
+      const recBar = document.getElementById('recordCopyBar');
+      const availPanel = document.getElementById('availablePanel');
+      if(lastBar) lastBar.classList.remove('hidden');
+      if(recBar) recBar.classList.remove('hidden');
+      if(availPanel) availPanel.classList.remove('hidden');
+    }
+
+    renderHistoryTable();
+    renderRecord(null, ()=>{ renderComplement(); });
+    saveState();
   }
 
   function reset(){
@@ -126,6 +252,7 @@
   renderRecord(null, ()=>{ renderComplement(); });
   // 隐藏复制控件与可用复制区域
   hasLastDraw = false;
+  window.__recorder_lastDraw = null;
   const lastBar = document.getElementById('lastCopyBar');
   const recBar = document.getElementById('recordCopyBar');
   const copyAvail = document.getElementById('copyAvailable');
@@ -138,6 +265,7 @@
     const grid = document.getElementById('complementList');
     if(grid) grid.innerHTML = '<div style="padding:12px;color:#94a3b8;font-size:.95rem">开始游戏以记录并查看可用角色列表</div>';
   }
+  clearState();
   }
 
   function renderListRow(label, arr, change){
@@ -406,11 +534,108 @@
     }).join('');
   }
 
+  // ===== 统计功能 =====
+  function isBanned(char, snapshot){
+    if(snapshot.元素类型.length > 0 && snapshot.元素类型.includes(char.元素类型)) return true;
+    if(snapshot.国家.length > 0 && snapshot.国家.includes(char.国家 || '其他')) return true;
+    if(snapshot.武器类型.length > 0 && snapshot.武器类型.includes(char.武器类型)) return true;
+    if(snapshot.体型.length > 0 && snapshot.体型.includes(char.体型 || '')) return true;
+    return false;
+  }
+
+  function renderStats(){
+    const attrCounts = {};
+    const charCounts = {};
+    const labelCategory = {}; // 记录标签所属分类
+    
+    // 初始化计数：包含所有类型的标签
+    Object.entries(POOLS).forEach(([cat, pool]) => {
+      pool.forEach(val => {
+        attrCounts[val] = 0;
+        labelCategory[val] = cat;
+      });
+    });
+
+    const allChars = window.characterData || {};
+    Object.keys(allChars).forEach(k => charCounts[k] = 0);
+
+    history.forEach(h => {
+      const snap = h.snapshot;
+      // 统计所有标签 Ban 回合
+      ["元素类型","国家","武器类型","体型"].forEach(cat => {
+        if(snap[cat]){
+          snap[cat].forEach(val => {
+            if(attrCounts[val] !== undefined) attrCounts[val]++;
+          });
+        }
+      });
+      
+      // 统计角色 Ban 回合
+      Object.entries(allChars).forEach(([name, data]) => {
+        if(isBanned(data, snap)){
+          charCounts[name]++;
+        }
+      });
+    });
+
+    renderBarChart('elemStats', attrCounts, 'elem-', labelCategory);
+    renderBarChart('charStats', charCounts, 'char-bar');
+  }
+
+  function renderBarChart(containerId, counts, classPrefix, labelCategory){
+    const container = document.getElementById(containerId);
+    if(!container) return;
+    
+    const sorted = Object.entries(counts)
+      .filter(([k, v]) => v > 0)
+      .sort((a, b) => b[1] - a[1]);
+      
+    if(sorted.length === 0){
+      container.innerHTML = '<div style="color:#64748b;font-size:0.9rem;padding:8px;">暂无数据</div>';
+      return;
+    }
+
+    const max = sorted[0][1];
+    
+    // 分类映射到 CSS 类名后缀
+    const catClassMap = {
+      '元素类型': 'elem',
+      '国家': 'nation',
+      '武器类型': 'weapon',
+      '体型': 'body'
+    };
+
+    container.innerHTML = sorted.map(([label, count]) => {
+      const percent = (count / max) * 100;
+      let barClass = classPrefix;
+      
+      if(classPrefix === 'elem-' && labelCategory && labelCategory[label]){
+        const catSuffix = catClassMap[labelCategory[label]] || 'other';
+        barClass = `cat-${catSuffix}`;
+      } else if (classPrefix === 'elem-') {
+        barClass = `elem-${label}`; // fallback
+      }
+      
+      return `
+        <div class="stat-row">
+          <div class="stat-label" title="${label}">${label}</div>
+          <div class="stat-bar-bg">
+            <div class="stat-bar ${barClass}" style="width: ${percent}%"></div>
+          </div>
+          <div class="stat-count">${count}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
   function openHistory(){
     const modal = document.getElementById('historyModal');
     if(modal){
       modal.classList.remove('hidden','closing');
       document.body.classList.add('modal-open');
+      // 重置到第一个 Tab
+      const firstTab = modal.querySelector('.tab-btn');
+      if(firstTab) firstTab.click();
     }
   }
   function closeHistory(){
@@ -432,12 +657,30 @@
 
   function init(){
     document.getElementById('drawBtn').addEventListener('click', drawOnce);
+    document.getElementById('undoBtn').addEventListener('click', undo);
     document.getElementById('resetBtn').addEventListener('click', reset);
     const historyBtn = document.getElementById('historyBtn');
     if(historyBtn) historyBtn.addEventListener('click', openHistory);
     document.querySelectorAll('[data-history-close]').forEach(el=>{
       el.addEventListener('click', closeHistory);
     });
+
+    // Tab 切换
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        
+        const targetId = btn.getAttribute('data-tab') === 'history' ? 'historyView' : 'statsView';
+        document.querySelectorAll('.tab-view').forEach(v => v.classList.add('hidden'));
+        document.getElementById(targetId).classList.remove('hidden');
+        
+        if(targetId === 'statsView'){
+          renderStats();
+        }
+      });
+    });
+
     const copyLastBtn = document.getElementById('copyLastBtn');
     const copyRecordBtn = document.getElementById('copyRecordBtn');
     if(copyLastBtn){
@@ -459,4 +702,7 @@
   }else{
     init();
   }
+  
+  // 尝试加载数据
+  loadState();
 })();

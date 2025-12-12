@@ -6,6 +6,7 @@
   <title>随机Ban位</title>
   <link rel="icon" href="https://upload-bbs.miyoushe.com/upload/2024/06/29/273489775/4be47bf1376bfb4f69c1e3fe26c8a8e8_8119842655567179283.png" type="image/png">
   <link rel="stylesheet" href="./style.css" />
+  <link rel="stylesheet" href="./stats.css" />
 </head>
 <body>
   <div class="container">
@@ -18,6 +19,7 @@
             <h2>本次Ban位抽取</h2>
             <div class="controls inline-controls">
               <button id="drawBtn" class="btn primary">抽取</button>
+              <button id="undoBtn" class="btn">撤销</button>
               <button id="resetBtn" class="btn">重置</button>
                <button id="historyBtn" class="btn">历史</button>
             </div>
@@ -56,25 +58,40 @@
       <div class="modal-backdrop" data-history-close></div>
       <div class="modal-dialog">
         <div class="modal-header">
-          <h3>抽取历史</h3>
+          <div class="tab-controls">
+            <button class="tab-btn active" data-tab="history">历史记录</button>
+            <button class="tab-btn" data-tab="stats">统计信息</button>
+          </div>
           <button class="btn close-btn" data-history-close>×</button>
         </div>
         <div class="modal-body">
-          <table class="history-table" id="historyTable">
-            <thead>
-              <tr>
-                <th>轮次</th>
-                <th>元素</th>
-                <th>国家</th>
-                <th>武器</th>
-                <th>体型</th>
-                <th>可用</th>
-              </tr>
-            </thead>
-            <tbody id="historyTbody">
-              <tr class="empty"><td colspan="6">暂无记录</td></tr>
-            </tbody>
-          </table>
+          <div id="historyView" class="tab-view">
+            <table class="history-table" id="historyTable">
+              <thead>
+                <tr>
+                  <th>轮次</th>
+                  <th>元素</th>
+                  <th>国家</th>
+                  <th>武器</th>
+                  <th>体型</th>
+                  <th>可用</th>
+                </tr>
+              </thead>
+              <tbody id="historyTbody">
+                <tr class="empty"><td colspan="6">暂无记录</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div id="statsView" class="tab-view hidden">
+            <div class="stats-section">
+              <h4>禁用标签统计 (回合数)</h4>
+              <div id="elemStats" class="stats-chart"></div>
+            </div>
+            <div class="stats-section">
+              <h4>角色禁用统计 (回合数)</h4>
+              <div id="charStats" class="stats-chart"></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
