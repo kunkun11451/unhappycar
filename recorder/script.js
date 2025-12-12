@@ -587,7 +587,6 @@
     if(!container) return;
     
     const sorted = Object.entries(counts)
-      .filter(([k, v]) => v > 0)
       .sort((a, b) => b[1] - a[1]);
       
     if(sorted.length === 0){
@@ -595,7 +594,7 @@
       return;
     }
 
-    const max = sorted[0][1];
+    const max = sorted[0][1] || 1;
     
     // 分类映射到 CSS 类名后缀
     const catClassMap = {
