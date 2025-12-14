@@ -4,7 +4,7 @@ class FangweiDrawer {
             clone: { name: '克隆', enabled: true },
             swap: { name: '交换', enabled: true },
             // surprise: { name: '惊喜', enabled: true },
-            audience: { name: '观众', enabled: true },
+            // audience: { name: '观众', enabled: true },
             normal: { name: '普通', enabled: true },
             jushi: { name: '巨史', enabled: true }
         };
@@ -80,20 +80,20 @@ class FangweiDrawer {
         return this.randomChoice(swapPatterns);
     }
 
-    generateAudienceGroups() {
-        const audience = [], participants = [];
-        this.players.forEach(player => {
-            if (Math.random() < 0.5) audience.push(player);
-            else participants.push(player);
-        });
-        if (audience.length === 0) return '[参战 1P 2P 3P 4P]';
-        if (participants.length === 0) return '[观众 1P 2P 3P 4P]';
-        if (audience.length <= participants.length) {
-            return `[观众 ${audience.join(' ')}] [参战 ${participants.join(' ')}]`;
-        } else {
-            return `[参战 ${participants.join(' ')}] [观众 ${audience.join(' ')}]`;
-        }
-    }
+    // generateAudienceGroups() {
+    //     const audience = [], participants = [];
+    //     this.players.forEach(player => {
+    //         if (Math.random() < 0.5) audience.push(player);
+    //         else participants.push(player);
+    //     });
+    //     if (audience.length === 0) return '[参战 1P 2P 3P 4P]';
+    //     if (participants.length === 0) return '[观众 1P 2P 3P 4P]';
+    //     if (audience.length <= participants.length) {
+    //         return `[观众 ${audience.join(' ')}] [参战 ${participants.join(' ')}]`;
+    //     } else {
+    //         return `[参战 ${participants.join(' ')}] [观众 ${audience.join(' ')}]`;
+    //     }
+    // }
 
     generateJushiElements() {
         const shuffled = [...this.elements].sort(() => Math.random() - 0.5);
