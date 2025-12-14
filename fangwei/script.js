@@ -3,7 +3,7 @@ class FangweiDrawer {
         this.modes = {
             clone: { name: '克隆', enabled: true },
             swap: { name: '交换', enabled: true },
-            surprise: { name: '惊喜', enabled: true },
+            // surprise: { name: '惊喜', enabled: true },
             audience: { name: '观众', enabled: true },
             normal: { name: '普通', enabled: true },
             jushi: { name: '巨史', enabled: true }
@@ -12,7 +12,7 @@ class FangweiDrawer {
         this.directions = ['上', '下', '左', '右', '左上', '左下', '右上', '右下'];
         this.points = ['1', '2', '3', '4', '5', '6'];
         this.players = ['1P', '2P', '3P', '4P'];
-        this.surpriseItems = ['禁A', '禁E', '禁Q', '禁五星武器'];
+        // this.surpriseItems = ['禁A', '禁E', '禁Q', '禁五星武器'];
         this.elements = ['冰', '火', '水', '雷', '岩', '风', '草'];
     this.customModes = [];
 
