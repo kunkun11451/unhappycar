@@ -701,11 +701,11 @@
         }
 
         .modal.closing {
-            animation: fadeOut 0.3s ease;
+            animation: fadeOut 0.4s ease forwards;
         }
 
         .modal-content.closing {
-            animation: slideOut 0.3s ease;
+            animation: slideOut 0.4s ease forwards;
         }
 
         /* 响应式设计 */
@@ -1200,7 +1200,7 @@
                     
                     // 点击显示详情
                     itemElement.addEventListener('click', () => {
-                        showDetailModal(item);
+                        showDetailModal(item, itemElement);
                     });
                     
                     // 添加视差效果
@@ -1228,12 +1228,22 @@
             document.body.style.overflow = 'hidden';
         }
 
-        function showDetailModal(item) {
+        let activeSourceElement = null;
+
+        function showDetailModal(item, sourceElement) {
             const modal = document.getElementById('detailModal');
+            
+            // 如果正在关闭，取消关闭操作
+            if (modal._closeTimeout) {
+                clearTimeout(modal._closeTimeout);
+                modal._closeTimeout = null;
+                modal.style.pointerEvents = '';
+                modal.classList.remove('closing');
+            }
+
+            activeSourceElement = sourceElement;
             const detailContent = modal.querySelector('.detail-content');
-            const title = document.getElementById('detailTitle');
-            const text = document.getElementById('detailText');
-            const button = document.getElementById('detailButton');
+            const modalContent = modal.querySelector('.modal-content');
             
             // 清空内容并重新创建结构
             detailContent.innerHTML = '';
@@ -1295,7 +1305,53 @@
             
             modal.style.display = 'block';
             modal.classList.remove('closing');
-            modal.querySelector('.modal-content').classList.remove('closing');
+            modalContent.classList.remove('closing');
+
+            if (sourceElement) {
+                // 移除默认动画
+                modalContent.style.animation = 'none';
+                
+                // 获取源元素的位置和尺寸
+                const startRect = sourceElement.getBoundingClientRect();
+                
+                // 强制重绘以获取模态框的最终尺寸
+                // 先移除之前的动画和变换
+                modalContent.style.transition = 'none';
+                modalContent.style.transform = 'translate(-50%, -50%)';
+                
+                const finalRect = modalContent.getBoundingClientRect();
+                
+                // 计算缩放比例
+                const scaleX = startRect.width / finalRect.width;
+                const scaleY = startRect.height / finalRect.height;
+                
+                // 计算位移
+                const finalCenterX = window.innerWidth / 2;
+                const finalCenterY = window.innerHeight / 2;
+                
+                const startCenterX = startRect.left + startRect.width / 2;
+                const startCenterY = startRect.top + startRect.height / 2;
+                
+                const translateX = startCenterX - finalCenterX;
+                const translateY = startCenterY - finalCenterY;
+                
+                // 应用初始状态
+                modalContent.style.transform = `translate(calc(-50% + ${translateX}px), calc(-50% + ${translateY}px)) scale(${scaleX}, ${scaleY})`;
+                modalContent.style.opacity = '0';
+                
+                // 强制重绘
+                modalContent.offsetHeight;
+                
+                // 应用过渡效果并切换到最终状态
+                requestAnimationFrame(() => {
+                    // 使用带有回弹效果的贝塞尔曲线来实现惯性效果 (cubic-bezier(0.34, 1.56, 0.64, 1))
+                    modalContent.style.transition = 'transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s ease';
+                    modalContent.style.transform = 'translate(-50%, -50%) scale(1)';
+                    modalContent.style.opacity = '1';
+                });
+            } else {
+                modalContent.style.animation = '';
+            }
         }
 
         function setupModalClose(modal) {
@@ -1330,15 +1386,71 @@
         });
 
         function closeModal(modal) {
-            modal.classList.add('closing');
-            modal.querySelector('.modal-content').classList.add('closing');
+            const modalContent = modal.querySelector('.modal-content');
             
-            setTimeout(() => {
+            // 允许点击穿透
+            modal.style.pointerEvents = 'none';
+
+            if (modal._closeTimeout) {
+                clearTimeout(modal._closeTimeout);
+            }
+            
+            if (modal.id === 'detailModal' && activeSourceElement) {
+                // 获取源元素的位置和尺寸
+                const startRect = activeSourceElement.getBoundingClientRect();
+                const finalRect = modalContent.getBoundingClientRect();
+                
+                // 计算缩放比例
+                const scaleX = startRect.width / finalRect.width;
+                const scaleY = startRect.height / finalRect.height;
+                
+                // 计算位移
+                const finalCenterX = window.innerWidth / 2;
+                const finalCenterY = window.innerHeight / 2;
+                const startCenterX = startRect.left + startRect.width / 2;
+                const startCenterY = startRect.top + startRect.height / 2;
+                
+                const translateX = startCenterX - finalCenterX;
+                const translateY = startCenterY - finalCenterY;
+                
+                // 应用过渡效果并切换到初始状态
+                modalContent.style.transition = 'transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.4s ease';
+                modalContent.style.transform = `translate(calc(-50% + ${translateX}px), calc(-50% + ${translateY}px)) scale(${scaleX}, ${scaleY})`;
+                modalContent.style.opacity = '0';
+                modal.classList.add('closing'); // 背景淡出
+                
+                modal._closeTimeout = setTimeout(() => {
+                    modal.style.display = 'none';
+                    modal.classList.remove('closing');
+                    // 清理样式
+                    modalContent.style.transform = '';
+                    modalContent.style.transition = '';
+                    modalContent.style.opacity = '';
+                    modal.style.pointerEvents = '';
+                    activeSourceElement = null;
+                    
+                    // 检查是否应该恢复滚动
+                    const collectionModal = document.getElementById('collectionModal');
+                    if (!collectionModal || collectionModal.style.display === 'none') {
+                        document.body.style.overflow = 'auto';
+                    }
+                    
+                    modal._closeTimeout = null;
+                }, 400);
+                return;
+            }
+
+            modal.classList.add('closing');
+            if (modalContent) modalContent.classList.add('closing');
+            
+            modal._closeTimeout = setTimeout(() => {
                 modal.style.display = 'none';
                 modal.classList.remove('closing');
-                modal.querySelector('.modal-content').classList.remove('closing');
+                if (modalContent) modalContent.classList.remove('closing');
+                modal.style.pointerEvents = '';
                 document.body.style.overflow = 'auto';
-            }, 300);
+                modal._closeTimeout = null;
+            }, 400);
         }
 
         function setupSiteNavigation() {
