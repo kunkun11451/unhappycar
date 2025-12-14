@@ -2,233 +2,1598 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>方位抽取器</title>
-    <link rel="icon" href="https://bbs-static.miyoushe.com/static/2024/06/12/7982e4f54092be80c43a251f26e44235_6026540790739799944.png" type="image/png">
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, minimum-scale=1.0, maximum-scale=3.0">
+    <link rel="icon" href="https://upload-bbs.miyoushe.com/upload/2024/06/29/273489775/4be47bf1376bfb4f69c1e3fe26c8a8e8_8119842655567179283.png" type="image/png">
+    <title>404 error</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 25%, #3a3a3a 50%, #2d2d2d 75%, #1a1a1a 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #333;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-user-drag: none;
+            touch-action: pan-y pinch-zoom;
+            overscroll-behavior-x: none;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.1);
+            padding: 60px 40px;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 35px 60px rgba(0, 0, 0, 0.15);
+        }
+
+        .error-code {
+            font-size: 6rem;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+            line-height: 1;
+        }
+
+        .error-title {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.95);
+            margin-bottom: 30px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .error-image {
+            margin: 30px 0;
+        }
+
+        .error-image img {
+            width: auto;
+            height: 8em;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .error-image img:hover {
+            transform: scale(1.05);
+        }
+
+        .error-description {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .navigation-list {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.95);
+            margin-bottom: 25px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-links {
+            display: grid;
+            gap: 15px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 15px 25px;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: rgba(255, 255, 255, 0.95);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            color: white;
+        }
+
+        .nav-link:active {
+            transform: translateY(0);
+        }
+
+        .home-link {
+            background: linear-gradient(135deg, #2a2a2a 0%, #404040 50%, #2a2a2a 100%) !important;
+            color: white !important;
+            font-weight: 600;
+        }
+
+        .home-link:hover {
+            background: linear-gradient(135deg, #333333 0%, #4a4a4a 50%, #333333 100%) !important;
+            transform: translateY(-3px);
+        }
+
+        img {
+            -webkit-user-drag: none;
+            -khtml-user-drag: none;
+            -moz-user-drag: none;
+            -o-user-drag: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        * {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        .nav-link {
+            pointer-events: auto;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .glass-card {
+                padding: 40px 20px;
+            }
+
+            .error-code {
+                font-size: 4rem;
+            }
+
+            .error-title {
+                font-size: 2rem;
+            }
+
+            .error-description {
+                font-size: 1rem;
+            }
+
+            .navigation-list {
+                padding: 20px;
+            }
+        }
+
+        /* 动画效果 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .container > * {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        .glass-card {
+            animation-delay: 0.1s;
+        }
+
+        .navigation-list {
+            animation-delay: 0.3s;
+        }
+
+        /* 弹窗样式 */
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s ease;
+            touch-action: pan-y;
+            overscroll-behavior-x: none; 
+            overflow-x: hidden;
+        }
+
+        .modal-content {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            width: 80%;
+            max-width: 600px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.2);
+            animation: slideIn 0.3s ease;
+            touch-action: pan-y;
+            overscroll-behavior-x: none; 
+            overflow-x: hidden;
+        }
+
+        .modal-content h2 {
+            color: rgba(255, 255, 255, 0.95);
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 1.8rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .close {
+            color: rgba(255, 255, 255, 0.8);
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: white;
+        }
+
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: rgba(255, 255, 255, 0.95);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            color: white;
+        }
+
+        .site-nav:hover {
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+
+        .collection-nav:hover {
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+
+        /* 收集列表样式 */
+        .collection-modal {
+            max-width: 900px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: none; 
+            -ms-overflow-style: none;
+            touch-action: pan-y;
+            overscroll-behavior-x: none;
+        }
+
+        .collection-modal::-webkit-scrollbar {
+            display: none;
+        }
+
+        .collection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 30px;
+            padding: 30px;
+            margin: 20px auto 0 auto;
+            justify-content: center;
+            justify-items: center;
+            max-width: 100%;
+            touch-action: pan-y;
+            overscroll-behavior-x: none;
+            transition: filter 0.3s ease, backdrop-filter 0.3s ease;
+        }
+
+        .collection-grid.focus-mode {
+            filter: blur(6px) brightness(0.3);
+        }
+
+        .collection-item {
+            --maxRotate: 20;
+            --rotateX: 0;
+            --rotateY: 0;
+            position: relative;
+            width: 120px;
+            height: 120px;
+            perspective: 1200px;
+            cursor: pointer;
+            transition: transform 0.3s ease, filter 0.3s ease, z-index 0.3s ease;
+        }
+
+        .collection-item.focused {
+            filter: none !important;
+            z-index: 100;
+            transform: scale(2);
+        }
+
+        .collection-item.dimmed {
+            filter: blur(4px) brightness(0.4);
+            z-index: 1;
+        }
+
+        .collection-item:hover {
+            transform: scale(2);
+            z-index: 10;
+        }
+
+        .collection-item.dragging {
+            transform: scale(2) !important;
+            z-index: 10;
+            transition: transform 0.1s ease;
+        }
+
+        .collection-item.no-scroll {
+            touch-action: none;
+        }
+
+        .collection-item-rotator {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: 300ms ease-out;
+            transform: rotateX(calc(var(--rotateX) * 1deg)) rotateY(calc(var(--rotateY) * 1deg));
+        }
+
+        .collection-item-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border-radius: 15px;
+            border: 1px solid rgba(100, 100, 100, 0.5);
+            /* background: rgba(255, 255, 255, 0.1); */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* backdrop-filter: blur(10px); */
+        }
+
+        .collection-item-highlight-container {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 15px;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .collection-item-shadow {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            border-radius: 15px;
+            filter: blur(20px);
+            transform: scale(1.1);
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        .collection-item-highlight {
+            position: absolute;
+            left: -50%;
+            top: -50%;
+            width: 200%;
+            height: 200%;
+            background-image: radial-gradient(circle at 50%, rgba(255, 255, 255, 0.25), transparent 50%);
+            transform: translate3d(calc(var(--rotateY) / var(--maxRotate) * -25%), calc(var(--rotateX) / var(--maxRotate) * -25%), 0px);
+            transition: 300ms ease-out;
+            pointer-events: none;
+        }
+
+        .collection-item img {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 13px;
+            transition: 300ms ease-out;
+            pointer-events: none;
+            transform: translate3d(calc(var(--parallaxOffset, 5) * var(--rotateY) / var(--maxRotate) * 1%), calc(var(--parallaxOffset, 5) * var(--rotateX) / var(--maxRotate) * -1%), 0);
+        }
+
+        .collection-item.locked {
+            background: rgba(255, 255, 255, 0.05);
+            
+        }
+
+        .collection-item.locked .collection-item-inner {
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .collection-item.locked:hover {
+            transform: none;
+            cursor: not-allowed;
+        }
+
+        .collection-item.locked.dragging {
+            transform: none !important;
+            cursor: not-allowed;
+        }
+
+        .question-mark {
+            font-size: 3rem;
+            color: rgba(255, 255, 255, 0.3);
+            font-weight: bold;
+            z-index: 1;
+        }
+
+        .collection-item.new {
+            border-color: #ffd700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            animation: glow 2s infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.5); }
+            50% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.8); }
+        }
+
+        /* 详情弹窗样式 */
+        .detail-modal {
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: none; 
+            -ms-overflow-style: none;
+        }
+
+        .detail-modal::-webkit-scrollbar {
+            display: none;
+        }
+
+        .detail-content {
+            text-align: center;
+        }
+
+        .detail-image-container {
+            --maxRotate: 20;
+            --rotateX: 0;
+            --rotateY: 0;
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 20px auto;
+            perspective: 1200px;
+        }
+
+        .detail-image-container.no-scroll {
+            touch-action: none;
+        }
+
+        html, body {
+            touch-action: pan-y pinch-zoom;
+            overscroll-behavior-x: none;
+        }
+
+        body.no-scroll {
+            touch-action: none;
+        }
+
+        * {
+            overscroll-behavior-x: none;
+        }
+
+        html {
+            overflow-x: hidden;
+        }
+
+        body {
+            overflow-x: hidden;
+        }
+
+        .detail-image-rotator {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: 300ms ease-out;
+            transform: rotateX(calc(var(--rotateX) * 1deg)) rotateY(calc(var(--rotateY) * 1deg));
+        }
+
+        .detail-image-inner {
+            position: relative;
+            left: -6.5%;
+            top: -2.5%;
+            width: 110%;
+            height: 110%;
+            border-radius: 15px;
+            /* border: 2px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1); */
+            overflow: hidden;
+            /* backdrop-filter: blur(10px); */
+        }
+
+        .detail-image-shadow {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            border-radius: 15px;
+            filter: blur(20px);
+            transform: scale(1.1);
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        .detail-image-highlight {
+            position: absolute;
+            left: -50%;
+            top: -50%;
+            width: 200%;
+            height: 200%;
+            background-image: radial-gradient(circle at 50%, rgba(255, 255, 255, 0.25), transparent 50%);
+            z-index: 2;
+            transform: translate3d(calc(var(--rotateY) / var(--maxRotate) * -25%), calc(var(--rotateX) / var(--maxRotate) * -25%), 0px);
+            transition: 300ms ease-out;
+            pointer-events: none;
+        }
+
+        .detail-content img {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 13px;
+            transition: 300ms ease-out;
+            pointer-events: none;
+            /* transform: translate3d(calc(var(--parallaxOffset, 5) * var(--rotateY) / var(--maxRotate) * 1%), calc(var(--parallaxOffset, 5) * var(--rotateX) / var(--maxRotate) * -1%), 0); */
+        }
+
+        .detail-content h3 {
+            color: rgba(255, 255, 255, 0.95);
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .detail-content p {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        #detailButton {
+            display: inline-block;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: rgba(255, 255, 255, 0.95);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        #detailButton:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            color: white;
+        }
+
+        #detailButton:active {
+            transform: translateY(0);
+        }
+
+        #collectionProgress {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { 
+                opacity: 0;
+                transform: translate(-50%, -50%) translateY(-50px);
+            }
+            to { 
+                opacity: 1;
+                transform: translate(-50%, -50%) translateY(0);
+            }
+        }
+
+        @keyframes slideOut {
+            from { 
+                opacity: 1;
+                transform: translate(-50%, -50%) translateY(0);
+            }
+            to { 
+                opacity: 0;
+                transform: translate(-50%, -50%) translateY(-50px);
+            }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        .modal.closing {
+            animation: fadeOut 0.3s ease;
+        }
+
+        .modal-content.closing {
+            animation: slideOut 0.3s ease;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .modal-content {
+                width: 95%;
+                max-width: 95%;
+                padding: 20px;
+                transform: translate(-50%, -50%);
+            }
+
+            .nav-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .collection-modal {
+                max-width: 95%;
+                width: 95%;
+                max-height: 85vh;
+            }
+
+            .collection-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                gap: 20px;
+                margin: 15px auto 0 auto;
+                padding: 0 10px;
+            }
+
+            .collection-item {
+                width: 100px;
+                height: 100px;
+            }
+
+            .collection-item:hover {
+                transform: none;
+            }
+
+            .collection-item.locked:hover {
+                transform: none;
+                cursor: not-allowed;
+            }
+
+            .collection-item.locked.dragging {
+                transform: none !important;
+                cursor: not-allowed;
+            }
+
+            .question-mark {
+                font-size: 2.5rem;
+            }
+
+            .detail-modal {
+                max-width: 95%;
+                width: 95%;
+            }
+
+            .detail-image-container {
+                width: 180px;
+                height: 180px;
+            }
+
+            .detail-content h3 {
+                font-size: 1.3rem;
+            }
+
+            .detail-content p {
+                font-size: 1rem;
+            }
+
+            .close {
+                font-size: 32px;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                right: 15px;
+                top: 15px;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <label class="themeToggle st-sunMoonThemeToggleBtn">
-            <input class="themeToggleInput" type="checkbox" id="theme-toggle-checkbox">
-            <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <mask id="mask-84963694">
-                <rect width="30" height="30" fill="white"></rect>
-                <circle cx="16" cy="4" r="9" fill="black"></circle>
-              </mask>
-              <circle class="sunMoon" cx="15" cy="15" r="9" mask="url(#mask-84963694)" fill="currentColor"></circle>
-              <g>
-                <path class="sunRay sunRay1" d="M29.3333 15L25.6667 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                <path class="sunRay sunRay2" d="M22.9289 22.9289L20.3333 20.3333" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                <path class="sunRay sunRay3" d="M15 29.3333L15 25.6667" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                <path class="sunRay sunRay4" d="M7.07108 22.9289L9.66667 20.3333" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                <path class="sunRay sunRay5" d="M0.666672 15L4.33334 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                <path class="sunRay sunRay6" d="M7.07108 7.07108L9.66667 9.66667" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                <path class="sunRay sunRay7" d="M15 0.666672L15 4.33334" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-                <path class="sunRay sunRay8" d="M22.9289 7.07108L20.3333 9.66667" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-              </g>
-            </svg>
-        </label>
-        <button class="settings-icon-button" onclick="showSettingsModal()" title="设置" aria-label="设置"><svg class="icon" style="width: 1.05859375em;height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1084 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1422"><path d="M1072.147851 406.226367c-6.331285-33.456782-26.762037-55.073399-52.047135-55.073399-0.323417 0-0.651455 0.003081-0.830105 0.009241l-4.655674 0c-73.124722 0-132.618162-59.491899-132.618162-132.618162 0-23.731152 11.447443-50.336101 11.546009-50.565574 13.104573-29.498767 3.023185-65.672257-23.427755-84.127081l-1.601687-1.127342-134.400039-74.661726-1.700252-0.745401c-8.753836-3.805547-18.334698-5.735272-28.479231-5.735272-20.789593 0-41.235746 8.344174-54.683758 22.306575-14.741683 15.216028-65.622973 58.649474-104.721083 58.649474-39.450789 0-90.633935-44.286652-105.438762-59.784516-13.518857-14.247316-34.128258-22.753199-55.127302-22.753199-9.945862 0-19.354234 1.861961-27.958682 5.531982l-1.746455 0.74078-139.141957 76.431283-1.643269 1.139662c-26.537186 18.437884-36.675557 54.579032-23.584845 84.062398 0.115506 0.264895 11.579891 26.725075 11.579891 50.634877 0 73.126262-59.491899 132.618162-132.618162 132.618162l-4.581749 0c-0.318797-0.00616-0.636055-0.01078-0.951772-0.01078-25.260456 0-45.672728 21.618157-52.002472 55.0811-0.462025 2.453354-11.313456 60.622322-11.313456 106.117939 0 45.494078 10.85143 103.659965 11.314996 106.119479 6.334365 33.458322 26.758957 55.076479 52.036353 55.076479 0.320337 0 0.651455-0.00616 0.842426-0.012321l4.655674 0c73.126262 0 132.618162 59.491899 132.618162 132.616622 0 23.760413-11.444363 50.333021-11.546009 50.565574-13.093793 29.474125-3.041666 65.646075 23.395414 84.151722l1.569346 1.093459 131.838879 73.726895 1.675611 0.7377c8.750757 3.84251 18.305437 5.790715 28.397607 5.790715 21.082208 0 41.676209-8.706094 55.0888-23.290689 18.724339-20.347588 69.527086-62.362616 107.04815-62.362616 40.625872 0 92.72537 47.100385 107.759669 63.583903 13.441852 14.831008 34.176001 23.689571 55.470741 23.695731l0.00616 0c9.895039 0 19.27877-1.883523 27.893999-5.598205l1.711034-0.73924 136.659342-75.531873 1.617088-1.128882c26.492523-18.456365 36.601633-54.600594 23.538642-84.016195-0.115506-0.267974-11.595291-27.082374-11.595291-50.67646 0-73.124722 59.49344-132.616622 132.618162-132.616622l4.517066-0.00154c0.300316 0.00616 0.599092 0.009241 0.899409 0.009241 25.331299-0.00154 45.785153-21.619697 52.107197-55.054918 0.112426-0.589852 11.325776-59.507301 11.325776-106.14104C1083.464388 466.640776 1072.609877 408.67356 1072.147851 406.226367zM377.486862 945.656142l-115.32764-64.487932c5.082277-13.052211 15.437801-43.51815 15.437801-75.017486 0-109.382917-84.176364-199.816642-192.587488-208.134635-2.647404-15.427021-8.873963-54.967133-8.873963-85.667166 0-30.65691 6.223479-70.232445 8.869343-85.671786 108.415744-8.311832 192.592108-98.745557 192.592108-208.134635 0-31.416171-10.300081-61.797405-15.371577-74.854236l122.721583-67.40331c0.003081 0 0.00462 0.00154 0.007701 0.00154 4.423121 4.518606 22.121764 22.080182 46.558275 39.493911 39.929754 28.46229 77.952885 42.894416 113.014434 42.894416 34.716571 0 72.437845-14.151831 112.115025-42.06431 24.282503-17.07953 41.896442-34.302288 46.308782-38.74543 0.009241-0.00154 0.018481-0.00462 0.026182-0.00616l118.301542 65.726159c-5.077657 13.055291-15.416239 43.499669-15.416239 74.958962 0 109.389077 84.174824 199.822802 192.590568 208.134635 2.645865 15.462442 8.872423 55.107281 8.872423 85.671786 0 30.687711-6.223479 70.241685-8.869343 85.673326C890.042174 606.334084 805.86427 696.767809 805.86427 806.158426c0 31.450053 10.317022 61.851309 15.393138 74.903519l-119.783103 66.198965c-5.168521-5.490399-22.603811-23.363073-46.740005-41.288109-40.701336-30.224145-79.662378-45.549521-115.800446-45.549521-35.79155 0-74.458435 15.038919-114.927219 44.694774C400.22004 922.554885 382.666163 940.255068 377.486862 945.656142zM731.271848 511.646647c0-105.803762-86.081448-191.88059-191.888289-191.88059-105.803762 0-191.88059 86.076827-191.88059 191.88059 0 105.803762 86.076827 191.882129 191.88059 191.882129C645.19194 703.528777 731.271848 617.450409 731.271848 511.646647zM539.383558 395.903184c63.825696 0 115.751164 51.922387 115.751164 115.743463 0 63.825696-51.925468 115.751164-115.751164 115.751164-63.821076 0-115.743463-51.925468-115.743463-115.751164C423.640095 447.824031 475.562482 395.903184 539.383558 395.903184z" fill="#272636" p-id="1423"></path></svg></button>
-        <h1>方位抽取器</h1>
-        
-        <div class="draw-section" style="margin-top: -10px;">
-            <button class="draw-button" onclick="drawAll()">🎲开始抽取</button>
-        </div>
-
-        <div class="result-container" id="resultContainer">
-            <div class="result-item" id="modeResultItem">
-                <div class="result-label">模式:</div>
-                <div class="result-value mode-result" id="modeResult">-</div>
-                <button class="redraw-button" id="drawModeBtn" onclick="drawMode()" style="display: none;"><svg class="icon" style="width: 1em;height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="784"><path d="M218.39878 92.602343c-47.599734 33.299814-88.899503 74.299585-122.799314 121.799319C27.499846 309.70113-6.099966 426.300479 0.999994 542.599829c1.499992 25.09986 23.099871 44.199753 48.199731 42.699762s44.199753-23.099871 42.699762-48.199731C79.799554 338.000972 211.098821 156.401986 404.197742 105.202272c147.999173-39.199781 303.698304 4.899973 408.897716 112.699371l-70.999603 38.199786 220.698767 136.399239 7.899956-259.298552-74.699583 40.199775C837.595321 107.202261 763.195737 57.30254 679.196206 28.102703 582.896744-5.197111 479.79732-8.99709 380.897872 17.202764c-58.599673 15.499913-113.299367 40.899772-162.499092 75.399579zM53.299702 890.797884l74.699583-40.099776c58.399674 66.19963 132.799258 116.099351 216.798789 145.199189 96.299462 33.299814 199.398886 37.099793 298.298334 10.899939 38.499785-10.199943 75.299579-24.599863 109.999385-43.099759 18.099899-9.599946 35.599801-20.399886 52.499707-32.19982 47.599734-33.299814 88.799504-74.199586 122.699315-121.599321 68.09962-95.199468 101.799431-211.698817 94.79947-327.898168-1.499992-25.09986-23.099871-44.199753-48.199731-42.699762s-44.199753 23.099871-42.699761 48.199731C943.994727 686.199027 812.595461 867.598014 619.796538 918.797728c-147.999173 39.199781-303.698304-4.899973-408.897716-112.699371l70.999603-38.199786L61.199658 631.499332l-7.899956 259.298552z" p-id="785"></path></svg></button>
+        <div class="glass-card">
+            <div class="error-code">由于玩四骰玩得太牢了</div>
+            <div class="error-title">一气之下气了一下</div>
+            <div class="error-image" style="color: aliceblue;font-size: 20px;">并删除了此网页</div>
+            <img src="1.png" alt="插图1" style="width: 50%; height: auto;">
+            <img id="randomImage" src="" style="width: 50%; height: auto;">
+            <p id="randomText" class="error-description">
+            </p>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link home-link" id="homeButton">返回主页</a>
+            <div class="nav-actions" style="margin-top: 15px; display: flex; justify-content: center; gap: 20px;">
+                <div class="site-nav" id="siteNavButton" style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); cursor: pointer; text-decoration: underline;">
+                    站点导航
+                </div>
+                <div class="collection-nav" id="collectionButton" style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); cursor: pointer; text-decoration: underline;">
+                    收集列表
+                </div>
             </div>
-            <div class="result-item">
-                <div class="result-label">类型方位:</div>
-                <div class="result-value direction-result" id="directionResult">-</div>
-                <button class="redraw-button" id="drawDirectionBtn" onclick="drawDirection()"><svg class="icon" style="width: 1em;height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="784"><path d="M218.39878 92.602343c-47.599734 33.299814-88.899503 74.299585-122.799314 121.799319C27.499846 309.70113-6.099966 426.300479 0.999994 542.599829c1.499992 25.09986 23.099871 44.199753 48.199731 42.699762s44.199753-23.099871 42.699762-48.199731C79.799554 338.000972 211.098821 156.401986 404.197742 105.202272c147.999173-39.199781 303.698304 4.899973 408.897716 112.699371l-70.999603 38.199786 220.698767 136.399239 7.899956-259.298552-74.699583 40.199775C837.595321 107.202261 763.195737 57.30254 679.196206 28.102703 582.896744-5.197111 479.79732-8.99709 380.897872 17.202764c-58.599673 15.499913-113.299367 40.899772-162.499092 75.399579zM53.299702 890.797884l74.699583-40.099776c58.399674 66.19963 132.799258 116.099351 216.798789 145.199189 96.299462 33.299814 199.398886 37.099793 298.298334 10.899939 38.499785-10.199943 75.299579-24.599863 109.999385-43.099759 18.099899-9.599946 35.599801-20.399886 52.499707-32.19982 47.599734-33.299814 88.799504-74.199586 122.699315-121.599321 68.09962-95.199468 101.799431-211.698817 94.79947-327.898168-1.499992-25.09986-23.099871-44.199753-48.199731-42.699762s-44.199753 23.099871-42.699761 48.199731C943.994727 686.199027 812.595461 867.598014 619.796538 918.797728c-147.999173 39.199781-303.698304-4.899973-408.897716-112.699371l70.999603-38.199786L61.199658 631.499332l-7.899956 259.298552z" p-id="785"></path></svg></button>
-            </div>
-            <div class="result-item" id="pointResultItem">
-                <div class="result-label">点位:</div>
-                <div class="result-value point-result" id="pointResult">-</div>
-                <button class="redraw-button" id="drawPointBtn" onclick="drawPoint()" style="display: none;"><svg class="icon" style="width: 1em;height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="784"><path d="M218.39878 92.602343c-47.599734 33.299814-88.899503 74.299585-122.799314 121.799319C27.499846 309.70113-6.099966 426.300479 0.999994 542.599829c1.499992 25.09986 23.099871 44.199753 48.199731 42.699762s44.199753-23.099871 42.699762-48.199731C79.799554 338.000972 211.098821 156.401986 404.197742 105.202272c147.999173-39.199781 303.698304 4.899973 408.897716 112.699371l-70.999603 38.199786 220.698767 136.399239 7.899956-259.298552-74.699583 40.199775C837.595321 107.202261 763.195737 57.30254 679.196206 28.102703 582.896744-5.197111 479.79732-8.99709 380.897872 17.202764c-58.599673 15.499913-113.299367 40.899772-162.499092 75.399579zM53.299702 890.797884l74.699583-40.099776c58.399674 66.19963 132.799258 116.099351 216.798789 145.199189 96.299462 33.299814 199.398886 37.099793 298.298334 10.899939 38.499785-10.199943 75.299579-24.599863 109.999385-43.099759 18.099899-9.599946 35.599801-20.399886 52.499707-32.19982 47.599734-33.299814 88.799504-74.199586 122.699315-121.599321 68.09962-95.199468 101.799431-211.698817 94.79947-327.898168-1.499992-25.09986-23.099871-44.199753-48.199731-42.699762s-44.199753 23.099871-42.699761 48.199731C943.994727 686.199027 812.595461 867.598014 619.796538 918.797728c-147.999173 39.199781-303.698304-4.899973-408.897716-112.699371l70.999603-38.199786L61.199658 631.499332l-7.899956 259.298552z" p-id="785"></path></svg></button>
             </div>
         </div>
 
-        <div class="copy-section" id="copySection" style="display: none;">
-            <div class="copy-text" id="copyText">-</div>
-            <button class="copy-button" id="copyButton" onclick="copyResult()">📋 复制结果</button>
-        </div>
-
-        <div class="modal-overlay" id="historyModal" style="display: none;">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>📚 历史记录</h3>
-                    <button class="modal-close" onclick="hideHistory()">✕</button>
-                </div>
-                <div class="modal-body" id="historyContent">
-                    <p class="modal-empty">暂无历史记录</p>
-                </div>
-                <div class="modal-footer">
-                    <button class="modal-button" onclick="clearHistory()">🗑️ 清空历史</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal-overlay" id="customDetailModal" style="display: none;">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>🔧 自定义模式详情</h3>
-                    <button class="modal-close" onclick="hideCustomDetail()">✕</button>
-                </div>
-                <div class="modal-body">
-                    <div style="margin-bottom: 15px;">
-                        <label class="modal-label">模式类型：</label>
-                        <select id="customModeType">
-                            <option value="text">固定文本</option>
-                            <option value="random">随机抽取</option>
-                        </select>
-                    </div>
-                    
-                    <div id="textDetailSection" style="margin-bottom: 15px;">
-                        <label class="modal-label">固定文本：</label>
-                        <input type="text" id="customModeText" placeholder="输入固定的模式描述">
-                    </div>
-                    
-                    <div id="randomDetailSection" style="display: none;">
-                        <label class="modal-label">抽取元素（每行一个）：</label>
-                        <textarea id="customModeElements" placeholder="输入可抽取的元素，每行一个&#10;例如：&#10;元素A&#10;元素B&#10;元素C"></textarea>
-                        <small class="modal-hint">每次抽取时会从这些元素中随机选择一个</small>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button class="modal-button" onclick="clearCustomDetail()">🗑️ 清空</button>
-                    <button class="modal-button" onclick="hideCustomDetail()">确定</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- 设置弹窗 -->
-        <div class="modal-overlay" id="settingsModal" style="display: none;">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>⚙️ 设置</h3>
-                    <button class="modal-close" onclick="hideSettingsModal()">✕</button>
-                </div>
-                <div class="modal-body">
-                    <!-- 抽取设置 -->
-                    <div class="settings-section" style="margin-top: 0;">
-                        <h3>抽取设置</h3>
-                        <div class="setting-row">
-                            <div class="setting-item">
-                                <label class="setting-label">
-                                    <input type="checkbox" id="enableMode">
-                                    <span class="checkmark"></span>
-                                    启用模式抽取
-                                </label>
-                            </div>
-                            <div class="setting-item">
-                                <label class="setting-label">
-                                    <input type="checkbox" id="enablePoint" checked>
-                                    <span class="checkmark"></span>
-                                    启用点位抽取
-                                </label>
-                            </div>
-                            <div class="setting-item">
-                                <label class="setting-label" title="关闭后只显示模式名称 不显示详情内容">
-                                    <input type="checkbox" id="enableModeDetail" checked>
-                                    <span class="checkmark"></span>
-                                    抽取模式详情
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- 模式选择 -->
-                        <div class="mode-settings" id="modeSettings">
-                            <h4>模式选择</h4>
-                            <div class="mode-grid">
-                                <div class="mode-item">
-                                    <label class="setting-label">
-                                        <input type="checkbox" id="modeClone" checked>
-                                        <span class="checkmark"></span>
-                                        克隆
-                                    </label>
-                                </div>
-                                <div class="mode-item">
-                                    <label class="setting-label">
-                                        <input type="checkbox" id="modeSwap" checked>
-                                        <span class="checkmark"></span>
-                                        交换
-                                    </label>
-                                </div>
-                                <!-- <div class="mode-item">
-                                    <label class="setting-label">
-                                        <input type="checkbox" id="modeSurprise" checked>
-                                        <span class="checkmark"></span>
-                                        惊喜
-                                    </label>
-                                </div>
-                                <div class="mode-item">
-                                    <label class="setting-label">
-                                        <input type="checkbox" id="modeAudience" checked>
-                                        <span class="checkmark"></span>
-                                        观众
-                                    </label>
-                                </div> -->
-                                <div class="mode-item">
-                                    <label class="setting-label">
-                                        <input type="checkbox" id="modeJushi" checked>
-                                        <span class="checkmark"></span>
-                                        巨史
-                                    </label>
-                                </div>
-                                <div class="mode-item">
-                                    <label class="setting-label">
-                                        <input type="checkbox" id="modeNormal" checked>
-                                        <span class="checkmark"></span>
-                                        普通
-                                    </label>
-                                </div>
-                            </div>
-                        <!-- 自定义模式 -->
-                        <div class="custom-mode-section" style="border-top: 1px solid #e9ecef; padding-top: 15px; margin-top: 15px;">
-                            <h4>🎨 自定义模式</h4>
-                            <div class="custom-mode-controls" style="display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
-                                <input type="text" id="customModeName" placeholder="输入名称" style="max-width: 120px;">
-                                <button onclick="showCustomModeDetail()">详情设置</button>
-                                <button onclick="addCustomMode()">添加模式</button>
-                            </div>
-                            <div id="customModesList" class="custom-modes-list"></div>
-                        </div>
-                    </div>
-
-                    <!-- 规则说明 -->
-                    <div class="rules-section" style="margin-top: 20px;">
-                        <div class="rules-title">📖 抽取规则说明</div>
-                        <div class="rules-content">
-                            <p><strong>模式类型：（关闭模式详情抽取后只随机抽取模式标题）</strong></p>
-                            <ul>
-                                <li><strong>克隆：</strong>随机选择一个玩家作为克隆对象</li>
-                                <li><strong>交换：</strong>随机抽取交换关系，此外有<math><mfrac><mn>6859</mn><mn>40000</mn></mfrac></math>的概率抽到一位任选交换</li>
-                                <!-- <li><del><strong>惊喜：</strong>随机禁用某个技能或装备(抖m模式已删除)</del></li>
-                                <li><del><strong>观众：</strong>随机将玩家分配到观众或参战组(抖m模式已删除)</del></li> -->
-                                <li><strong>巨史：</strong>从7个元素（冰火水雷岩风草）中随机选择3个</li>
-                                <li><strong>普通：</strong>无特殊附加内容的模式</li>
-                                <li><strong>自定义：</strong>用户可以添加自己的模式和描述</li>
-                            </ul>
-                            <p><strong>类型方位：</strong></p>
-                            <ul>
-                                <li><strong>类型：</strong>等级、命座、攻击、生命、防御、精通</li>
-                                <li><strong>方位：</strong>上、下、左、右、左上、左下、右上、右下</li>
-                            </ul>
-                            <p><strong>点位：</strong>1-6点随机</p>
-                            <p><strong>快捷键：</strong>空格(全部抽取) / Ctrl+C(复制结果)</p>
-                        </div>
-                    </div>
-                </div>
+    <!-- 站点导航弹窗 -->
+    <div id="siteNavModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>站点导航</h2>
+            <div class="nav-grid">
+                <a href="/index.html" class="nav-item">🏠主页</a>
+                <a href="/pinhaoche" class="nav-item">拼好车🚗</a>
+                <a href="/pinhaotu" class="nav-item">拼好图🖼️</a>
+                <a href="/xjjj" class="nav-item">选角禁技🎭</a>
+                <a href="/fangwei" class="nav-item">方位抽取器🎲</a>
+                <a href="/docs" class="nav-item">使用文档📚</a>
             </div>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- 收集列表弹窗 -->
+    <div id="collectionModal" class="modal" style="display: none;">
+        <div class="modal-content collection-modal">
+            <span class="close">&times;</span>
+            <h2>收集进度<br> <span id="collectionProgress">(0/0)</span></h2>
+            <span style="color: rgba(255, 255, 255, 0.7); margin: 10px;">清理浏览器缓存后进度会清空</span>
+            <div class="collection-grid" id="collectionGrid">
+                <!-- 动态生成收集项 -->
+            </div>
+            <span style="color: rgba(255, 255, 255, 0.7); margin: 30px;">使用电脑端获取更好体验！</span>
+        </div>
+    </div>
+
+    <!-- 详情弹窗 -->
+    <div id="detailModal" class="modal" style="display: none;">
+        <div class="modal-content detail-modal">
+            <span class="close">&times;</span>
+            <div class="detail-content">
+                <img id="detailImage" src="" alt="">
+                <h3 id="detailTitle"></h3>
+                <p id="detailText"></p>
+                <div id="detailButton"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const errorContents = [
+            {
+                id: 1,
+                image: "https://upload-bbs.miyoushe.com/upload/2024/11/09/273489775/b9e8527cf2115d69960dbb708f80f8cb_3376307146544001603.png",
+                text: "看起来你迷路了呢～<br>这个页面可能没有内容或已经被移动/删除了。",
+                buttonText: "🏠 返回主页"
+            },
+            {
+                id: 2,
+                image: "https://upload-bbs.miyoushe.com/upload/2024/11/03/273489775/dfe68fe72b88b6c039cc31bc7b7f7806_818843631555829688.png",
+                text: "看什么看！<br>小蛋糕要没货了！",
+                buttonText: "🍰 去买小蛋糕"
+            },
+            {
+                id: 3,
+                image: "https://upload-bbs.miyoushe.com/upload/2024/11/03/273489775/a6d2b4b728eb590fb2ccb49e4c847427_8804704895651778495.png",
+                text: "才~才不让你过去",
+                buttonText: "好好好"
+            },
+            {
+                id: 4,
+                image: "https://upload-bbs.miyoushe.com/upload/2024/11/03/273489775/7c4d36564478641099dac411e83754ff_4720881018604081953.png",
+                text: "哎呀呀～旅行者，这里是虚空地界<br>莫要在这迷路啦～",
+                buttonText: "返回烟火人间"
+            },
+            {
+                id: 5,
+                image: "https://upload-bbs.miyoushe.com/upload/2024/11/03/273489775/9d5b08fd0bfe8f6412bddb12ed804225_822656406014627054.png",
+                text: "你难道是说<br>你还踏足过无人的深海？",
+                buttonText: "没座！"
+            },
+            {
+                id: 6,
+                image: "https://upload-bbs.miyoushe.com/upload/2024/11/03/273489775/e9f87b2108caf4c63adaa5eba1f5bbbe_3673232507755929325.png",
+                text: "噔噔<br>让你瞬间回家的魔术开始咯",
+                buttonText: "开始吧"
+            },
+            {
+                id: 7,
+                image: "https://upload-bbs.miyoushe.com/upload/2025/03/30/273489775/752636a1fae716cd063fce03bfba529e_7901587475157440364.png",
+                text: "你是怎么找到我这里的？<br>那个~你千万不要把这里告诉巫女姐姐",
+                buttonText: "去找巫女姐姐"
+            },
+            {
+                id: 8,
+                image: "https://upload-bbs.miyoushe.com/upload/2024/02/06/273489775/e86e5cfa15d63ec1c1ecb433fe1bbd6e_5698537316208515208.png",
+                text: "求求你啦~求求你啦~<br>帮帮可莉吧！",
+                buttonText: "帮帮可莉",
+            },
+            {
+                id: 9,
+                image: "https://upload-bbs.miyoushe.com/upload/2024/02/06/273489775/e162d189bc9ae798a5cc30fe1baec56c_4747108931468163361.png",
+                text: "带我出去玩~",
+                buttonText: "带可莉出去玩",
+            },
+            {
+                id: 10,
+                image: "https://upload-bbs.miyoushe.com/upload/2024/02/06/273489775/547612c441af0bcdb2e0aff3a6b58014_4345168037591316469.png",
+                text: "当心<br>这里危险",
+                buttonText: "回家",
+            },
+            {
+                id: 11,
+                image: "https://upload-bbs.miyoushe.com/upload/2024/11/09/273489775/c02b8205c5bae90070408b7c48c07050_6311570440509809932.png",
+                text: " ",
+                buttonText: "帮心海补充能量",
+            },
+            {
+                id: 12,
+                image: "https://upload-bbs.miyoushe.com/upload/2024/11/09/273489775/c9246b6d6f8ebcc8953f55da97416e5e_5105163815145990219.png",
+                text: "前面的区域<br>下辈子再来探索吧！",
+                buttonText: "你被强制遣返了",
+            },
+            {
+                id: 13,
+                image: "https://upload-bbs.miyoushe.com/upload/2024/11/09/273489775/80bc1fc844cde5a95cbd84588999358c_4023080825434880996.png",
+                text: "你是怎么找到这的？",
+                buttonText: "不告诉你",
+            },
+            {
+                id: 14,
+                image: "https://upload-bbs.miyoushe.com/upload/2024/11/03/273489775/17228f4d55a540b8e07ee270e1e64cea_1392958554002846892.png",
+                text: "偷偷去吃一口的话<br>应该不会被发现吧？",
+                buttonText: "我发现了 抓走抓走！",
+            },
+            {
+                id: 15,
+                image: "https://upload-bbs.miyoushe.com/upload/2024/11/08/273489775/26911fa3b407d7a1bdb93180fb5bdc73_3503897204375100504.png",
+                text: "给我干哪来了<br>这还是国内吗？",
+                buttonText: "回家",
+            },
+            {
+                id: 16,
+                image: "https://upload-bbs.miyoushe.com/upload/2024/02/08/273489775/f24d7a59c5c92fb1ee0b2fac322e2830_6590412914753546768.png",
+                text: "这个家已经没有你的位置了",
+                buttonText: "离家出走",
+            },
+            {
+                id: 17,
+                image: "https://upload-bbs.miyoushe.com/upload/2024/06/26/273489775/0dd919c037c15c668002bcd595db36d7_5489162969666436307.png",
+                text: " ",
+                buttonText: "你被抬走了！",
+            },
+            {
+                id: 18,
+                image: "https://upload-bbs.miyoushe.com/upload/2024/11/03/273489775/b8568ed4578c262b1e82de830f88a444_4282867627351916631.png",
+                text: "师傅，我还不够强<br>开不了门",
+                buttonText: "努力开门",
+            },
+            {
+                id: 19,
+                image: "https://upload-bbs.miyoushe.com/upload/2024/11/28/273489775/8772dd1416f0d13b8eee964939c2b025_2103935979244728785.png",
+                text: "还在看呢<br>吃奶奶我一拳！",
+                buttonText: "赶紧跑！",
+            },
+            {
+                id: 20,
+                image: "https://upload-bbs.miyoushe.com/upload/2024/11/28/273489775/c17bb53a1698d34e714c76b2836fe003_7419672296580052330.png",
+                text: "旅行者不在家<br>拿他摩拉买好吃的！",
+                buttonText: "制止派蒙",
+            },
+            {
+                id: 21,
+                image: "https://upload-bbs.miyoushe.com/upload/2025/04/06/273489775/2d1489325107513c2f0167677868010c_3790296858220722202.png",
+                text: "好饿<br>啥时候开饭",
+                buttonText: "我要吃十碗",
+            },
+            {
+                id: 22,
+                image: "https://upload-bbs.miyoushe.com/upload/2024/06/15/279632390/4b97530ec0e759fa58a1785dc3820f8c_5692972570070383433.png",
+                text: " ",
+                buttonText: "我也要吃",
+            },
+            {
+                id: 23,
+                image: "https://upload-bbs.miyoushe.com/upload/2025/04/02/279632390/2accac438f52a1ae57fdf19c8f82b7db_3294672889402184383.png",
+                text: "要来一杯枫丹红酒美式吗？",
+                buttonText: "比**难喝我都来",
+            },
+            {
+                id: 24,
+                image: "https://upload-bbs.miyoushe.com/upload/2024/02/10/273489775/60491422461f94114178fd509b58a0af_8584343741990599498.png",
+                text: "挚友，今天我不会放你过去的",
+                buttonText: "撒豆子",
+            },
+            {
+                id: 25,
+                image: "https://upload-bbs.miyoushe.com/upload/2025/05/20/333744472/e6f92b4422ab4c21586de52aa73b8669_3118781605732589235.png",
+                text: "你好哥们<br>噢天啊，不会吧哥们",
+                buttonText: "再见哥们",
+            },
+            {
+                id: 26,
+                image: "https://upload-bbs.miyoushe.com/upload/2024/11/03/273489775/41ef4d606e1d954b439e85653e7ab5f4_1925166268332989292.png",
+                text: "叕在给玛薇卡修车<br>请重试",
+                buttonText: "回家吃饭",
+            },
+            {
+                id: 27,
+                image: "https://upload-bbs.miyoushe.com/upload/2024/02/08/273489775/47d911a0f9c4e3ac6f7214e28a2a394b_7916301708741739476.png",
+                text: "制做马卡龙中………",
+                buttonText: "帮忙蹭吃",
+            },
+            {
+                id: 28,
+                image: "https://upload-bbs.miyoushe.com/upload/2024/06/26/273489775/046aeac793fa8419408dd551a50d31c6_783030110945305441.png",
+                text: "接待私人定制中<br>请排队………",
+                buttonText: "换家店",
+            },
+            {
+                id: 29,
+                image: "https://upload-bbs.miyoushe.com/upload/2024/11/04/273489775/d2f0563b4d72757a154aa1e97324ad58_4513182026087123570.png",
+                text: "实验重地<br>请匆靠近<br>否则后果自负",
+                buttonText: "因为反骨被炸飞了",
+            },
+            {
+                id: 30,
+                image: "https://upload-bbs.miyoushe.com/upload/2024/02/05/273489775/2228c703afbf93fbb37945f500bf51f9_8685660861352835206.png",
+                text: "你们有带钱吗",
+                buttonText: "对不起打扰了",
+            },
+            {
+                id: 31,
+                image: "https://upload-bbs.miyoushe.com/upload/2024/02/10/273489775/0db0e102e6bd2c84a29c45dfa613a945_2889199285226999328.png",
+                text: "知心大姐姐上班时间到",
+                buttonText: "回复来信",
+            },
+            {
+                id: 32,
+                image: "https://upload-bbs.miyoushe.com/upload/2024/06/29/273489775/4be47bf1376bfb4f69c1e3fe26c8a8e8_8119842655567179283.png",
+                video: '<iframe src="https://player.bilibili.com/player.html?isOutside=true&aid=80433022&bvid=BV1GJ411x7h7&cid=137649199&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true" style="width: 100%; height: 300px; border-radius: 15px; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);"></iframe>',
+                text: "你被骗了！<br>这个页面其实是不存在的！",
+                buttonText: "那咋了？嚎听爱听",
+                thumbnail: "https://i0.hdslb.com/bfs/archive/8c7a7a8a8b8f1b4a3e4a7d6a8c4f5e9a4e7b2d5a.jpg"
+            },
+        ];
+
+        // 页面加载时随机选择内容
+        document.addEventListener('DOMContentLoaded', function() {
+            // 随机选择一个内容组合
+            const randomIndex = Math.floor(Math.random() * errorContents.length);
+            const selectedContent = errorContents[randomIndex];
+            
+            // 设置图片或视频和文字
+            const imageElement = document.getElementById('randomImage');
+            if (selectedContent.video) {
+                // 如果有视频，替换img元素为div容器
+                const container = document.createElement('div');
+                container.innerHTML = selectedContent.video;
+                container.style.margin = '30px 0';
+                imageElement.parentNode.replaceChild(container, imageElement);
+            } else {
+                // 设置图片
+                imageElement.src = selectedContent.image;
+            }
+            
+            // 收集当前抽到的角色
+            collectCharacter(selectedContent.id);
+
+            document.getElementById('randomText').innerHTML = selectedContent.text;
+            document.getElementById('homeButton').textContent = selectedContent.buttonText;
+            
+            // 原有的交互效果代码
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            navLinks.forEach(link => {
+                link.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px) scale(1.02)';
+                });
+                
+                link.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+
+            createParticles();
+            setupSiteNavigation();
+            setupCollection();
+        });
+
+        // 收集系统相关函数
+        function getCollectedItems() {
+            const stored = localStorage.getItem('collected_characters');
+            return stored ? JSON.parse(stored) : [];
+        }
+
+        function saveCollectedItems(items) {
+            localStorage.setItem('collected_characters', JSON.stringify(items));
+        }
+
+        function collectCharacter(characterId) {
+            const collected = getCollectedItems();
+            if (!collected.includes(characterId)) {
+                collected.push(characterId);
+                saveCollectedItems(collected);
+                
+                // 显示收集通知
+                showCollectionNotification(characterId);
+            }
+        }
+
+        function showCollectionNotification(characterId) {
+            // 创建通知元素
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: rgba(255, 215, 0, 0.9);
+                color: #000;
+                padding: 15px 20px;
+                border-radius: 10px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                z-index: 2000;
+                font-weight: bold;
+                animation: slideInRight 0.5s ease;
+            `;
+            notification.innerHTML = `🎉 收集到新内容: #${characterId}`;
+            
+            document.body.appendChild(notification);
+            
+            // 3秒后移除通知
+            setTimeout(() => {
+                notification.style.animation = 'slideOutRight 0.5s ease';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 500);
+            }, 3000);
+        }
+
+        function setupCollection() {
+            const collectionButton = document.getElementById('collectionButton');
+            const collectionModal = document.getElementById('collectionModal');
+            const detailModal = document.getElementById('detailModal');
+            
+            // 打开收集列表
+            collectionButton.addEventListener('click', function() {
+                showCollectionModal();
+            });
+            
+            // 设置弹窗关闭事件
+            setupModalClose(collectionModal);
+            setupModalClose(detailModal);
+        }
+
+        function showCollectionModal() {
+            const modal = document.getElementById('collectionModal');
+            const grid = document.getElementById('collectionGrid');
+            const progress = document.getElementById('collectionProgress');
+            const collected = getCollectedItems();
+            
+            // 更新进度
+            progress.textContent = `(${collected.length}/${errorContents.length})`;
+            
+            // 清空网格
+            grid.innerHTML = '';
+            
+            // 生成收集项
+            errorContents.forEach(item => {
+                const isCollected = collected.includes(item.id);
+                const itemElement = document.createElement('div');
+                itemElement.className = `collection-item ${isCollected ? '' : 'locked'}`;
+                
+                // 创建3D结构
+                const rotator = document.createElement('div');
+                rotator.className = 'collection-item-rotator';
+                
+                const inner = document.createElement('div');
+                inner.className = 'collection-item-inner';
+                
+                const shadow = document.createElement('div');
+                shadow.className = 'collection-item-shadow';
+                
+                // 创建高光容器和高光元素
+                const highlightContainer = document.createElement('div');
+                highlightContainer.className = 'collection-item-highlight-container';
+                
+                const highlight = document.createElement('div');
+                highlight.className = 'collection-item-highlight';
+                
+                if (isCollected) {
+                    const img = document.createElement('img');
+                    img.src = item.image;
+                    img.alt = `#${item.id}`;
+                    inner.appendChild(img);
+                    
+                    // 点击显示详情
+                    itemElement.addEventListener('click', () => {
+                        showDetailModal(item);
+                    });
+                    
+                    // 添加视差效果
+                    addParallaxEffect(itemElement);
+                } else {
+                    const questionMark = document.createElement('div');
+                    questionMark.className = 'question-mark';
+                    questionMark.textContent = '?';
+                    inner.appendChild(questionMark);
+                }
+                
+                // 组装结构
+                itemElement.appendChild(shadow);
+                highlightContainer.appendChild(highlight);
+                rotator.appendChild(inner);
+                rotator.appendChild(highlightContainer);
+                itemElement.appendChild(rotator);
+                
+                grid.appendChild(itemElement);
+            });
+            
+            modal.style.display = 'block';
+            modal.classList.remove('closing');
+            modal.querySelector('.modal-content').classList.remove('closing');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function showDetailModal(item) {
+            const modal = document.getElementById('detailModal');
+            const detailContent = modal.querySelector('.detail-content');
+            const title = document.getElementById('detailTitle');
+            const text = document.getElementById('detailText');
+            const button = document.getElementById('detailButton');
+            
+            // 清空内容并重新创建结构
+            detailContent.innerHTML = '';
+            
+            // 创建图片容器和3D结构
+            const imageContainer = document.createElement('div');
+            imageContainer.className = 'detail-image-container';
+            
+            const rotator = document.createElement('div');
+            rotator.className = 'detail-image-rotator';
+            
+            const inner = document.createElement('div');
+            inner.className = 'detail-image-inner';
+            
+            const shadow = document.createElement('div');
+            shadow.className = 'detail-image-shadow';
+            
+            const highlight = document.createElement('div');
+            highlight.className = 'detail-image-highlight';
+            
+            const img = document.createElement('img');
+            img.id = 'detailImage';
+            img.src = item.image;
+            img.alt = `#${item.id}`;
+            
+            // 组装3D结构
+            imageContainer.appendChild(shadow);
+            inner.appendChild(img);
+            inner.appendChild(highlight);
+            rotator.appendChild(inner);
+            imageContainer.appendChild(rotator);
+            
+            // 创建其他元素
+            const titleElement = document.createElement('h3');
+            titleElement.id = 'detailTitle';
+            titleElement.textContent = `#${item.id}`;
+            
+            const textElement = document.createElement('p');
+            textElement.id = 'detailText';
+            textElement.innerHTML = item.text;
+            
+            const buttonElement = document.createElement('div');
+            buttonElement.id = 'detailButton';
+            buttonElement.textContent = item.buttonText;
+            
+            // 添加点击事件返回首页
+            buttonElement.addEventListener('click', function() {
+                window.location.href = '/index.html';
+            });
+            
+            // 添加到内容容器
+            detailContent.appendChild(imageContainer);
+            detailContent.appendChild(titleElement);
+            detailContent.appendChild(textElement);
+            detailContent.appendChild(buttonElement);
+            
+            // 为图片容器添加视差效果
+            addParallaxEffect(imageContainer);
+            
+            modal.style.display = 'block';
+            modal.classList.remove('closing');
+            modal.querySelector('.modal-content').classList.remove('closing');
+        }
+
+        function setupModalClose(modal) {
+            const closeButton = modal.querySelector('.close');
+            
+            // 关闭按钮
+            closeButton.addEventListener('click', () => closeModal(modal));
+            
+            // 点击外部关闭
+            modal.addEventListener('click', (event) => {
+                if (event.target === modal) {
+                    closeModal(modal);
+                }
+            });
+        }
+
+        // 全局ESC键处理
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                const detailModal = document.getElementById('detailModal');
+                const collectionModal = document.getElementById('collectionModal');
+                const siteNavModal = document.getElementById('siteNavModal');
+                
+                if (detailModal.style.display === 'block') {
+                    closeModal(detailModal);
+                } else if (collectionModal.style.display === 'block') {
+                    closeModal(collectionModal);
+                } else if (siteNavModal.style.display === 'block') {
+                    closeModal(siteNavModal);
+                }
+            }
+        });
+
+        function closeModal(modal) {
+            modal.classList.add('closing');
+            modal.querySelector('.modal-content').classList.add('closing');
+            
+            setTimeout(() => {
+                modal.style.display = 'none';
+                modal.classList.remove('closing');
+                modal.querySelector('.modal-content').classList.remove('closing');
+                document.body.style.overflow = 'auto';
+            }, 300);
+        }
+
+        function setupSiteNavigation() {
+            const siteNavButton = document.getElementById('siteNavButton');
+            const modal = document.getElementById('siteNavModal');
+            const modalContent = modal.querySelector('.modal-content');
+            const closeButton = modal.querySelector('.close');
+
+            // 打开弹窗
+            siteNavButton.addEventListener('click', function() {
+                modal.style.display = 'block';
+                modal.classList.remove('closing');
+                modalContent.classList.remove('closing');
+                document.body.style.overflow = 'hidden'; // 防止背景滚动
+            });
+
+            // 关闭弹窗函数
+            function closeModal() {
+                modal.classList.add('closing');
+                modalContent.classList.add('closing');
+                
+                // 等待动画完成后隐藏弹窗
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                    modal.classList.remove('closing');
+                    modalContent.classList.remove('closing');
+                    document.body.style.overflow = 'auto';
+                }, 300); // 动画持续时间
+            }
+
+            // 关闭弹窗事件
+            closeButton.addEventListener('click', closeModal);
+
+            // 点击弹窗外部关闭
+            modal.addEventListener('click', function(event) {
+                if (event.target === modal) {
+                    closeModal();
+                }
+            });
+
+            // ESC键关闭弹窗
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && modal.style.display === 'block') {
+                    closeModal();
+                }
+            });
+        }
+
+        function createParticles() {
+            const particlesContainer = document.createElement('div');
+            particlesContainer.style.position = 'fixed';
+            particlesContainer.style.top = '0';
+            particlesContainer.style.left = '0';
+            particlesContainer.style.width = '100%';
+            particlesContainer.style.height = '100%';
+            particlesContainer.style.pointerEvents = 'none';
+            particlesContainer.style.zIndex = '-1';
+            document.body.appendChild(particlesContainer);
+
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.style.position = 'absolute';
+                particle.style.width = Math.random() * 4 + 2 + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.background = 'rgba(255, 255, 255, 0.3)';
+                particle.style.borderRadius = '50%';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animation = `float ${Math.random() * 6 + 4}s infinite ease-in-out`;
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // 添加浮动动画的CSS
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes float {
+                0%, 100% { transform: translateY(0px) rotate(0deg); }
+                50% { transform: translateY(-20px) rotate(180deg); }
+            }
+            @keyframes slideInRight {
+                from { 
+                    opacity: 0;
+                    transform: translateX(100%);
+                }
+                to { 
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+            }
+            @keyframes slideOutRight {
+                from { 
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+                to { 
+                    opacity: 0;
+                    transform: translateX(100%);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // 添加视差效果函数
+        function addParallaxEffect(element) {
+            const maxRotate = 20;
+            let isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                          ('ontouchstart' in window) || (window.innerWidth <= 768);
+            
+            // 检查是否为收集列表中的元素
+            const isCollectionItem = element.classList.contains('collection-item');
+            
+            // 聚焦效果函数
+            function setFocusMode(focused) {
+                if (!isCollectionItem) return;
+                
+                const collectionGrid = document.getElementById('collectionGrid');
+                const allItems = collectionGrid.querySelectorAll('.collection-item');
+                
+                if (focused) {
+                    // 设置聚焦模式
+                    allItems.forEach(item => {
+                        if (item === element) {
+                            item.classList.add('focused');
+                            item.classList.remove('dimmed');
+                        } else {
+                            item.classList.add('dimmed');
+                            item.classList.remove('focused');
+                        }
+                    });
+                } else {
+                    // 取消聚焦模式
+                    allItems.forEach(item => {
+                        item.classList.remove('focused', 'dimmed');
+                    });
+                }
+            }
+            
+            // 通用的视差计算函数
+            function calculateParallax(clientX, clientY, rect) {
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const offsetX = clientX - rect.left;
+                const offsetY = clientY - rect.top;
+                
+                // X 方向移动旋转 Y 轴，Y 方向移动旋转 X 轴
+                const rotateX = (maxRotate * (offsetY - centerY)) / (centerY) * -1;
+                const rotateY = (maxRotate * (offsetX - centerX)) / (centerX);
+                
+                return { rotateX, rotateY };
+            }
+            
+            // 设置旋转角度的函数（带角度限制）
+            function setRotation(rotateX, rotateY) {
+                // 限制角度在 -maxRotate 到 maxRotate 之间
+                const clampedRotateX = Math.max(-maxRotate, Math.min(maxRotate, rotateX));
+                const clampedRotateY = Math.max(-maxRotate, Math.min(maxRotate, rotateY));
+                
+                element.style.setProperty('--rotateX', clampedRotateX);
+                element.style.setProperty('--rotateY', clampedRotateY);
+            }
+            
+            // 重置旋转角度的函数
+            function resetRotation() {
+                element.style.setProperty('--rotateX', 0);
+                element.style.setProperty('--rotateY', 0);
+            }
+            
+            if (isMobile) {
+                // 移动端：触摸事件
+                let isLongPressing = false;
+                let longPressTimer = null;
+                let touchStartTime = 0;
+                
+                element.addEventListener('touchstart', function(e) {
+                    touchStartTime = Date.now();
+                    
+                    // 设置长按定时器（500ms）
+                    longPressTimer = setTimeout(() => {
+                        isLongPressing = true;
+                        // 添加拖动状态样式和阻止滚动
+                        element.classList.add('dragging');
+                        element.classList.add('no-scroll');
+                        // 禁用页面滚动
+                        document.body.classList.add('no-scroll');
+                        // 设置聚焦效果
+                        setFocusMode(true);
+                        // 触发震动反馈（如果支持）
+                        if (navigator.vibrate) {
+                            navigator.vibrate(50);
+                        }
+                    }, 500);
+                }, { passive: true });
+                
+                element.addEventListener('touchmove', function(e) {
+                    if (isLongPressing && e.touches.length === 1) {
+                        const touch = e.touches[0];
+                        const rect = this.getBoundingClientRect();
+                        const { rotateX, rotateY } = calculateParallax(touch.clientX, touch.clientY, rect);
+                        setRotation(rotateX, rotateY);
+                    }
+                }, { passive: true });
+                
+                element.addEventListener('touchend', function(e) {
+                    clearTimeout(longPressTimer);
+                    
+                    // 如果是长按结束，重置旋转并移除拖动样式
+                    if (isLongPressing) {
+                        resetRotation();
+                        element.classList.remove('dragging');
+                        element.classList.remove('no-scroll');
+                        // 恢复页面滚动
+                        document.body.classList.remove('no-scroll');
+                        // 取消聚焦效果
+                        setFocusMode(false);
+                    }
+                    
+                    isLongPressing = false;
+                }, { passive: true });
+                
+                element.addEventListener('touchcancel', function(e) {
+                    clearTimeout(longPressTimer);
+                    isLongPressing = false;
+                    resetRotation();
+                    element.classList.remove('dragging');
+                    element.classList.remove('no-scroll');
+                    // 恢复页面滚动
+                    document.body.classList.remove('no-scroll');
+                    // 取消聚焦效果
+                    setFocusMode(false);
+                }, { passive: true });
+                
+            } else {
+                // 桌面端：鼠标事件
+                element.addEventListener('mouseenter', function (e) {
+                    // 设置聚焦效果
+                    setFocusMode(true);
+                });
+                
+                element.addEventListener('mousemove', function (e) {
+                    const rect = this.getBoundingClientRect();
+                    const { rotateX, rotateY } = calculateParallax(e.clientX, e.clientY, rect);
+                    setRotation(rotateX, rotateY);
+                });
+                
+                element.addEventListener('mouseleave', function (e) {
+                    resetRotation();
+                    // 取消聚焦效果
+                    setFocusMode(false);
+                });
+            }
+        }
+    </script>
 </body>
 </html>
