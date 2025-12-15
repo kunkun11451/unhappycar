@@ -3,8 +3,8 @@ class FangweiDrawer {
         this.modes = {
             clone: { name: '克隆', enabled: true },
             swap: { name: '交换', enabled: true },
-            // surprise: { name: '惊喜', enabled: true },
-            // audience: { name: '观众', enabled: true },
+            surprise: { name: '惊喜', enabled: true },
+            audience: { name: '观众', enabled: true },
             normal: { name: '普通', enabled: true },
             jushi: { name: '巨史', enabled: true }
         };
@@ -12,7 +12,7 @@ class FangweiDrawer {
         this.directions = ['上', '下', '左', '右', '左上', '左下', '右上', '右下'];
         this.points = ['1', '2', '3', '4', '5', '6'];
         this.players = ['1P', '2P', '3P', '4P'];
-        // this.surpriseItems = ['禁A', '禁E', '禁Q', '禁五星武器'];
+        this.surpriseItems = ['禁A', '禁E', '禁Q', '禁五星武器'];
         this.elements = ['冰', '火', '水', '雷', '岩', '风', '草'];
     this.customModes = [];
 
@@ -30,20 +30,20 @@ class FangweiDrawer {
             enableMode: false,
             enablePoint: true,
             enableModeDetail: true,
+            // 点数范围设置（默认 1-6）
+            pointMin: 1,
+            pointMax: 6,
             modes: {
                 clone: true, swap: true, surprise: true,
                 audience: true, normal: true, jushi: true
             }
         };
 
-        this.history = [];
-        this.maxHistory = 10;
 
         this.init();
     }
 
     init() {
-        this.loadHistory();
     this.loadCustomModes();
         this.loadSettings();
         this.setupEventListeners();
@@ -80,20 +80,20 @@ class FangweiDrawer {
         return this.randomChoice(swapPatterns);
     }
 
-    // generateAudienceGroups() {
-    //     const audience = [], participants = [];
-    //     this.players.forEach(player => {
-    //         if (Math.random() < 0.5) audience.push(player);
-    //         else participants.push(player);
-    //     });
-    //     if (audience.length === 0) return '[参战 1P 2P 3P 4P]';
-    //     if (participants.length === 0) return '[观众 1P 2P 3P 4P]';
-    //     if (audience.length <= participants.length) {
-    //         return `[观众 ${audience.join(' ')}] [参战 ${participants.join(' ')}]`;
-    //     } else {
-    //         return `[参战 ${participants.join(' ')}] [观众 ${audience.join(' ')}]`;
-    //     }
-    // }
+    generateAudienceGroups() {
+        const audience = [], participants = [];
+        this.players.forEach(player => {
+            if (Math.random() < 0.5) audience.push(player);
+            else participants.push(player);
+        });
+        if (audience.length === 0) return '[参战 1P 2P 3P 4P]';
+        if (participants.length === 0) return '[观众 1P 2P 3P 4P]';
+        if (audience.length <= participants.length) {
+            return `[观众 ${audience.join(' ')}] [参战 ${participants.join(' ')}]`;
+        } else {
+            return `[参战 ${participants.join(' ')}] [观众 ${audience.join(' ')}]`;
+        }
+    }
 
     generateJushiElements() {
         const shuffled = [...this.elements].sort(() => Math.random() - 0.5);
@@ -102,13 +102,14 @@ class FangweiDrawer {
 
     drawMode() {
         const enabledModes = Object.keys(this.settings.modes).filter(mode => this.settings.modes[mode]);
-        if (enabledModes.length === 0) {
+        const validModes = enabledModes.filter(mode => this.modes.hasOwnProperty(mode) || this.customModes.some(m => m.id === mode));
+        if (validModes.length === 0) {
             this.currentResults.mode = '';
             this.currentResults.modeDetail = '';
             this.updateModeDisplay();
             return;
         }
-        const selectedMode = this.randomChoice(enabledModes);
+        const selectedMode = this.randomChoice(validModes);
         const customMode = this.customModes.find(m => m.id === selectedMode);
         if (customMode) {
             this.currentResults.mode = customMode.name;
@@ -143,18 +144,29 @@ class FangweiDrawer {
     }
 
     drawPoint() {
-        this.currentResults.point = `${this.randomChoice(this.points)}点`;
+        // 使用设置中的点数范围进行抽取（含端点）
+        const min = Math.max(1, Math.min(Number(this.settings.pointMin) || 1, Number(this.settings.pointMax) || 1));
+        const max = Math.max(min, Number(this.settings.pointMax) || min);
+        const value = Math.floor(Math.random() * (max - min + 1)) + min;
+        this.currentResults.point = `${value}点`;
         this.updatePointDisplay();
         this.updateCopyText();
         this.addAnimation('pointResult');
     }
 
-    drawAll() {
+    async drawAll() {
         if (this.settings.enableMode) this.drawMode();
         this.drawDirection();
         if (this.settings.enablePoint) this.drawPoint();
         this.showResults();
-        this.addToHistory();
+
+        // 抽取完成后自动复制（如果有可复制内容）
+        const copySection = document.getElementById('copySection');
+        const copyTextEl = document.getElementById('copyText');
+        const text = copyTextEl ? (copyTextEl.textContent || '').trim() : '';
+        if (copySection && copySection.style.display !== 'none' && text) {
+            await this.copyResult();
+        }
     }
 
     showResults() {
@@ -215,8 +227,13 @@ class FangweiDrawer {
     }
 
     async copyResult() {
-        const text = document.getElementById('copyText').textContent;
+        const textEl = document.getElementById('copyText');
         const button = document.getElementById('copyButton');
+        const text = textEl ? (textEl.textContent || '').trim() : '';
+        if (!text) {
+            showToast('无可复制的内容', { type: 'info' });
+            return;
+        }
         await this.copyToClipboard(text, button);
     }
 
@@ -230,12 +247,26 @@ class FangweiDrawer {
     }
 
     showCopySuccess(button) {
-        const originalText = button.textContent;
+        if (!button) return;
+        // 只有在第一次进入成功状态时保存原始文本
+        if (!button.dataset.copyActive) {
+            button.dataset.copyActive = '1';
+            button.dataset.copyOriginalText = button.textContent || '';
+        }
+        // 清理已有超时，防止多次触发导致恢复到错误状态
+        if (button._copyTimeout) {
+            clearTimeout(button._copyTimeout);
+        }
         button.textContent = '✅';
+        // 保持基础类 `copy-button`，并添加 success 状态
+        if (!button.classList.contains('copy-button')) button.classList.add('copy-button');
         button.classList.add('copy-success');
-        setTimeout(() => {
-            button.textContent = originalText;
+        button._copyTimeout = setTimeout(() => {
+            button.textContent = button.dataset.copyOriginalText || '';
             button.classList.remove('copy-success');
+            delete button.dataset.copyActive;
+            delete button.dataset.copyOriginalText;
+            delete button._copyTimeout;
         }, 1500);
     }
 
@@ -266,44 +297,7 @@ class FangweiDrawer {
         }, 300);
     }
 
-    addToHistory() {
-        const text = document.getElementById('copyText').textContent;
-        if (text && text !== '-') {
-            this.history.unshift({ result: text, time: new Date().toLocaleString() });
-            if (this.history.length > this.maxHistory) {
-                this.history = this.history.slice(0, this.maxHistory);
-            }
-            this.saveHistory();
-        }
-    }
 
-    saveHistory() { localStorage.setItem('fangweiHistory', JSON.stringify(this.history)); }
-    loadHistory() { this.history = JSON.parse(localStorage.getItem('fangweiHistory') || '[]'); }
-
-    showHistory() {
-        const modal = document.getElementById('historyModal');
-        const content = document.getElementById('historyContent');
-        if (this.history.length === 0) {
-            content.innerHTML = '<p style="text-align: center; color: #999;">暂无历史记录</p>';
-        } else {
-            content.innerHTML = this.history.map(item => `
-                <div class="history-item">
-                    <div class="history-time">${item.time}</div>
-                    <div class="history-result">${item.result}</div>
-                </div>`).join('');
-        }
-        modal.style.display = 'flex';
-    }
-
-    hideHistory() { document.getElementById('historyModal').style.display = 'none'; }
-    async clearHistory() {
-        const ok = await showConfirm('确定要清空所有历史记录吗？');
-        if (ok) {
-            this.history = [];
-            this.saveHistory();
-            this.showHistory();
-        }
-    }
 
     // Custom Mode Management (simplified for brevity, full logic is complex)
     addCustomMode(name, detailConfig = null) {
@@ -413,6 +407,11 @@ class FangweiDrawer {
         document.getElementById('enablePoint').checked = this.settings.enablePoint;
         const enableModeDetailEl = document.getElementById('enableModeDetail');
         if (enableModeDetailEl) enableModeDetailEl.checked = this.settings.enableModeDetail;
+        // 恢复点数范围 UI 值
+        const pointMinEl = document.getElementById('pointMin');
+        const pointMaxEl = document.getElementById('pointMax');
+        if (pointMinEl) pointMinEl.value = Number(this.settings.pointMin) || 1;
+        if (pointMaxEl) pointMaxEl.value = Number(this.settings.pointMax) || 6;
         Object.keys(this.modes).forEach(key => {
             const checkbox = document.getElementById(`mode${key.charAt(0).toUpperCase() + key.slice(1)}`);
             if (checkbox) checkbox.checked = this.settings.modes[key] !== false;
@@ -425,6 +424,7 @@ class FangweiDrawer {
         const pointResultItem = document.getElementById('pointResultItem');
         const modeSettings = document.getElementById('modeSettings');
         const customModeSection = document.querySelector('.custom-mode-section');
+        const pointSettings = document.getElementById('pointSettings');
 
         if (this.settings.enableMode) {
             modeResultItem.style.display = 'flex';
@@ -445,12 +445,41 @@ class FangweiDrawer {
             this.updatePointDisplay();
         }
 
+        if (pointSettings) pointSettings.style.display = this.settings.enablePoint ? 'block' : 'none';
+
         this.updateCopyText();
     }
 
     setupEventListeners() {
         document.getElementById('enableMode').addEventListener('change', e => { this.settings.enableMode = e.target.checked; this.saveSettings(); this.updateDrawButtonsVisibility(); });
     document.getElementById('enablePoint').addEventListener('change', e => { this.settings.enablePoint = e.target.checked; this.saveSettings(); this.updateDrawButtonsVisibility(); });
+
+    // 点数范围输入监听
+    const pointMinEl = document.getElementById('pointMin');
+    const pointMaxEl = document.getElementById('pointMax');
+    if (pointMinEl && pointMaxEl) {
+        pointMinEl.addEventListener('change', e => {
+            let min = Number(e.target.value) || 1;
+            let max = Number(pointMaxEl.value) || min;
+            if (min < 1) min = 1;
+            if (min > 999) min = 999;
+            if (min > max) { max = min; pointMaxEl.value = max; }
+            this.settings.pointMin = min;
+            this.settings.pointMax = max;
+            this.saveSettings();
+        });
+        pointMaxEl.addEventListener('change', e => {
+            let max = Number(e.target.value) || 1;
+            let min = Number(pointMinEl.value) || max;
+            if (max < 1) max = 1;
+            if (max > 999) max = 999;
+            if (max < min) { min = max; pointMinEl.value = min; }
+            this.settings.pointMin = min;
+            this.settings.pointMax = max;
+            this.saveSettings();
+        });
+    }
+
     const enableModeDetailEl = document.getElementById('enableModeDetail');
     if (enableModeDetailEl) {
         enableModeDetailEl.addEventListener('change', e => {
@@ -502,7 +531,7 @@ class FangweiDrawer {
             }
         });
 
-        ['historyModal', 'customDetailModal', 'settingsModal'].forEach(id => {
+        ['customDetailModal', 'settingsModal'].forEach(id => {
             const overlay = document.getElementById(id);
             overlay.addEventListener('click', e => {
                 if (e.target.id === id) {
@@ -526,9 +555,6 @@ function drawMode() { fangweiDrawer.drawMode(); }
 function drawDirection() { fangweiDrawer.drawDirection(); }
 function drawPoint() { fangweiDrawer.drawPoint(); }
 function copyResult() { fangweiDrawer.copyResult(); }
-function showHistory() { fangweiDrawer.showHistory(); }
-function hideHistory() { fangweiDrawer.hideHistory(); }
-function clearHistory() { fangweiDrawer.clearHistory(); }
 function showSettingsModal() {
     const modal = document.getElementById('settingsModal');
     modal.style.display = 'flex';

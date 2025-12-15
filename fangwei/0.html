@@ -3,11 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
     <title>方位抽取器</title>
     <link rel="icon" href="https://bbs-static.miyoushe.com/static/2024/06/12/7982e4f54092be80c43a251f26e44235_6026540790739799944.png" type="image/png">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <script>
+        (function () {
+            try {
+                var saved = localStorage.getItem('theme');
+                var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var useDark = saved ? (saved === 'dark-mode') : prefersDark;
+                if (useDark) {
+                    document.body.classList.add('dark-mode');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                }
+            } catch (e) {
+                // ignore
+            }
+        })();
+    </script>
     <div class="container">
         <label class="themeToggle st-sunMoonThemeToggleBtn">
             <input class="themeToggleInput" type="checkbox" id="theme-toggle-checkbox">
@@ -33,7 +50,7 @@
         <h1>方位抽取器</h1>
         
         <div class="draw-section" style="margin-top: -10px;">
-            <button class="draw-button" onclick="drawAll()">🎲开始抽取</button>
+            <button class="draw-button" onclick="drawAll()">🎲抽取并复制</button>
         </div>
 
         <div class="result-container" id="resultContainer">
@@ -59,20 +76,6 @@
             <button class="copy-button" id="copyButton" onclick="copyResult()">📋 复制结果</button>
         </div>
 
-        <div class="modal-overlay" id="historyModal" style="display: none;">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>📚 历史记录</h3>
-                    <button class="modal-close" onclick="hideHistory()">✕</button>
-                </div>
-                <div class="modal-body" id="historyContent">
-                    <p class="modal-empty">暂无历史记录</p>
-                </div>
-                <div class="modal-footer">
-                    <button class="modal-button" onclick="clearHistory()">🗑️ 清空历史</button>
-                </div>
-            </div>
-        </div>
 
         <div class="modal-overlay" id="customDetailModal" style="display: none;">
             <div class="modal-content">
@@ -142,6 +145,20 @@
                             </div>
                         </div>
 
+                        <!-- 点数范围设置 -->
+                        <div class="point-settings" id="pointSettings" style="margin-top: 12px; display: block; text-align: center;">
+                            <h4>点数范围</h4>
+                            <div style="display:flex; gap:8px; align-items:center; justify-content:center; margin-top:8px;">
+                                <label style="display:flex; align-items:center; gap:6px;">最小
+                                    <input type="number" id="pointMin" min="1" max="20" value="1" style="width:72px;">
+                                </label>
+                                <label style="display:flex; align-items:center; gap:6px;">最大
+                                    <input type="number" id="pointMax" min="1" max="20" value="6" style="width:72px;">
+                                </label>
+                            </div>
+                            <small class="modal-hint">设置抽取点数范围</small>
+                        </div>
+
                         <!-- 模式选择 -->
                         <div class="mode-settings" id="modeSettings">
                             <h4>模式选择</h4>
@@ -160,7 +177,7 @@
                                         交换
                                     </label>
                                 </div>
-                                <!-- <div class="mode-item">
+                                <div class="mode-item">
                                     <label class="setting-label">
                                         <input type="checkbox" id="modeSurprise" checked>
                                         <span class="checkmark"></span>
@@ -173,7 +190,7 @@
                                         <span class="checkmark"></span>
                                         观众
                                     </label>
-                                </div> -->
+                                </div>
                                 <div class="mode-item">
                                     <label class="setting-label">
                                         <input type="checkbox" id="modeJushi" checked>
@@ -209,8 +226,8 @@
                             <ul>
                                 <li><strong>克隆：</strong>随机选择一个玩家作为克隆对象</li>
                                 <li><strong>交换：</strong>随机抽取交换关系，此外有<math><mfrac><mn>6859</mn><mn>40000</mn></mfrac></math>的概率抽到一位任选交换</li>
-                                <!-- <li><del><strong>惊喜：</strong>随机禁用某个技能或装备(抖m模式已删除)</del></li>
-                                <li><del><strong>观众：</strong>随机将玩家分配到观众或参战组(抖m模式已删除)</del></li> -->
+                                <li><strong>惊喜：</strong>随机禁用某个技能或装备</li>
+                                <li><strong>观众：</strong>随机将玩家分配到观众或参战组</li>
                                 <li><strong>巨史：</strong>从7个元素（冰火水雷岩风草）中随机选择3个</li>
                                 <li><strong>普通：</strong>无特殊附加内容的模式</li>
                                 <li><strong>自定义：</strong>用户可以添加自己的模式和描述</li>
@@ -220,7 +237,7 @@
                                 <li><strong>类型：</strong>等级、命座、攻击、生命、防御、精通</li>
                                 <li><strong>方位：</strong>上、下、左、右、左上、左下、右上、右下</li>
                             </ul>
-                            <p><strong>点位：</strong>1-6点随机</p>
+                            <p><strong>点位：</strong>设定的范围内随机抽取</p>
                             <p><strong>快捷键：</strong>空格(全部抽取) / Ctrl+C(复制结果)</p>
                         </div>
                     </div>
