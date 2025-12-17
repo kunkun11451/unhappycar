@@ -791,13 +791,13 @@
 <body>
     <div class="container">
         <div class="glass-card">
-            <div class="error-code">404</div>
-            <div class="error-title">页面未找到</div>
+            <div id="fuzzy-404" style="margin-bottom: 20px; display: flex; justify-content: center;"></div>
+            <div id="fuzzy-not-found" style="margin-bottom: 30px; display: flex; justify-content: center;"></div>
             <img id="randomImage" src="" style="width: 50%; height: auto;">
             <p id="randomText" class="error-description">
             </p>
             <div class="nav-links">
-                <a href="index.html" class="nav-link home-link" id="homeButton">返回主页</a>
+                <a href="index.html" class="nav-link home-link" id="homeButton">返回</a>
             <div class="nav-actions" style="margin-top: 15px; display: flex; justify-content: center; gap: 20px;">
                 <div class="site-nav" id="siteNavButton" style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.7); cursor: pointer; text-decoration: underline;">
                     站点导航
@@ -815,12 +815,14 @@
             <span class="close">&times;</span>
             <h2>站点导航</h2>
             <div class="nav-grid">
-                <a href="/index.html" class="nav-item">🏠主页</a>
-                <a href="/pinhaoche" class="nav-item">拼好车🚗</a>
+                <a href="/index.html" class="nav-item">随机角色事件抽取器🎲</a>
                 <a href="/pinhaotu" class="nav-item">拼好图🖼️</a>
-                <a href="/xjjj" class="nav-item">选角禁技🎭</a>
                 <a href="/fangwei" class="nav-item">方位抽取器🎲</a>
-                <a href="/docs" class="nav-item">使用文档📚</a>
+                <a href="/xjjj" class="nav-item">选角禁技🎭</a>
+                <a href="/pt" class="nav-item">表情包编辑🖼️</a>
+                <a href="/dice" class="nav-item">史镶金随机数生成器🎲</a>
+                <a href="/recorder" class="nav-item">随机ban位抽取🎲</a>
+                <a href="https://unhappycar.tech" class="nav-item">自动BP记录器✏️</a>
             </div>
         </div>
     </div>
@@ -830,11 +832,11 @@
         <div class="modal-content collection-modal">
             <span class="close">&times;</span>
             <h2>收集进度<br> <span id="collectionProgress">(0/0)</span></h2>
-            <span style="color: rgba(255, 255, 255, 0.7); margin: 10px;">清理浏览器缓存后进度会清空</span>
+            <span style="color: rgba(255, 255, 255, 0.7); margin: 10px;">清理浏览器缓存后进度会清空</span><br>
+            <span style="color: rgba(255, 255, 255, 0.7); margin: 30px;">使用电脑端体验完整功能</span>
             <div class="collection-grid" id="collectionGrid">
                 <!-- 动态生成收集项 -->
             </div>
-            <span style="color: rgba(255, 255, 255, 0.7); margin: 30px;">使用电脑端获取更好体验！</span>
         </div>
     </div>
 
@@ -852,6 +854,151 @@
     </div>
 
     <script>
+        class FuzzyText {
+            constructor(element, options = {}) {
+                this.element = element;
+                this.text = options.text || "Text";
+                this.fontSize = options.fontSize || 100;
+                this.fontWeight = options.fontWeight || 900;
+                this.fontFamily = options.fontFamily || 'inherit';
+                this.color = options.color || '#fff';
+                this.enableHover = options.enableHover !== false;
+                this.baseIntensity = options.baseIntensity || 0.1;
+                this.hoverIntensity = options.hoverIntensity || 0.25;
+                
+                this.canvas = document.createElement('canvas');
+                this.element.appendChild(this.canvas);
+                
+                this.ctx = this.canvas.getContext('2d');
+                this.offscreen = document.createElement('canvas');
+                this.offCtx = this.offscreen.getContext('2d');
+                
+                this.isHovering = false;
+                this.animationFrameId = null;
+                
+                // Bind methods
+                this.handleMouseMove = this.handleMouseMove.bind(this);
+                this.handleMouseLeave = this.handleMouseLeave.bind(this);
+                this.handleTouchMove = this.handleTouchMove.bind(this);
+                this.handleTouchEnd = this.handleTouchEnd.bind(this);
+                this.resize = this.resize.bind(this);
+                this.run = this.run.bind(this);
+
+                this.init();
+            }
+            
+            init() {
+                this.resize();
+                window.addEventListener('resize', this.resize);
+                
+                if (this.enableHover) {
+                    this.canvas.addEventListener('mousemove', this.handleMouseMove);
+                    this.canvas.addEventListener('mouseleave', this.handleMouseLeave);
+                    this.canvas.addEventListener('touchmove', this.handleTouchMove, { passive: false });
+                    this.canvas.addEventListener('touchend', this.handleTouchEnd);
+                }
+                
+                this.run();
+            }
+            
+            resize() {
+                const fontSizeStr = typeof this.fontSize === 'number' ? `${this.fontSize}px` : this.fontSize;
+                
+                // Get computed font family if inherit
+                let computedFontFamily = this.fontFamily;
+                if (computedFontFamily === 'inherit') {
+                    computedFontFamily = window.getComputedStyle(this.element).fontFamily || 'sans-serif';
+                }
+
+                this.offCtx.font = `${this.fontWeight} ${fontSizeStr} ${computedFontFamily}`;
+                this.offCtx.textBaseline = 'alphabetic';
+                
+                const metrics = this.offCtx.measureText(this.text);
+                const actualLeft = metrics.actualBoundingBoxLeft || 0;
+                const actualRight = metrics.actualBoundingBoxRight || metrics.width;
+                const actualAscent = metrics.actualBoundingBoxAscent || (typeof this.fontSize === 'number' ? this.fontSize : parseFloat(fontSizeStr));
+                const actualDescent = metrics.actualBoundingBoxDescent || (typeof this.fontSize === 'number' ? this.fontSize * 0.2 : parseFloat(fontSizeStr) * 0.2);
+                
+                const textWidth = Math.ceil(actualLeft + actualRight);
+                const textHeight = Math.ceil(actualAscent + actualDescent);
+                
+                const extraWidth = 10;
+                this.offscreen.width = textWidth + extraWidth;
+                this.offscreen.height = textHeight;
+                
+                const xOffset = extraWidth / 2;
+                
+                this.offCtx.font = `${this.fontWeight} ${fontSizeStr} ${computedFontFamily}`;
+                this.offCtx.textBaseline = 'alphabetic';
+                this.offCtx.fillStyle = this.color;
+                this.offCtx.fillText(this.text, xOffset - actualLeft, actualAscent);
+                
+                const horizontalMargin = 50;
+                const verticalMargin = 0;
+                
+                this.canvas.width = this.offscreen.width + horizontalMargin * 2;
+                this.canvas.height = this.offscreen.height + verticalMargin * 2;
+                
+                this.interactiveArea = {
+                    left: horizontalMargin + xOffset,
+                    top: verticalMargin,
+                    right: horizontalMargin + xOffset + textWidth,
+                    bottom: verticalMargin + textHeight
+                };
+            }
+            
+            run() {
+                const fuzzRange = 30;
+                const width = this.offscreen.width;
+                const height = this.offscreen.height;
+                
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.ctx.save();
+                this.ctx.translate(50, 0); // horizontalMargin
+                
+                const intensity = this.isHovering ? this.hoverIntensity : this.baseIntensity;
+                
+                for (let j = 0; j < height; j++) {
+                    const dx = Math.floor(intensity * (Math.random() - 0.5) * fuzzRange);
+                    this.ctx.drawImage(this.offscreen, 0, j, width, 1, dx, j, width, 1);
+                }
+                
+                this.ctx.restore();
+                this.animationFrameId = requestAnimationFrame(this.run);
+            }
+            
+            isInsideTextArea(x, y) {
+                return x >= this.interactiveArea.left && 
+                       x <= this.interactiveArea.right && 
+                       y >= this.interactiveArea.top && 
+                       y <= this.interactiveArea.bottom;
+            }
+            
+            handleMouseMove(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                this.isHovering = this.isInsideTextArea(x, y);
+            }
+            
+            handleMouseLeave() {
+                this.isHovering = false;
+            }
+            
+            handleTouchMove(e) {
+                e.preventDefault();
+                const rect = this.canvas.getBoundingClientRect();
+                const touch = e.touches[0];
+                const x = touch.clientX - rect.left;
+                const y = touch.clientY - rect.top;
+                this.isHovering = this.isInsideTextArea(x, y);
+            }
+            
+            handleTouchEnd() {
+                this.isHovering = false;
+            }
+        }
+
         const errorContents = [
             {
                 id: 1,
@@ -1051,6 +1198,25 @@
 
         // 页面加载时随机选择内容
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Fuzzy Text
+            new FuzzyText(document.getElementById('fuzzy-404'), {
+                text: "404",
+                fontSize: 150,
+                fontWeight: 900,
+                color: "#ffffff",
+                baseIntensity: 0.1,
+                hoverIntensity: 0.25
+            });
+
+            new FuzzyText(document.getElementById('fuzzy-not-found'), {
+                text: "页面未找到",
+                fontSize: 50,
+                fontWeight: 700,
+                color: "#ffffff",
+                baseIntensity: 0.1,
+                hoverIntensity: 0.25
+            });
+
             // 随机选择一个内容组合
             const randomIndex = Math.floor(Math.random() * errorContents.length);
             const selectedContent = errorContents[randomIndex];
