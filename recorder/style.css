@@ -70,6 +70,7 @@ body.modal-open{overflow:hidden}
 
 /* Utilities */
 .hidden{display:none !important}
+.copy-highlight{outline:2px solid #3b82f6 !important;outline-offset:2px}
 
 /* 删除平滑收缩动画（占位宽度逐渐归零，后续徽标平滑前移） */
 .removal-flash{

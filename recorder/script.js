@@ -45,45 +45,44 @@
   function loadState(){
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if(!raw) return;
-      const state = JSON.parse(raw);
-      
-      // 恢复 history
-      if(Array.isArray(state.history)){
-        history.length = 0;
-        history.push(...state.history);
-      }
-      
-      // 恢复 order 和 record
-      if(state.order){
-        Object.keys(order).forEach(k => {
-          order[k] = state.order[k] || [];
-          record[k] = new Set(order[k]);
-        });
-      }
-      
-      // 恢复其他状态
-      hasLastDraw = !!state.hasLastDraw;
-      window.__recorder_lastDraw = state.lastDraw;
-
-      // 恢复界面
-      if(hasLastDraw && window.__recorder_lastDraw){
-        // 恢复上次抽取显示（不带动画）
-        renderLast(window.__recorder_lastDraw, null);
+      if(raw){
+        const state = JSON.parse(raw);
         
-        // 显示相关控件
-        const lastBar = document.getElementById('lastCopyBar');
-        const recBar = document.getElementById('recordCopyBar');
-        const availPanel = document.getElementById('availablePanel');
-        if(lastBar) lastBar.classList.remove('hidden');
-        if(recBar) recBar.classList.remove('hidden');
-        if(availPanel) availPanel.classList.remove('hidden');
+        // 恢复 history
+        if(Array.isArray(state.history)){
+          history.length = 0;
+          history.push(...state.history);
+        }
+        
+        // 恢复 order 和 record
+        if(state.order){
+          Object.keys(order).forEach(k => {
+            order[k] = state.order[k] || [];
+            record[k] = new Set(order[k]);
+          });
+        }
+        
+        // 恢复其他状态
+        hasLastDraw = !!state.hasLastDraw;
+        window.__recorder_lastDraw = state.lastDraw;
+
+        // 恢复界面
+        if(hasLastDraw && window.__recorder_lastDraw){
+          // 恢复上次抽取显示（不带动画）
+          renderLast(window.__recorder_lastDraw, null);
+          
+          // 显示相关控件
+          const lastBar = document.getElementById('lastCopyBar');
+          const recBar = document.getElementById('recordCopyBar');
+          const availPanel = document.getElementById('availablePanel');
+          if(lastBar) lastBar.classList.remove('hidden');
+          if(recBar) recBar.classList.remove('hidden');
+          if(availPanel) availPanel.classList.remove('hidden');
+        }
       }
 
-      // 恢复历史表格
+      // 无论是否有数据，都执行初始渲染以确保界面状态正确
       renderHistoryTable();
-      
-      // 恢复当前记录显示（不带动画）
       renderRecord(null, ()=>{ renderComplement(); });
 
     } catch(e) {
@@ -168,6 +167,7 @@
     });
     renderHistoryTable();
     // 延迟显示当前记录动画（0.8s）
+    const delay = (window.__recorder_settings && window.__recorder_settings.animationsEnabled === false) ? 0 : 800;
     setTimeout(()=>{
       renderRecord(lastChanges, ()=>{
         // 仅在仍是最新一次抽取时渲染可用角色
@@ -175,7 +175,7 @@
           renderComplement();
         }
       });
-    }, 800);
+    }, delay);
   // 显示复制控件与可用复制区域
   hasLastDraw = true;
   const lastBar = document.getElementById('lastCopyBar');
@@ -269,12 +269,13 @@
   }
 
   function renderListRow(label, arr, change){
+    const anims = (window.__recorder_settings && window.__recorder_settings.animationsEnabled !== false);
     // arr 为字符串或包含 {removed:true,value} 占位的对象
     const parts = arr.map(item=>{
       if(item && typeof item === 'object' && item.removed){
         const classes = ['badge','badge-remove'];
-        if(item.noAnim){
-          if(item.pulse) classes.push('add-anim');
+        if(item.noAnim || !anims){
+          if(item.pulse && anims) classes.push('add-anim');
         }else{
           classes.push('removal-flash');
         }
@@ -282,7 +283,8 @@
       }
       const v = item;
       if(change && change.op === 'add' && change.value === v){
-        return `<span class="badge badge-add add-anim">${v}</span>`;
+        const addClass = anims ? 'badge badge-add add-anim' : 'badge badge-add';
+        return `<span class="${addClass}">${v}</span>`;
       }
       return `<span class="badge">${v}</span>`;
     });
@@ -301,6 +303,7 @@
   }
 
   function renderRecord(changes, done){
+    const anims = (window.__recorder_settings && window.__recorder_settings.animationsEnabled !== false);
     const el = document.getElementById('record');
     const rows = ["元素类型","国家","武器类型","体型"].map(cat=>{
       let base = order[cat].slice();
@@ -314,6 +317,26 @@
       return renderListRow(cat, base, ch);
     });
   el.innerHTML = rows.join('');
+
+    if(!anims){
+      // 禁用动画时，直接移除所有 badge-remove 并回调
+      el.querySelectorAll('.badge-remove').forEach(node => {
+        const parent = node.parentElement;
+        if(parent){
+          parent.removeChild(node);
+          const hasReal = parent.querySelector('.badge:not(.badge-remove)');
+          if(!hasReal){
+            const placeholder = document.createElement('span');
+            placeholder.className = 'badge';
+            placeholder.textContent = '—';
+            parent.appendChild(placeholder);
+          }
+        }
+      });
+      if(typeof done === 'function') done();
+      return;
+    }
+
     // 删除徽标：先闪烁（flash-phase），再收缩消失
     const FLASH_DURATION = 1000; 
     requestAnimationFrame(()=>{
@@ -382,6 +405,21 @@
   async function copyWithFeedback(text, btn){
     try{ await navigator.clipboard.writeText(text); }catch{}
     if(!btn) return;
+
+    // 视觉反馈：蓝框（全局唯一）
+    // 清除所有可能的蓝框
+    document.querySelectorAll('.copy-highlight').forEach(el => {
+      el.classList.remove('copy-highlight');
+    });
+
+    const panel = btn.closest('.panel');
+    if (panel) {
+      panel.classList.add('copy-highlight');
+      setTimeout(() => {
+        panel.classList.remove('copy-highlight');
+      }, 3000);
+    }
+
     const originalText = btn.textContent;
     const originalClass = btn.className;
     btn.classList.add('success');
@@ -432,9 +470,12 @@
       return;
     }
 
+    const anims = (window.__recorder_settings && window.__recorder_settings.animationsEnabled !== false);
     grid.innerHTML = list.map(({name, data},i)=>{
       const avatar = data.头像 || '';
-      return `<div class="card card-appear" style="--stagger:${i}" title="${name}">
+      const cardClass = anims ? 'card card-appear' : 'card';
+      const cardStyle = anims ? `--stagger:${i}` : '';
+      return `<div class="${cardClass}" style="${cardStyle}" title="${name}">
         ${avatar?`<img src="${avatar}" alt="${name}" class="avatar">`:''}
         <h3>${name}</h3>
       </div>`;
@@ -490,6 +531,21 @@
           const i = parseInt(btn.getAttribute('data-copy-idx'),10);
           const text = chunks[i] || '';
           try{ await navigator.clipboard.writeText(text); }catch{}
+
+          // 视觉反馈：蓝框（全局唯一）
+          // 清除所有可能的蓝框
+          document.querySelectorAll('.copy-highlight').forEach(el => {
+            el.classList.remove('copy-highlight');
+          });
+
+          const chip = btn.closest('.copy-chip');
+          if (chip) {
+            chip.classList.add('copy-highlight');
+            setTimeout(() => {
+              chip.classList.remove('copy-highlight');
+            }, 3000);
+          }
+
           // 持久显示已复制状态，不禁用，供用户作为“已复制”标记
           btn.classList.add('success');
           btn.textContent = '✔ 已复制';
@@ -656,8 +712,7 @@
 
   function init(){
     document.getElementById('drawBtn').addEventListener('click', drawOnce);
-    document.getElementById('undoBtn').addEventListener('click', undo);
-    document.getElementById('resetBtn').addEventListener('click', reset);
+    
     const historyBtn = document.getElementById('historyBtn');
     if(historyBtn) historyBtn.addEventListener('click', openHistory);
     document.querySelectorAll('[data-history-close]').forEach(el=>{
@@ -686,22 +741,27 @@
       copyLastBtn.addEventListener('click', (e)=> copyWithFeedback(formatLastDrawText(), e.currentTarget));
     }
     if(copyRecordBtn){
-      copyRecordBtn.addEventListener('click', (e)=> copyWithFeedback(formatCurrentRecordText(), e.currentTarget));
+      copyRecordBtn.addEventListener('click', (e)=> copyWithFeedback(formatCurrentRecordText().replace(/水/g, '氵'), e.currentTarget));
     }
-  renderRecord(null, ()=>{ renderComplement(); });
-  // 初始隐藏复制控件
-  const lastBar = document.getElementById('lastCopyBar');
-  const recBar = document.getElementById('recordCopyBar');
-  if(lastBar) lastBar.classList.add('hidden');
-  if(recBar) recBar.classList.add('hidden');
+    
+    // 尝试加载数据
+    loadState();
   }
+
+  // 暴露给外部使用的函数
+  window.__recorder_actions = {
+    drawOnce,
+    undo,
+    reset,
+    openHistory,
+    copyWithFeedback,
+    formatLastDrawText,
+    formatCurrentRecordText
+  };
 
   if(document.readyState === 'loading'){
     document.addEventListener('DOMContentLoaded', init);
   }else{
     init();
   }
-  
-  // 尝试加载数据
-  loadState();
 })();

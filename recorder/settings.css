@@ -1,0 +1,293 @@
+/* 设置弹窗样式 */
+.settings-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-modal.hidden {
+    display: none;
+}
+
+.settings-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(4px);
+}
+
+.settings-modal:not(.closing) .settings-backdrop {
+    animation: settingsBackdropIn .38s ease forwards;
+}
+
+.settings-modal.closing .settings-backdrop {
+    animation: settingsBackdropOut .28s ease forwards;
+}
+
+@keyframes settingsBackdropIn {
+    0% { opacity: 0; backdrop-filter: blur(0px); }
+    100% { opacity: 1; backdrop-filter: blur(4px); }
+}
+
+@keyframes settingsBackdropOut {
+    0% { opacity: 1; backdrop-filter: blur(4px); }
+    100% { opacity: 0; backdrop-filter: blur(0px); }
+}
+
+.settings-dialog {
+    position: relative;
+    width: 90%;
+    max-width: 600px;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px -5px rgba(0, 0, 0, 0.6);
+    color: #e2e8f0;
+    overflow: hidden;
+    animation: settingsIn .38s cubic-bezier(.22,.85,.3,1) both;
+}
+
+.settings-modal.closing .settings-dialog {
+    animation: settingsOut .28s cubic-bezier(.4,.15,.3,1) forwards;
+}
+
+@keyframes settingsIn {
+    0% { opacity: 0; transform: translateY(24px) scale(.94); }
+    70% { opacity: 1; }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes settingsOut {
+    0% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(18px) scale(.94); }
+}
+
+.settings-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #334155;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.settings-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.settings-close {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+}
+
+.settings-body {
+    padding: 24px;
+    max-height: 70vh;
+    overflow-y: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+}
+
+.settings-body::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+}
+
+/* 设置项样式 - 参考图片 */
+.settings-item {
+    background: #1e293b; /* 稍微浅一点的深色 */
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.settings-item:hover {
+    background: #243347;
+    border-color: #475569;
+}
+
+.settings-info {
+    flex: 1;
+}
+
+.settings-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: #f8fafc;
+}
+
+.settings-desc {
+    font-size: 0.85rem;
+    color: #94a3b8;
+}
+
+.settings-action {
+    margin-left: 24px;
+}
+
+.btn.danger {
+    background: #7f1d1d;
+    border-color: #991b1b;
+    color: #fee2e2;
+}
+
+.btn.danger:hover {
+    background: #991b1b;
+}
+
+/* 快捷键输入框样式 */
+.shortcut-input {
+    background: #0f172a;
+    border: 1px solid #475569;
+    border-radius: 6px;
+    color: #38bdf8;
+    padding: 8px 12px;
+    width: 160px;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.shortcut-input:focus {
+    outline: none;
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+}
+
+.shortcut-input.conflict {
+    border-color: #ef4444;
+    color: #ef4444;
+    animation: shake 0.4s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+}
+
+.conflict-msg {
+    color: #ef4444;
+    font-size: 0.75rem;
+    margin-top: 4px;
+    display: none;
+}
+
+.shortcut-input.conflict + .conflict-msg {
+    display: block;
+}
+
+/* 设置按钮（右上角图标） */
+#settingsBtn {
+    position: absolute;
+    right: 0;
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    color: #94a3b8;
+    transition: color 0.2s, transform 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    width: 40px;
+    height: 40px;
+}
+
+#settingsBtn:hover {
+    color: #f8fafc;
+    transform: rotate(45deg);
+}
+
+#settingsBtn svg {
+    width: 24px;
+    height: 24px;
+    display: block;
+}
+
+/* 开关样式 */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #334155;
+    transition: .3s;
+    border-radius: 24px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #38bdf8;
+}
+
+input:checked + .slider:before {
+    transform: translateX(20px);
+}
+
+/* 适配移动端 */
+@media (max-width: 640px) {
+    .settings-dialog {
+        width: 95%;
+    }
+    .settings-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .settings-action {
+        margin-left: 0;
+        margin-top: 12px;
+        width: 100%;
+        display: flex;
+        justify-content: flex-end;
+    }
+}

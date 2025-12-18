@@ -7,10 +7,20 @@
   <link rel="icon" href="https://upload-bbs.miyoushe.com/upload/2024/06/29/273489775/4be47bf1376bfb4f69c1e3fe26c8a8e8_8119842655567179283.png" type="image/png">
   <link rel="stylesheet" href="./style.css" />
   <link rel="stylesheet" href="./stats.css" />
+  <link rel="stylesheet" href="./settings.css" />
+  <link rel="stylesheet" href="./light.css" id="lightThemeLink" disabled>
 </head>
 <body>
   <div class="container">
-  <h1 style="text-align: center;">随机Ban位</h1>  
+    <header style="position: relative; display: flex; justify-content: center; align-items: center; margin-bottom: 20px;">
+      <h1 style="margin: 0;">随机Ban位</h1>
+      <button id="settingsBtn" title="设置">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </button>
+    </header>
 
     <div class="layout-desktop">
       <div class="left-column">
@@ -19,9 +29,6 @@
             <h2>本次Ban位抽取</h2>
             <div class="controls inline-controls">
               <button id="drawBtn" class="btn primary">抽取</button>
-              <button id="undoBtn" class="btn">撤销</button>
-              <button id="resetBtn" class="btn">重置</button>
-               <button id="historyBtn" class="btn">历史</button>
             </div>
           </div>
           <div class="rows" id="lastDraw"></div>
@@ -49,8 +56,147 @@
     </div>
   </div>
 
+  <!-- 设置弹窗 -->
+  <div id="settingsModal" class="settings-modal hidden">
+    <div class="settings-backdrop"></div>
+    <div class="settings-dialog">
+      <div class="settings-header">
+        <h2>设置</h2>
+        <button class="settings-close">&times;</button>
+      </div>
+
+      <div class="settings-body">
+
+        <div style="margin-bottom: 12px; font-weight: 600; color: #94a3b8; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">基础操作</div>
+
+        <div class="settings-item">
+          <div class="settings-info">
+            <div class="settings-title">撤销操作</div>
+            <div class="settings-desc">回退到上一次抽取状态</div>
+          </div>
+          <div class="settings-action">
+            <button id="modalUndoBtn" class="btn">撤销</button>
+          </div>
+        </div>
+        <div class="settings-item">
+          <div class="settings-info">
+            <div class="settings-title">历史记录</div>
+            <div class="settings-desc">查看详细的抽取历史和统计信息</div>
+          </div>
+          <div class="settings-action">
+            <button id="modalHistoryBtn" class="btn">查看历史</button>
+          </div>
+        </div>
+        <div class="settings-item">
+          <div class="settings-info">
+            <div class="settings-title">重置记录</div>
+            <div class="settings-desc">清除所有抽取历史和当前记录</div>
+          </div>
+          <div class="settings-action">
+            <button id="modalResetBtn" class="btn danger">重置记录</button>
+          </div>
+        </div>
+
+        <div style="margin-top: 24px; margin-bottom: 12px; font-weight: 600; color: #94a3b8; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">界面设置</div>
+        
+        <div class="settings-item">
+          <div class="settings-info">
+            <div class="settings-title">启用抽取动画</div>
+            <div class="settings-desc">开启后抽取过程会有逐步显示的动画效果</div>
+          </div>
+          <div class="settings-action">
+            <label class="switch">
+              <input type="checkbox" id="animToggle" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-item">
+          <div class="settings-info">
+            <div class="settings-title">浅色外观</div>
+            <div class="settings-desc">开启后界面切换为浅色主题</div>
+          </div>
+          <div class="settings-action">
+            <label class="switch">
+              <input type="checkbox" id="themeToggle">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div style="margin-top: 24px; margin-bottom: 12px; font-weight: 600; color: #94a3b8; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">快捷键设置（点击输入框后按下按键进行设置）</div>
+        
+        <div class="settings-item">
+          <div class="settings-info">
+            <div class="settings-title">抽取 Ban 位</div>
+            <div class="settings-desc">进行一次抽取</div>
+          </div>
+          <div class="settings-action">
+            <input type="text" class="shortcut-input" data-type="draw" readonly>
+            <div class="conflict-msg">快捷键冲突</div>
+          </div>
+        </div>
+        <div class="settings-item">
+          <div class="settings-info">
+            <div class="settings-title">复制一条龙</div>
+            <div class="settings-desc">开启后将三个复制操作合并为一个顺序循环快捷键</div>
+          </div>
+          <div class="settings-action">
+            <label class="switch">
+              <input type="checkbox" id="allInOneToggle">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+        <div class="settings-item" id="allInOneShortcutItem" style="display: none;">
+          <div class="settings-info">
+            <div class="settings-title">复制一条龙快捷键</div>
+            <div class="settings-desc">依次复制：本次抽取 -> 当前记录 -> 可用角色</div>
+          </div>
+          <div class="settings-action">
+            <input type="text" class="shortcut-input" data-type="copyAllInOne" readonly>
+            <div class="conflict-msg">快捷键冲突</div>
+          </div>
+        </div>
+
+        <div class="settings-item shortcut-individual">
+          <div class="settings-info">
+            <div class="settings-title">复制本次抽取</div>
+            <div class="settings-desc">复制本次抽取的结果</div>
+          </div>
+          <div class="settings-action">
+            <input type="text" class="shortcut-input" data-type="lastDraw" readonly>
+            <div class="conflict-msg">快捷键冲突</div>
+          </div>
+        </div>
+        <div class="settings-item shortcut-individual">
+          <div class="settings-info">
+            <div class="settings-title">复制当前记录</div>
+            <div class="settings-desc">复制当前Ban位记录</div>
+          </div>
+          <div class="settings-action">
+            <input type="text" class="shortcut-input" data-type="currentRecord" readonly>
+            <div class="conflict-msg">快捷键冲突</div>
+          </div>
+        </div>
+        <div class="settings-item shortcut-individual">
+          <div class="settings-info">
+            <div class="settings-title">复制可用角色</div>
+            <div class="settings-desc">依次复制下方可用角色分段</div>
+          </div>
+          <div class="settings-action">
+            <input type="text" class="shortcut-input" data-type="availableChars" readonly>
+            <div class="conflict-msg">快捷键冲突</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- 载入角色数据（含体型/国家） -->
   <script src="./characters.js"></script>
+  <script src="./settings.js"></script>
   <script src="./script.js"></script>
   
     <!-- 抽取历史弹窗 -->
