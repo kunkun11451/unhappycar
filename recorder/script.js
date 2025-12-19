@@ -461,12 +461,33 @@
 
   if(stats) stats.textContent = `排除当前Ban位后剩余：${list.length} / ${entries.length}`;
 
-    // 未进行首次抽取：显示提示，不展示角色卡片
+    // 未进行首次抽取：显示提示（放在 availablePanel 底部），不展示角色卡片
     if(!hasLastDraw){
-      if(grid){
-        grid.innerHTML = '<div style="padding:12px;color:#94a3b8;font-size:.95rem">开始游戏以记录并查看可用角色列表</div>';
-      }
+      if(grid) grid.innerHTML = '';
       if(copyBox) copyBox.classList.add('hidden');
+      const panel = document.getElementById('availablePanel');
+      if(panel){
+        const exist = panel.querySelector('.no-available');
+        if(exist) exist.remove();
+        panel.insertAdjacentHTML('beforeend', `<div class="no-available"><div class="no-available-msg">开始游戏以记录并查看可用角色列表</div></div>`);
+      }
+      return;
+    }
+
+    // 如果已有抽取但当前没有可用角色，显示空状态图片（放在整个 availablePanel 底部）
+    if(hasLastDraw && list.length === 0){
+      // 清空卡片网格
+      if(grid) grid.innerHTML = '';
+      // 确保复制区域隐藏
+      if(copyBox) copyBox.classList.add('hidden');
+      // 在 availablePanel 底部显示空状态图片
+      const panel = document.getElementById('availablePanel');
+      if(panel){
+        // 移除已有的占位
+        const exist = panel.querySelector('.no-available');
+        if(exist) exist.remove();
+        panel.insertAdjacentHTML('beforeend', `<div class="no-available"><img src="https://upload-bbs.miyoushe.com/upload/2024/11/03/273489775/a19dced01017ecfcb6ab0fb284ecb215_4557425723990781450.png" alt="无可用角色"></div>`);
+      }
       return;
     }
 
@@ -480,6 +501,12 @@
         <h3>${name}</h3>
       </div>`;
     }).join('');
+    // 渲染完列表后，确保可用面板底部的空状态占位被移除（若存在）
+    const panel = document.getElementById('availablePanel');
+    if(panel){
+      const exist = panel.querySelector('.no-available');
+      if(exist) exist.remove();
+    }
 
     // 生成可复制的名字段落，规则：
     // - 以空格分隔名字；
@@ -585,17 +612,18 @@
         const text = arr.length ? arr.join(' ') : '—';
         return `<td class="snapshot-cell">${text}</td>`;
       }
-  return `<tr class="history-last"><td class="round-cell" rowspan="2">${h.round}</td>${tdLast('元素类型')}${tdLast('国家')}${tdLast('武器类型')}${tdLast('体型')}<td class="avail-cell" rowspan="2">${h.available}</td></tr>
+  return `<tr class="history-last"><td class="round-cell" rowspan="2">${h.round}</td>${tdLast('元素类型')}${tdLast('国家')}${tdLast('武器类型')}${tdLast('体型')}<td class="avail-cell" rowspan="2">${h.available ?? '—'}</td></tr>
       <tr class="history-snapshot">${tdSnap('元素类型')}${tdSnap('国家')}${tdSnap('武器类型')}${tdSnap('体型')}</tr>`;
     }).join('');
   }
 
   // ===== 统计功能 =====
   function isBanned(char, snapshot){
-    if(snapshot.元素类型.length > 0 && snapshot.元素类型.includes(char.元素类型)) return true;
-    if(snapshot.国家.length > 0 && snapshot.国家.includes(char.国家 || '其他')) return true;
-    if(snapshot.武器类型.length > 0 && snapshot.武器类型.includes(char.武器类型)) return true;
-    if(snapshot.体型.length > 0 && snapshot.体型.includes(char.体型 || '')) return true;
+    if(!snapshot) return false;
+    if(snapshot.元素类型 && snapshot.元素类型.length > 0 && snapshot.元素类型.includes(char.元素类型)) return true;
+    if(snapshot.国家 && snapshot.国家.length > 0 && snapshot.国家.includes(char.国家 || '其他')) return true;
+    if(snapshot.武器类型 && snapshot.武器类型.length > 0 && snapshot.武器类型.includes(char.武器类型)) return true;
+    if(snapshot.体型 && snapshot.体型.length > 0 && snapshot.体型.includes(char.体型 || '')) return true;
     return false;
   }
 
@@ -619,7 +647,7 @@
       const snap = h.snapshot;
       // 统计所有标签 Ban 回合
       ["元素类型","国家","武器类型","体型"].forEach(cat => {
-        if(snap[cat]){
+        if(snap && snap[cat]){
           snap[cat].forEach(val => {
             if(attrCounts[val] !== undefined) attrCounts[val]++;
           });
@@ -634,8 +662,97 @@
       });
     });
 
+    const availData = history
+      .filter(h => h.available !== undefined)
+      .map(h => ({ round: h.round, count: h.available }));
+    
+    renderLineChart('availChart', availData);
     renderBarChart('elemStats', attrCounts, 'elem-', labelCategory);
     renderBarChart('charStats', charCounts, 'char-bar');
+  }
+
+  function renderLineChart(containerId, data){
+    const container = document.getElementById(containerId);
+    if(!container) return;
+    
+    if(data.length === 0){
+      container.innerHTML = '<div style="color:#64748b;font-size:0.9rem;padding:8px;">暂无数据</div>';
+      return;
+    }
+
+    // 如果只有一条数据，补一个初始点（0轮，全角色）
+    const chartData = data.length === 1 ? [{round: 0, count: Object.keys(window.characterData || {}).length}, ...data] : data;
+
+    const width = container.clientWidth - 24;
+    const height = container.clientHeight - 40;
+    const padding = { top: 10, right: 10, bottom: 20, left: 30 };
+    
+    const maxCount = Math.max(...chartData.map(d => d.count), 1);
+    const minCount = 0;
+    const rounds = chartData.map(d => d.round);
+    const maxRound = Math.max(...rounds);
+    const minRound = Math.min(0, ...rounds);
+
+    const getX = (r) => padding.left + ((r - minRound) / (maxRound - minRound || 1)) * (width - padding.left - padding.right);
+    const getY = (c) => padding.top + (1 - (c / maxCount)) * (height - padding.top - padding.bottom);
+
+    const points = chartData.map(d => ({ x: getX(d.round), y: getY(d.count), ...d }));
+    const linePath = points.map((p, i) => (i === 0 ? `M ${p.x} ${p.y}` : `L ${p.x} ${p.y}`)).join(' ');
+    const areaPath = `${linePath} L ${getX(maxRound)} ${getY(0)} L ${getX(minRound)} ${getY(0)} Z`;
+
+    // 生成 Y 轴刻度 (4条)
+    const yTicks = [0, Math.floor(maxCount * 0.33), Math.floor(maxCount * 0.66), maxCount];
+    const yAxisHtml = yTicks.map(t => `
+      <text x="${padding.left - 5}" y="${getY(t)}" class="chart-label chart-label-y" alignment-baseline="middle">${t}</text>
+      <line x1="${padding.left}" y1="${getY(t)}" x2="${width - padding.right}" y2="${getY(t)}" class="chart-grid" />
+    `).join('');
+
+    // 生成 X 轴刻度 (最多显示 10 个)
+    const xStep = Math.max(1, Math.ceil(chartData.length / 10));
+    const xAxisHtml = chartData.filter((_, i) => i % xStep === 0).map(d => `
+      <text x="${getX(d.round)}" y="${height - 5}" class="chart-label">${d.round}</text>
+    `).join('');
+
+    container.innerHTML = `
+      <svg class="line-chart-svg" viewBox="0 0 ${width} ${height}">
+        <defs>
+          <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.5" />
+            <stop offset="100%" stop-color="#3b82f6" stop-opacity="0" />
+          </linearGradient>
+        </defs>
+        ${yAxisHtml}
+        <path d="${areaPath}" class="chart-area" />
+        <path d="${linePath}" class="chart-line" />
+        ${points.map(p => `
+          <circle cx="${p.x}" cy="${p.y}" r="3.2" class="chart-point ${p.count === 0 ? 'point-zero' : ''}" 
+            style="${p.count === 0 ? 'fill: #ef4444; stroke: #fee2e2;' : ''}"
+            data-round="${p.round}" data-count="${p.count}" />
+        `).join('')}
+        ${xAxisHtml}
+      </svg>
+      <div class="chart-tooltip"></div>
+    `;
+
+    // Tooltip 逻辑
+    const tooltip = container.querySelector('.chart-tooltip');
+    container.querySelectorAll('.chart-point').forEach(p => {
+      p.addEventListener('mouseenter', (e) => {
+        const r = p.getAttribute('data-round');
+        const c = p.getAttribute('data-count');
+        tooltip.innerHTML = `第 ${r} 轮: ${c} 人可用`;
+        tooltip.style.opacity = '1';
+        tooltip.style.left = `${e.offsetX + 10}px`;
+        tooltip.style.top = `${e.offsetY - 30}px`;
+      });
+      p.addEventListener('mousemove', (e) => {
+        tooltip.style.left = `${e.offsetX + 10}px`;
+        tooltip.style.top = `${e.offsetY - 30}px`;
+      });
+      p.addEventListener('mouseleave', () => {
+        tooltip.style.opacity = '0';
+      });
+    });
   }
 
   function renderBarChart(containerId, counts, classPrefix, labelCategory){

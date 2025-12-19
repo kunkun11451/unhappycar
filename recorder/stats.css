@@ -85,3 +85,72 @@
 
 /* 角色条颜色 */
 .stat-bar.char-bar { background: #6366f1; }
+
+/* Line Chart */
+.line-chart-container {
+  width: 100%;
+  height: 480px;
+  background: rgba(51, 65, 85, 0.2);
+  border-radius: 8px;
+  padding: 16px 12px 24px 12px;
+  box-sizing: border-box;
+  position: relative;
+}
+.line-chart-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.chart-line {
+  fill: none;
+  stroke: #3b82f6;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 4px rgba(59, 130, 246, 0.4));
+}
+.chart-area {
+  fill: url(#lineGradient);
+  opacity: 0.2;
+}
+.chart-point {
+  fill: #3b82f6;
+  stroke: #fff;
+  stroke-width: 2;
+  transition: r 0.2s ease;
+}
+.chart-point:hover {
+  r: 6;
+}
+.chart-axis {
+  stroke: #475569;
+  stroke-width: 1;
+}
+.chart-label {
+  font-size: 10px;
+  fill: #94a3b8;
+  text-anchor: middle;
+}
+.chart-label-y {
+  text-anchor: end;
+}
+.chart-grid {
+  stroke: rgba(71, 85, 105, 0.3);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+.chart-tooltip {
+  position: absolute;
+  background: #1e293b;
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #334155;
+  z-index: 10;
+  white-space: nowrap;
+}

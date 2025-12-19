@@ -11,13 +11,19 @@ body{
 .settings-dialog{ background:#ffffff; border-color:#e6eef6; color:#0f172a }
 .modal-dialog{ background:#ffffff; border-color:#e6eef6; color:#0f172a }
 .badge{ background:#f8fafc; border-color:#e2e8f0; color:#0f172a }
-.badge-add{ background:#ecfdf5; border-color:#bbf7d0; color:#065f46 }
-.badge-remove{ background:#fff1f2; border-color:#fecaca; color:#7f1d1d }
+.badge-add, .hist-badge-add, .btn.success { background:#dcfce7; border-color:#bbf7d0; color:#15803d }
+.badge-remove, .hist-badge-remove, .btn.danger { background:#fee2e2; border-color:#fecaca; color:#b91c1c }
+.btn.success:hover { background:#bbf7d0 }
+.btn.danger:hover { background:#fecaca }
 .text{ background:#f8fafc; border-color:#e2e8f0; color:#0f172a }
 .card{ background:#ffffff; border-color:#e6eef6; color:#0f172a }
 .stats{ color:#475569 }
-.history-table thead th{ background:#f1f5f9; color:#0f172a }
-.history-table tbody td{ background:rgba(241,245,249,0.6); color:#0f172a }
+.history-table thead th{ background:#f1f5f9; color:#0f172a; border-color:#e2e8f0 }
+.history-table tbody td{ background:#ffffff; color:#0f172a; border-color:#e2e8f0 }
+.history-table tbody tr:nth-child(even) td{ background:#f8fafc }
+.history-table tbody tr.history-snapshot td{ background:#f1f5f9; color:#475569 }
+.history-table tbody td.round-cell{ background:#f1f5f9; color:#0f172a; border-color:#e2e8f0 }
+.history-table tbody td.avail-cell{ background:#f1f5f9; color:#2563eb; border-color:#e2e8f0 }
 .copy-chip{ background:transparent }
 
 .copy-highlight{outline:2px solid #2563eb !important; outline-offset:2px}
@@ -37,4 +43,24 @@ body{
 
 .slider { background-color: #e6eef6 }
 input:checked + .slider { background-color: #2563eb }
+
+/* Line Chart Light Theme */
+.line-chart-container { background: #f1f5f9; }
+.chart-axis { stroke: #cbd5e1; }
+.chart-grid { stroke: rgba(203, 213, 225, 0.5); }
+.chart-label { fill: #64748b; }
+.chart-tooltip { background: #ffffff; color: #0f172a; border-color: #e2e8f0; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+.chart-point { stroke: #f1f5f9; }
+
+.stat-bar-bg { background: #e2e8f0; }
+.stat-bar.char-bar { background: #818cf8; }
+.stat-label { color: #475569; }
+.stat-count { color: #64748b; }
+.stats-section h4 { color: #475569; }
+
+/* Tab Controls Light Theme */
+.tab-controls { background: #f1f5f9; }
+.tab-btn { color: #64748b; }
+.tab-btn:hover { color: #0f172a; background: rgba(0,0,0,0.05); }
+.tab-btn.active { background: #2563eb; color: #fff; }
 

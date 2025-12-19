@@ -64,6 +64,14 @@ body.modal-open{overflow:hidden}
 .copy-chip{display:flex;gap:8px;align-items:center;width:100%}
 .copy-chip .text{flex:1}
 
+/* 空状态（无可用角色）图片 */
+.no-available{display:flex;align-items:center;justify-content:center;padding:18px}
+.no-available img{max-width:360px;width:48%;height:auto;border-radius:8px;opacity:0.98}
+.no-available .no-available-msg{color:#94a3b8;font-size:0.95rem;padding:12px;text-align:center}
+@media (max-width: 640px){
+	.no-available img{max-width:220px;width:70%}
+}
+
 /* Copy success state */
 .btn.success{background:#065f46;border-color:#047857;color:#d1fae5}
 .btn,.btn.success{transition:background-color .28s ease,border-color .28s ease,color .28s ease}
