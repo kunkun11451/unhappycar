@@ -91,6 +91,38 @@
         const allInOneShortcutItem = document.getElementById('allInOneShortcutItem');
         const individualShortcuts = document.querySelectorAll('.shortcut-individual');
 
+        // 初始化在线模式开关
+        const onlineToggle = document.getElementById('onlineToggle');
+        if (onlineToggle) {
+            // 恢复保存的状态
+            const savedOnline = settings.onlineMode || false;
+            onlineToggle.checked = savedOnline;
+
+            // 如果默认开启，则自动初始化
+            if (savedOnline) {
+                if (window.__recorder_online && window.__recorder_online.createRoom) {
+                    // 使用 createRoom (新版内部已映射为 initHost)
+                    window.__recorder_online.createRoom();
+                }
+            }
+
+            onlineToggle.addEventListener('change', (e) => {
+                settings.onlineMode = e.target.checked;
+                saveSettings();
+
+                if (e.target.checked) {
+                    if (window.__recorder_online && window.__recorder_online.createRoom) {
+                        window.__recorder_online.createRoom();
+                    }
+                } else {
+                    // 关闭
+                    if (window.__recorder_online && window.__recorder_online.closeHost) {
+                        window.__recorder_online.closeHost();
+                    }
+                }
+            });
+        }
+
         // 初始化浅色主题开关
         const themeToggle = document.getElementById('themeToggle');
         const lightLink = document.getElementById('lightThemeLink');
@@ -389,4 +421,64 @@
     } else {
         init();
     }
+    // 自定义 Alert 功能
+    window.showCustomAlert = function (msg, title = '提示', callback = null) {
+        const modal = document.getElementById('alertModal');
+        const titleEl = document.getElementById('alertTitle');
+        const msgEl = document.getElementById('alertMessage');
+        const okBtn = document.getElementById('alertOkBtn');
+        const closeBtn = document.getElementById('alertCloseBtn');
+        const backdrop = modal.querySelector('.settings-backdrop');
+
+        if (!modal) {
+            alert(msg); // Fallback
+            if (callback) callback();
+            return;
+        }
+
+        titleEl.textContent = title;
+        msgEl.textContent = msg;
+        modal.classList.remove('hidden');
+
+        const closeModal = () => {
+            modal.classList.add('closing');
+            modal.addEventListener('animationend', () => {
+                modal.classList.remove('hidden');
+                modal.classList.remove('closing');
+                modal.classList.add('hidden'); // Ensure hidden is back
+                if (callback) callback();
+            }, { once: true });
+        };
+
+        const newOk = okBtn.cloneNode(true);
+        okBtn.parentNode.replaceChild(newOk, okBtn);
+        newOk.addEventListener('click', closeModal);
+
+        const newClose = closeBtn.cloneNode(true);
+        closeBtn.parentNode.replaceChild(newClose, closeBtn);
+        newClose.addEventListener('click', closeModal);
+
+        const newBackdrop = backdrop.cloneNode(true);
+        backdrop.parentNode.replaceChild(newBackdrop, backdrop);
+    };
+
+    // 自定义 Toast 功能
+    window.showToast = function (msg, duration = 2000) {
+        let toast = document.getElementById('toastNotification');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'toastNotification';
+            toast.className = 'toast-notification';
+            document.body.appendChild(toast);
+        }
+
+        toast.textContent = msg;
+        toast.classList.add('show');
+
+        clearTimeout(toast.timeout);
+        toast.timeout = setTimeout(() => {
+            toast.classList.remove('show');
+        }, duration);
+    };
+
 })();

@@ -42,48 +42,106 @@
     }
   }
 
+  // ===== 外部同步接口支持 =====
+  let onStateChangeCallback = null;
+
+  function getState() {
+    return {
+      history,
+      order,
+      hasLastDraw,
+      lastDraw: window.__recorder_lastDraw
+    };
+  }
+
+  function restoreState(state) {
+    if (!state) return;
+
+    // 判断是否为新增一次抽取：当前有历史，且新历史比当前多1条
+    const isNewDraw = (history.length > 0 &&
+      state.history &&
+      Array.isArray(state.history) &&
+      state.history.length === history.length + 1);
+
+    // 恢复 history
+    if (Array.isArray(state.history)) {
+      history.length = 0;
+      history.push(...state.history);
+    }
+
+    // 恢复 order 和 record
+    if (state.order) {
+      Object.keys(order).forEach(k => {
+        order[k] = state.order[k] || [];
+        record[k] = new Set(order[k]);
+      });
+    }
+
+    // 恢复其他状态
+    hasLastDraw = !!state.hasLastDraw;
+    window.__recorder_lastDraw = state.lastDraw;
+
+    // 恢复界面显示
+    if (hasLastDraw && window.__recorder_lastDraw) {
+      if (isNewDraw) {
+        // 动画逻辑：
+        // 1. 获取最新一次的 changes
+        const lastEntry = history[history.length - 1];
+        const changes = lastEntry.changes || null;
+
+        // 2. 显示本次抽取（带动画效果，renderLast 内部若 changes 存在会带动画类）
+        renderLast(window.__recorder_lastDraw, changes);
+
+        // 3. 更新历史表格
+        renderHistoryTable();
+
+        // 4. 延迟更新记录列表
+        const delay = (window.__recorder_settings && window.__recorder_settings.animationsEnabled === false) ? 0 : 800;
+        setTimeout(() => {
+          renderRecord(changes, () => {
+            renderComplement();
+          });
+        }, delay);
+      } else {
+        // 非动画逻辑（也是默认的初始化/刷新逻辑）
+        renderLast(window.__recorder_lastDraw, null);
+        renderHistoryTable();
+        renderRecord(null, () => { renderComplement(); });
+      }
+
+      const lastBar = document.getElementById('lastCopyBar');
+      const recBar = document.getElementById('recordCopyBar');
+      const availPanel = document.getElementById('availablePanel');
+      if (lastBar) lastBar.classList.remove('hidden');
+      if (recBar) recBar.classList.remove('hidden');
+      if (availPanel) availPanel.classList.remove('hidden');
+    } else {
+      // 确保清除上一次的显示（如果是重置或加入新房间为空状态时）
+      document.getElementById('lastDraw').innerHTML = '';
+      const lastBar = document.getElementById('lastCopyBar');
+      if (lastBar) lastBar.classList.add('hidden');
+
+      renderHistoryTable();
+      renderRecord(null, () => { renderComplement(); });
+    }
+  }
+
+  function triggerStateChange() {
+    if (onStateChangeCallback) {
+      onStateChangeCallback(getState());
+    }
+  }
+
   function loadState() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
-        const state = JSON.parse(raw);
-
-        // 恢复 history
-        if (Array.isArray(state.history)) {
-          history.length = 0;
-          history.push(...state.history);
-        }
-
-        // 恢复 order 和 record
-        if (state.order) {
-          Object.keys(order).forEach(k => {
-            order[k] = state.order[k] || [];
-            record[k] = new Set(order[k]);
-          });
-        }
-
-        // 恢复其他状态
-        hasLastDraw = !!state.hasLastDraw;
-        window.__recorder_lastDraw = state.lastDraw;
-
-        // 恢复界面
-        if (hasLastDraw && window.__recorder_lastDraw) {
-          // 恢复上次抽取显示（不带动画）
-          renderLast(window.__recorder_lastDraw, null);
-
-          // 显示相关控件
-          const lastBar = document.getElementById('lastCopyBar');
-          const recBar = document.getElementById('recordCopyBar');
-          const availPanel = document.getElementById('availablePanel');
-          if (lastBar) lastBar.classList.remove('hidden');
-          if (recBar) recBar.classList.remove('hidden');
-          if (availPanel) availPanel.classList.remove('hidden');
-        }
+        restoreState(JSON.parse(raw));
+      } else {
+        // 无论是否有数据，都执行初始渲染以确保界面状态正确
+        renderHistoryTable();
+        renderRecord(null, () => { renderComplement(); });
       }
-
-      // 无论是否有数据，都执行初始渲染以确保界面状态正确
-      renderHistoryTable();
-      renderRecord(null, () => { renderComplement(); });
 
     } catch (e) {
       console.error('Failed to load state', e);
@@ -194,6 +252,7 @@
     if (availPanel) availPanel.classList.remove('hidden');
 
     saveState();
+    triggerStateChange();
   }
 
   function undo() {
@@ -250,6 +309,7 @@
     renderHistoryTable();
     renderRecord(null, () => { renderComplement(); });
     saveState();
+    triggerStateChange();
   }
 
   function reset() {
@@ -276,6 +336,7 @@
       if (grid) grid.innerHTML = '<div style="padding:12px;color:#94a3b8;font-size:.95rem">开始游戏以记录并查看可用角色列表</div>';
     }
     clearState();
+    triggerStateChange();
   }
 
   function renderListRow(label, arr, change) {
@@ -928,7 +989,10 @@
     openHistory,
     copyWithFeedback,
     formatLastDrawText,
-    formatCurrentRecordText
+    formatCurrentRecordText,
+    getState,
+    restoreState,
+    setOnStateChange: (cb) => { onStateChangeCallback = cb; }
   };
 
   if (document.readyState === 'loading') {

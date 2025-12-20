@@ -209,6 +209,21 @@ h2 {
   color: #b91c1c
 }
 
+.room-code-input {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #0f172a
+}
+
+.room-code-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08)
+}
+
+#alertMessage {
+  color: #334155;
+}
+
 .slider {
   background-color: #e6eef6
 }
