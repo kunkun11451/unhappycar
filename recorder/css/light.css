@@ -1,0 +1,285 @@
+/* 浅色主题覆盖样式 */
+body {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+h1,
+h2 {
+  color: #0f172a;
+}
+
+.btn {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #0f172a
+}
+
+.btn.primary {
+  background: #2563eb;
+  color: #fff
+}
+
+.panel {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-color: rgba(255, 255, 255, 0.6);
+  color: #0f172a;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+}
+
+.settings-dialog {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-color: rgba(255, 255, 255, 0.6);
+  color: #0f172a;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.modal-dialog {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-color: rgba(255, 255, 255, 0.6);
+  color: #0f172a;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.settings-header h2 {
+  color: #0f172a;
+}
+
+.badge {
+  background: rgba(255, 255, 255, 0.6);
+  border-color: rgba(226, 232, 240, 0.8);
+  color: #0f172a;
+  backdrop-filter: blur(4px);
+}
+
+.badge-add,
+.hist-badge-add {
+  background: #dcfce7;
+  border-color: #bbf7d0;
+  color: #15803d
+}
+
+.btn.success {
+  background: #10b981 !important;
+  border-color: #34d399 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+.badge-remove,
+.hist-badge-remove,
+.btn.danger {
+  background: #fee2e2;
+  border-color: #fecaca;
+  color: #b91c1c
+}
+
+.btn.danger:hover {
+  background: #fecaca
+}
+
+.text {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  color: #0f172a
+}
+
+.card {
+  background: #ffffff;
+  border-color: #e6eef6;
+  color: #0f172a
+}
+
+.card h3 {
+  color: #0f172a;
+}
+
+.stats {
+  color: #475569
+}
+
+.history-table thead th {
+  background: rgba(241, 245, 249, 0.75);
+  color: #0f172a;
+  border-color: rgba(203, 213, 225, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.history-table tbody td {
+  background: transparent;
+  color: #0f172a;
+  border-color: rgba(203, 213, 225, 0.6);
+}
+
+.history-table tbody tr:nth-child(even) td {
+  background: rgba(241, 245, 249, 0.4);
+}
+
+.history-table tbody tr.history-snapshot td {
+  background: rgba(241, 245, 249, 0.6);
+  color: #475569;
+}
+
+.history-table tbody td.round-cell {
+  background: rgba(226, 232, 240, 0.5);
+  color: #0f172a;
+  border-color: rgba(203, 213, 225, 0.6);
+}
+
+.history-table tbody td.avail-cell {
+  background: rgba(226, 232, 240, 0.5);
+  color: #0f172a;
+  border-color: rgba(203, 213, 225, 0.6);
+  font-weight: 600;
+}
+
+.copy-chip {
+  background: transparent
+}
+
+/* 浅色模式记录列表斑马纹优化 */
+#record.rows>div {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+
+#record.rows>div:nth-child(odd) {
+  background: #f8fafc;
+  /* 浅灰色背景 */
+}
+
+#record.rows>div .label {
+  color: #64748b;
+}
+
+.copy-highlight {
+  outline: 2px solid #2563eb !important;
+  outline-offset: 2px
+}
+
+.settings-body {
+  background: transparent
+}
+
+.settings-item {
+  background: #f8fafc;
+  border-color: #e6eef6;
+  color: #0f172a
+}
+
+.settings-item:hover {
+  background: #eef2f7
+}
+
+.settings-title {
+  color: #0f172a
+}
+
+.settings-desc {
+  color: #475569
+}
+
+.settings-action {
+  color: #0f172a
+}
+
+.shortcut-input {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #0f172a
+}
+
+.shortcut-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08)
+}
+
+.shortcut-input.conflict {
+  border-color: #fca5a5;
+  color: #991b1b
+}
+
+.conflict-msg {
+  color: #b91c1c
+}
+
+.slider {
+  background-color: #e6eef6
+}
+
+input:checked+.slider {
+  background-color: #2563eb
+}
+
+/* Line Chart Light Theme */
+.line-chart-container {
+  background: #f1f5f9;
+}
+
+.chart-axis {
+  stroke: #cbd5e1;
+}
+
+.chart-grid {
+  stroke: rgba(203, 213, 225, 0.5);
+}
+
+.chart-label {
+  fill: #64748b;
+}
+
+.chart-tooltip {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: #e2e8f0;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.chart-point {
+  stroke: #f1f5f9;
+}
+
+.stat-bar-bg {
+  background: #e2e8f0;
+}
+
+.stat-bar.char-bar {
+  background: #818cf8;
+}
+
+.stat-label {
+  color: #475569;
+}
+
+.stat-count {
+  color: #64748b;
+}
+
+.stats-section h4 {
+  color: #475569;
+}
+
+/* Tab Controls Light Theme */
+.tab-controls {
+  background: #f1f5f9;
+}
+
+.tab-btn {
+  color: #64748b;
+}
+
+.tab-btn:hover {
+  color: #0f172a;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.tab-btn.active {
+  background: #2563eb;
+  color: #fff;
+}

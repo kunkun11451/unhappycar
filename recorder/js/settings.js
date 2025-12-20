@@ -1,4 +1,4 @@
-(function() {
+(function () {
     const STORAGE_KEY = 'recorder_settings_v1';
     const DEFAULT_SETTINGS = {
         animationsEnabled: true,
@@ -19,7 +19,7 @@
     if (!settings.theme) settings.theme = 'dark';
     if (settings.copyAllInOneEnabled === undefined) settings.copyAllInOneEnabled = false;
     if (!settings.shortcuts.copyAllInOne) settings.shortcuts.copyAllInOne = 'None';
-    
+
     window.__recorder_settings = settings;
 
     let currentCopyIndex = 0;
@@ -163,7 +163,7 @@
                 if (e.ctrlKey) combo.push('Ctrl');
                 if (e.altKey) combo.push('Alt');
                 if (e.shiftKey) combo.push('Shift');
-                
+
                 if (['ControlLeft', 'ControlRight', 'AltLeft', 'AltRight', 'ShiftLeft', 'ShiftRight'].includes(e.code)) {
                     input.value = combo.length > 0 ? combo.join('+') + '+' : '';
                 } else {
@@ -209,16 +209,16 @@
                 if (e.ctrlKey) combo.push('Ctrl');
                 if (e.altKey) combo.push('Alt');
                 if (e.shiftKey) combo.push('Shift');
-                
+
                 let keyName = e.code.replace('Key', '').replace('Digit', '');
                 combo.push(keyName);
-                
+
                 const newShortcut = combo.join('+');
 
                 // 检查冲突
                 let conflict = false;
                 const individualTypes = ['lastDraw', 'currentRecord', 'availableChars'];
-                
+
                 Object.entries(settings.shortcuts).forEach(([t, s]) => {
                     if (t === type || s === 'None' || s !== newShortcut) return;
 
@@ -229,7 +229,7 @@
                         // 如果没开启一条龙，忽略一条龙快捷键的冲突
                         if (t === 'copyAllInOne') return;
                     }
-                    
+
                     conflict = true;
                 });
 
@@ -260,16 +260,16 @@
         if (e.target.tagName === 'INPUT') return;
 
         const actions = window.__recorder_actions;
-        
+
         // 构建当前按下的组合键字符串
         let pressed = [];
         if (e.ctrlKey) pressed.push('Ctrl');
         if (e.altKey) pressed.push('Alt');
         if (e.shiftKey) pressed.push('Shift');
-        
+
         // 忽略单独的修饰键
         if (['Control', 'Alt', 'Shift', 'Meta'].includes(e.key)) return;
-        
+
         let keyName = e.code.replace('Key', '').replace('Digit', '');
         pressed.push(keyName);
         const pressedShortcut = pressed.join('+');
@@ -297,13 +297,13 @@
                 lastActionTime = now;
                 lastActionShortcut = pressedShortcut;
                 const btn = document.getElementById('copyLastBtn');
-                actions.copyWithFeedback(actions.formatLastDrawText(), btn);
+                actions.copyWithFeedback(actions.formatLastDrawText(), btn, true);
                 e.preventDefault();
             } else if (pressedShortcut === settings.shortcuts.currentRecord) {
                 lastActionTime = now;
                 lastActionShortcut = pressedShortcut;
                 const btn = document.getElementById('copyRecordBtn');
-                actions.copyWithFeedback(actions.formatCurrentRecordText().replace(/水/g, '氵'), btn);
+                actions.copyWithFeedback(actions.formatCurrentRecordText().replace(/水/g, '氵'), btn, true);
                 e.preventDefault();
             } else if (pressedShortcut === settings.shortcuts.availableChars) {
                 lastActionTime = now;
@@ -321,11 +321,11 @@
 
         if (allInOneStep === 0) {
             const btn = document.getElementById('copyLastBtn');
-            actions.copyWithFeedback(actions.formatLastDrawText(), btn);
+            actions.copyWithFeedback(actions.formatLastDrawText(), btn, true);
             allInOneStep = 1;
         } else if (allInOneStep === 1) {
             const btn = document.getElementById('copyRecordBtn');
-            actions.copyWithFeedback(actions.formatCurrentRecordText().replace(/水/g, '氵'), btn);
+            actions.copyWithFeedback(actions.formatCurrentRecordText().replace(/水/g, '氵'), btn, true);
             allInOneStep = 2;
             currentCopyIndex = 0;
         } else {
@@ -334,9 +334,9 @@
                 handleAllInOne();
                 return;
             }
-            
+
             await copyNextAvailableChar();
-            
+
             if (currentCopyIndex >= chips.length) {
                 allInOneStep = 0;
             }
@@ -360,22 +360,23 @@
 
         if (input && btn) {
             const text = input.value;
+            const ICON_CHECK = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
             try {
                 await navigator.clipboard.writeText(text);
                 btn.classList.add('success');
-                btn.textContent = '✔ 已复制';
-                
+                btn.innerHTML = ICON_CHECK;
+
                 // 视觉反馈：高亮当前复制的项（全局唯一）
                 document.querySelectorAll('.copy-highlight').forEach(el => {
                     el.classList.remove('copy-highlight');
                 });
                 chip.classList.add('copy-highlight');
-                
+
                 // 3秒后移除高亮
                 setTimeout(() => {
                     chip.classList.remove('copy-highlight');
                 }, 3000);
-                
+
                 currentCopyIndex++;
             } catch (err) {
                 console.error('Failed to copy:', err);

@@ -1,4 +1,4 @@
-/* 设置弹窗样式 */
+/* 设置弹窗样式 - Dark Glass */
 .settings-modal {
     position: fixed;
     top: 0;
@@ -21,8 +21,9 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.55);
-    backdrop-filter: blur(4px);
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 
 .settings-modal:not(.closing) .settings-backdrop {
@@ -35,11 +36,11 @@
 
 @keyframes settingsBackdropIn {
     0% { opacity: 0; backdrop-filter: blur(0px); }
-    100% { opacity: 1; backdrop-filter: blur(4px); }
+    100% { opacity: 1; backdrop-filter: blur(8px); }
 }
 
 @keyframes settingsBackdropOut {
-    0% { opacity: 1; backdrop-filter: blur(4px); }
+    0% { opacity: 1; backdrop-filter: blur(8px); }
     100% { opacity: 0; backdrop-filter: blur(0px); }
 }
 
@@ -47,13 +48,18 @@
     position: relative;
     width: 90%;
     max-width: 600px;
-    background: #0f172a;
-    border: 1px solid #334155;
+    background: rgba(20, 25, 35, 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 16px;
-    box-shadow: 0 10px 40px -5px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
     color: #e2e8f0;
     overflow: hidden;
     animation: settingsIn .38s cubic-bezier(.22,.85,.3,1) both;
+    display: flex;
+    flex-direction: column;
+    max-height: 85vh;
 }
 
 .settings-modal.closing .settings-dialog {
@@ -73,16 +79,19 @@
 
 .settings-header {
     padding: 20px 24px;
-    border-bottom: 1px solid #334155;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(0, 0, 0, 0.1);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-shrink: 0;
 }
 
 .settings-header h2 {
     margin: 0;
     font-size: 1.25rem;
-    font-weight: 600;
+    font-weight: 500;
+    color: #f1f5f9;
 }
 
 .settings-close {
@@ -93,47 +102,62 @@
     cursor: pointer;
     padding: 4px;
     line-height: 1;
+    transition: all 0.2s;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-close:hover {
+    color: #ef4444;
+    background: rgba(255, 255, 255, 0.1);
+    transform: rotate(90deg);
 }
 
 .settings-body {
     padding: 24px;
-    max-height: 70vh;
     overflow-y: auto;
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE/Edge */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
 
 .settings-body::-webkit-scrollbar {
-    display: none; /* Chrome/Safari */
+    display: none;
 }
 
-/* 设置项样式 - 参考图片 */
+/* Settings Items */
 .settings-item {
-    background: #1e293b; /* 稍微浅一点的深色 */
-    border: 1px solid #334155;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 12px;
     padding: 16px 20px;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    transition: background 0.2s, border-color 0.2s;
+    transition: all 0.2s ease;
 }
 
 .settings-item:hover {
-    background: #243347;
-    border-color: #475569;
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .settings-info {
     flex: 1;
+    padding-right: 16px;
 }
 
 .settings-title {
     font-size: 1rem;
-    font-weight: 600;
+    font-weight: 500;
     margin-bottom: 4px;
-    color: #f8fafc;
+    color: #f1f5f9;
 }
 
 .settings-desc {
@@ -142,29 +166,37 @@
 }
 
 .settings-action {
-    margin-left: 24px;
+    flex-shrink: 0;
+}
+
+/* Buttons in Settings */
+.settings-action .btn {
+    padding: 6px 12px;
+    font-size: 0.9rem;
 }
 
 .btn.danger {
-    background: #7f1d1d;
-    border-color: #991b1b;
+    background: rgba(127, 29, 29, 0.4);
+    border-color: rgba(248, 113, 113, 0.3);
     color: #fee2e2;
 }
 
 .btn.danger:hover {
-    background: #991b1b;
+    background: rgba(185, 28, 28, 0.5);
+    border-color: rgba(248, 113, 113, 0.5);
+    box-shadow: 0 0 10px rgba(220, 38, 38, 0.2);
 }
 
-/* 快捷键输入框样式 */
+/* Shortcut Inputs */
 .shortcut-input {
-    background: #0f172a;
-    border: 1px solid #475569;
-    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
     color: #38bdf8;
     padding: 8px 12px;
-    width: 160px;
+    width: 140px;
     text-align: center;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     font-size: 0.9rem;
     cursor: pointer;
     transition: all 0.2s;
@@ -172,13 +204,15 @@
 
 .shortcut-input:focus {
     outline: none;
-    border-color: #38bdf8;
-    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+    border-color: rgba(56, 189, 248, 0.5);
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+    background: rgba(0, 0, 0, 0.5);
 }
 
 .shortcut-input.conflict {
-    border-color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.6);
     color: #ef4444;
+    background: rgba(127, 29, 29, 0.1);
     animation: shake 0.4s ease-in-out;
 }
 
@@ -191,7 +225,8 @@
 .conflict-msg {
     color: #ef4444;
     font-size: 0.75rem;
-    margin-top: 4px;
+    margin-top: 6px;
+    text-align: center;
     display: none;
 }
 
@@ -249,9 +284,10 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #334155;
+    background-color: rgba(255, 255, 255, 0.1);
     transition: .3s;
     border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .slider:before {
@@ -259,35 +295,43 @@
     content: "";
     height: 18px;
     width: 18px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    transition: .3s;
+    left: 2px;
+    bottom: 2px;
+    background-color: #e2e8f0;
+    transition: .3s cubic-bezier(0.4, 0.0, 0.2, 1);
     border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 input:checked + .slider {
-    background-color: #38bdf8;
+    background-color: rgba(56, 189, 248, 0.3);
+    border-color: rgba(56, 189, 248, 0.5);
 }
 
 input:checked + .slider:before {
     transform: translateX(20px);
+    background-color: #38bdf8;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
 }
 
-/* 适配移动端 */
+/* Mobile Adaptation */
 @media (max-width: 640px) {
     .settings-dialog {
         width: 95%;
+        max-height: 90vh;
     }
     .settings-item {
         flex-direction: column;
         align-items: flex-start;
+        gap: 12px;
     }
     .settings-action {
-        margin-left: 0;
-        margin-top: 12px;
         width: 100%;
         display: flex;
         justify-content: flex-end;
+        align-items: center;
+    }
+    .shortcut-input {
+        width: 100%;
     }
 }

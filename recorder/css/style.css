@@ -1,0 +1,1010 @@
+* {
+    box-sizing: border-box
+}
+
+body {
+    margin: 0;
+    font-family: 'HYWenHei-85W', system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Noto Sans", sans-serif;
+    /* 现代深灰色渐变背景，为毛玻璃提供深度 */
+    background: #0f1115;
+    background-image:
+        radial-gradient(circle at 15% 50%, rgba(75, 85, 99, 0.15), transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(55, 65, 81, 0.15), transparent 25%);
+    background-attachment: fixed;
+    color: #e2e8f0;
+    min-height: 100vh;
+}
+
+/* 确保表单控件与按钮使用同一字体（解决按钮/输入框未应用字体问题） */
+button,
+input,
+textarea,
+select,
+.btn {
+    font-family: 'HYWenHei-85W', system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Noto Sans", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2 {
+    margin: 0 0 .5rem;
+    font-weight: 500;
+    color: #f1f5f9;
+}
+
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px
+}
+
+.controls {
+    display: flex;
+    gap: 10px
+}
+
+/* 毛玻璃按钮风格 */
+.btn {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    color: #e2e8f0;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn:active:not(:disabled) {
+    transform: translateY(0);
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.btn.primary {
+    background: rgba(37, 99, 235, 0.25);
+    border-color: rgba(59, 130, 246, 0.4);
+    color: #eff6ff;
+}
+
+.btn.primary:hover:not(:disabled) {
+    background: rgba(37, 99, 235, 0.4);
+    border-color: rgba(59, 130, 246, 0.6);
+    box-shadow: 0 0 15px rgba(37, 99, 235, 0.3);
+}
+
+.btn:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+    filter: grayscale(1);
+}
+
+/* 图标按钮样式 */
+.btn-icon {
+    padding: 8px;
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+}
+
+.btn-icon svg {
+    display: block;
+}
+
+.panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px
+}
+
+.panel-header h2 {
+    margin: 0;
+    opacity: 0.9;
+}
+
+.inline-controls .btn {
+    margin: 0
+}
+
+.copy-bottom {
+    position: absolute;
+    bottom: 14px;
+    right: 14px
+}
+
+/* ===== 抽取历史弹窗 - 毛玻璃化 ===== */
+.modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center
+}
+
+.modal.hidden {
+    display: none
+}
+
+.modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    opacity: 1;
+}
+
+.modal:not(.closing) .modal-backdrop {
+    animation: backdropIn .38s ease forwards
+}
+
+.modal.closing .modal-backdrop {
+    animation: backdropOut .28s ease forwards
+}
+
+@keyframes backdropIn {
+    0% {
+        opacity: 0;
+        backdrop-filter: blur(0px)
+    }
+
+    100% {
+        opacity: 1;
+        backdrop-filter: blur(8px)
+    }
+}
+
+@keyframes backdropOut {
+    0% {
+        opacity: 1;
+        backdrop-filter: blur(8px)
+    }
+
+    100% {
+        opacity: 0;
+        backdrop-filter: blur(0px)
+    }
+}
+
+.modal-dialog {
+    position: relative;
+    max-width: 860px;
+    width: 90%;
+    /* 弹窗主体毛玻璃 */
+    background: rgba(20, 25, 35, 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    height: 80vh;
+    /* 固定高度确保内部滚动逻辑正常 */
+    max-height: 84vh;
+    animation: modalIn .38s cubic-bezier(.22, .85, .3, 1) both;
+}
+
+.modal.closing .modal-dialog {
+    animation: modalOut .28s cubic-bezier(.4, .15, .3, 1) forwards
+}
+
+@keyframes modalIn {
+    0% {
+        opacity: 0;
+        transform: translateY(24px) scale(.94)
+    }
+
+    70% {
+        opacity: 1
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1)
+    }
+}
+
+@keyframes modalOut {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1)
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(18px) scale(.94)
+    }
+}
+
+body.modal-open {
+    overflow: hidden
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    flex-grow: 1;
+    font-weight: 500;
+}
+
+.modal-body {
+    padding: 0;
+    overflow: hidden;
+    /* Slider viewport */
+    flex: 1;
+    min-height: 0;
+    /* 关键：允许 flex item 收缩 */
+    display: flex;
+    flex-direction: column;
+}
+
+#tabSlider {
+    display: flex;
+    width: 200%;
+    height: 100%;
+    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.tab-view {
+    width: 50%;
+    height: 100%;
+    flex-shrink: 0;
+    /* 防止被压缩 */
+    overflow-y: auto;
+    padding: 12px 18px;
+    box-sizing: border-box;
+}
+
+/* Custom scrollbar for tab views */
+.tab-view::-webkit-scrollbar {
+    width: 6px;
+}
+
+.tab-view::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.tab-view::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.tab-view::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.modal-body::-webkit-scrollbar {
+    display: none
+}
+
+.close-btn {
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    font-size: 1.5rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.close-btn:hover {
+    color: #f87171;
+    transform: scale(1.1);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: .85rem;
+}
+
+.history-table thead th {
+    position: sticky;
+    top: 0;
+    background: rgba(30, 41, 59, 0.75);
+    backdrop-filter: blur(8px);
+    color: #cbd5e1;
+    font-weight: 600;
+    padding: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 10;
+}
+
+.history-table tbody td {
+    padding: 8px 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    text-align: center;
+    white-space: nowrap;
+    background: transparent;
+    transition: background 0.2s;
+}
+
+.history-table tbody tr:hover td {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.history-table tbody tr.empty td {
+    padding: 22px 0;
+    background: rgba(255, 255, 255, 0.02);
+    color: #64748b;
+}
+
+.history-table tbody td.highlight-add,
+.history-table tbody td.highlight-remove {
+    color: #e2e8f0
+}
+
+.hist-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: .75rem;
+    line-height: 1;
+    font-weight: 600;
+    letter-spacing: .5px;
+    border: 1px solid transparent;
+    backdrop-filter: blur(4px);
+}
+
+.hist-badge-add {
+    background: rgba(6, 95, 70, 0.4);
+    border-color: rgba(4, 120, 87, 0.5);
+    color: #d1fae5
+}
+
+.hist-badge-remove {
+    background: rgba(127, 29, 29, 0.4);
+    border-color: rgba(153, 27, 27, 0.5);
+    color: #fee2e2
+}
+
+.history-table tbody tr.history-snapshot td {
+    background: rgba(45, 55, 72, 0.3);
+    font-style: normal
+}
+
+.history-table tbody td.round-cell {
+    font-weight: 600;
+    background: rgba(30, 41, 59, 0.3);
+    color: #e2e8f0;
+    vertical-align: middle
+}
+
+.history-table tbody td.avail-cell {
+    font-weight: 600;
+    background: rgba(30, 41, 59, 0.3);
+    color: #38bdf8;
+    vertical-align: middle
+}
+
+.history-table tbody td.snapshot-cell {
+    white-space: normal;
+    line-height: 1.25
+}
+
+/* ===== 主要面板 - 毛玻璃风格 ===== */
+.panel {
+    position: relative;
+    /* 玻璃背景 */
+    background: rgba(30, 35, 45, 0.45);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    border-radius: 16px;
+    padding: 18px;
+    padding-bottom: 18px;
+    margin: 18px 0;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.panel:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.rows {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 12px
+}
+
+/* 列表项卡片化 */
+.rows>div {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: background 0.2s;
+}
+
+#record.rows {
+    display: grid;
+    grid-template-columns: 1fr;
+    /* 强制单列 */
+    gap: 8px;
+}
+
+#record.rows>div {
+    flex-direction: row;
+    /* 横向排列 */
+    align-items: center;
+    padding: 10px 14px;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+/* 斑马纹 */
+#record.rows>div:nth-child(odd) {
+    background: rgba(255, 255, 255, 0.025);
+}
+
+#record.rows>div .label {
+    margin-bottom: 0;
+    width: 80px;
+    flex-shrink: 0;
+    color: #94a3b8;
+    font-size: 0.9rem;
+}
+
+#record.rows>div .group {
+    flex-grow: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.2);
+    min-height: 32px;
+    backdrop-filter: blur(4px);
+    font-size: 0.9rem;
+}
+
+.badge-add {
+    background: rgba(6, 95, 70, 0.4);
+    border-color: rgba(52, 211, 153, 0.2);
+    color: #d1fae5
+}
+
+.badge-remove {
+    background: rgba(127, 29, 29, 0.4);
+    border-color: rgba(248, 113, 113, 0.2);
+    color: #fee2e2
+}
+
+.group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px
+}
+
+.label {
+    font-size: .9rem;
+    color: #94a3b8;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px
+}
+
+/* 角色卡片 - 玻璃微质感 */
+.card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+
+
+.card .avatar {
+    width: 100%;
+    aspect-ratio: 1/1;
+    object-fit: cover;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card h3 {
+    margin: 0;
+    font-size: .85rem;
+    text-align: center;
+    color: #f1f5f9;
+}
+
+.card .meta {
+    display: none
+}
+
+.stats {
+    font-size: .9rem;
+    color: #94a3b8;
+    margin-bottom: 8px
+}
+
+.text {
+    flex: 1;
+    min-width: 200px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.2);
+    color: #f1f5f9;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+.text:focus,
+.shortcut-input:focus {
+    outline: none;
+    border-color: rgba(56, 189, 248, 0.5);
+    background: rgba(0, 0, 0, 0.3);
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+}
+
+.copy-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px
+}
+
+.copy-chip {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    width: 100%
+}
+
+/* Copy success state */
+.btn.success {
+    background: #10b981 !important;
+    /* 浅绿色背景 (Emerald 500) */
+    border-color: #34d399 !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+}
+
+/* Utilities */
+.hidden {
+    display: none !important
+}
+
+.copy-highlight {
+    outline: 2px solid #3b82f6 !important;
+    outline-offset: 2px;
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+}
+
+/* Animations */
+.removal-flash {
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    will-change: width, transform, opacity;
+}
+
+.removal-flash.flash-phase {
+    animation: removalFlashPulse .42s ease;
+}
+
+.removal-flash.collapsing {
+    transition: width .48s ease, padding .48s ease, margin .48s ease, opacity .48s ease, transform .48s ease;
+}
+
+.removal-flash.collapsing {
+    width: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-right: 0 !important;
+    opacity: 0;
+    transform: scale(.65);
+}
+
+@keyframes removalFlashPulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, .55);
+    }
+
+    45% {
+        transform: scale(1.15);
+        box-shadow: 0 0 0 6px rgba(239, 68, 68, .18);
+    }
+
+    70% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 2px rgba(239, 68, 68, .10);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+    }
+}
+
+.add-anim {
+    animation: addPop .45s cubic-bezier(.25, .8, .35, 1.2)
+}
+
+@keyframes addPop {
+    0% {
+        transform: scale(.55);
+        opacity: 0
+    }
+
+    55% {
+        transform: scale(1.18);
+        opacity: 1
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1
+    }
+}
+
+.card-appear {
+    opacity: 0;
+    transform: scale(.82) translateY(14px);
+    animation: cardEnter .4s cubic-bezier(.25, .8, .3, 1) forwards;
+    animation-delay: calc(var(--stagger, 0)*35ms)
+}
+
+@keyframes cardEnter {
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0)
+    }
+}
+
+/* Chart Animations */
+@keyframes drawLine {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+.line-anim {
+    animation: drawLine 1s ease forwards;
+}
+
+@keyframes growBar {
+    from {
+        transform: scaleX(0);
+    }
+
+    to {
+        transform: scaleX(1);
+    }
+}
+
+.bar-anim {
+    transform-origin: left;
+    animation: growBar 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes pointFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.point-anim {
+    transform-origin: center;
+    /* 确保缩放中心正确，SVG circle transform-origin behavior varies but circle center is handled via x/y usually, box model CSS transform works on element box. */
+    transform-box: fill-box;
+    /* 关键：确保 SVG 元素变换基点正确 */
+    animation: pointFadeIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+.chip-appear {
+    opacity: 0;
+    transform: translateY(10px);
+    animation: chipEnter .4s cubic-bezier(.25, .8, .3, 1) forwards;
+    animation-delay: calc(var(--stagger, 0)*35ms);
+}
+
+@keyframes chipEnter {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Settings Icon Button */
+#settingsBtn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+    color: #94a3b8;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(4px);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#settingsBtn svg {
+    width: 24px;
+    height: 24px;
+    display: block;
+}
+
+
+#settingsBtn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #f1f5f9;
+    transform: rotate(30deg) scale(1.1);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+/* No Available Image */
+.no-available {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px
+}
+
+.no-available img {
+    max-width: 360px;
+    width: 48%;
+    height: auto;
+    opacity: 0.95;
+}
+
+.no-available .no-available-msg {
+    color: #94a3b8;
+    font-size: 0.95rem;
+    padding: 12px;
+    text-align: center
+}
+
+/* ====== Responsive ====== */
+@media (min-width: 961px) {
+    .layout-desktop {
+        position: relative;
+        display: block;
+        /* 使用 block 让左侧(标准文档流)撑开父容器高度 */
+    }
+
+    .left-column {
+        width: calc(50% - 13px);
+        /* 减去 gap 的一半 (gap=26px) */
+    }
+
+    .right-column {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        /* 强制填满父高度 */
+        width: calc(50% - 13px);
+        overflow: hidden;
+        /* 防止自身滚动 */
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* 右侧 Panel 强制充满 */
+    .right-column .panel {
+        height: 100%;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        /* 内部内容滚动 */
+        padding-bottom: 5px;
+        /* 留一点空隙 */
+    }
+
+    /* 角色列表区域自适应滚动 */
+    #complementList {
+        flex: 1;
+        overflow-y: auto;
+        padding-right: 4px;
+        /* 防止滚动条盖住内容 */
+        min-height: 0;
+        /* 重要的 flex scroll fix */
+    }
+
+    /* 自定义滚动条样式 */
+    #complementList::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    #complementList::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+    }
+
+    #complementList::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 4px;
+    }
+
+    #complementList::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.25);
+    }
+
+    .card-grid {
+        grid-template-columns: repeat(5, 1fr);
+        align-content: start;
+    }
+}
+
+/* Remove explicit width 100% since grid/flex handles it, but keep gap override if needed */
+
+@media (max-width: 900px) {
+    .rows {
+        grid-template-columns: repeat(2, 1fr)
+    }
+
+    .container {
+        padding: 16px
+    }
+}
+
+@media (max-width: 640px) {
+    .modal-dialog {
+        width: 96%;
+        max-height: 90vh
+    }
+
+    .history-table {
+        font-size: .75rem
+    }
+
+    .history-table thead th {
+        padding: 6px
+    }
+
+    .history-table tbody td {
+        padding: 5px 6px
+    }
+
+    .no-available img {
+        max-width: 220px;
+        width: 70%
+    }
+}
+
+@media (max-width: 560px) {
+    .controls {
+        flex-direction: column;
+        gap: 8px
+    }
+
+    .panel-header .controls {
+        flex-direction: row;
+        gap: 8px
+    }
+
+    .btn {
+        min-height: 40px
+    }
+
+    .rows {
+        grid-template-columns: 1fr
+    }
+
+    #lastDraw.rows {
+        grid-template-columns: repeat(4, 1fr)
+    }
+
+    .card-grid {
+        grid-template-columns: repeat(3, 1fr)
+    }
+
+    .card {
+        padding: 8px
+    }
+
+    .card h3 {
+        font-size: .9rem
+    }
+
+    .card .avatar {
+        width: 85%;
+        margin: 0 auto
+    }
+
+    .badge {
+        padding: 5px 9px
+    }
+
+    .copy-chip {
+        flex-direction: column;
+        align-items: stretch
+    }
+
+    .copy-chip .btn {
+        width: 100%
+    }
+
+    #copyAvailable .copy-chip {
+        flex-direction: row;
+        align-items: center;
+    }
+
+    #copyAvailable .copy-chip .btn {
+        width: auto;
+        flex-shrink: 0;
+    }
+
+    .copy-bottom .btn {
+        width: auto;
+    }
+
+    .container {
+        padding: 12px
+    }
+}
