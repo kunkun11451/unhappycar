@@ -87,6 +87,17 @@
         if (header) {
             header.appendChild(roomInfo);
         }
+
+        // 绑定 Loader 退出按钮
+        const exitBtn = document.getElementById('loaderExitBtn');
+        if (exitBtn) {
+            exitBtn.addEventListener('click', () => {
+                // 清除 URL 参数并刷新
+                const url = new URL(window.location.href);
+                url.searchParams.delete('room');
+                window.location.href = url.toString();
+            });
+        }
     }
 
     function checkIo(cb) {
@@ -137,6 +148,10 @@
             isHost = false;
             enableViewerMode();
             updateRoomUI();
+
+            // 隐藏加载遮罩
+            const loader = document.getElementById('viewerLoader');
+            if (loader) loader.classList.add('hidden');
         });
 
         socket.on('update_state', (state) => {
@@ -186,10 +201,22 @@
         });
 
         socket.on('error_msg', (msg) => {
-            if (window.showCustomAlert) {
-                window.showCustomAlert('错误: ' + msg, '错误');
+            // 如果存在加载遮罩且可见，说明是在连接阶段出错
+            const loader = document.getElementById('viewerLoader');
+            if (loader && !loader.classList.contains('hidden')) {
+                const txt = document.getElementById('loaderText');
+                const btn = document.getElementById('loaderExitBtn');
+                const spinner = loader.querySelector('.spinner-large');
+
+                if (txt) txt.textContent = msg; // 显示错误信息 (如：房间不存在)
+                if (btn) btn.classList.remove('hidden'); // 显示退出按钮
+                if (spinner) spinner.style.display = 'none'; // 隐藏转圈
             } else {
-                alert('错误: ' + msg);
+                if (window.showCustomAlert) {
+                    window.showCustomAlert('错误: ' + msg, '错误');
+                } else {
+                    alert('错误: ' + msg);
+                }
             }
         });
 
@@ -302,7 +329,17 @@
             s.emit('join_room', code);
         });
 
-        // 显示“正在连接...”状态
+        // 显示全屏加载遮罩
+        const loader = document.getElementById('viewerLoader');
+        if (loader) {
+            loader.classList.remove('hidden');
+            const txt = document.getElementById('loaderText');
+            if (txt) txt.textContent = '正在连接房间...';
+            const btn = document.getElementById('loaderExitBtn');
+            if (btn) btn.classList.add('hidden');
+        }
+
+        // 显示“正在连接...”状态 (UI顶部)
         const el = document.getElementById('roomInfo');
         const codeEl = document.getElementById('displayRoomCode');
         if (el && codeEl) {
