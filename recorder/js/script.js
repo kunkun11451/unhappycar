@@ -104,9 +104,13 @@
         }, delay);
       } else {
         // 非动画逻辑（也是默认的初始化/刷新逻辑）
-        renderLast(window.__recorder_lastDraw, null);
+        // 在恢复时保留最后一次 changes（用于让 "add" 保持 badge-add 样式，但不触发动画）
+        const lastEntry = history[history.length - 1];
+        const changes = lastEntry ? lastEntry.changes : null;
+        window.__recorder_restoring = true;
+        renderLast(window.__recorder_lastDraw, changes);
         renderHistoryTable();
-        renderRecord(null, () => { renderComplement(); });
+        renderRecord(changes, () => { renderComplement(); window.__recorder_restoring = false; });
       }
 
       const lastBar = document.getElementById('lastCopyBar');
@@ -340,13 +344,15 @@
   }
 
   function renderListRow(label, arr, change) {
-    const anims = (window.__recorder_settings && window.__recorder_settings.animationsEnabled !== false);
+    const animsEnabled = (window.__recorder_settings && window.__recorder_settings.animationsEnabled !== false);
+    const restoring = !!window.__recorder_restoring;
+    const doAnims = animsEnabled && !restoring;
     // arr 为字符串或包含 {removed:true,value} 占位的对象
     const parts = arr.map(item => {
       if (item && typeof item === 'object' && item.removed) {
         const classes = ['badge', 'badge-remove'];
-        if (item.noAnim || !anims) {
-          if (item.pulse && anims) classes.push('add-anim');
+        if (item.noAnim || !doAnims) {
+          if (item.pulse && doAnims) classes.push('add-anim');
         } else {
           classes.push('removal-flash');
         }
@@ -354,7 +360,7 @@
       }
       const v = item;
       if (change && change.op === 'add' && change.value === v) {
-        const addClass = anims ? 'badge badge-add add-anim' : 'badge badge-add';
+        const addClass = doAnims ? 'badge badge-add add-anim' : 'badge badge-add';
         return `<span class="${addClass}">${v}</span>`;
       }
       return `<span class="badge">${v}</span>`;
