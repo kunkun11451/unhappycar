@@ -128,12 +128,20 @@
       renderHistoryTable();
       renderRecord(null, () => { renderComplement(); });
     }
-  }
-
-  function triggerStateChange() {
     if (onStateChangeCallback) {
       onStateChangeCallback(getState());
     }
+  }
+
+  function refresh() {
+    renderHistoryTable();
+    const lastEntry = history.length > 0 ? history[history.length - 1] : null;
+    const last = lastEntry ? lastEntry.last : null;
+
+    if (last) {
+      renderLast(last, null); 
+    }
+    renderRecord(null, () => { renderComplement(); });
   }
 
   function loadState() {
@@ -256,7 +264,9 @@
     if (availPanel) availPanel.classList.remove('hidden');
 
     saveState();
-    triggerStateChange();
+    if (onStateChangeCallback) {
+      onStateChangeCallback(getState());
+    }
   }
 
   function undo() {
@@ -313,7 +323,9 @@
     renderHistoryTable();
     renderRecord(null, () => { renderComplement(); });
     saveState();
-    triggerStateChange();
+    if (onStateChangeCallback) {
+      onStateChangeCallback(getState());
+    }
   }
 
   function reset() {
@@ -340,31 +352,83 @@
       if (grid) grid.innerHTML = '<div style="padding:12px;color:#94a3b8;font-size:.95rem">开始游戏以记录并查看可用角色列表</div>';
     }
     clearState();
-    triggerStateChange();
+    if (onStateChangeCallback) {
+      onStateChangeCallback(getState());
+    }
   }
 
   function renderListRow(label, arr, change) {
     const animsEnabled = (window.__recorder_settings && window.__recorder_settings.animationsEnabled !== false);
+    const badgeMode = (window.__recorder_settings && window.__recorder_settings.badgeDisplayMode) || 'icon-text';
     const restoring = !!window.__recorder_restoring;
     const doAnims = animsEnabled && !restoring;
+
     // arr 为字符串或包含 {removed:true,value} 占位的对象
     const parts = arr.map(item => {
+      let isRemoved = false;
+      let val = item;
+      let extraClasses = [];
+      let noAnim = false;
+      let pulse = false;
+      let attrStr = ''; // Declare attrStr here
+
       if (item && typeof item === 'object' && item.removed) {
-        const classes = ['badge', 'badge-remove'];
-        if (item.noAnim || !doAnims) {
-          if (item.pulse && doAnims) classes.push('add-anim');
+        isRemoved = true;
+        val = item.value;
+        noAnim = item.noAnim;
+        pulse = item.pulse;
+        extraClasses.push('badge-remove');
+        if (noAnim || !doAnims) {
+          if (pulse && doAnims) extraClasses.push('add-anim');
         } else {
-          classes.push('removal-flash');
+          extraClasses.push('removal-flash');
         }
-        return `<span class="${classes.join(' ')}">${item.value}</span>`;
+      } else {
+        // Check for Add animation
+        if (change && change.op === 'add' && change.value === val) {
+          extraClasses.push('badge-add');
+          if (doAnims) extraClasses.push('add-anim');
+        }
       }
-      const v = item;
-      if (change && change.op === 'add' && change.value === v) {
-        const addClass = doAnims ? 'badge badge-add add-anim' : 'badge badge-add';
-        return `<span class="${addClass}">${v}</span>`;
+
+      // === Icon Logic ===
+      let content = val;
+      let hasIcon = false;
+
+      if (badgeMode !== 'text') {
+        let iconHtml = '';
+        if (label === '元素' && ELEMENT_SVGS[val]) {
+          iconHtml = `<span class="badge-icon svg-icon">${ELEMENT_SVGS[val]}</span>`;
+        } else if (label === '武器' && WEAPON_ICON_MAP[val]) {
+          iconHtml = `<img src="${WEAPON_ICON_MAP[val]}" class="badge-icon img-icon" alt="${val}">`;
+        } else if (label === '国家' && NATION_ICON_MAP[val]) {
+          iconHtml = `<img src="${NATION_ICON_MAP[val]}" class="badge-icon img-icon" alt="${val}">`;
+        } else if (label === '体型' && BODY_ICON_MAP[val]) {
+          iconHtml = `<img src="${BODY_ICON_MAP[val]}" class="badge-icon img-icon" alt="${val}">`;
+        }
+
+        if (iconHtml) {
+          hasIcon = true;
+          if (badgeMode === 'icon') {
+            content = iconHtml;
+            extraClasses.push('icon-only');
+            // Tooltip for icon-only mode
+            extraClasses.push('hint--top');
+            attrStr = `aria-label="${val}"`; // Assign to attrStr
+          } else {
+            // icon-text
+            content = `${iconHtml}<span class="badge-text">${val}</span>`;
+            extraClasses.push('with-icon');
+          }
+        }
       }
-      return `<span class="badge">${v}</span>`;
+
+      const classStr = ['badge', ...extraClasses].join(' ');
+      attrStr = (hasIcon && badgeMode === 'icon') ? `title="${val}"` : attrStr; // Use attrStr, fallback to aria-label if set
+
+      return `<span class="${classStr}" ${attrStr}>${content}</span>`;
     });
+
     const chips = parts.join('');
     return `<div><div class="label">${label}</div><div class="group">${chips || '<span class="badge">—</span>'}</div></div>`;
   }
@@ -989,16 +1053,20 @@
 
   // 暴露给外部使用的函数
   window.__recorder_actions = {
-    drawOnce,
-    undo,
-    reset,
-    openHistory,
-    copyWithFeedback,
-    formatLastDrawText,
-    formatCurrentRecordText,
     getState,
     restoreState,
-    setOnStateChange: (cb) => { onStateChangeCallback = cb; }
+    setOnStateChange: (cb) => { onStateChangeCallback = cb; },
+    undo,
+    reset,
+    openHistory: () => {
+      document.getElementById('historyModal').classList.remove('hidden');
+      renderHistoryChart();
+    },
+    refresh, // Expose refresh
+    drawOnce,
+    formatLastDrawText,
+    formatCurrentRecordText,
+    copyWithFeedback
   };
 
   if (document.readyState === 'loading') {

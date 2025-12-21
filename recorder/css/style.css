@@ -5,9 +5,7 @@
 body {
     margin: 0;
     font-family: 'HYWenHei-85W', system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Noto Sans", sans-serif;
-    background:
-        radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px) 0 0 / 3px 3px,
-        linear-gradient(135deg, #1c1f27 0%, #283142 25%, #2f3a4f 50%, #283142 75%, #1c1f27 100%);
+    background:radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px) 0 0 / 3px 3px, linear-gradient(135deg, #131313 0%, #2f2f2f 25%, #323232 50%, #2f2f2f 75%, #131313 100%);
     background-attachment: fixed, fixed;
     color: #e2e8f0;
     min-height: 100vh;
@@ -130,7 +128,7 @@ h2 {
 .modal {
     position: fixed;
     inset: 0;
-    z-index: 1000;
+    z-index: 2100;
     display: flex;
     align-items: center;
     justify-content: center
@@ -825,6 +823,266 @@ body.modal-open {
     font-size: 0.95rem;
     padding: 12px;
     text-align: center
+}
+
+/* Badge Icon Styling */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.badge.with-icon {
+    padding-left: 6px;
+    padding-right: 10px;
+}
+
+.badge.icon-only {
+    padding: 4px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+}
+
+.badge-icon {
+    display: inline-block;
+    flex-shrink: 0;
+    width: 1.2em;
+    height: 1.2em;
+}
+
+.svg-icon svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.img-icon {
+    width: 1.4em;
+    height: 1.4em;
+    object-fit: contain;
+}
+
+.badge.icon-only .svg-icon {
+    width: 1.6em;
+    height: 1.6em;
+}
+
+.badge.icon-only .img-icon {
+    width: 1.8em;
+    height: 1.8em;
+}
+
+/* Light Mode Adaptations for Icons */
+/* Invert weapon icons and 'Node Kray' in light mode */
+body.light-theme .badge .img-icon[alt="弓"],
+body.light-theme .badge .img-icon[alt="长柄武器"],
+body.light-theme .badge .img-icon[alt="法器"],
+body.light-theme .badge .img-icon[alt="双手剑"],
+body.light-theme .badge .img-icon[alt="单手剑"],
+body.light-theme .badge .img-icon[alt="挪德卡莱"] {
+    filter: invert(1);
+}
+
+/* Settings Select Styling */
+.settings-select {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #f1f5f9;
+    padding: 6px 32px 6px 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+}
+
+.settings-select:focus {
+    outline: none;
+    border-color: #38bdf8;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Light Theme Adaptations for Select */
+body.light-theme .settings-select {
+    background-color: rgba(255, 255, 255, 0.5);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: #334155;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
+body.light-theme .settings-select:focus {
+    background-color: rgba(255, 255, 255, 0.8);
+    border-color: #0ea5e9;
+}
+
+body.light-theme .settings-select option {
+    background-color: #ffffff;
+    color: #334155;
+}
+
+/* Rules Details Styling */
+.rules-details {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.rules-details:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.rules-summary {
+    padding: 16px 20px;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    user-select: none;
+}
+
+.rules-summary::-webkit-details-marker {
+    display: none;
+}
+
+.rules-arrow {
+    width: 20px;
+    height: 20px;
+    position: relative;
+    opacity: 0.5;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.rules-arrow::before,
+.rules-arrow::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 10px;
+    height: 2px;
+    background: currentColor;
+    border-radius: 2px;
+}
+
+.rules-arrow::before {
+    left: 2px;
+    transform: rotate(45deg);
+}
+
+.rules-arrow::after {
+    right: 2px;
+    transform: rotate(-45deg);
+}
+
+.rules-details[open] .rules-arrow {
+    transform: rotate(180deg);
+}
+
+.rules-anim-container {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s ease-out;
+}
+
+.rules-details.is-open .rules-anim-container {
+    grid-template-rows: 1fr;
+}
+
+.rules-details .rules-arrow {
+    width: 20px;
+    height: 20px;
+    position: relative;
+    opacity: 0.5;
+    transition: transform 0.3s ease-out;
+}
+
+.rules-details.is-open .rules-arrow {
+    transform: rotate(180deg);
+}
+
+.rules-content {
+    overflow: hidden;
+    padding: 0 20px 0;
+    color: #94a3b8;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    transition: padding 0.3s ease-out;
+}
+
+.rules-details.is-open .rules-content {
+    padding: 0 20px 20px;
+}
+
+.rules-content h3 {
+    color: #f1f5f9;
+    font-size: 0.95rem;
+    margin: 16px 0 8px;
+    border-left: 3px solid #38bdf8;
+    padding-left: 8px;
+}
+
+.rules-content p,
+.rules-content ul {
+    margin-bottom: 8px;
+}
+
+.rules-content ul {
+    padding-left: 18px;
+}
+
+.rules-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+    font-size: 0.8rem;
+}
+
+.rules-table th,
+.rules-table td {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 6px 10px;
+    text-align: left;
+}
+
+.rules-table th {
+    background: rgba(255, 255, 255, 0.05);
+    color: #64748b;
+}
+
+/* Light Theme Adaptations for Rules */
+body.light-theme .rules-details {
+    background: rgba(0, 0, 0, 0.02);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+body.light-theme .rules-details:hover {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+body.light-theme .rules-content {
+    color: #475569;
+}
+
+body.light-theme .rules-content h3 {
+    color: #1e293b;
+}
+
+body.light-theme .rules-table th,
+body.light-theme .rules-table td {
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+body.light-theme .rules-table th {
+    background: rgba(0, 0, 0, 0.05);
+    color: #64748b;
 }
 
 /* ====== Responsive ====== */

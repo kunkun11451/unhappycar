@@ -3,6 +3,7 @@
     const DEFAULT_SETTINGS = {
         animationsEnabled: true,
         theme: 'dark',
+        badgeDisplayMode: 'text',
         copyAllInOneEnabled: false,
         shortcuts: {
             draw: 'None',
@@ -17,6 +18,7 @@
     // 确保新设置项存在
     if (settings.animationsEnabled === undefined) settings.animationsEnabled = true;
     if (!settings.theme) settings.theme = 'dark';
+    if (!settings.badgeDisplayMode) settings.badgeDisplayMode = 'text';
     if (settings.copyAllInOneEnabled === undefined) settings.copyAllInOneEnabled = false;
     if (!settings.shortcuts.copyAllInOne) settings.shortcuts.copyAllInOne = 'None';
 
@@ -61,6 +63,40 @@
         if (closeBtn) closeBtn.addEventListener('click', closeSettings);
         if (backdrop) backdrop.addEventListener('click', closeSettings);
 
+        // 规则说明折叠动画处理
+        const rulesDetails = document.getElementById('rulesDetails');
+        if (rulesDetails) {
+            const summary = rulesDetails.querySelector('.rules-summary');
+            let closeTimeout = null;
+
+            summary.addEventListener('click', (e) => {
+                e.preventDefault(); // 阻止原生瞬间切换
+
+                // 清除任何正在进行的定时器，支持连续点击打断
+                if (closeTimeout) {
+                    clearTimeout(closeTimeout);
+                    closeTimeout = null;
+                }
+
+                const isOpen = rulesDetails.classList.contains('is-open');
+
+                if (isOpen) {
+                    // 收起动画
+                    rulesDetails.classList.remove('is-open');
+                    closeTimeout = setTimeout(() => {
+                        rulesDetails.removeAttribute('open');
+                        closeTimeout = null;
+                    }, 350);
+                } else {
+                    // 展开动画 - 先确保 open 属性存在
+                    rulesDetails.setAttribute('open', '');
+                    // 强制重排后添加动画类
+                    rulesDetails.offsetHeight; // 触发重排
+                    rulesDetails.classList.add('is-open');
+                }
+            });
+        }
+
         // 绑定弹窗内的按钮
         document.getElementById('modalUndoBtn').addEventListener('click', () => {
             window.__recorder_actions.undo();
@@ -70,7 +106,10 @@
         });
         document.getElementById('modalHistoryBtn').addEventListener('click', () => {
             window.__recorder_actions.openHistory();
-            closeSettings();
+            // 直接隐藏，不等待动画，避免层级冲突
+            settingsModal.classList.add('hidden');
+            settingsModal.classList.remove('closing');
+            document.body.classList.remove('modal-open');
         });
 
         // 初始化快捷键显示
@@ -90,6 +129,20 @@
         const allInOneToggle = document.getElementById('allInOneToggle');
         const allInOneShortcutItem = document.getElementById('allInOneShortcutItem');
         const individualShortcuts = document.querySelectorAll('.shortcut-individual');
+
+        // 初始化徽标显示模式选择
+        const badgeModeSelect = document.getElementById('badgeModeSelect');
+        if (badgeModeSelect) {
+            badgeModeSelect.value = settings.badgeDisplayMode;
+            badgeModeSelect.addEventListener('change', (e) => {
+                settings.badgeDisplayMode = e.target.value;
+                saveSettings();
+                // 触发重新渲染
+                if (window.__recorder_actions && window.__recorder_actions.refresh) {
+                    window.__recorder_actions.refresh();
+                }
+            });
+        }
 
         // 初始化在线模式开关
         const onlineToggle = document.getElementById('onlineToggle');

@@ -177,13 +177,13 @@ h2 {
 }
 
 .settings-item {
-  background: #f8fafc;
+  background: rgba(0, 0, 0, 0.02);
   border-color: #e6eef6;
   color: #0f172a
 }
 
 .settings-item:hover {
-  background: #eef2f7
+  background: rgba(0, 0, 0, 0.04)
 }
 
 .settings-title {
