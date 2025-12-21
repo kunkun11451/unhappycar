@@ -26,7 +26,7 @@ h1,
 h2 {
     margin: 0 0 .5rem;
     font-weight: 500;
-    color: #f1f5f9;
+    color: #f1f5f9e3;
 }
 
 .container {
@@ -48,7 +48,7 @@ h2 {
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
-    color: #e2e8f0;
+    color: #f1f5f9e3;
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -141,7 +141,7 @@ h2 {
 .modal-backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     opacity: 1;
@@ -183,8 +183,7 @@ h2 {
     position: relative;
     max-width: 860px;
     width: 90%;
-    /* 弹窗主体毛玻璃 */
-    background: rgba(20, 25, 35, 0.75);
+    background: rgba(30, 35, 45, 0.25);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -240,7 +239,7 @@ body.modal-open {
     justify-content: space-between;
     padding: 16px 20px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(0, 0, 0, 0.1);
+    background: rgba(0, 0, 0, 0.03);
 }
 
 .modal-header h3 {
@@ -333,8 +332,9 @@ body.modal-open {
 .history-table thead th {
     position: sticky;
     top: 0;
-    background: rgba(30, 41, 59, 0.75);
-    backdrop-filter: blur(8px);
+    background: rgba(30, 35, 45, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     color: #cbd5e1;
     font-weight: 600;
     padding: 10px;
@@ -352,7 +352,7 @@ body.modal-open {
 }
 
 .history-table tbody tr:hover td {
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .history-table tbody tr.empty td {
@@ -391,34 +391,34 @@ body.modal-open {
 }
 
 .history-table tbody tr.history-snapshot td {
-    background: rgba(45, 55, 72, 0.3);
+    background: rgba(255, 255, 255, 0.02);
     font-style: normal
 }
 
 .history-table tbody td.round-cell {
     font-weight: 600;
-    background: rgba(30, 41, 59, 0.3);
-    color: #e2e8f0;
+    background: rgba(255, 255, 255, 0.03);
+    color: #f1f5f9e3;
     vertical-align: middle
 }
 
 .history-table tbody td.avail-cell {
     font-weight: 600;
-    background: rgba(30, 41, 59, 0.3);
-    color: #38bdf8;
+    background: rgba(255, 255, 255, 0.03);
+    color: #f1f5f9e3;
     vertical-align: middle
 }
 
 .history-table tbody td.snapshot-cell {
     white-space: normal;
-    line-height: 1.25
+    line-height: 1.5;
+    color: #f1f5f9e3;
 }
 
 /* ===== 主要面板 - 毛玻璃风格 ===== */
 .panel {
     position: relative;
-    /* 玻璃背景 */
-    background: rgba(30, 35, 45, 0.45);
+    background: rgba(30, 35, 45, 0.05);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -561,7 +561,7 @@ body.modal-open {
     font-size: .85rem;
     text-align: center;
     font-weight: 400;
-    color: #f1f5f9;
+    color: #f1f5f9e3;
 }
 
 .card .meta {
@@ -581,7 +581,7 @@ body.modal-open {
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     background: rgba(0, 0, 0, 0.2);
-    color: #f1f5f9;
+    color: #f1f5f9e3;
     font-size: 0.95rem;
     transition: all 0.2s ease;
 }

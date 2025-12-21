@@ -2,7 +2,7 @@
 .tab-controls {
   display: flex;
   gap: 4px;
-  background: #1f2937;
+  background: rgb(31, 41, 55 ,0.5);
   padding: 4px;
   border-radius: 8px;
 }
@@ -25,7 +25,7 @@
 }
 
 .tab-btn.active {
-  background: #3b82f6;
+  background: rgb(59, 130, 246 ,0.2);
   color: #fff;
 }
 
@@ -74,7 +74,7 @@
 
 .stat-bar {
   height: 100%;
-  background: #3b82f6;
+  background: rgba(59, 131, 246, 0.3);
   border-radius: 4px;
   min-width: 2px;
   transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
@@ -89,24 +89,24 @@
 
 /* 标签分类颜色 */
 .stat-bar.cat-elem {
-  background: #0ea5e9;
+  background: rgba(14, 164, 233, 0.7);
 }
 
 .stat-bar.cat-nation {
-  background: #eab308;
+  background: rgba(234, 179, 8, 0.7);
 }
 
 .stat-bar.cat-weapon {
-  background: #ef4444;
+  background: rgba(239, 68, 68, 0.7);
 }
 
 .stat-bar.cat-body {
-  background: #22c55e;
+  background: rgba(34, 197, 94, 0.7);
 }
 
 /* 角色条颜色 */
 .stat-bar.char-bar {
-  background: #6366f1;
+  background: rgb(105 154 191 / 70%);
 }
 
 /* Line Chart */
@@ -156,7 +156,7 @@
 
 .chart-point {
   fill: #3b82f6;
-  stroke: #fff;
+  stroke: #a6aebc;
   transition: r 0.2s ease;
 }
 
