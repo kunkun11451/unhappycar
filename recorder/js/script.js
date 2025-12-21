@@ -579,9 +579,9 @@
   // 判断一个角色是否应被保留（排除当前记录的类型）：
   // 若某类记录集合非空，则角色对应值必须“不在集合内”；所有已记录类别都需满足。
   function isComplement(char) {
-    const charElem = char.元素;
+    const charElem = char.元素类型;
     const charNation = char.国家 || '其他';
-    const charWeapon = char.武器;
+    const charWeapon = char.武器类型;
     const charBody = char.体型 || '';
 
     const checks = [
@@ -772,9 +772,9 @@
   // ===== 统计功能 =====
   function isBanned(char, snapshot) {
     if (!snapshot) return false;
-    if (snapshot.元素 && snapshot.元素.length > 0 && snapshot.元素.includes(char.元素)) return true;
+    if (snapshot.元素 && snapshot.元素.length > 0 && snapshot.元素.includes(char.元素类型)) return true;
     if (snapshot.国家 && snapshot.国家.length > 0 && snapshot.国家.includes(char.国家 || '其他')) return true;
-    if (snapshot.武器 && snapshot.武器.length > 0 && snapshot.武器.includes(char.武器)) return true;
+    if (snapshot.武器 && snapshot.武器.length > 0 && snapshot.武器.includes(char.武器类型)) return true;
     if (snapshot.体型 && snapshot.体型.length > 0 && snapshot.体型.includes(char.体型 || '')) return true;
     return false;
   }
