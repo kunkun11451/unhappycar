@@ -119,6 +119,10 @@ h2 {
   color: #0f172a
 }
 
+.rows>div {
+    background: rgba(255, 255, 255, 0.5);
+}
+
 .card {
   background: #e8c48e03;
   border-color: #e8c48e75;
