@@ -1,27 +1,27 @@
 (function () {
   let hasLastDraw = false;
   let currentAnimationToken = 0; // 用于防止快速多次抽取导致回调错乱
-  const history = []; // {round, 元素, 国家, 武器, 体型, changes}
+  const history = []; // {round, 元素类型, 国家, 武器类型, 体型, changes}
   // 维护显示顺序（与 Set 中内容同步；新增放末尾，删除时移除）
   const order = {
-    元素: [],
+    元素类型: [],
     国家: [],
-    武器: [],
+    武器类型: [],
     体型: [],
   };
   // 取值池
   const POOLS = {
-    元素: ["水", "火", "冰", "雷", "草", "风", "岩"],
+    元素类型: ["水", "火", "冰", "雷", "草", "风", "岩"],
     国家: ["蒙德", "璃月", "稻妻", "须弥", "枫丹", "纳塔", "挪德卡莱"],
-    武器: ["单手剑", "双手剑", "弓", "法器", "长柄武器"],
+    武器类型: ["单手剑", "双手剑", "弓", "法器", "长柄武器"],
     体型: ["成女", "成男", "少女", "少年", "萝莉"],
   };
 
   // 当前对称差记录
   const record = {
-    元素: new Set(),
+    元素类型: new Set(),
     国家: new Set(),
-    武器: new Set(),
+    武器类型: new Set(),
     体型: new Set(),
   };
 
@@ -178,14 +178,14 @@
   function drawOnce() {
     const token = ++currentAnimationToken;
     const last = {
-      元素: pickRandom(POOLS.元素),
+      元素类型: pickRandom(POOLS.元素类型),
       国家: pickRandom(POOLS.国家),
-      武器: pickRandom(POOLS.武器),
+      武器类型: pickRandom(POOLS.武器类型),
       体型: pickRandom(POOLS.体型),
     };
     // 计算并记录操作 + 原位置索引（删除时用）
     const lastChanges = {};
-    ["元素", "国家", "武器", "体型"].forEach(cat => {
+    ["元素类型", "国家", "武器类型", "体型"].forEach(cat => {
       const val = last[cat];
       const isRemove = (record[cat].has ? record[cat].has(val) : false);
       const change = { value: val, op: isRemove ? 'remove' : 'add', index: -1 };
@@ -195,7 +195,7 @@
       lastChanges[cat] = change;
     });
     // 应用对称差 + 更新顺序
-    ["元素", "国家", "武器", "体型"].forEach(cat => {
+    ["元素类型", "国家", "武器类型", "体型"].forEach(cat => {
       const { value, op, index } = lastChanges[cat];
       if (op === 'remove') {
         // 从 Set 删除
@@ -219,9 +219,9 @@
     // 记录历史
     // 记录当前记录快照（使用顺序数组保持展示顺序）
     const snapshot = {
-      元素: order.元素.slice(),
+      元素类型: order.元素类型.slice(),
       国家: order.国家.slice(),
-      武器: order.武器.slice(),
+      武器类型: order.武器类型.slice(),
       体型: order.体型.slice(),
     };
     // 计算当前可用角色数量（基于最新记录）
@@ -298,14 +298,14 @@
       const lastEntry = history[history.length - 1];
       const snapshot = lastEntry.snapshot;
 
-      order.元素 = snapshot.元素.slice();
+      order.元素类型 = snapshot.元素类型.slice();
       order.国家 = snapshot.国家.slice();
-      order.武器 = snapshot.武器.slice();
+      order.武器类型 = snapshot.武器类型.slice();
       order.体型 = snapshot.体型.slice();
 
-      record.元素 = new Set(order.元素);
+      record.元素类型 = new Set(order.元素类型);
       record.国家 = new Set(order.国家);
-      record.武器 = new Set(order.武器);
+      record.武器类型 = new Set(order.武器类型);
       record.体型 = new Set(order.体型);
 
       window.__recorder_lastDraw = lastEntry.last;
@@ -397,9 +397,9 @@
 
       if (badgeMode !== 'text') {
         let iconHtml = '';
-        if (label === '元素' && ELEMENT_SVGS[val]) {
+        if (label === '元素类型' && ELEMENT_SVGS[val]) {
           iconHtml = `<span class="badge-icon svg-icon">${ELEMENT_SVGS[val]}</span>`;
-        } else if (label === '武器' && WEAPON_ICON_MAP[val]) {
+        } else if (label === '武器类型' && WEAPON_ICON_MAP[val]) {
           iconHtml = `<img src="${WEAPON_ICON_MAP[val]}" class="badge-icon img-icon" alt="${val}">`;
         } else if (label === '国家' && NATION_ICON_MAP[val]) {
           iconHtml = `<img src="${NATION_ICON_MAP[val]}" class="badge-icon img-icon" alt="${val}">`;
@@ -436,9 +436,9 @@
   function renderLast(last, changes) {
     const el = document.getElementById('lastDraw');
     el.innerHTML = [
-      (() => { const c = changes && changes.元素; const arr = (c && c.op === 'remove') ? [{ removed: true, noAnim: true, pulse: true, value: last.元素 }] : [last.元素]; return renderListRow('元素', arr, c); })(),
+      (() => { const c = changes && changes.元素类型; const arr = (c && c.op === 'remove') ? [{ removed: true, noAnim: true, pulse: true, value: last.元素类型 }] : [last.元素类型]; return renderListRow('元素类型', arr, c); })(),
       (() => { const c = changes && changes.国家; const arr = (c && c.op === 'remove') ? [{ removed: true, noAnim: true, pulse: true, value: last.国家 }] : [last.国家]; return renderListRow('国家', arr, c); })(),
-      (() => { const c = changes && changes.武器; const arr = (c && c.op === 'remove') ? [{ removed: true, noAnim: true, pulse: true, value: last.武器 }] : [last.武器]; return renderListRow('武器', arr, c); })(),
+      (() => { const c = changes && changes.武器类型; const arr = (c && c.op === 'remove') ? [{ removed: true, noAnim: true, pulse: true, value: last.武器类型 }] : [last.武器类型]; return renderListRow('武器类型', arr, c); })(),
       (() => { const c = changes && changes.体型; const arr = (c && c.op === 'remove') ? [{ removed: true, noAnim: true, pulse: true, value: last.体型 }] : [last.体型]; return renderListRow('体型', arr, c); })(),
     ].join('');
   }
@@ -446,7 +446,7 @@
   function renderRecord(changes, done) {
     const anims = (window.__recorder_settings && window.__recorder_settings.animationsEnabled !== false);
     const el = document.getElementById('record');
-    const rows = ["元素", "国家", "武器", "体型"].map(cat => {
+    const rows = ["元素类型", "国家", "武器类型", "体型"].map(cat => {
       let base = order[cat].slice();
       const ch = changes && changes[cat];
       if (ch && ch.op === 'remove') {
@@ -532,13 +532,13 @@
   function formatLastDrawText() {
     const last = window.__recorder_lastDraw;
     if (!last) return '本次抽取：— — — —';
-    return `本次抽取：${last.元素} ${last.国家} ${last.武器} ${last.体型}`;
+    return `本次抽取：${last.元素类型} ${last.国家} ${last.武器类型} ${last.体型}`;
   }
 
   function formatCurrentRecordText() {
-    const e = [...record.元素].join('') || '—';
+    const e = [...record.元素类型].join('') || '—';
     const n = [...record.国家].join('') || '—';
-    const w = [...record.武器].join('') || '—';
+    const w = [...record.武器类型].join('') || '—';
     const b = [...record.体型].join('') || '—';
     return `记录：${e} ${n} ${w} ${b}`;
   }
@@ -579,15 +579,15 @@
   // 判断一个角色是否应被保留（排除当前记录的类型）：
   // 若某类记录集合非空，则角色对应值必须“不在集合内”；所有已记录类别都需满足。
   function isComplement(char) {
-    const charElem = char.元素;
+    const charElem = char.元素类型;
     const charNation = char.国家 || '其他';
-    const charWeapon = char.武器;
+    const charWeapon = char.武器类型;
     const charBody = char.体型 || '';
 
     const checks = [
-      () => record.元素.size === 0 || !record.元素.has(charElem),
+      () => record.元素类型.size === 0 || !record.元素类型.has(charElem),
       () => record.国家.size === 0 || !record.国家.has(charNation),
-      () => record.武器.size === 0 || !record.武器.has(charWeapon),
+      () => record.武器类型.size === 0 || !record.武器类型.has(charWeapon),
       () => record.体型.size === 0 || !record.体型.has(charBody),
     ];
     return checks.every(fn => fn());
@@ -764,17 +764,17 @@
         const text = arr.length ? arr.join(' ') : '—';
         return `<td class="snapshot-cell">${text}</td>`;
       }
-      return `<tr class="history-last"><td class="round-cell" rowspan="2">${h.round}</td>${tdLast('元素')}${tdLast('国家')}${tdLast('武器')}${tdLast('体型')}<td class="avail-cell" rowspan="2">${h.available ?? '—'}</td></tr>
-      <tr class="history-snapshot">${tdSnap('元素')}${tdSnap('国家')}${tdSnap('武器')}${tdSnap('体型')}</tr>`;
+      return `<tr class="history-last"><td class="round-cell" rowspan="2">${h.round}</td>${tdLast('元素类型')}${tdLast('国家')}${tdLast('武器类型')}${tdLast('体型')}<td class="avail-cell" rowspan="2">${h.available ?? '—'}</td></tr>
+      <tr class="history-snapshot">${tdSnap('元素类型')}${tdSnap('国家')}${tdSnap('武器类型')}${tdSnap('体型')}</tr>`;
     }).join('');
   }
 
   // ===== 统计功能 =====
   function isBanned(char, snapshot) {
     if (!snapshot) return false;
-    if (snapshot.元素 && snapshot.元素.length > 0 && snapshot.元素.includes(char.元素)) return true;
+    if (snapshot.元素类型 && snapshot.元素类型.length > 0 && snapshot.元素类型.includes(char.元素类型)) return true;
     if (snapshot.国家 && snapshot.国家.length > 0 && snapshot.国家.includes(char.国家 || '其他')) return true;
-    if (snapshot.武器 && snapshot.武器.length > 0 && snapshot.武器.includes(char.武器)) return true;
+    if (snapshot.武器类型 && snapshot.武器类型.length > 0 && snapshot.武器类型.includes(char.武器类型)) return true;
     if (snapshot.体型 && snapshot.体型.length > 0 && snapshot.体型.includes(char.体型 || '')) return true;
     return false;
   }
@@ -798,7 +798,7 @@
     history.forEach(h => {
       const snap = h.snapshot;
       // 统计所有标签 Ban 回合
-      ["元素", "国家", "武器", "体型"].forEach(cat => {
+      ["元素类型", "国家", "武器类型", "体型"].forEach(cat => {
         if (snap && snap[cat]) {
           snap[cat].forEach(val => {
             if (attrCounts[val] !== undefined) attrCounts[val]++;
@@ -938,9 +938,9 @@
 
     // 分类映射到 CSS 类名后缀
     const catClassMap = {
-      '元素': 'elem',
+      '元素类型': 'elem',
       '国家': 'nation',
-      '武器': 'weapon',
+      '武器类型': 'weapon',
       '体型': 'body'
     };
 
