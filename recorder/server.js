@@ -57,7 +57,8 @@ io.on('connection', (socket) => {
         const roomCode = generateRoomCode();
         rooms[roomCode] = {
             hostId: socket.id,
-            state: null,
+            hostId: socket.id,
+            stateEnvelope: null,
             viewers: new Set()
         };
         socket.join(roomCode);
@@ -141,23 +142,39 @@ io.on('connection', (socket) => {
             console.log(`User ${socket.id} joined room ${roomCode}`);
 
             // 如果房间已有状态，立即发送给新加入者
-            if (room.state) {
-                socket.emit('update_state', room.state);
+            if (room.stateEnvelope) {
+                socket.emit('update_state', room.stateEnvelope);
             }
         } else {
             socket.emit('error_msg', '房间不存在或已关闭');
         }
     });
 
-    // 房主同步状态
-    socket.on('sync_state', (state) => {
+    // 房主同步状态 (Store)
+    socket.on('sync_state', (envelope) => {
         const roomCode = socket.data.roomCode;
         // 只有房主能更新状态
         if (roomCode && rooms[roomCode] && rooms[roomCode].hostId === socket.id) {
-            rooms[roomCode].state = state;
-            // 广播给房间里除了自己以外的所有人 (其实广播给所有也可以，前端判断是否应用)
-            // 这里选择广播给所有人，除了发送者
-            socket.to(roomCode).emit('update_state', state);
+            // Envelope structure: { version: number, payload: object }
+            // 简单的校验，确保是新版本（如果客户端时钟回拨可能会有问题，但通常 monotonic）
+            const current = rooms[roomCode].stateEnvelope;
+            if (!current || envelope.version > current.version) {
+                rooms[roomCode].stateEnvelope = envelope;
+                // Forward: 广播给所有人 (包括发送者也行，但通常不需要)
+                socket.to(roomCode).emit('update_state', envelope);
+            }
+        }
+    });
+
+    // 观众主动拉取状态 (Inbox Fetch)
+    socket.on('fetch_state', (clientVersion) => {
+        const roomCode = socket.data.roomCode;
+        if (roomCode && rooms[roomCode] && rooms[roomCode].stateEnvelope) {
+            const serverEnvelope = rooms[roomCode].stateEnvelope;
+            // 只有当服务器版本比客户端新时才发送
+            if (serverEnvelope.version > (clientVersion || 0)) {
+                socket.emit('update_state', serverEnvelope);
+            }
         }
     });
 
