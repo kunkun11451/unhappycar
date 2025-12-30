@@ -99,6 +99,12 @@
                 return;
             }
 
+            // 检查设置是否启用了自定义右键菜单
+            const settings = window.__recorder_settings;
+            if (settings && settings.customContextMenuEnabled === false) {
+                return;
+            }
+
             e.preventDefault();
             showContextMenu(e.pageX, e.pageY);
         });

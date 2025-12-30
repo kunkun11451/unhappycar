@@ -5,8 +5,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>随机Ban位</title>
-  <!-- <link rel="icon" href="https://bbs-static.miyoushe.com/static/2024/06/12/7982e4f54092be80c43a251f26e44235_6026540790739799944.png" type="image/png"> -->
-  <link rel="icon" href="../pic-tem/1.png" type="image/png">   
+  <link rel="icon"
+    href="https://bbs-static.miyoushe.com/static/2024/06/12/7982e4f54092be80c43a251f26e44235_6026540790739799944.png"
+    type="image/png">
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/stats.css" />
   <link rel="stylesheet" href="css/settings.css" />
@@ -30,6 +31,16 @@
         </svg>
       </button>
     </header>
+
+    <!-- 在线房间信息栏 -->
+    <div id="onlineRoomBar" class="panel online-room-bar hidden">
+      <div class="room-info">
+        <span id="roomModeDisplay" class="room-mode">观众模式</span>
+        <span class="room-label">房间:</span>
+        <span id="roomCodeDisplay">------</span>
+      </div>
+      <button id="leaveRoomBtn" class="btn danger">离开房间</button>
+    </div>
 
     <div class="layout-desktop">
       <div class="left-column">
@@ -79,6 +90,19 @@
         <section class="panel" id="availablePanel">
           <h2>当前可用角色</h2>
           <div class="stats" id="stats"></div>
+
+          <!-- 脑筋急转弯模式容器 -->
+          <div id="brainTeaserContainer" class="hidden" style="margin-top: 20px; text-align: center;">
+            <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 8px;">
+              <input type="text" id="btInput" placeholder="输入拼音首字母或全名" class="settings-select" style="width: 220px;">
+              <button id="btSearchBtn" class="btn primary">确认</button>
+            </div>
+            <div style="font-size: 0.4rem; color: #94a3b8; opacity: 0.2;">
+              输入“我是笨蛋”可临时展示可用角色
+            </div>
+            <div id="btResult" class="card-grid" style="justify-content: center;"></div>
+          </div>
+
           <div class="card-grid" id="complementList"></div>
         </section>
       </div>
@@ -95,9 +119,6 @@
       </div>
 
       <div class="settings-body">
-
-        <h4 style="margin-top: 0px;">基础操作</h4>
-
         <!-- Rules Details -->
         <details class="rules-details" id="rulesDetails">
           <summary class="rules-summary">
@@ -148,11 +169,13 @@
               <h3>3. 选角规则</h3>
               <ul>
                 <li>每轮只能选择<strong>不符合当前记录中任何特征</strong>的角色，无角色可用时使用旅行者。</li>
-                <li>角色不进行 BP 环节，可以使用重复角色。</li>
+                <li>角色不BP，可以使用重复角色。</li>
               </ul>
             </div>
           </div>
         </details>
+
+        <h4>基础操作</h4>
 
         <div class="settings-item host-only">
           <div class="settings-info">
@@ -182,6 +205,19 @@
           </div>
         </div>
 
+        <div class="settings-item host-only">
+          <div class="settings-info">
+            <div class="settings-title">脑筋急转弯模式</div>
+            <div class="settings-desc">隐藏可用角色展示，变为输入来验证角色是否可用</div>
+          </div>
+          <div class="settings-action">
+            <label class="switch">
+              <input type="checkbox" id="brainTeaserToggle">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
         <h4>界面设置</h4>
 
         <div class="settings-item">
@@ -196,7 +232,18 @@
             </label>
           </div>
         </div>
-
+        <div class="settings-item">
+          <div class="settings-info">
+            <div class="settings-title">覆盖浏览器右键菜单</div>
+            <div class="settings-desc">开启后覆盖浏览器右键菜单，展示与此应用相关的功能。</div>
+          </div>
+          <div class="settings-action">
+            <label class="switch">
+              <input type="checkbox" id="contextMenuToggle" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
         <div class="settings-item">
           <div class="settings-info">
             <div class="settings-title">浅色外观</div>
@@ -289,8 +336,7 @@
             <div class="conflict-msg">快捷键冲突</div>
           </div>
         </div>
-
-        <h4>在线设置</h4>
+        <h4 class="host-only">在线设置</h4>
 
         <div class="settings-item host-only">
           <div class="settings-info">
@@ -333,7 +379,10 @@
       <div class="settings-body" style="padding: 24px; text-align: center;">
         <div id="alertMessage" style="font-size: 1rem; margin-bottom: 24px; line-height: 1.5; word-wrap: break-word;">
         </div>
-        <button id="alertOkBtn" class="btn primary" style="width: 100%; justify-content: center;">确定</button>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+          <button id="alertCancelBtn" class="btn hidden" style="flex: 1; justify-content: center;">取消</button>
+          <button id="alertOkBtn" class="btn primary" style="flex: 1; justify-content: center;">确定</button>
+        </div>
       </div>
     </div>
   </div>
@@ -354,6 +403,8 @@
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <script src="js/settings.js"></script>
   <script src="js/online.js"></script>
+  <script src="https://unpkg.com/pinyin-pro"></script>
+  <script src="js/brain-teaser.js"></script>
   <script src="js/script.js"></script>
   <script src="js/context-menu.js"></script>
 

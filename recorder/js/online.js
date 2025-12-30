@@ -14,22 +14,9 @@
     // 动态添加样式
     const style = document.createElement('style');
     style.textContent = `
-        .room-info {
-            position: absolute;
-            left: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            background: var(--bg-secondary);
-            padding: 4px 12px;
-            border-radius: 99px;
-            border: 1px solid var(--border-color);
-            z-index: 100;
-        }
-        .room-info.hidden { display: none; }
-        .room-code { font-weight: bold; font-family: monospace; letter-spacing: 1px; color: var(--primary-color); }
+        .btn-icon-sm { background: none; border: none; cursor: pointer; opacity: 0.7; padding: 2px; font-size: 1.1em; }
+        .btn-icon-sm:hover { opacity: 1; transform: scale(1.1); }
+        
         .room-status { font-size: 0.8em; margin-left: 4px; }
         .status-connecting { color: #f59e0b; }
         .status-disconnected { color: #ef4444; }
@@ -37,37 +24,66 @@
         .btn-icon-sm:hover { opacity: 1; transform: scale(1.1); }
         
         /* 观众模式样式 */
-        body.viewer-mode .controls:not(.tab-controls) { display: none !important; }
+        body.viewer-mode #drawBtn { display: none !important; }
         body.viewer-mode .host-only { display: none !important; }
-        body.viewer-mode .viewer-badge {
-             position: fixed;
-             bottom: 20px;
-             right: 20px;
-             background: #3b82f6;
-             color: white;
-             padding: 8px 16px;
-             border-radius: 20px;
-             font-size: 0.85rem;
-             pointer-events: none;
-             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-             z-index: 1000;
+        
+        /* 在线房间信息栏样式 - 继承 panel 基础样式 */
+        .online-room-bar {
+            display: flex !important;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0;
+            margin-bottom: 20px;
+            /* 覆盖 panel 默认 margin 以便标题对齐 */
         }
-        body.viewer-mode.disconnected .viewer-badge {
-            background: #ef4444;
+        .online-room-bar.hidden { display: none !important; }
+        
+        .online-room-bar .room-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 1rem;
+        }
+        .online-room-bar .room-label {
+            color: #94a3b8;
+            font-weight: 500;
+        }
+        .online-room-bar .room-code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-weight: 600;
+            color: #38bdf8;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            background: rgba(56, 189, 248, 0.1);
+            padding: 4px 14px;
+            border-radius: 8px;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+        .online-room-bar .room-mode {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            white-space: nowrap;
+        }
+        body.viewer-mode .online-room-bar .room-mode {
+            background: rgba(59, 130, 246, 0.15);
+            color: #3b82f6;
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        /* 离开按钮特定样式，确保在最右侧 */
+        #leaveRoomBtn {
+            flex-shrink: 0;
+            margin-left: 20px;
         }
     `;
     document.head.appendChild(style);
 
-    // UI初始化
-    const roomInfo = document.createElement('div');
-    roomInfo.id = 'roomInfo';
-    roomInfo.className = 'room-info hidden';
-    roomInfo.innerHTML = `
-        <span class="room-label">房间:</span>
-        <span class="room-code" id="displayRoomCode">------</span>
-        <span class="room-status" id="connectionStatus"></span>
-        <button class="btn-icon-sm" id="copyRoomLink" title="复制房间链接">🔗</button>
-    `;
+
 
     function insertUI() {
         const joinBtn = document.getElementById('joinRoomBtn');
@@ -91,10 +107,26 @@
             });
         }
 
-        const header = document.querySelector('header');
-        if (header) {
-            header.appendChild(roomInfo);
+        // 离开房间按钮
+        const leaveRoomBtn = document.getElementById('leaveRoomBtn');
+        if (leaveRoomBtn) {
+            leaveRoomBtn.addEventListener('click', () => {
+                if (isHost) {
+                    // 主持人离开房间
+                    if (confirm('确定要关闭房间吗？<br>此房间将直接解散。')) {
+                        closeHost();
+                    }
+                } else {
+                    // 观众离开房间
+                    if (confirm('确定要离开房间吗？')) {
+                        // 刷新页面回到主页
+                        window.location.href = window.location.origin + window.location.pathname;
+                    }
+                }
+            });
         }
+
+
 
         // 绑定 Loader 退出按钮
         const exitBtn = document.getElementById('loaderExitBtn');
@@ -115,29 +147,30 @@
 
     function updateConnectionStatus(status) {
         const statusEl = document.getElementById('connectionStatus');
-        const badge = document.querySelector('.viewer-badge');
-
-        if (!statusEl) return;
+        const roomModeDisplay = document.getElementById('roomModeDisplay');
 
         if (status === 'connected') {
-            statusEl.textContent = '';
-            statusEl.className = 'room-status';
-            if (badge) {
-                badge.textContent = '观众模式';
+            if (statusEl) {
+                statusEl.textContent = '';
+                statusEl.className = 'room-status';
+            }
+            if (roomModeDisplay) {
                 document.body.classList.remove('disconnected');
             }
         } else if (status === 'connecting') {
-            statusEl.textContent = '(连接中...)';
-            statusEl.className = 'room-status status-connecting';
-            if (badge) {
-                badge.textContent = '观众模式 (连接中...)';
+            if (statusEl) {
+                statusEl.textContent = '(连接中...)';
+                statusEl.className = 'room-status status-connecting';
+            }
+            if (roomModeDisplay) {
                 document.body.classList.add('disconnected');
             }
         } else if (status === 'disconnected') {
-            statusEl.textContent = '(已断开)';
-            statusEl.className = 'room-status status-disconnected';
-            if (badge) {
-                badge.textContent = '观众模式 (已断开)';
+            if (statusEl) {
+                statusEl.textContent = '(已断开)';
+                statusEl.className = 'room-status status-disconnected';
+            }
+            if (roomModeDisplay) {
                 document.body.classList.add('disconnected');
             }
         }
@@ -183,8 +216,9 @@
                 if (savedCode) {
                     console.log('Host restoring room:', savedCode);
                     socket.emit('host_reconnect', savedCode);
-                } else if (isHost) {
-                    // 异常情况：isHost 但没有 savedCode (不太可能，除非清缓存)，尝试新建
+                } else {
+                    // 没有保存的房间且不是观众模式，新建房间
+                    console.log('Host creating new room');
                     socket.emit('create_room');
                 }
             }
@@ -350,13 +384,6 @@
 
     function enableViewerMode() {
         document.body.classList.add('viewer-mode');
-        // 检查是否已存在
-        if (!document.querySelector('.viewer-badge')) {
-            const badge = document.createElement('div');
-            badge.className = 'viewer-badge';
-            badge.textContent = '观众模式';
-            document.body.appendChild(badge);
-        }
     }
 
     // 初始化房主模式（检查重连或创建）
@@ -396,13 +423,15 @@
             }
         });
 
-        // 显示“正在连接...”状态
-        const el = document.getElementById('roomInfo');
-        const codeEl = document.getElementById('displayRoomCode');
-        if (el && codeEl) {
-            el.classList.remove('hidden');
+        // 显示房间信息栏
+        const roomBar = document.getElementById('onlineRoomBar');
+        const roomCodeDisplay = document.getElementById('roomCodeDisplay');
+        const roomModeDisplay = document.getElementById('roomModeDisplay');
+        if (roomBar) {
+            roomBar.classList.remove('hidden');
+            if (roomCodeDisplay) roomCodeDisplay.textContent = '连接中...';
+            if (roomModeDisplay) roomModeDisplay.textContent = '主持模式';
             updateConnectionStatus('connecting');
-            codeEl.textContent = '------';
         }
 
         // 更新设置面板状态：转圈
@@ -416,7 +445,11 @@
 
     function closeHost() {
         if (socket) {
-            socket.emit('close_room');
+            // Only host can close room on server
+            if (isHost && socket.connected) {
+                socket.emit('close_room');
+            }
+
             isHost = false;
             roomCode = null;
             localStorage.removeItem('recorder_room_code');
@@ -425,6 +458,10 @@
             const el = document.getElementById('roomInfo');
             if (el) el.classList.add('hidden');
 
+            // 隐藏房间信息栏
+            const roomBar = document.getElementById('onlineRoomBar');
+            if (roomBar) roomBar.classList.add('hidden');
+
             // 清空设置面板状态
             const statusEl = document.getElementById('onlineStatus');
             if (statusEl) {
@@ -432,6 +469,9 @@
                 statusEl.onclick = null;
                 statusEl.style.cursor = 'default';
             }
+
+            // Disconnect socket (cleanup)
+            socket.disconnect();
         }
     }
 
@@ -459,20 +499,96 @@
             if (btn) btn.classList.add('hidden');
         }
 
-        // 显示“正在连接...”状态 (UI顶部)
-        const el = document.getElementById('roomInfo');
-        if (el) {
-            el.classList.remove('hidden');
+        // 显示房间信息栏
+        const roomBar = document.getElementById('onlineRoomBar');
+        const roomCodeDisplay = document.getElementById('roomCodeDisplay');
+        const roomModeDisplay = document.getElementById('roomModeDisplay');
+        if (roomBar) {
+            roomBar.classList.remove('hidden');
+            if (roomCodeDisplay) roomCodeDisplay.textContent = code || '连接中...';
+            if (roomModeDisplay) roomModeDisplay.textContent = '观众模式';
             updateConnectionStatus('connecting');
         }
     }
 
+    function insertUI() {
+        const joinBtn = document.getElementById('joinRoomBtn');
+        const joinInput = document.getElementById('joinRoomInput');
+
+        if (joinBtn && joinInput) {
+            // 限制只能输入数字
+            joinInput.addEventListener('input', (e) => {
+                joinInput.value = joinInput.value.replace(/\D/g, '').slice(0, 6);
+            });
+
+            joinBtn.addEventListener('click', () => {
+                const code = joinInput.value.trim();
+                if (code.length === 6) {
+                    // 跳转到带 room 参数的链接
+                    const url = `${window.location.origin}${window.location.pathname}?room=${code}`;
+                    window.location.href = url.toString();
+                } else {
+                    window.showToast('请输入6位数字房间码');
+                }
+            });
+        }
+
+        // 离开房间按钮
+        const leaveRoomBtn = document.getElementById('leaveRoomBtn');
+        if (leaveRoomBtn) {
+            leaveRoomBtn.addEventListener('click', () => {
+                const doConfirm = window.showCustomConfirm || ((msg, cb) => { if (confirm(msg)) cb(); });
+
+                if (isHost) {
+                    // 主持人离开房间
+                    doConfirm('确定要关闭房间吗？此房间将直接解散。', () => {
+                        // 联动关闭设置中的开关 (触发 change 事件以保存设置)
+                        const toggle = document.getElementById('onlineToggle');
+                        if (toggle && toggle.checked) {
+                            toggle.click();
+                        } else {
+                            closeHost();
+                        }
+                    }, null, '关闭房间', '确定', '取消');
+                } else {
+                    // 观众离开房间
+                    doConfirm('确定要离开房间吗？', () => {
+                        // 触发断开清理
+                        closeHost();
+                        // 刷新页面回到主页
+                        window.location.href = window.location.origin + window.location.pathname;
+                    }, null, '离开房间', '确定', '取消');
+                }
+            });
+        }
+
+        // 绑定 Loader 退出按钮
+        const loaderExitBtn = document.getElementById('loaderExitBtn');
+        if (loaderExitBtn) {
+            loaderExitBtn.addEventListener('click', () => {
+                // 隐藏加载遮罩
+                const loader = document.getElementById('viewerLoader');
+                if (loader) loader.classList.add('hidden');
+
+                // 刷新页面回到主页
+                window.location.href = window.location.origin + window.location.pathname;
+            });
+        }
+    }
+
     function updateRoomUI() {
-        const el = document.getElementById('roomInfo');
-        const codeEl = document.getElementById('displayRoomCode');
-        if (el && codeEl) {
-            el.classList.remove('hidden');
-            codeEl.textContent = roomCode;
+        const roomBar = document.getElementById('onlineRoomBar');
+        const roomCodeDisplay = document.getElementById('roomCodeDisplay');
+        const roomModeDisplay = document.getElementById('roomModeDisplay');
+        const leaveBtn = document.getElementById('leaveRoomBtn');
+
+        if (roomBar && roomCodeDisplay && roomModeDisplay) {
+            roomBar.classList.remove('hidden');
+            roomCodeDisplay.textContent = roomCode || '连接中...';
+            roomModeDisplay.textContent = isHost ? '主持模式' : '观众模式';
+            if (leaveBtn) {
+                leaveBtn.textContent = isHost ? '关闭房间' : '离开房间';
+            }
             updateConnectionStatus('connected');
         }
 
@@ -566,6 +682,7 @@
     // 暴露给 Settings 调用
     window.__recorder_online = {
         createRoom,
-        closeHost
+        closeHost,
+        forceSync: syncCurrentState
     };
 })();

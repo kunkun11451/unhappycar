@@ -50,12 +50,36 @@
       history,
       order,
       hasLastDraw,
-      lastDraw: window.__recorder_lastDraw
+      lastDraw: window.__recorder_lastDraw,
+      // Add Brain Teaser Mode to sync state
+      brainTeaserMode: (window.__recorder_settings && window.__recorder_settings.brainTeaserMode)
     };
   }
 
+
   function restoreState(state) {
     if (!state) return;
+
+    const lastBar = document.getElementById('lastCopyBar');
+    const recBar = document.getElementById('recordCopyBar');
+    const availPanel = document.getElementById('availablePanel');
+
+    // Sync Brain Teaser Mode
+    if (state.brainTeaserMode !== undefined) {
+      if (!window.__recorder_settings) window.__recorder_settings = {};
+      window.__recorder_settings.brainTeaserMode = state.brainTeaserMode;
+
+      // Update Toggle UI if exists
+      const btToggle = document.getElementById('brainTeaserToggle');
+      if (btToggle) {
+        btToggle.checked = state.brainTeaserMode;
+      }
+
+      // Update internal BT state visibility (handled in renderComplement, but force hide if off)
+      if (!state.brainTeaserMode && window.__brainTeaser) {
+        window.__brainTeaser.hideUI();
+      }
+    }
 
     // 判断是否为新增一次抽取：当前有历史，且新历史比当前多1条
     const isNewDraw = (history.length > 0 &&
@@ -84,6 +108,9 @@
     // 恢复界面显示
     if (hasLastDraw && window.__recorder_lastDraw) {
       if (isNewDraw) {
+        // 重置 Brain Teaser 状态 (如 viewer 之前投降过)
+        if (window.__brainTeaser) window.__brainTeaser.reset();
+
         // 动画逻辑：
         // 1. 获取最新一次的 changes
         const lastEntry = history[history.length - 1];
@@ -105,25 +132,34 @@
       } else {
         // 非动画逻辑（也是默认的初始化/刷新逻辑）
         // 在恢复时保留最后一次 changes（用于让 "add" 保持 badge-add 样式，但不触发动画）
+        // 【关键修复】只保留 add 操作，避免 remove 的红色 badge 在刷新后重现
         const lastEntry = history[history.length - 1];
-        const changes = lastEntry ? lastEntry.changes : null;
-        window.__recorder_restoring = true;
-        renderLast(window.__recorder_lastDraw, changes);
-        renderHistoryTable();
-        renderRecord(changes, () => { renderComplement(); window.__recorder_restoring = false; });
-      }
+        const rawChanges = lastEntry ? lastEntry.changes : null;
+        let displayChanges = null;
 
-      const lastBar = document.getElementById('lastCopyBar');
-      const recBar = document.getElementById('recordCopyBar');
-      const availPanel = document.getElementById('availablePanel');
+        if (rawChanges) {
+          displayChanges = {};
+          Object.keys(rawChanges).forEach(k => {
+            const ch = rawChanges[k];
+            if (ch.op !== 'remove') {
+              displayChanges[k] = ch;
+            }
+          });
+        }
+
+        window.__recorder_restoring = true;
+        renderLast(window.__recorder_lastDraw, rawChanges);
+        renderHistoryTable();
+        renderRecord(displayChanges, () => { renderComplement(); window.__recorder_restoring = false; });
+      }
       if (lastBar) lastBar.classList.remove('hidden');
       if (recBar) recBar.classList.remove('hidden');
       if (availPanel) availPanel.classList.remove('hidden');
     } else {
       // 确保清除上一次的显示（如果是重置或加入新房间为空状态时）
       document.getElementById('lastDraw').innerHTML = '';
-      const lastBar = document.getElementById('lastCopyBar');
       if (lastBar) lastBar.classList.add('hidden');
+      if (recBar) recBar.classList.add('hidden');
 
       renderHistoryTable();
       renderRecord(null, () => { renderComplement(); });
@@ -133,15 +169,42 @@
     }
   }
 
+  // 重新渲染当前状态（用于设置变更后刷新UI等）
   function refresh() {
-    renderHistoryTable();
-    const lastEntry = history.length > 0 ? history[history.length - 1] : null;
-    const last = lastEntry ? lastEntry.last : null;
+    const lastBar = document.getElementById('lastCopyBar');
+    const recBar = document.getElementById('recordCopyBar');
+    const availPanel = document.getElementById('availablePanel');
 
-    if (last) {
-      renderLast(last, null); 
+    if (!hasLastDraw) {
+      if (lastBar) lastBar.classList.add('hidden');
+      if (recBar) recBar.classList.add('hidden');
+      renderHistoryTable();
+      renderRecord(null, () => renderComplement());
+      return;
     }
-    renderRecord(null, () => { renderComplement(); });
+
+    if (lastBar) lastBar.classList.remove('hidden');
+    if (recBar) recBar.classList.remove('hidden');
+    if (availPanel) availPanel.classList.remove('hidden');
+
+    // 尝试获取最后一次的 changes 以保持高亮状态
+    const lastEntry = history.length > 0 ? history[history.length - 1] : null;
+    const rawChanges = lastEntry ? lastEntry.changes : null;
+
+    // 同样进行过滤，防止刷新时出现红色删除标记
+    let displayChanges = null;
+    if (rawChanges) {
+      displayChanges = {};
+      Object.keys(rawChanges).forEach(k => {
+        if (rawChanges[k].op !== 'remove') {
+          displayChanges[k] = rawChanges[k];
+        }
+      });
+    }
+
+    renderLast(window.__recorder_lastDraw, rawChanges);
+    renderHistoryTable();
+    renderRecord(displayChanges, () => renderComplement());
   }
 
   function loadState() {
@@ -176,6 +239,9 @@
 
   // 抽取一次
   function drawOnce() {
+    // 重置 Brain Teaser 状态 (Host端)
+    if (window.__brainTeaser) window.__brainTeaser.reset();
+
     const token = ++currentAnimationToken;
     const last = {
       元素类型: pickRandom(POOLS.元素类型),
@@ -255,15 +321,15 @@
     if (lastBar) lastBar.classList.remove('hidden');
     if (recBar) recBar.classList.remove('hidden');
 
-    const copyPanel = document.getElementById('copyAvailablePanel');
-    if (copyAvail && copyAvail.children.length) {
-      copyAvail.classList.remove('hidden');
-      if (copyPanel) copyPanel.classList.remove('hidden');
-    }
-
     if (availPanel) availPanel.classList.remove('hidden');
 
     saveState();
+
+    // 重置脑筋急转弯状态
+    if (window.__brainTeaser) {
+      window.__brainTeaser.reset();
+    }
+
     if (onStateChangeCallback) {
       onStateChangeCallback(getState());
     }
@@ -323,6 +389,12 @@
     renderHistoryTable();
     renderRecord(null, () => { renderComplement(); });
     saveState();
+
+    // 重置脑筋急转弯状态
+    if (window.__brainTeaser) {
+      window.__brainTeaser.reset();
+    }
+
     if (onStateChangeCallback) {
       onStateChangeCallback(getState());
     }
@@ -605,6 +677,38 @@
 
     if (stats) stats.textContent = `排除当前Ban位后剩余：${list.length} / ${entries.length}`;
 
+    if (stats) stats.textContent = `排除当前Ban位后剩余：${list.length} / ${entries.length}`;
+
+    // === Brain Teaser Mode Logic ===
+    const settings = window.__recorder_settings || {};
+    const brainTeaserMode = settings.brainTeaserMode;
+    const isSurrendered = window.__brainTeaser ? window.__brainTeaser.isSurrendered : false;
+
+    // 如果开启了脑筋急转弯且未投降
+    if (brainTeaserMode && !isSurrendered) {
+      // 隐藏常规列表
+      if (grid) grid.classList.add('hidden');
+      if (copyBox) copyBox.classList.add('hidden');
+
+      const copyPanel = document.getElementById('copyAvailablePanel');
+      if (copyPanel) copyPanel.classList.add('hidden');
+
+      // 显示脑筋急转弯UI
+      if (window.__brainTeaser && hasLastDraw) {
+        window.__brainTeaser.renderUI(list);
+      } else if (window.__brainTeaser) {
+        // 还没开始抽取时，也要显示成验证模式的标题，但隐藏输入框
+        // 这里让 brainTeaser 自行处理
+        window.__brainTeaser.hideUI();
+        // 此时应显示“开始游戏以...”
+      }
+    } else {
+      // 关闭脑筋急转弯UI
+      if (window.__brainTeaser) {
+        window.__brainTeaser.hideUI();
+      }
+    }
+
     // 未进行首次抽取：显示提示（放在 availablePanel 底部），不展示角色卡片
     if (!hasLastDraw) {
       if (grid) {
@@ -631,10 +735,14 @@
         grid.innerHTML = '';
         grid.classList.add('hidden');
       }
-      // 确保复制区域隐藏
       if (copyBox) copyBox.classList.add('hidden');
       const copyPanel = document.getElementById('copyAvailablePanel');
       if (copyPanel) copyPanel.classList.add('hidden');
+
+      // Brain Teaser specific: ensure BT UI is hidden if no chars (or handled inside BT)
+      // Actually if list is empty, BT UI should probably be hidden or show empty
+      // But standard logic below handles "no available" image.
+      if (window.__brainTeaser) window.__brainTeaser.hideUI();
 
       // 在 availablePanel 底部显示空状态图片
       const panel = document.getElementById('availablePanel');
@@ -642,7 +750,7 @@
         // 移除已有的占位
         const exist = panel.querySelector('.no-available');
         if (exist) exist.remove();
-        panel.insertAdjacentHTML('beforeend', `<div class="no-available"><img src="../pic-tem/3.png" alt="无可用角色"></div>`);
+        panel.insertAdjacentHTML('beforeend', `<div class="no-available"><img src="https://upload-bbs.miyoushe.com/upload/2024/11/03/273489775/a19dced01017ecfcb6ab0fb284ecb215_4557425723990781450.png" alt="无可用角色"></div>`);
       }
       return;
     }
@@ -658,7 +766,15 @@
       </div>`;
     }).join('');
 
-    if (grid) grid.classList.remove('hidden');
+
+
+    if (grid) {
+      if (brainTeaserMode && !isSurrendered) {
+        grid.classList.add('hidden');
+      } else {
+        grid.classList.remove('hidden');
+      }
+    }
 
     // 渲染完列表后，确保可用面板底部的空状态占位被移除（若存在）
     const panel = document.getElementById('availablePanel');
@@ -727,9 +843,8 @@
           btn.innerHTML = ICON_CHECK;
         });
       });
-      // 如果已有抽取且存在可复制段，则显示该区域
       const copyPanel = document.getElementById('copyAvailablePanel');
-      if (hasLastDraw && chunks.length) {
+      if (hasLastDraw && chunks.length && (!brainTeaserMode || isSurrendered)) {
         copyBox.classList.remove('hidden');
         if (copyPanel) copyPanel.classList.remove('hidden');
       } else {

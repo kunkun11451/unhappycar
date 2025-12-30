@@ -5,6 +5,8 @@
         theme: 'dark',
         badgeDisplayMode: 'text',
         copyAllInOneEnabled: false,
+        customContextMenuEnabled: true,
+        brainTeaserMode: false,
         shortcuts: {
             draw: 'None',
             lastDraw: 'None',
@@ -20,6 +22,8 @@
     if (!settings.theme) settings.theme = 'dark';
     if (!settings.badgeDisplayMode) settings.badgeDisplayMode = 'text';
     if (settings.copyAllInOneEnabled === undefined) settings.copyAllInOneEnabled = false;
+    if (settings.customContextMenuEnabled === undefined) settings.customContextMenuEnabled = true;
+    if (settings.brainTeaserMode === undefined) settings.brainTeaserMode = false;
     if (!settings.shortcuts.copyAllInOne) settings.shortcuts.copyAllInOne = 'None';
 
     window.__recorder_settings = settings;
@@ -97,12 +101,35 @@
             });
         }
 
+        // 初始化脑筋急转弯模式开关
+        const brainTeaserToggle = document.getElementById('brainTeaserToggle');
+        if (brainTeaserToggle) {
+            brainTeaserToggle.checked = settings.brainTeaserMode;
+            brainTeaserToggle.addEventListener('change', (e) => {
+                settings.brainTeaserMode = e.target.checked;
+                saveSettings();
+
+                // 触发 UI 刷新
+                if (window.__recorder_actions && window.__recorder_actions.refresh) {
+                    window.__recorder_actions.refresh();
+                }
+
+                // 如果在线，同步给观众
+                if (window.__recorder_online && window.__recorder_online.forceSync) {
+                    window.__recorder_online.forceSync();
+                }
+            });
+        }
+
         // 绑定弹窗内的按钮
         document.getElementById('modalUndoBtn').addEventListener('click', () => {
             window.__recorder_actions.undo();
         });
         document.getElementById('modalResetBtn').addEventListener('click', () => {
-            window.__recorder_actions.reset();
+            const doConfirm = window.showCustomConfirm || ((msg, cb) => { if (confirm(msg)) cb(); });
+            doConfirm('确定要重置所有记录吗？此操作无法撤销。', () => {
+                window.__recorder_actions.reset();
+            }, null, '重置记录', '确定', '取消');
         });
         document.getElementById('modalHistoryBtn').addEventListener('click', () => {
             window.__recorder_actions.openHistory();
@@ -141,6 +168,16 @@
                 if (window.__recorder_actions && window.__recorder_actions.refresh) {
                     window.__recorder_actions.refresh();
                 }
+            });
+        }
+
+        // 初始化自定义右键菜单开关
+        const contextMenuToggle = document.getElementById('contextMenuToggle');
+        if (contextMenuToggle) {
+            contextMenuToggle.checked = settings.customContextMenuEnabled;
+            contextMenuToggle.addEventListener('change', (e) => {
+                settings.customContextMenuEnabled = e.target.checked;
+                saveSettings();
             });
         }
 
@@ -391,6 +428,10 @@
                 actions.copyWithFeedback(actions.formatCurrentRecordText().replace(/水/g, '氵'), btn, true);
                 e.preventDefault();
             } else if (pressedShortcut === settings.shortcuts.availableChars) {
+                // 脑筋急转弯模式下禁用（除非投降）
+                if (settings.brainTeaserMode && window.__brainTeaser && !window.__brainTeaser.isSurrendered) {
+                    return;
+                }
                 lastActionTime = now;
                 lastActionShortcut = pressedShortcut;
                 copyNextAvailableChar();
@@ -402,6 +443,26 @@
     async function handleAllInOne() {
         const actions = window.__recorder_actions;
         const copyBox = document.getElementById('copyAvailable');
+        const copyPanel = document.getElementById('copyAvailablePanel');
+
+        // Check availability/visibility of copy area
+        // If hidden, treat as empty (step over)
+        const isCopyVisible = copyBox && !copyBox.classList.contains('hidden') &&
+            copyPanel && !copyPanel.classList.contains('hidden');
+
+        // 脑筋急转弯模式下跳过最后一步（除非投降）
+        // 或者如果复制区域不可见，也跳过
+        if (allInOneStep === 2) {
+            const shouldSkip = (settings.brainTeaserMode && window.__brainTeaser && !window.__brainTeaser.isSurrendered) ||
+                !isCopyVisible;
+
+            if (shouldSkip) {
+                allInOneStep = 0; // Reset
+                handleAllInOne(); // Immediately loop back to start
+                return;
+            }
+        }
+
         const chips = copyBox ? copyBox.querySelectorAll('.copy-chip') : [];
 
         if (allInOneStep === 0) {
@@ -413,7 +474,19 @@
             actions.copyWithFeedback(actions.formatCurrentRecordText().replace(/水/g, '氵'), btn, true);
             allInOneStep = 2;
             currentCopyIndex = 0;
+
+            // If we are moving to step 2, check if we should skip it immediately?
+            // The next press handles it usually. But if user wants "All in One", maybe automatic?
+            // No, the requirement implies manual cycling "repeatedly pressing".
+            // However, if Step 2 is invalid (hidden), we should probably skip it NOW if we were automating.
+            // But this function handles ONE press. 
+            // If I just finished Step 1, I wait for next press.
+            // Next press enters function. `allInOneStep` is 2.
+            // It hits the `if (allInOneStep === 2)` block above.
+            // Checks `shouldSkip`. If true -> resets to 0 -> calls `handleAllInOne()` -> executes Step 0.
+            // This seems correct for the "loop back" behavior.
         } else {
+            // Step 2 Execution
             if (chips.length === 0 || currentCopyIndex >= chips.length) {
                 allInOneStep = 0;
                 handleAllInOne();
@@ -423,6 +496,13 @@
             await copyNextAvailableChar();
 
             if (currentCopyIndex >= chips.length) {
+                // Cycle finished after this press?
+                // Actually copyNextAvailableChar increments index.
+                // If we reached end, next press should wrap to 0.
+                // Current logic: sets `allInOneStep = 0`.
+                // User has to press AGAIN to do Step 0.
+                // Requirement: "copy complete available... press again -> back to first".
+                // So setting allInOneStep = 0 is correct.
                 allInOneStep = 0;
             }
         }
@@ -503,6 +583,9 @@
             }, { once: true });
         };
 
+        const cancelBtn = document.getElementById('alertCancelBtn');
+        if (cancelBtn) cancelBtn.classList.add('hidden'); // Ensure hidden for alert
+
         const newOk = okBtn.cloneNode(true);
         okBtn.parentNode.replaceChild(newOk, okBtn);
         newOk.addEventListener('click', closeModal);
@@ -511,6 +594,80 @@
         closeBtn.parentNode.replaceChild(newClose, closeBtn);
         newClose.addEventListener('click', closeModal);
 
+        const newBackdrop = backdrop.cloneNode(true);
+        backdrop.parentNode.replaceChild(newBackdrop, backdrop);
+    };
+
+    // 自定义 Confirm 功能
+    window.showCustomConfirm = function (msg, onConfirm, onCancel = null, title = '确认', confirmText = '确定', cancelText = '取消') {
+        const modal = document.getElementById('alertModal');
+        const titleEl = document.getElementById('alertTitle');
+        const msgEl = document.getElementById('alertMessage');
+        const okBtn = document.getElementById('alertOkBtn');
+        const cancelBtn = document.getElementById('alertCancelBtn');
+        const closeBtn = document.getElementById('alertCloseBtn');
+        const backdrop = modal.querySelector('.settings-backdrop');
+
+        if (!modal) {
+            if (confirm(msg)) {
+                if (onConfirm) onConfirm();
+            } else {
+                if (onCancel) onCancel();
+            }
+            return;
+        }
+
+        titleEl.textContent = title;
+        msgEl.textContent = msg;
+        okBtn.textContent = confirmText;
+        if (cancelBtn) {
+            cancelBtn.textContent = cancelText;
+            cancelBtn.classList.remove('hidden');
+        }
+        modal.classList.remove('hidden');
+
+        const closeModal = () => {
+            modal.classList.add('closing');
+            modal.addEventListener('animationend', () => {
+                modal.classList.remove('hidden');
+                modal.classList.remove('closing');
+                modal.classList.add('hidden');
+            }, { once: true });
+        };
+
+        // Reset OK Button
+        const newOk = okBtn.cloneNode(true);
+        okBtn.parentNode.replaceChild(newOk, okBtn);
+        newOk.addEventListener('click', () => {
+            closeModal();
+            if (onConfirm) onConfirm();
+        });
+
+        // Reset Cancel Button
+        if (cancelBtn) {
+            const newCancel = cancelBtn.cloneNode(true);
+            cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
+            newCancel.addEventListener('click', () => {
+                closeModal();
+                if (onCancel) onCancel();
+            });
+        }
+
+        // Reset Close Button (treat as cancel)
+        const newClose = closeBtn.cloneNode(true);
+        closeBtn.parentNode.replaceChild(newClose, closeBtn);
+        newClose.addEventListener('click', () => {
+            closeModal();
+            if (onCancel) onCancel();
+        });
+
+        // Reset Backdrop (treat as cancel, if you want click outside to close)
+        // Currently existing alert doesn't close on backdrop click? 
+        // Let's implement backdrop close same as alert but triggering cancel?
+        // Alert implementation doesn't seem to have listener on backdrop?
+        // Ah, `newBackdrop` was created but no listener added in `showCustomAlert`.
+        // I'll leave it as is for consistency, or maybe I should add it?
+        // Let's just clone it to clear listeners.
         const newBackdrop = backdrop.cloneNode(true);
         backdrop.parentNode.replaceChild(newBackdrop, backdrop);
     };

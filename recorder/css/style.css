@@ -5,7 +5,7 @@
 body {
     margin: 0;
     font-family: 'HYWenHei-85W', system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Noto Sans", sans-serif;
-    background:radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px) 0 0 / 3px 3px, linear-gradient(135deg, #131313 0%, #2f2f2f 25%, #323232 50%, #2f2f2f 75%, #131313 100%);
+    background: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px) 0 0 / 3px 3px, linear-gradient(135deg, #131313 0%, #2f2f2f 25%, #323232 50%, #2f2f2f 75%, #131313 100%);
     background-attachment: fixed, fixed;
     color: #e2e8f0;
     min-height: 100vh;
@@ -813,7 +813,7 @@ body.modal-open {
 
 .no-available img {
     max-width: 360px;
-    width: 48%;
+    width: 90%;
     height: auto;
     opacity: 0.95;
 }
@@ -1263,5 +1263,15 @@ body.light-theme .rules-table th {
 
     .container {
         padding: 12px
+    }
+}
+
+/* Prevent zoom on mobile inputs */
+@media (max-width: 640px) {
+
+    input,
+    select,
+    textarea {
+        font-size: 16px !important;
     }
 }
