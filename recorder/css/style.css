@@ -109,6 +109,181 @@ h2 {
     margin-bottom: 8px
 }
 
+/* 顶部搜索框样式 */
+.header-search-container {
+    display: flex;
+    align-items: center;
+    position: relative;
+    height: 32px;
+}
+
+.btn-search {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid rgba(226, 232, 240, 0.2);
+    border-radius: 50%;
+    color: #cbd5e1;
+    /* 默认灰白色 */
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 2;
+    padding: 0;
+}
+
+.btn-search:hover {
+    border-color: rgba(226, 232, 240, 0.5);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.header-search-container.active .btn-search {
+    border-color: #cbd5e1;
+    color: #cbd5e1;
+}
+
+.search-input {
+    width: 0;
+    opacity: 0;
+    border: none;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(4px);
+    border-radius: 16px;
+    padding: 0;
+    outline: none;
+    color: #e2e8f0;
+    font-size: 0.85rem;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: absolute;
+    right: 0;
+    pointer-events: none;
+    height: 100%;
+}
+
+.header-search-container.active .search-input {
+    width: 180px;
+    opacity: 1;
+    padding: 0 38px 0 12px;
+    border: 1px solid rgba(226, 232, 240, 0.4);
+    pointer-events: auto;
+}
+
+/* 搜索高亮与模糊样式 */
+.card {
+    transition: transform 0.2s, box-shadow 0.2s, opacity 0.3s, border-color 0.3s;
+}
+
+.search-active .card.search-dim {
+    opacity: 0.3;
+    filter: grayscale(0.5);
+}
+
+.search-active .card.search-match {
+    opacity: 1;
+    filter: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.3), inset 0 0 10px rgba(59, 130, 246, 0.1);
+}
+
+/* 名称内具体字搜索高亮 */
+.name-hl {
+    background: rgba(251, 191, 36, 0.82);
+    /* 亮黄色背景 */
+    color: #131313;
+    /* 深色文字保证对比度 */
+    padding: 0 1px;
+    border-radius: 3px;
+    font-weight: 500;
+    margin: 0 -1px;
+}
+
+/* 角色标签弹窗样式 */
+.char-tags-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.char-tag-card {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 14px;
+    transition: all 0.2s ease;
+}
+
+.char-tag-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.char-tag-card .avatar {
+    width: 80px;
+    height: 95px;
+    object-fit: cover;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    flex-shrink: 0;
+}
+
+.char-tag-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.char-tag-info .name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #f1f5f9;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.char-tag-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+}
+
+.char-tag-row .label {
+    color: #92a0b5;
+    min-width: 50px;
+    flex-shrink: 0;
+}
+
+.char-tag-row .value {
+    color: #e2e8f0;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.char-tag-row .value.empty {
+    color: #64748b;
+    font-style: italic;
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+.char-tag-row .value.banned {
+    background: rgba(239, 68, 68, 0.25);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #fca5a5;
+}
+
+
 .panel-header h2 {
     margin: 0;
     opacity: 0.9;

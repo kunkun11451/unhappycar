@@ -139,6 +139,79 @@
             document.body.classList.remove('modal-open');
         });
 
+        // 查看所有角色标签按钮
+        const viewAllTagsBtn = document.getElementById('viewAllTagsBtn');
+        const charTagsModal = document.getElementById('charTagsModal');
+        const charTagsGrid = document.getElementById('charTagsGrid');
+
+        if (viewAllTagsBtn && charTagsModal && charTagsGrid) {
+            viewAllTagsBtn.addEventListener('click', () => {
+                // 获取当前记录
+                const record = window.__recorder_actions && window.__recorder_actions.getRecord
+                    ? window.__recorder_actions.getRecord()
+                    : { 元素类型: new Set(), 国家: new Set(), 武器类型: new Set(), 体型: new Set() };
+
+                // 填充角色数据
+                const charData = window.characterData || {};
+                const entries = Object.entries(charData);
+
+                charTagsGrid.innerHTML = entries.map(([name, data]) => {
+                    const avatar = data.头像 || '';
+                    const element = data.元素类型 || '';
+                    const region = data.国家 || '';
+                    const weapon = data.武器类型 || '';
+                    const body = data.体型 || '';
+
+                    // 检查每个标签是否在当前记录中（被禁用）
+                    const elementBanned = element && record.元素类型.has(element);
+                    const regionBanned = region && record.国家.has(region);
+                    const weaponBanned = weapon && record.武器类型.has(weapon);
+                    const bodyBanned = body && record.体型.has(body);
+
+                    return `
+                        <div class="char-tag-card">
+                            ${avatar ? `<img src="${avatar}" alt="${name}" class="avatar">` : '<div class="avatar"></div>'}
+                            <div class="char-tag-info">
+                                <div class="name">${name}</div>
+                                <div class="char-tag-row">
+                                    <span class="label">元素类型</span>
+                                    <span class="value ${element ? '' : 'empty'} ${elementBanned ? 'banned' : ''}">${element || '无'}</span>
+                                </div>
+                                <div class="char-tag-row">
+                                    <span class="label">国家</span>
+                                    <span class="value ${region ? '' : 'empty'} ${regionBanned ? 'banned' : ''}">${region || '无'}</span>
+                                </div>
+                                <div class="char-tag-row">
+                                    <span class="label">武器类型</span>
+                                    <span class="value ${weaponBanned ? 'banned' : ''}">${weapon}</span>
+                                </div>
+                                <div class="char-tag-row">
+                                    <span class="label">体型</span>
+                                    <span class="value ${bodyBanned ? 'banned' : ''}">${body}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                // 打开弹窗
+                charTagsModal.classList.remove('hidden');
+                document.body.classList.add('modal-open');
+            });
+
+            // 关闭弹窗
+            charTagsModal.querySelectorAll('[data-chartags-close]').forEach(el => {
+                el.addEventListener('click', () => {
+                    charTagsModal.classList.add('closing');
+                    setTimeout(() => {
+                        charTagsModal.classList.add('hidden');
+                        charTagsModal.classList.remove('closing');
+                        document.body.classList.remove('modal-open');
+                    }, 280);
+                });
+            });
+        }
+
         // 初始化快捷键显示
         initShortcutInputs();
 

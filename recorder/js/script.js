@@ -17,6 +17,8 @@
     体型: ["成女", "成男", "少女", "少年", "萝莉"],
   };
 
+  let panelSearchTerm = ''; // 用于顶部搜索框的过滤条件
+
   // 当前对称差记录
   const record = {
     元素类型: new Set(),
@@ -665,7 +667,31 @@
     return checks.every(fn => fn());
   }
 
-  function renderComplement() {
+  // 辅助函数：根据匹配范围高亮文本
+  function highlightText(text, search, matchRange) {
+    if (!search || !text) return text;
+
+    // 1. 如果有明确的匹配范围（通常来自拼音首字母匹配）
+    if (matchRange) {
+      const start = matchRange.start;
+      const end = start + matchRange.length;
+      return text.substring(0, start) +
+        `<span class="name-hl">${text.substring(start, end)}</span>` +
+        text.substring(end);
+    }
+
+    // 2. 备选：直接子串匹配（由于拼音匹配可能优先命中，这里主要处理直接输入文字的情况）
+    const idx = text.toLowerCase().indexOf(search.toLowerCase());
+    if (idx !== -1) {
+      return text.substring(0, idx) +
+        `<span class="name-hl">${text.substring(idx, idx + search.length)}</span>` +
+        text.substring(idx + search.length);
+    }
+
+    return text;
+  }
+
+  function renderComplement(skipAnims = false) {
     const grid = document.getElementById('complementList');
     const stats = document.getElementById('stats');
     const copyBox = document.getElementById('copyAvailable');
@@ -677,13 +703,40 @@
 
     if (stats) stats.textContent = `排除当前Ban位后剩余：${list.length} / ${entries.length}`;
 
-    if (stats) stats.textContent = `排除当前Ban位后剩余：${list.length} / ${entries.length}`;
+    // 处理顶部搜索逻辑：不再过滤 list，而是计算匹配项用于高亮
+    let matches = new Map(); // 使用 Map 存储 name -> matchRange
+    const isSearchActive = !!panelSearchTerm;
+    if (isSearchActive) {
+      const hasPinyinSupport = typeof window.pinyinPro !== 'undefined' && typeof window.pinyinPro.pinyin === 'function';
+      const pinyinFunc = hasPinyinSupport ? window.pinyinPro.pinyin : null;
+
+      list.forEach(item => {
+        const name = item.name;
+        const lowerName = name.toLowerCase();
+
+        // 1. 优先尝试直接子串匹配
+        const subIdx = lowerName.indexOf(panelSearchTerm);
+        if (subIdx !== -1) {
+          matches.set(name, { start: subIdx, length: panelSearchTerm.length });
+          return;
+        }
+
+        // 2. 尝试拼音首字母逻辑
+        if (window.__brainTeaser && window.__brainTeaser.matchPinyinInitials) {
+          const res = window.__brainTeaser.matchPinyinInitials(name, panelSearchTerm, pinyinFunc);
+          if (res && res.match) {
+            matches.set(name, res.range);
+          }
+        }
+      });
+    }
 
     // === Brain Teaser Mode Logic ===
     const settings = window.__recorder_settings || {};
     const brainTeaserMode = settings.brainTeaserMode;
     const isSurrendered = window.__brainTeaser ? window.__brainTeaser.isSurrendered : false;
 
+    // 如果开启了脑筋急转弯且未投降
     // 如果开启了脑筋急转弯且未投降
     if (brainTeaserMode && !isSurrendered) {
       // 隐藏常规列表
@@ -692,6 +745,16 @@
 
       const copyPanel = document.getElementById('copyAvailablePanel');
       if (copyPanel) copyPanel.classList.add('hidden');
+
+      const searchContainer = document.getElementById('panelSearchContainer');
+      if (searchContainer) {
+        searchContainer.classList.add('hidden');
+        // 确保退出搜索状态
+        if (searchContainer.classList.contains('active')) {
+          searchContainer.classList.remove('active');
+          panelSearchTerm = '';
+        }
+      }
 
       // 显示脑筋急转弯UI
       if (window.__brainTeaser && hasLastDraw) {
@@ -707,6 +770,8 @@
       if (window.__brainTeaser) {
         window.__brainTeaser.hideUI();
       }
+      const searchContainer = document.getElementById('panelSearchContainer');
+      if (searchContainer) searchContainer.classList.remove('hidden');
     }
 
     // 未进行首次抽取：显示提示（放在 availablePanel 底部），不展示角色卡片
@@ -755,20 +820,34 @@
       return;
     }
 
-    const anims = (window.__recorder_settings && window.__recorder_settings.animationsEnabled !== false);
+    const anims = (window.__recorder_settings && window.__recorder_settings.animationsEnabled !== false) && !skipAnims;
     grid.innerHTML = list.map(({ name, data }, i) => {
       const avatar = data.头像 || '';
-      const cardClass = anims ? 'card card-appear' : 'card';
+      let cardClass = anims ? 'card card-appear' : 'card';
+      let displayName = name;
+      if (isSearchActive) {
+        const matchRange = matches.get(name);
+        if (matchRange) {
+          cardClass += ' search-match';
+          displayName = highlightText(name, panelSearchTerm, matchRange);
+        } else {
+          cardClass += ' search-dim';
+        }
+      }
       const cardStyle = anims ? `--stagger:${i}` : '';
       return `<div class="${cardClass}" style="${cardStyle}" title="${name}">
         ${avatar ? `<img src="${avatar}" alt="${name}" class="avatar">` : ''}
-        <h3>${name}</h3>
+        <h3>${displayName}</h3>
       </div>`;
     }).join('');
 
-
-
     if (grid) {
+      if (isSearchActive) {
+        grid.classList.add('search-active');
+      } else {
+        grid.classList.remove('search-active');
+      }
+
       if (brainTeaserMode && !isSurrendered) {
         grid.classList.add('hidden');
       } else {
@@ -1162,6 +1241,55 @@
       copyRecordBtn.addEventListener('click', (e) => copyWithFeedback(formatCurrentRecordText().replace(/水/g, '氵'), e.currentTarget));
     }
 
+    // 绑定顶部搜索框逻辑
+    const searchBtn = document.getElementById('panelSearchBtn');
+    const searchInput = document.getElementById('panelSearchInput');
+    const searchContainer = document.getElementById('panelSearchContainer');
+
+    if (searchBtn && searchInput && searchContainer) {
+      searchBtn.addEventListener('click', (e) => {
+        if (!searchContainer.classList.contains('active')) {
+          searchContainer.classList.add('active');
+          searchInput.focus();
+        } else {
+          // 展开状态下点击，执行搜索或收起（如果没内容）
+          if (searchInput.value.trim()) {
+            panelSearchTerm = searchInput.value.trim().toLowerCase();
+            renderComplement();
+          } else {
+            searchInput.blur();
+          }
+        }
+      });
+
+      searchInput.addEventListener('blur', () => {
+        // 使用 setTimeout 延迟，防止点击按钮收起时冲突
+        setTimeout(() => {
+          if (!searchBtn.matches(':active')) {
+            searchContainer.classList.remove('active');
+            if (searchInput.value.trim() || panelSearchTerm) {
+              searchInput.value = '';
+              panelSearchTerm = '';
+              renderComplement(true);
+            }
+          }
+        }, 150);
+      });
+
+      searchInput.addEventListener('input', () => {
+        panelSearchTerm = searchInput.value.trim().toLowerCase();
+        renderComplement(true);
+      });
+
+      // 快捷键 ESC 退出搜索
+      searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          searchInput.value = '';
+          searchInput.blur();
+        }
+      });
+    }
+
     // 尝试加载数据
     loadState();
   }
@@ -1175,13 +1303,17 @@
     reset,
     openHistory: () => {
       document.getElementById('historyModal').classList.remove('hidden');
-      renderHistoryChart();
+      document.body.classList.add('modal-open');
+      // 重置到第一个 Tab
+      const firstTab = document.getElementById('historyModal').querySelector('.tab-btn');
+      if (firstTab) firstTab.click();
     },
     refresh, // Expose refresh
     drawOnce,
     formatLastDrawText,
     formatCurrentRecordText,
-    copyWithFeedback
+    copyWithFeedback,
+    getRecord: () => record // 暴露当前记录供角色标签弹窗使用
   };
 
   if (document.readyState === 'loading') {

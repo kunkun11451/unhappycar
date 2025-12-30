@@ -223,21 +223,23 @@
             if (!pinyinFunc) return { match: false };
 
             // 获取所有可能的拼音首字母组合
-            const { initialsMatrix, matchedPositions } = this.getAllPossibleInitials(name, searchTerm, pinyinFunc);
+            const { initialsMatrix } = this.getAllPossibleInitials(name, searchTerm, pinyinFunc);
 
             // 检查是否有任何组合匹配搜索词
+            let matchRange = null;
             const match = initialsMatrix.some(initials => {
                 const combinedInitials = initials.join('');
                 const startIndex = combinedInitials.indexOf(searchTerm);
 
                 if (startIndex !== -1) {
-                    // 记录匹配的字符位置 (简单实现，仅用于判断匹配，不需高亮位置)
+                    // 记录匹配的字符范围
+                    matchRange = { start: startIndex, length: searchTerm.length };
                     return true;
                 }
                 return false;
             });
 
-            return { match, matchedPositions };
+            return { match, range: matchRange };
         },
 
         getAllPossibleInitials: function (name, searchTerm, pinyinFunc) {
