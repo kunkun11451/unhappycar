@@ -4,157 +4,381 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="https://bbs-static.miyoushe.com/static/2024/06/12/7982e4f54092be80c43a251f26e44235_6026540790739799944.png" type="image/png">
-    <title>导航首页</title>
+    <title>UnhappyCar Tools</title>
     <link rel="stylesheet" href="fangwei/HYWenHei-85W.css">
     <style>
         :root {
-            --bg-color: #121212;
-            --glass-bg: rgba(30, 30, 30, 0.6);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --text-primary: #ffffff;
-            --text-secondary: rgba(255, 255, 255, 0.6);
-            --accent-color: #60a5fa;
+            --bg-color: #0f1012;
+            --text-primary: #f1f5f9;
+            --text-secondary: rgba(241, 245, 249, 0.65);
+            --accent-color: rgba(255, 255, 255, 0.85);
+            --accent-hover: rgba(255, 255, 255, 1);
+            --card-bg: rgba(24, 24, 28, 0.7);
+            --transition-speed: 0.6s;
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'HYWenHei-85W', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: 'HYWenHei-85W', 'Inter', system-ui, -apple-system, sans-serif;
         }
 
         body {
             background-color: var(--bg-color);
-            background-image: 
-                radial-gradient(circle at 0% 0%, rgba(96, 165, 250, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 100% 100%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
             color: var(--text-primary);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 40px 20px;
-            overflow-x: hidden;
+            overflow: hidden; /* Prevent default scrolling */
+            height: 100vh;
+            width: 100vw;
         }
 
-        .container {
-            width: 100%;
-            max-width: 1000px;
-            z-index: 1;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 4rem;
-        }
-
-        h1 {
-            font-size: 3rem;
-            font-weight: 800;
-            letter-spacing: -0.03em;
-            margin-bottom: 1rem;
-            background: linear-gradient(135deg, #fff 0%, #888 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .subtitle {
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 1.5rem;
-            width: 100%;
-        }
-
-        .card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: 2rem 1.5rem;
-            text-decoration: none;
-            color: inherit;
-            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .card::before {
-            content: '';
-            position: absolute;
+        /* Background Effects */
+        .bg-blobs {
+            position: fixed;
             top: 0;
             left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%);
-            opacity: 0;
-            transition: opacity 0.4s;
-        }
-
-        .card:hover {
-            transform: translateY(-8px) scale(1.02);
-            border-color: rgba(255, 255, 255, 0.3);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-            background: rgba(40, 40, 40, 0.7);
-        }
-
-        .card:hover::before {
-            opacity: 1;
-        }
-
-        .card h2 {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            z-index: 2;
-        }
-
-        .card p {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            z-index: 2;
-        }
-
-        .footer {
-            margin-top: 5rem;
-            text-align: center;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            opacity: 0.6;
-        }
-
-        .blob {
-            position: fixed;
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, rgba(96, 165, 250, 0.08) 0%, transparent 70%);
-            border-radius: 50%;
-            z-index: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
             pointer-events: none;
         }
 
-        .blob-1 { top: -100px; right: -100px; }
-        .blob-2 { bottom: -100px; left: -100px; }
-
-        @media (max-width: 640px) {
-            h1 { font-size: 2.2rem; }
-            .grid { grid-template-columns: 1fr; }
-            body { padding: 40px 15px; }
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.4;
+            animation: float 20s infinite alternate;
         }
 
+        .blob:nth-child(1) { width: 520px; height: 520px; background: rgba(255,255,255,0.08); top: -120px; left: -120px; }
+        .blob:nth-child(2) { width: 680px; height: 680px; background: rgba(255,255,255,0.05); bottom: -160px; right: -160px; animation-delay: -5s; }
+        .blob:nth-child(3) { width: 360px; height: 360px; background: rgba(255,255,255,0.04); top: 42%; left: 62%; animation-delay: -10s; opacity: 0.25; }
+
+        /* Moving light/shadow FX that follows page rotation */
+        .fx-container {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .light-beam {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 200vw;
+            height: 200vh;
+            background: linear-gradient(
+                90deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.03) 15%, 
+                rgba(255, 255, 255, 0.08) 50%, 
+                rgba(255, 255, 255, 0.03) 85%, 
+                transparent 100%
+            );
+            transform-origin: center center;
+            opacity: 0;
+            transition: opacity 1s ease, transform 1s cubic-bezier(0.2, 0.8, 0.2, 1);
+            filter: blur(140px);
+            mix-blend-mode: overlay;
+        }
+
+        /* Ambient glow */
+        .ambient-glow {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.05), transparent 70%);
+            opacity: 0.5;
+            transition: opacity 1.5s ease;
+        }
+
+
+        @keyframes float {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(100px, 50px) rotate(20deg); }
+        }
+
+        /* 3D Scene (Prism-like scrolling) */
+        .scene {
+            position: fixed;
+            inset: 0;
+            perspective: 1400px;
+            perspective-origin: 50% 50%;
+            overflow: hidden;
+        }
+
+        /* Main Slider (3D carousel around X axis) */
+        .slider-container {
+            position: absolute;
+            inset: 0;
+            transform-style: preserve-3d;
+            will-change: transform;
+            transition: transform 0.95s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .slide {
+            position: absolute;
+            inset: 0;
+            height: 100vh;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+        }
+
+        .slide-content {
+            display: flex;
+            width: 100%;
+            max-width: 1400px;
+            height: 80vh;
+            gap: 4rem;
+            align-items: center;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
+            transition-delay: 0.2s;
+        }
+
+        .slide.active .slide-content {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Hero Slide Special Styling */
+        .slide.hero .slide-content {
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            gap: 2rem;
+        }
+
+        .hero-title {
+            font-size: 5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            line-height: 1.6;
+        }
+
+        /* Navigation Grid on Hero Page */
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 2rem;
+            width: 100%;
+            max-width: 800px;
+            z-index: 10;
+        }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            padding: 12px 10px;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-3px);
+            border-color: var(--accent-color);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Info Section (Left) */
+        .info-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            z-index: 2;
+        }
+
+        .tool-number {
+            font-size: 6rem;
+            font-weight: 900;
+            color: rgba(255,255,255,0.05);
+            line-height: 1;
+            position: absolute;
+            top: -2rem;
+            left: -1rem;
+            pointer-events: none;
+        }
+
+        .info-container {
+            position: relative;
+        }
+
+        .tool-title {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+
+        .tool-desc {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 32px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Preview Section (Right) */
+        .preview-col {
+            flex: 1.5;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 1000px;
+        }
+
+        .browser-mockup {
+            width: 100%;
+            height: 100%;
+            background: #1e293b;
+            border-radius: 12px;
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transform: rotateY(-5deg) rotateX(2deg);
+            transition: transform 0.5s ease;
+        }
+
+        .active .browser-mockup {
+            transform: rotateY(0) rotateX(0);
+        }
+
+        .browser-header {
+            height: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
+        .dot-red { background: #ef4444; }
+        .dot-yellow { background: #eab308; }
+        .dot-green { background: #22c55e; }
+
+        .address-bar {
+            margin-left: 12px;
+            flex: 1;
+            height: 24px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .preview-iframe {
+            flex: 1;
+            width: 100%;
+            border: none;
+            background: white;
+            touch-action: pan-y;
+        }
+
+        /* Navigation Dots */
+        .nav-dots {
+            position: fixed;
+            right: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 10;
+        }
+
+        .nav-dot {
+            width: 12px;
+            height: 12px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-dot:hover {
+            background: rgba(255,255,255,0.5);
+            transform: scale(1.2);
+        }
+
+        .nav-dot.active {
+            background: var(--accent-color);
+            transform: scale(1.4);
+        }
+
+        /* Github Link */
         .github-link {
             position: fixed;
             top: 20px;
@@ -168,73 +392,630 @@
             justify-content: center;
             width: 40px;
             height: 40px;
-            background: var(--glass-bg);
+            background: rgba(255,255,255,0.1);
             backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border);
             border-radius: 50%;
         }
 
         .github-link:hover {
             opacity: 1;
             transform: scale(1.1);
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.2);
         }
 
-        .github-link svg {
-            width: 24px;
-            height: 24px;
-            fill: currentColor;
+        /* Responsive */
+        @media (max-width: 900px) {
+            /* Performance: remove expensive background FX on mobile */
+            .bg-blobs { display: none; }
+            .fx-container { display: none; }
+
+            /* Performance: backdrop-filter is costly on mobile GPUs */
+            .btn,
+            .browser-header,
+            .nav-btn,
+            .github-link,
+            .address-bar {
+                backdrop-filter: none;
+                -webkit-backdrop-filter: none;
+            }
+
+            /* Performance: avoid extra 3D transforms + heavy shadows */
+            .browser-mockup {
+                transform: none;
+                box-shadow: 0 18px 32px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.08);
+            }
+
+            .nav-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+                margin-top: 1rem;
+            }
+
+            .slide-content {
+                flex-direction: column;
+                height: 90vh;
+                gap: 2rem;
+            }
+            
+            .info-col {
+                flex: 0 0 auto;
+                align-items: center;
+                text-align: center;
+                width: 100%;
+            }
+
+            .active .browser-mockup {
+                transform: none; /* Simplify on mobile */
+            }
+
+            .preview-col {
+                width: 100%;
+                flex: 1;
+            }
+
+            .tool-number { display: none; }
+            .hero-title { font-size: 3rem; }
+            .nav-dots { display: none; } /* Hide dots on mobile usually */
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .blob { animation: none !important; }
+            .scroll-indicator { animation: none !important; }
+            .fx-container { display: none; }
         }
     </style>
 </head>
 <body>
-    <a href="https://github.com/kunkun11451/unhappycar" target="_blank" class="github-link" title="View on GitHub">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.041-1.416-4.041-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"></path></svg>
-    </a>
-    <div class="blob blob-1"></div>
-    <div class="blob blob-2"></div>
-
-    <div class="container">
-        <header>
-            <h1>UnhappyCar工具合集</h1>
-        </header>
-
-        <div class="grid">
-            <a href="rnd/" class="card">
-                <h2>随机角色事件抽取</h2>
-                <p>随机生成角色与事件，支持房间同步</p>
-            </a>
-            <a href="pinhaotu/" class="card">
-                <h2>拼好图</h2>
-                <p>随机路线生成工具</p>
-            </a>
-            <a href="fangwei/" class="card">
-                <h2>方位抽取器</h2>
-                <p>方位四骰一键抽取工具</p>
-            </a>
-            <a href="xjjj/" class="card">
-                <h2>选角禁技</h2>
-                <p>选角禁技玩法的辅助抽取工具</p>
-            </a>
-            <a href="pt/" class="card">
-                <h2>表情包编辑</h2>
-                <p>制作猿神表情包的P图工具</p>
-            </a>
-            <a href="dice/" class="card">
-                <h2>史镶金随机数生成器</h2>
-                <p>物理骰子骰随机数</p>
-            </a>
-            <a href="recorder/" class="card">
-                <h2>随机ban位抽取</h2>
-                <p>随机ban位玩法的辅助抽取工具</p>
-            </a>
-            <a href="https://unhappycar.tech/" class="card">
-                <h2>自动BP记录器</h2>
-                <p>通过识别截图记录BP信息的工具</p>
-            </a>
-        </div>
+    <div class="bg-blobs">
+        <div class="blob"></div>
+        <div class="blob"></div>
+        <div class="blob"></div>
     </div>
+
+    <div class="fx-container" id="fxContainer">
+        <div class="ambient-glow"></div>
+        <div class="light-beam" id="lightBeam1"></div>
+        <div class="light-beam" id="lightBeam2"></div>
+    </div>
+
+    <a href="https://github.com/kunkun11451/unhappycar" target="_blank" class="github-link" title="View on GitHub">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.041-1.416-4.041-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"></path></svg>
+    </a>
+
+    <div class="nav-dots" id="navDots">
+        <!-- Generated by JS -->
+    </div>
+
+    <div class="scene">
+    <div class="slider-container" id="slider">
+        <!-- Hero Slide -->
+        <section class="slide hero active">
+            <div class="slide-content">
+                <h1 class="hero-title">UnhappyCar Tools</h1>
+
+                <div class="nav-grid">
+                    <div class="nav-btn" data-target="1">随机角色事件抽取</div>
+                    <div class="nav-btn" data-target="2">拼好图</div>
+                    <div class="nav-btn" data-target="3">方位抽取器</div>
+                    <div class="nav-btn" data-target="4">选角禁技</div>
+                    <div class="nav-btn" data-target="5">表情包编辑</div>
+                    <div class="nav-btn" data-target="6">史镶金随机数</div>
+                    <div class="nav-btn" data-target="7">随机Ban位抽取</div>
+                    <div class="nav-btn" data-target="8">自动BP记录器</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tool 1: RND -->
+        <section class="slide">
+            <div class="slide-content">
+                <div class="info-col">
+                    <div class="info-container">
+                        <span class="tool-number">01</span>
+                        <h2 class="tool-title">随机角色事件抽取</h2>
+                        <p class="tool-desc">随机角色与事件生成工具。</p>
+                        <a href="rnd/" class="btn">
+                            进入工具
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </a>
+                    </div>
+                </div>
+                <div class="preview-col">
+                    <div class="browser-mockup">
+                        <div class="browser-header">
+                            <div class="dot dot-red"></div>
+                            <div class="dot dot-yellow"></div>
+                            <div class="dot dot-green"></div>
+                            <div class="address-bar">unhappycar.games/rnd/</div>
+                        </div>
+                        <iframe data-src="rnd/" class="preview-iframe"></iframe>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tool 2: PinHaoTu -->
+        <section class="slide">
+            <div class="slide-content">
+                <div class="info-col">
+                    <div class="info-container">
+                        <span class="tool-number">02</span>
+                        <h2 class="tool-title">拼好图</h2>
+                        <p class="tool-desc">随机路线生成工具。</p>
+                        <a href="pinhaotu/" class="btn">
+                            进入工具
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </a>
+                    </div>
+                </div>
+                <div class="preview-col">
+                    <div class="browser-mockup">
+                        <div class="browser-header">
+                            <div class="dot dot-red"></div>
+                            <div class="dot dot-yellow"></div>
+                            <div class="dot dot-green"></div>
+                            <div class="address-bar">unhappycar.games/pinhaotu/</div>
+                        </div>
+                        <iframe data-src="pinhaotu/" class="preview-iframe"></iframe>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tool 3: Fangwei -->
+        <section class="slide">
+            <div class="slide-content">
+                <div class="info-col">
+                    <div class="info-container">
+                        <span class="tool-number">03</span>
+                        <h2 class="tool-title">方位抽取器</h2>
+                        <p class="tool-desc">方位四骰一键抽取工具。</p>
+                        <a href="fangwei/" class="btn">
+                            进入工具
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </a>
+                    </div>
+                </div>
+                <div class="preview-col">
+                    <div class="browser-mockup">
+                        <div class="browser-header">
+                            <div class="dot dot-red"></div>
+                            <div class="dot dot-yellow"></div>
+                            <div class="dot dot-green"></div>
+                            <div class="address-bar">unhappycar.games/fangwei/</div>
+                        </div>
+                        <iframe data-src="fangwei/" class="preview-iframe"></iframe>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tool 4: XJJJ -->
+        <section class="slide">
+            <div class="slide-content">
+                <div class="info-col">
+                    <div class="info-container">
+                        <span class="tool-number">04</span>
+                        <h2 class="tool-title">选角禁技</h2>
+                        <p class="tool-desc">选角禁技玩法的辅助抽取工具。</p>
+                        <a href="xjjj/" class="btn">
+                            进入工具
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </a>
+                    </div>
+                </div>
+                <div class="preview-col">
+                    <div class="browser-mockup">
+                        <div class="browser-header">
+                            <div class="dot dot-red"></div>
+                            <div class="dot dot-yellow"></div>
+                            <div class="dot dot-green"></div>
+                            <div class="address-bar">unhappycar.games/xjjj/</div>
+                        </div>
+                        <iframe data-src="xjjj/" class="preview-iframe"></iframe>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tool 5: PT -->
+        <section class="slide">
+            <div class="slide-content">
+                <div class="info-col">
+                    <div class="info-container">
+                        <span class="tool-number">05</span>
+                        <h2 class="tool-title">表情包编辑</h2>
+                        <p class="tool-desc">制作猿神表情包的P图工具。</p>
+                        <a href="pt/" class="btn">
+                            进入工具
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </a>
+                    </div>
+                </div>
+                <div class="preview-col">
+                    <div class="browser-mockup">
+                        <div class="browser-header">
+                            <div class="dot dot-red"></div>
+                            <div class="dot dot-yellow"></div>
+                            <div class="dot dot-green"></div>
+                            <div class="address-bar">unhappycar.games/pt/</div>
+                        </div>
+                        <iframe data-src="pt/" class="preview-iframe"></iframe>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tool 6: Dice -->
+        <section class="slide">
+            <div class="slide-content">
+                <div class="info-col">
+                    <div class="info-container">
+                        <span class="tool-number">06</span>
+                        <h2 class="tool-title">史镶金随机数生成器</h2>
+                        <p class="tool-desc">物理骰子骰随机数。(推荐使用电脑端访问)</p>
+                        <a href="dice/" class="btn">
+                            进入工具
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </a>
+                    </div>
+                </div>
+                <div class="preview-col">
+                    <div class="browser-mockup">
+                        <div class="browser-header">
+                            <div class="dot dot-red"></div>
+                            <div class="dot dot-yellow"></div>
+                            <div class="dot dot-green"></div>
+                            <div class="address-bar">unhappycar.games/dice/</div>
+                        </div>
+                        <iframe data-src="dice/" class="preview-iframe"></iframe>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tool 7: Recorder -->
+        <section class="slide">
+            <div class="slide-content">
+                <div class="info-col">
+                    <div class="info-container">
+                        <span class="tool-number">07</span>
+                        <h2 class="tool-title">随机Ban位抽取</h2>
+                        <p class="tool-desc">随机ban位玩法的辅助抽取工具。</p>
+                        <a href="recorder/" class="btn">
+                            进入工具
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </a>
+                    </div>
+                </div>
+                <div class="preview-col">
+                    <div class="browser-mockup">
+                        <div class="browser-header">
+                            <div class="dot dot-red"></div>
+                            <div class="dot dot-yellow"></div>
+                            <div class="dot dot-green"></div>
+                            <div class="address-bar">unhappycar.games/recorder/</div>
+                        </div>
+                        <iframe data-src="recorder/" class="preview-iframe"></iframe>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Tool 8: Auto BP (External) -->
+        <section class="slide">
+            <div class="slide-content">
+                <div class="info-col">
+                    <div class="info-container">
+                        <span class="tool-number">08</span>
+                        <h2 class="tool-title">自动BP记录器</h2>
+                        <p class="tool-desc">通过识别截图记录BP信息的工具。</p>
+                        <a href="https://unhappycar.tech/" class="btn">
+                            进入工具
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </a>
+                    </div>
+                </div>
+                <div class="preview-col">
+                    <div class="browser-mockup">
+                        <div class="browser-header">
+                            <div class="dot dot-red"></div>
+                            <div class="dot dot-yellow"></div>
+                            <div class="dot dot-green"></div>
+                            <div class="address-bar">unhappycar.tech</div>
+                        </div>
+                        <iframe data-src="https://unhappycar.tech/" class="preview-iframe"></iframe>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const slider = document.getElementById('slider');
+            const slides = document.querySelectorAll('.slide');
+            const navDotsContainer = document.getElementById('navDots');
+            const lightBeam1 = document.getElementById('lightBeam1');
+            const lightBeam2 = document.getElementById('lightBeam2');
+            
+            let currentSlide = 0;
+            let isScrolling = false;
+            let isEntering = false;
+            const totalSlides = slides.length;
+            let radius = 800;
+            let angleStep = 360 / Math.max(totalSlides, 1);
+            let isMobile = window.matchMedia('(max-width: 900px)').matches;
+            let touchStartedInPreview = false;
+
+            function computeGeometry() {
+                // Keep faces readable and avoid excessive distortion on very tall screens
+                const faceSize = Math.min(window.innerHeight, 1000);
+                angleStep = 360 / Math.max(totalSlides, 1);
+                radius = Math.round((faceSize / 2) / Math.tan(Math.PI / Math.max(totalSlides, 3)));
+
+                if (isMobile) {
+                    // Mobile: use 2D stacking for better iframe scroll compatibility
+                    slides.forEach((slide, index) => {
+                        slide.style.transform = `translateY(${index * 100}vh)`;
+                    });
+                } else {
+                    // Desktop: Place each slide on a ring around the X axis
+                    slides.forEach((slide, index) => {
+                        slide.style.transform = `rotateX(${-index * angleStep}deg) translateZ(${radius}px)`;
+                    });
+                }
+            }
+
+            // Create Navigation Dots
+            slides.forEach((_, index) => {
+                const dot = document.createElement('div');
+                dot.classList.add('nav-dot');
+                if (index === 0) dot.classList.add('active');
+                dot.addEventListener('click', () => goToSlide(index));
+                navDotsContainer.appendChild(dot);
+            });
+
+            const dots = document.querySelectorAll('.nav-dot');
+
+            // Handle hero page nav buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const targetIndex = parseInt(btn.getAttribute('data-target'));
+                    goToSlide(targetIndex);
+                });
+            });
+
+            // Handle tool entry animation
+            document.querySelectorAll('.btn').forEach(btn => {
+                // Skip if external link (target="_blank")
+                if (btn.getAttribute('target') === '_blank') return;
+                
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (isEntering) return;
+                    const url = btn.getAttribute('href');
+                    const slide = btn.closest('.slide');
+                    const mockup = slide.querySelector('.browser-mockup');
+                    const header = slide.querySelector('.browser-header');
+                    const iframe = slide.querySelector('iframe');
+                    
+                    if (!mockup) {
+                        window.location.href = url;
+                        return;
+                    }
+
+                    isEntering = true;
+
+                    // Ensure iframe is loaded so the maximize feels continuous.
+                    if (iframe && !iframe.getAttribute('src') && iframe.getAttribute('data-src')) {
+                        iframe.setAttribute('src', iframe.getAttribute('data-src'));
+                    }
+
+                    // Create a placeholder to avoid layout jump inside the slide.
+                    const rect = mockup.getBoundingClientRect();
+                    const placeholder = document.createElement('div');
+                    placeholder.style.width = `${rect.width}px`;
+                    placeholder.style.height = `${rect.height}px`;
+                    placeholder.style.pointerEvents = 'none';
+                    placeholder.style.opacity = '0';
+                    mockup.parentNode.insertBefore(placeholder, mockup);
+
+                    // Move mockup to body and animate like a window maximize (no scaling).
+                    document.body.appendChild(mockup);
+
+                    // Lock interactions during transition.
+                    document.body.style.cursor = 'progress';
+
+                    mockup.style.position = 'fixed';
+                    mockup.style.left = `${rect.left}px`;
+                    mockup.style.top = `${rect.top}px`;
+                    mockup.style.width = `${rect.width}px`;
+                    mockup.style.height = `${rect.height}px`;
+                    mockup.style.margin = '0';
+                    mockup.style.zIndex = '3000';
+                    mockup.style.transform = 'none';
+                    mockup.style.borderRadius = '12px';
+                    mockup.style.transition = 'left 0.55s cubic-bezier(0.2, 0.8, 0.2, 1), top 0.55s cubic-bezier(0.2, 0.8, 0.2, 1), width 0.55s cubic-bezier(0.2, 0.8, 0.2, 1), height 0.55s cubic-bezier(0.2, 0.8, 0.2, 1), border-radius 0.35s ease, box-shadow 0.55s ease';
+
+                    // Fade out left info and prism dots for focus.
+                    const infoCol = slide.querySelector('.info-col');
+                    if (infoCol) {
+                        infoCol.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+                        infoCol.style.opacity = '0';
+                        infoCol.style.transform = 'translateX(-40px)';
+                    }
+                    const navDots = document.getElementById('navDots');
+                    if (navDots) {
+                        navDots.style.transition = 'opacity 0.25s ease';
+                        navDots.style.opacity = '0';
+                    }
+
+                    // Optional: fade header slightly (maximize feel).
+                    if (header) {
+                        header.style.transition = 'opacity 0.25s ease';
+                        header.style.opacity = '0';
+                    }
+
+                    // Trigger the maximize animation on next frame.
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            mockup.style.left = '0px';
+                            mockup.style.top = '0px';
+                            mockup.style.width = '100vw';
+                            mockup.style.height = '100vh';
+                            mockup.style.borderRadius = '0px';
+                            mockup.style.boxShadow = 'none';
+                        });
+                    });
+
+                    const onDone = (ev) => {
+                        if (ev.target !== mockup) return;
+                        mockup.removeEventListener('transitionend', onDone);
+                        window.location.href = url;
+                    };
+                    mockup.addEventListener('transitionend', onDone);
+
+                    // Fallback in case transitionend doesn't fire.
+                    setTimeout(() => {
+                        window.location.href = url;
+                    }, 700);
+                });
+            });
+
+            function updateSlideState() {
+                // Update slider transform
+                if (isMobile) {
+                    slider.style.transform = `translateY(-${currentSlide * 100}vh)`;
+                } else {
+                    // Desktop: camera-like movement inside a prism
+                    slider.style.transform = `translateZ(${-radius}px) rotateX(${currentSlide * angleStep}deg)`;
+                }
+
+                // Drive light beams with page rotation
+                // Beam 1: Primary wide beam, rotates slowly
+                const angle = currentSlide * angleStep;
+                if (!isMobile && lightBeam1) {
+                    // Start position + rotation offset
+                    lightBeam1.style.opacity = '1';
+                    lightBeam1.style.transform = `translate(-50%, -50%) rotate(${45 + angle * 0.2}deg) translateY(${Math.sin(angle * 0.01) * 50}px)`;
+                }
+                
+                // Beam 2: Secondary beam, rotates opposite and faster for layering
+                if (!isMobile && lightBeam2) {
+                    lightBeam2.style.opacity = '0.7';
+                    // Use scale to create a "breathing" or depth effect
+                    const scale = 1 + Math.sin(angle * 0.02) * 0.2;
+                    lightBeam2.style.transform = `translate(-50%, -50%) rotate(${-30 + angle * 0.15}deg) scale(${scale})`;
+                }
+                
+                // Update active classes
+                slides.forEach((slide, index) => {
+                    if (index === currentSlide) {
+                        slide.classList.add('active');
+                        // Lazy load iframe if needed (and not already loaded)
+                        const iframe = slide.querySelector('iframe');
+                        if (iframe && !iframe.getAttribute('src') && iframe.getAttribute('data-src')) {
+                            iframe.setAttribute('src', iframe.getAttribute('data-src'));
+                        }
+                    } else {
+                        slide.classList.remove('active');
+
+                        // Mobile perf: unload non-active iframes to reduce memory/CPU.
+                        if (isMobile) {
+                            const iframe = slide.querySelector('iframe');
+                            if (iframe && iframe.getAttribute('src')) {
+                                iframe.removeAttribute('src');
+                            }
+                        }
+                    }
+                });
+
+                // Update dots
+                dots.forEach((dot, index) => {
+                    dot.classList.toggle('active', index === currentSlide);
+                });
+            }
+
+            function goToSlide(index) {
+                if (totalSlides <= 0 || isScrolling || isEntering) return;
+
+                // Wrap around (circular navigation)
+                let nextIndex = index;
+                if (nextIndex < 0) nextIndex = totalSlides - 1;
+                if (nextIndex >= totalSlides) nextIndex = 0;
+                if (nextIndex === currentSlide) return;
+
+                isScrolling = true;
+                currentSlide = nextIndex;
+                updateSlideState();
+
+                // Throttle: ignore further navigation for 400ms.
+                setTimeout(() => {
+                    isScrolling = false;
+                }, 400);
+            }
+
+            // Mouse Wheel Event
+            window.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                if (isScrolling || isEntering) return;
+                if (e.deltaY > 0) {
+                    goToSlide(currentSlide + 1);
+                } else {
+                    goToSlide(currentSlide - 1);
+                }
+            }, { passive: false });
+
+            // Keyboard Navigation
+            window.addEventListener('keydown', (e) => {
+                if (isEntering) return;
+                if (e.key === 'ArrowDown' || e.key === 'PageDown') {
+                    goToSlide(currentSlide + 1);
+                } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+                    goToSlide(currentSlide - 1);
+                }
+            });
+
+            // Touch events for mobile
+            let touchStartY = 0;
+            window.addEventListener('touchstart', (e) => {
+                touchStartY = e.touches[0].clientY;
+                // If gesture starts on preview area/iframe, let the iframe handle scrolling.
+                const target = e.target;
+                touchStartedInPreview = !!(target && target.closest && target.closest('.preview-col'));
+            });
+
+            window.addEventListener('touchend', (e) => {
+                if (isEntering) return;
+                if (touchStartedInPreview) {
+                    touchStartedInPreview = false;
+                    return;
+                }
+                const touchEndY = e.changedTouches[0].clientY;
+                const diff = touchStartY - touchEndY;
+
+                if (Math.abs(diff) > 50) { // Threshold
+                    if (diff > 0) {
+                        goToSlide(currentSlide + 1);
+                    } else {
+                        goToSlide(currentSlide - 1);
+                    }
+                }
+            });
+
+            window.addEventListener('resize', () => {
+                isMobile = window.matchMedia('(max-width: 900px)').matches;
+                computeGeometry();
+                updateSlideState();
+            });
+
+            // Initial load
+            computeGeometry();
+            updateSlideState();
+        });
+    </script>
 </body>
 </html>
