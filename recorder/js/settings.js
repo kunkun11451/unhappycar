@@ -2,7 +2,7 @@
     const STORAGE_KEY = 'recorder_settings_v1';
     const DEFAULT_SETTINGS = {
         animationsEnabled: true,
-        theme: 'dark',
+        theme: 'system',
         badgeDisplayMode: 'text',
         copyAllInOneEnabled: false,
         customContextMenuEnabled: true,
@@ -19,7 +19,7 @@
     let settings = JSON.parse(localStorage.getItem(STORAGE_KEY)) || DEFAULT_SETTINGS;
     // 确保新设置项存在
     if (settings.animationsEnabled === undefined) settings.animationsEnabled = true;
-    if (!settings.theme) settings.theme = 'dark';
+    if (!settings.theme) settings.theme = 'system';
     if (!settings.badgeDisplayMode) settings.badgeDisplayMode = 'text';
     if (settings.copyAllInOneEnabled === undefined) settings.copyAllInOneEnabled = false;
     if (settings.customContextMenuEnabled === undefined) settings.customContextMenuEnabled = true;
@@ -286,25 +286,37 @@
             });
         }
 
-        // 初始化浅色主题开关
-        const themeToggle = document.getElementById('themeToggle');
+        // 初始化主题设置
+        const themeSelect = document.getElementById('themeSelect');
         const lightLink = document.getElementById('lightThemeLink');
         const applyTheme = (t) => {
-            if (lightLink) lightLink.disabled = (t !== 'light');
-            // 额外 body class 可选：
-            if (t === 'light') document.body.classList.add('light-theme'); else document.body.classList.remove('light-theme');
+            let activeTheme = t;
+            if (t === 'system') {
+                activeTheme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+            }
+            if (lightLink) lightLink.disabled = (activeTheme !== 'light');
+            if (activeTheme === 'light') document.body.classList.add('light-theme'); 
+            else document.body.classList.remove('light-theme');
         };
-        if (themeToggle) {
-            themeToggle.checked = (settings.theme === 'light');
-            applyTheme(settings.theme);
-            themeToggle.addEventListener('change', (e) => {
-                settings.theme = e.target.checked ? 'light' : 'dark';
+
+        // 监听系统主题变化
+        window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
+            if (settings.theme === 'system') {
+                applyTheme('system');
+            }
+        });
+
+        if (themeSelect) {
+            themeSelect.value = settings.theme || 'system';
+            applyTheme(settings.theme || 'system');
+            themeSelect.addEventListener('change', (e) => {
+                settings.theme = e.target.value;
                 applyTheme(settings.theme);
                 saveSettings();
             });
         } else {
             // 确保页面加载时也应用一次主题
-            applyTheme(settings.theme);
+            applyTheme(settings.theme || 'system');
         }
 
         const updateVisibility = () => {

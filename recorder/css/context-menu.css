@@ -61,6 +61,21 @@
 
 .context-menu-item .label {
   flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.context-menu-item .item-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: #94a3b8;
+  transition: color 0.1s ease;
+}
+
+.context-menu-item:hover .item-icon {
+  color: #ffffff;
 }
 
 .context-menu-item .shortcut {
@@ -128,6 +143,10 @@
 
 .light-theme .context-menu-item:hover {
   background: rgba(0, 0, 0, 0.05);
+  color: #000000;
+}
+
+.light-theme .context-menu-item:hover .item-icon {
   color: #000000;
 }
 

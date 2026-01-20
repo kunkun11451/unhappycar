@@ -138,7 +138,7 @@ h2 {
 }
 
 .history-table thead th {
-  background: rgba(255, 249, 240, 0.6);
+  background: rgba(255, 249, 240, 1);
   color: #0f172a;
   border-color: rgba(0, 0, 0, 0.05);
   backdrop-filter: blur(20px);
@@ -275,6 +275,12 @@ input:checked+.slider {
 
 input:checked+.slider:before {
   background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.close-btn:hover,
+.settings-close:hover {
+  background: rgba(0, 0, 0, 0.05) !important;
 }
 
 /* Line Chart Light Theme */

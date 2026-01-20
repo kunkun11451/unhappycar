@@ -82,11 +82,11 @@
             style.id = 'bt-styles';
             style.textContent = `
                 @keyframes bt-zoom-in {
-                    0% { transform: scale(0.5); opacity: 0; }
-                    100% { transform: scale(1); opacity: 0.8; }
+                    0% { transform: scale(0.8); opacity: 0; }
+                    100% { transform: scale(1); opacity: 0.95; }
                 }
                 .bt-placeholder-anim {
-                    animation: bt-zoom-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+                    animation: bt-zoom-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
                 }
             `;
             document.head.appendChild(style);
@@ -95,7 +95,7 @@
         showPlaceholder: function (animate = true) {
             if (this.resultContainer) {
                 const animClass = animate ? 'bt-placeholder-anim' : '';
-                const opacity = animate ? '0' : '0.8';
+                const opacity = animate ? '0' : '0.95';
 
                 this.resultContainer.innerHTML = `
                     <div style="text-align: center; padding: 20px; width: 100%; grid-column: 1 / -1; display: flex; justify-content: center;">

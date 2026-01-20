@@ -272,14 +272,15 @@
         </div>
         <div class="settings-item">
           <div class="settings-info">
-            <div class="settings-title">浅色外观</div>
-            <div class="settings-desc">开启后界面切换为浅色主题</div>
+            <div class="settings-title">外观主题</div>
+            <div class="settings-desc">切换界面的颜色主题</div>
           </div>
           <div class="settings-action">
-            <label class="switch">
-              <input type="checkbox" id="themeToggle">
-              <span class="slider"></span>
-            </label>
+            <select id="themeSelect" class="settings-select">
+              <option value="light">浅色</option>
+              <option value="dark">深色</option>
+              <option value="system">跟随系统</option>
+            </select>
           </div>
         </div>
 
@@ -427,7 +428,7 @@
     <div class="modal-dialog" style="max-width: 1000px;">
       <div class="modal-header">
         <h3>角色标签</h3>
-        <button class="btn close-btn" data-chartags-close>×</button>
+        <button class="settings-close" data-chartags-close>×</button>
       </div>
       <div class="modal-body" style="padding: 16px; overflow-y: auto;">
         <div id="charTagsGrid" class="char-tags-grid"></div>
@@ -453,11 +454,14 @@
     <div class="modal-backdrop" data-history-close></div>
     <div class="modal-dialog">
       <div class="modal-header">
+        <h3>历史记录与统计信息</h3>
+        <button class="settings-close" data-history-close>×</button>
+      </div>
+      <div class="tab-controls-wrapper">
         <div class="tab-controls">
           <button class="tab-btn active" data-tab="history">历史记录</button>
           <button class="tab-btn" data-tab="stats">统计信息</button>
         </div>
-        <button class="btn close-btn" data-history-close>×</button>
       </div>
       <div class="modal-body">
         <div id="tabSlider">

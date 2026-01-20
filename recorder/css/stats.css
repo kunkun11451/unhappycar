@@ -1,10 +1,15 @@
 /* Tab Controls */
+.tab-controls-wrapper {
+  padding: 12px 16px 12px;
+}
+
 .tab-controls {
   display: flex;
   gap: 4px;
   background: rgb(31, 41, 55 ,0.5);
   padding: 4px;
   border-radius: 8px;
+  width: 100%;
 }
 
 .tab-btn {
@@ -17,6 +22,10 @@
   font-size: 0.9rem;
   font-weight: 500;
   transition: all 0.2s ease;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .tab-btn:hover {

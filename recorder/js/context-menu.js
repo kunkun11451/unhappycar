@@ -2,7 +2,6 @@
 (function () {
     let contextMenu = null;
     let isAnimationEnabled = true;
-    let currentTheme = 'dark';
 
     // 初始化
     function init() {
@@ -11,20 +10,12 @@
 
         // 监听设置变化
         const animToggle = document.getElementById('animToggle');
-        const themeToggle = document.getElementById('themeToggle');
 
         if (animToggle) {
             isAnimationEnabled = animToggle.checked;
             animToggle.addEventListener('change', (e) => {
                 isAnimationEnabled = e.target.checked;
                 updateContextMenu();
-            });
-        }
-
-        if (themeToggle) {
-            currentTheme = themeToggle.checked ? 'light' : 'dark';
-            themeToggle.addEventListener('change', (e) => {
-                currentTheme = e.target.checked ? 'light' : 'dark';
             });
         }
     }
@@ -35,37 +26,52 @@
         menu.className = 'context-menu';
         menu.innerHTML = `
             <div class="context-menu-item host-only" data-action="undo">
-                <span class="label">撤销</span>
+                <span class="label">
+                    <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                        <path d="M3 3v5h5"></path>
+                    </svg>
+                    撤销
+                </span>
             </div>
             
             <div class="context-menu-item" data-action="history">
-                <span class="label">查看历史</span>
+                <span class="label">
+                    <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    历史记录与统计信息
+                </span>
             </div>
             
             <div class="context-menu-separator"></div>
             
             <div class="context-menu-item" data-action="toggleAnimation">
+                <span class="label">
+                    <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                    启用抽取动画
+                </span>
                 <div class="check-indicator">
-                    <svg viewBox="0 0 24 24">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
                 </div>
-                <span class="label">启用抽取动画</span>
-            </div>
-            
-            <div class="context-menu-item" data-action="toggleTheme">
-                <div class="check-indicator">
-                    <svg viewBox="0 0 24 24">
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                </div>
-                <span class="label">浅色外观</span>
             </div>
             
             <div class="context-menu-separator host-only"></div>
             
             <div class="context-menu-item danger host-only" data-action="reset">
-                <span class="label">重置记录</span>
+                <span class="label">
+                    <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 6h18"></path>
+                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                    </svg>
+                    重置记录
+                </span>
             </div>
         `;
 
@@ -168,17 +174,6 @@
             }
         }
 
-        // 更新主题开关状态
-        const themeItem = contextMenu.querySelector('[data-action="toggleTheme"]');
-        const themeIndicator = themeItem?.querySelector('.check-indicator');
-        if (themeIndicator) {
-            if (currentTheme === 'light') {
-                themeIndicator.classList.add('active');
-            } else {
-                themeIndicator.classList.remove('active');
-            }
-        }
-
         // 检查是否可以撤销
         const undoBtn = contextMenu.querySelector('[data-action="undo"]');
         if (undoBtn) {
@@ -229,15 +224,6 @@
                 if (animToggle) {
                     animToggle.checked = !animToggle.checked;
                     animToggle.dispatchEvent(new Event('change'));
-                }
-                break;
-
-            case 'toggleTheme':
-                // 切换主题
-                const themeToggle = document.getElementById('themeToggle');
-                if (themeToggle) {
-                    themeToggle.checked = !themeToggle.checked;
-                    themeToggle.dispatchEvent(new Event('change'));
                 }
                 break;
 

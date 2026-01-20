@@ -19,6 +19,24 @@
 
   let panelSearchTerm = ''; // 用于顶部搜索框的过滤条件
 
+  function closePanelSearch() {
+    const btn = document.getElementById('panelSearchBtn');
+    const container = document.getElementById('panelSearchContainer');
+    const input = document.getElementById('panelSearchInput');
+    if (btn && container && input && container.classList.contains('active')) {
+      container.classList.remove('active');
+      input.blur();
+      // Reset icon to search
+      btn.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>`;
+      // Clear search if necessary
+      if (input.value.trim() || panelSearchTerm) {
+         input.value = '';
+         panelSearchTerm = '';
+         renderComplement(true);
+      }
+    }
+  }
+
   // 当前对称差记录
   const record = {
     元素类型: new Set(),
@@ -241,6 +259,7 @@
 
   // 抽取一次
   function drawOnce() {
+    closePanelSearch();
     // 重置 Brain Teaser 状态 (Host端)
     if (window.__brainTeaser) window.__brainTeaser.reset();
 
@@ -338,6 +357,7 @@
   }
 
   function undo() {
+    closePanelSearch();
     if (history.length === 0) return;
     history.pop();
 
@@ -357,11 +377,6 @@
       if (recBar) recBar.classList.add('hidden');
       if (copyAvail) copyAvail.classList.add('hidden');
       if (copyPanel) copyPanel.classList.add('hidden');
-
-      if (availPanel) {
-        const grid = document.getElementById('complementList');
-        if (grid) grid.innerHTML = '<div style="padding:12px;color:#94a3b8;font-size:.95rem">开始游戏以记录并查看可用角色列表</div>';
-      }
     } else {
       const lastEntry = history[history.length - 1];
       const snapshot = lastEntry.snapshot;
@@ -403,6 +418,7 @@
   }
 
   function reset() {
+    closePanelSearch();
     Object.values(record).forEach(s => s.clear());
     Object.keys(order).forEach(k => order[k].length = 0);
     document.getElementById('lastDraw').innerHTML = '';
@@ -420,11 +436,6 @@
     if (recBar) recBar.classList.add('hidden');
     if (copyAvail) copyAvail.classList.add('hidden');
     if (copyPanel) copyPanel.classList.add('hidden');
-    // availablePanel 不再隐藏，仅清空内容并提示
-    if (availPanel) {
-      const grid = document.getElementById('complementList');
-      if (grid) grid.innerHTML = '<div style="padding:12px;color:#94a3b8;font-size:.95rem">开始游戏以记录并查看可用角色列表</div>';
-    }
     clearState();
     if (onStateChangeCallback) {
       onStateChangeCallback(getState());
@@ -700,6 +711,7 @@
     const entries = Object.entries(all);
 
     const list = entries.filter(([name, data]) => isComplement(data)).map(([name, data]) => ({ name, data }));
+    let displayList = [...list];
 
     if (stats) stats.textContent = `排除当前Ban位后剩余：${list.length} / ${entries.length}`;
 
@@ -710,7 +722,7 @@
       const hasPinyinSupport = typeof window.pinyinPro !== 'undefined' && typeof window.pinyinPro.pinyin === 'function';
       const pinyinFunc = hasPinyinSupport ? window.pinyinPro.pinyin : null;
 
-      list.forEach(item => {
+      displayList.forEach(item => {
         const name = item.name;
         const lowerName = name.toLowerCase();
 
@@ -728,6 +740,15 @@
             matches.set(name, res.range);
           }
         }
+      });
+
+      // Sort displayList to put matches first if searching
+      displayList.sort((a, b) => {
+        const matchA = matches.has(a.name);
+        const matchB = matches.has(b.name);
+        if (matchA && !matchB) return -1;
+        if (!matchA && matchB) return 1;
+        return 0;
       });
     }
 
@@ -788,7 +809,7 @@
       if (panel) {
         const exist = panel.querySelector('.no-available');
         if (exist) exist.remove();
-        panel.insertAdjacentHTML('beforeend', `<div class="no-available"><div class="no-available-msg">开始游戏以记录并查看可用角色列表</div></div>`);
+        panel.insertAdjacentHTML('beforeend', `<div class="no-available"><div class="no-available-msg">开始一次抽取以记录并查看可用角色列表</div></div>`);
       }
       return;
     }
@@ -821,9 +842,22 @@
     }
 
     const anims = (window.__recorder_settings && window.__recorder_settings.animationsEnabled !== false) && !skipAnims;
-    grid.innerHTML = list.map(({ name, data }, i) => {
+    const globalAnims = window.__recorder_settings && window.__recorder_settings.animationsEnabled !== false;
+
+    // FLIP: Capture old positions
+    const oldPosMap = new Map();
+    if (grid && grid.children.length > 0) {
+      Array.from(grid.children).forEach(el => {
+        const name = el.getAttribute('title');
+        if (name) oldPosMap.set(name, el.getBoundingClientRect());
+      });
+    }
+
+    grid.innerHTML = displayList.map(({ name, data }, i) => {
       const avatar = data.头像 || '';
-      let cardClass = anims ? 'card card-appear' : 'card';
+      // If we are doing FLIP (cards already existed), don't play entry animation
+      const isExisting = oldPosMap.has(name);
+      let cardClass = (anims && !isExisting) ? 'card card-appear' : 'card';
       let displayName = name;
       if (isSearchActive) {
         const matchRange = matches.get(name);
@@ -834,7 +868,7 @@
           cardClass += ' search-dim';
         }
       }
-      const cardStyle = anims ? `--stagger:${i}` : '';
+      const cardStyle = (anims && !isExisting) ? `--stagger:${i}` : '';
       return `<div class="${cardClass}" style="${cardStyle}" title="${name}">
         ${avatar ? `<img src="${avatar}" alt="${name}" class="avatar">` : ''}
         <h3>${displayName}</h3>
@@ -852,6 +886,37 @@
         grid.classList.add('hidden');
       } else {
         grid.classList.remove('hidden');
+      }
+
+      // FLIP: Calculate new positions and animate
+      if (globalAnims && oldPosMap.size > 0 && !document.hidden) {
+        requestAnimationFrame(() => {
+          const newItems = Array.from(grid.children);
+          const moved = [];
+          newItems.forEach(el => {
+            const name = el.getAttribute('title');
+            const oldRect = oldPosMap.get(name);
+            if (oldRect) {
+              const newRect = el.getBoundingClientRect();
+              const dx = oldRect.left - newRect.left;
+              const dy = oldRect.top - newRect.top;
+              if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
+                el.style.transform = `translate(${dx}px, ${dy}px)`;
+                el.style.transition = 'none';
+                moved.push(el);
+              }
+            }
+          });
+
+          if (moved.length > 0) {
+            requestAnimationFrame(() => {
+              moved.forEach(el => {
+                el.style.transform = '';
+                el.style.transition = 'transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)';
+              });
+            });
+          }
+        });
       }
     }
 
@@ -1251,29 +1316,10 @@
         if (!searchContainer.classList.contains('active')) {
           searchContainer.classList.add('active');
           searchInput.focus();
+          searchBtn.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
         } else {
-          // 展开状态下点击，执行搜索或收起（如果没内容）
-          if (searchInput.value.trim()) {
-            panelSearchTerm = searchInput.value.trim().toLowerCase();
-            renderComplement();
-          } else {
-            searchInput.blur();
-          }
+          closePanelSearch();
         }
-      });
-
-      searchInput.addEventListener('blur', () => {
-        // 使用 setTimeout 延迟，防止点击按钮收起时冲突
-        setTimeout(() => {
-          if (!searchBtn.matches(':active')) {
-            searchContainer.classList.remove('active');
-            if (searchInput.value.trim() || panelSearchTerm) {
-              searchInput.value = '';
-              panelSearchTerm = '';
-              renderComplement(true);
-            }
-          }
-        }, 150);
       });
 
       searchInput.addEventListener('input', () => {
@@ -1284,8 +1330,7 @@
       // 快捷键 ESC 退出搜索
       searchInput.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-          searchInput.value = '';
-          searchInput.blur();
+          closePanelSearch();
         }
       });
     }
