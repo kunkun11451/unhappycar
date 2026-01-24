@@ -1,0 +1,286 @@
+/* 浅色主题覆盖样式 */
+body {
+    background:
+        radial-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px) 0 0 / 3px 3px,
+        linear-gradient(135deg, #eae6df 0%, #FFF9F0 50%, #eae6df 100%);
+    color: #0f172a;
+}
+
+.light-theme #settingsBtn {
+    color: #475569;
+}
+
+.light-theme #settingsBtn:hover {
+    color: #0f172a;
+}
+
+h1,
+h2 {
+    color: #0f172a;
+}
+
+.btn {
+    border-color: #e1be8880;
+    background: rgba(225, 190, 136, 0.1);
+    color: #0f172a
+}
+
+.btn:hover:not(:disabled) {
+    background: rgba(225, 190, 136, 0.2);
+    border-color: #e1be88;
+}
+
+.btn.primary {
+    background: #e1be88d6;
+    border-color: #e1be88;
+    color: #fff
+}
+
+.btn.primary:hover:not(:disabled) {
+    background: #d4ac6e;
+    border-color: #c59b5a;
+    box-shadow: 0 4px 12px rgba(225, 190, 136, 0.3);
+}
+
+.btn.danger {
+    background: #f87171d6;
+    border-color: #f87171;
+    color: #fff
+}
+
+.btn.danger:hover:not(:disabled) {
+    background: #ef4444;
+    border-color: #dc2626;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.btn.success {
+    background: #10b981 !important;
+    border-color: #34d399 !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+.panel {
+    background: rgba(255, 255, 255, 0.35);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-color: rgba(255, 255, 255, 0.6);
+    color: #0f172a;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+}
+
+.settings-dialog {
+    background: #fff9f0d6;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-color: rgba(255, 255, 255, 0.6);
+    color: #0f172a;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.settings-header h2 {
+    color: #0f172a;
+}
+
+.card {
+    background: #e8c48e03;
+    border-color: #e8c48e75;
+    color: #0f172a
+}
+
+.card h3 {
+    color: #0f172a;
+}
+
+.card:hover {
+    background: rgba(232, 196, 142, 0.15);
+    border-color: #e8c48e;
+}
+
+.card.card-kept {
+    border: 2px solid #10b981;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+}
+
+.card.card-kept:hover {
+    border-color: #059669;
+    box-shadow: 0 0 15px rgba(5, 150, 105, 0.4);
+}
+
+.stats {
+    color: #475569
+}
+
+.control-row label {
+    color: #475569;
+}
+
+.panel-hint {
+    color: #64748b;
+}
+
+.copy-row {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+.copy-label {
+    color: #64748b;
+}
+
+.copy-text {
+    color: #0f172a;
+}
+
+.empty-hint {
+    color: #94a3b8;
+}
+
+.btn-use,
+.btn-return {
+    background: rgba(0, 0, 0, 0.05);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: #0f172a;
+}
+
+.btn-use:hover {
+    background: rgba(37, 99, 235, 0.2);
+    border-color: rgba(59, 130, 246, 0.4);
+}
+
+.btn-return:hover {
+    background: rgba(16, 185, 129, 0.2);
+    border-color: rgba(52, 211, 153, 0.4);
+}
+
+.settings-select {
+    background-color: rgba(255, 255, 255, 0.5);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: #334155;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+
+.settings-select:focus {
+    background-color: rgba(255, 255, 255, 0.8);
+    border-color: rgb(225, 190, 136);
+    box-shadow: 0 0 0 3px rgba(225, 190, 136, 0.15);
+}
+
+.settings-item {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: #e6eef6;
+    color: #0f172a
+}
+
+.settings-item:hover {
+    background: rgba(0, 0, 0, 0.04)
+}
+
+.settings-title {
+    color: #0f172a
+}
+
+.settings-desc {
+    color: #475569
+}
+
+.slider {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+.slider:before {
+    background-color: #fff;
+}
+
+input:checked+.slider {
+    background-color: #e1be88d6;
+    border-color: #e1be88;
+}
+
+input:checked+.slider:before {
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+#alertMessage {
+    color: #334155;
+}
+
+.toast-notification {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: #0f172a;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* 标签页浅色主题 */
+.tab-controls {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+.tab-btn {
+    color: #64748b;
+}
+
+.tab-btn:hover {
+    color: #0f172a;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.tab-btn.active {
+    background: #e1be88d6;
+    color: #fff;
+}
+
+/* 历史表格浅色主题 */
+.history-table thead th {
+    background: rgba(252, 248, 242);
+    color: #475569;
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
+.history-table tbody td {
+    color: #0f172a;
+    border-color: rgba(0, 0, 0, 0.05);
+}
+
+.history-table tbody tr:hover td {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.history-table tbody tr.empty td {
+    color: #94a3b8;
+}
+
+/* 游戏规则浅色主题 */
+.rules-details {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
+.rules-details:hover {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.12);
+}
+
+.rules-content {
+    color: #475569;
+}
+
+.rules-content h2 {
+    color: #0f172a;
+}
+
+.rules-content h3 {
+    color: #1e293b;
+    border-left-color: #0ea5e9;
+}
+
+.rules-content hr {
+    border-top-color: rgba(0, 0, 0, 0.1);
+}
+
+.rules-content strong {
+    color: #1e293b;
+}

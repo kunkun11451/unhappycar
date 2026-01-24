@@ -1,98 +1,246 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="https://bbs-static.miyoushe.com/static/2024/06/12/7982e4f54092be80c43a251f26e44235_6026540790739799944.png" type="image/png">
-    <title>选角禁技🎭</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>选角禁技</title>
+    <link rel="icon"
+        href="https://bbs-static.miyoushe.com/static/2024/06/12/7982e4f54092be80c43a251f26e44235_6026540790739799944.png"
+        type="image/png">
+    <link rel="stylesheet" href="css/HYWenHei-85W.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/settings.css" />
+    <link rel="stylesheet" href="css/light.css" id="lightThemeLink" disabled>
 </head>
+
 <body>
     <div class="container">
-        <section class="rules card">
-            <h2>选角禁技</h2>
-            <div class="rule-mode">
-                <h3>[1] 手动选角版</h3>
-                <ol>
-                    <li><strong>角色提出</strong>: 每轮每位玩家提出 1 位角色（不可重复）。</li>
-                    <li><strong>补充角色</strong>: 抽帽子数字最大和最小的两位玩家，额外各提出 1 位<strong>四星</strong>角色，形成共 6 人的备选池。</li>
-                    <li><strong>角色选择</strong>: 同样按帽子数字“从大到小”的顺序，玩家从 6 名角色中依次挑选。</li>
-                    <li><strong>技能禁用</strong>: 前三位挑选的玩家随机分配禁用的技能（A/E/Q）,在选择角色前说明。</li>
-                    <li><strong>特殊规则</strong>: 如果玩家最终选择了自己 [步骤1] 提出的那名角色，则该玩家需用此角色单通。</li>
-                </ol>
+        <header
+            style="position: relative; display: flex; justify-content: center; align-items: center;">
+            <h1 style="margin-top: 12px;">选角禁技</h1>
+            <button id="settingsBtn" title="设置" style="position: absolute; right: 0;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path
+                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                    </path>
+                </svg>
+            </button>
+        </header>
+
+        <div class="layout-desktop">
+            <div class="left-column">
+                <!-- 抽取控制区 -->
+                <section class="panel">
+                    <div class="panel-header"
+                        style="display: flex; justify-content: space-between; align-items: center;">
+                        <h2>抽取设置</h2>
+                        <button id="drawBtn" class="btn primary draw-btn">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path
+                                    d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3" />
+                            </svg>
+                            抽取角色
+                        </button>
+                    </div>
+                    <div class="draw-controls">
+                        <div class="control-row">
+                            <label for="charCount">每轮抽取角色数量：</label>
+                            <select id="charCount" class="settings-select">
+                                <option value="4">4 个角色</option>
+                                <option value="5">5 个角色</option>
+                                <option value="6">6 个角色</option>
+                                <option value="7">7 个角色</option>
+                                <option value="8">8 个角色</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="stats" id="stats">可用角色：<span id="availableCount">0</span> / <span
+                            id="totalCount">0</span></div>
+                </section>
+
+                <!-- 待选区 -->
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2>待选角色</h2>
+                    </div>
+                    <div class="card-grid" id="selectionArea"></div>
+                    <div class="panel-hint" style="margin-top: 12px; font-size: 8px; text-align: center;">
+                        点击角色卡片可以将其标记为“未使用”。在下一次抽取前，所有未标记“未使用”的角色将被自动加入Ban列表，不会在后续抽取中出现。</div>
+                </section>
+
+                <!-- 复制区 -->
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2>复制内容</h2>
+                        <button id="copyBtn" class="btn btn-icon" title="复制">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2">
+                                </path>
+                                <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="copy-content">
+                        <div class="copy-row">
+                            <span class="copy-label">角色：</span>
+                            <span class="copy-text" id="copyCharacters">-</span>
+                        </div>
+                        <div class="copy-row">
+                            <span class="copy-label">技能顺序：</span>
+                            <span class="copy-text" id="copyAEQ">-</span>
+                        </div>
+                        <div class="copy-row" id="orderRow" style="display: none;">
+                            <span class="copy-label">选角顺序：</span>
+                            <span class="copy-text" id="copyOrder">-</span>
+                        </div>
+                    </div>
+                </section>
             </div>
 
-            <div class="rule-mode">
-                <h3>[2] 网页随机版</h3>
-                <ol>
-                    <li><strong>角色池与禁用生成</strong>: 随机抽取若干名角色 与 前三位挑选的玩家禁用的技能</li>
-                    <li><strong>选择顺序</strong>: 抽帽子，按数字 从大到小 确定挑选角色的顺序。或直接抽取选取顺序。</li>
-                    <li><strong>角色挑选</strong>: 玩家按顺序从角色池中挑选 1 名心仪的角色。</li>
-                </ol>
+            <div class="right-column">
+                <!-- 右侧面板（标签页） -->
+                <section class="panel" id="rightPanel">
+                    <div class="panel-header">
+                        <div class="tab-controls">
+                            <button class="tab-btn active" data-tab="history">历史记录</button>
+                            <button class="tab-btn" data-tab="used">已使用角色</button>
+                        </div>
+                    </div>
+                    <div class="tab-content">
+                        <div class="tab-pane active" id="historyPane">
+                            <table class="history-table" id="historyTable">
+                                <thead>
+                                    <tr>
+                                        <th>轮次</th>
+                                        <th>使用角色</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historyTbody">
+                                    <tr class="empty">
+                                        <td colspan="2">暂无记录</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="tab-pane" id="usedPane">
+                            <div class="card-grid" id="usedArea"></div>
+                        </div>
+                    </div>
+                </section>
             </div>
-            <div class="rule-tip" style="text-align: center;">
-                <p>默认: <strong>全局BP 不禁食物 3点一换</strong></p>
-            </div>
-        </section>
-
-        <main class="card">
-            <h2>功能区</h2>
-            <div class="controls">
-                <label for="char-count">选择抽取角色数量 (4-8):</label>
-                <input type="number" id="char-count" value="8" min="4" max="8">
-                <label for="order-toggle">
-                    <input type="checkbox" id="order-toggle">
-                    选择顺序抽取
-                </label>
-                <button id="draw-characters">抽取</button>
-                <button id="reset-game">重置</button>
-            </div>
-
-            <div id="character-display" class="character-grid">
-            </div>
-            <div id="character-result-wrapper" class="result-wrapper">
-                <div id="character-result-text"></div>
-                <button id="copy-characters-btn" class="icon-copy-btn" aria-label="复制角色">
-                    <svg class="copy-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
-                    <svg class="checkmark-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-                </button>
-            </div>
-                <div class="rule-tip">
-                    <p><strong>提示</strong>: 点击角色卡片可以将其标记为“未使用”。在下一次抽取前，所有未标记“未使用”的角色将被自动加入Ban列表，不会在后续抽取中出现。</p>
-                </div>
-
-        </main>
-
-        <footer>
-            <h3>Ban List</h3>
-            <div id="ban-list-container">
-                <table id="ban-list-table">
-                    <thead>
-                        <tr>
-                            <th>轮次</th>
-                            <th>禁用角色</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Ban list rows will be inserted here -->
-                    </tbody>
-                </table>
-            </div>
-        </footer>
-
-        <section class="full-character-list card">
-            <h2>角色状态总览</h2>
-            <div class="search-container" style="margin-bottom: 20px; display: flex; gap: 10px;">
-                <input type="text" id="character-search" placeholder="搜索角色 (支持拼音首字母)" style="flex-grow: 1; padding: 10px; border-radius: 5px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.2); color: var(--text-color); font-family: var(--font-family);">
-            </div>
-            <div id="full-character-grid" class="character-grid">
-                <!-- All characters will be dynamically inserted here -->
-            </div>
-        </section>
+        </div>
     </div>
 
-    <script src="https://unpkg.com/pinyin-pro"></script>
-    <script src="characters.js"></script>
-    <script src="script.js"></script>
+    <!-- 设置弹窗 -->
+    <div id="settingsModal" class="settings-modal hidden">
+        <div class="settings-backdrop"></div>
+        <div class="settings-dialog">
+            <div class="settings-header">
+                <h2>设置</h2>
+                <button class="settings-close">&times;</button>
+            </div>
+
+            <div class="settings-body">
+
+                <!-- 游戏规则展开区 -->
+                <details class="rules-details" id="rulesDetails">
+                    <summary class="rules-summary">
+                        <div class="settings-info">
+                            <div class="settings-title">查看游戏规则</div>
+                            <div class="settings-desc">点击展开或收起选角禁技玩法说明</div>
+                        </div>
+                        <div class="rules-arrow"></div>
+                    </summary>
+                    <div class="rules-anim-container">
+                        <div class="rules-content">
+                            <h2 style="text-align: center;">选角禁技</h2>
+                            <hr style="color: #94a3b8; opacity: 0.5;">
+                            <h3>1. 角色池与禁用生成</h3>
+                            <p>随机抽取若干名角色，与前三位挑选的玩家禁用的技能。</p>
+
+                            <h3>2. 选择顺序</h3>
+                            <p>抽帽子，按数字<strong>从大到小</strong>确定挑选角色的顺序。或直接抽取选取顺序。</p>
+
+                            <h3>3. 角色挑选</h3>
+                            <p>玩家按顺序从角色池中挑选 <strong>1 名</strong>心仪的角色，并在接下来一轮中禁用相应的技能。</p>
+                        </div>
+                    </div>
+                </details>
+
+
+                <div class="settings-item">
+                    <div class="settings-info">
+                        <div class="settings-title">选角顺序抽取</div>
+                        <div class="settings-desc">开启后将顺带抽取选角顺序</div>
+                    </div>
+                    <div class="settings-action">
+                        <label class="switch">
+                            <input type="checkbox" id="orderToggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+
+                <div class="settings-item">
+                    <div class="settings-info">
+                        <div class="settings-title">外观主题</div>
+                        <div class="settings-desc">切换界面的颜色主题</div>
+                    </div>
+                    <div class="settings-action">
+                        <select id="themeSelect" class="settings-select">
+                            <option value="light">浅色</option>
+                            <option value="dark" selected>深色</option>
+                            <option value="system">跟随系统</option>
+                        </select>
+                    </div>
+                </div>
+
+
+                <div class="settings-item">
+                    <div class="settings-info">
+                        <div class="settings-title">重置游戏</div>
+                        <div class="settings-desc">重置所有记录</div>
+                    </div>
+                    <div class="settings-action">
+                        <button id="modalResetBtn" class="btn primary danger">重置</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 自定义 Alert 弹窗 -->
+    <div id="alertModal" class="settings-modal hidden" style="z-index: 2001;">
+        <div class="settings-backdrop"></div>
+        <div class="settings-dialog" style="max-width: 400px; height: auto; min-height: auto;">
+            <div class="settings-header">
+                <h2 id="alertTitle">提示</h2>
+                <button class="settings-close" id="alertCloseBtn">&times;</button>
+            </div>
+
+            <div class="settings-body" style="padding: 24px; text-align: center;">
+                <div id="alertMessage"
+                    style="font-size: 1rem; margin-bottom: 24px; line-height: 1.5; word-wrap: break-word;">
+                </div>
+                <div style="display: flex; gap: 12px; justify-content: center;">
+                    <button id="alertCancelBtn" class="btn hidden" style="flex: 1; justify-content: center;">取消</button>
+                    <button id="alertOkBtn" class="btn primary" style="flex: 1; justify-content: center;">确定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast 通知 -->
+    <div id="toast" class="toast-notification"></div>
+
+    <script src="js/characters.js"></script>
+    <script src="js/app.js"></script>
 </body>
+
 </html>

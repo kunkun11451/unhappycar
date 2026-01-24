@@ -1,0 +1,421 @@
+/* 设置弹窗样式 - Dark Glass */
+.settings-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-modal.hidden {
+    display: none;
+}
+
+.settings-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.settings-modal:not(.closing) .settings-backdrop {
+    animation: settingsBackdropIn .38s ease forwards;
+}
+
+.settings-modal.closing .settings-backdrop {
+    animation: settingsBackdropOut .28s ease forwards;
+}
+
+@keyframes settingsBackdropIn {
+    0% {
+        opacity: 0;
+        backdrop-filter: blur(0px);
+    }
+
+    100% {
+        opacity: 1;
+        backdrop-filter: blur(8px);
+    }
+}
+
+@keyframes settingsBackdropOut {
+    0% {
+        opacity: 1;
+        backdrop-filter: blur(8px);
+    }
+
+    100% {
+        opacity: 0;
+        backdrop-filter: blur(0px);
+    }
+}
+
+.settings-dialog {
+    position: relative;
+    width: 90%;
+    max-width: 600px;
+    background: rgba(30, 35, 45, 0.05);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    color: #e2e8f0;
+    overflow: hidden;
+    animation: settingsIn .38s cubic-bezier(.22, .85, .3, 1) both;
+    display: flex;
+    flex-direction: column;
+    max-height: 85vh;
+}
+
+.settings-modal.closing .settings-dialog {
+    animation: settingsOut .28s cubic-bezier(.4, .15, .3, 1) forwards;
+}
+
+@keyframes settingsIn {
+    0% {
+        opacity: 0;
+        transform: translateY(24px) scale(.94);
+    }
+
+    70% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes settingsOut {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(18px) scale(.94);
+    }
+}
+
+.settings-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.settings-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: #f1f5f9;
+}
+
+.settings-close {
+    position: absolute;
+    right: 24px;
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+    transition: all 0.2s;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-close:hover {
+    color: #ef4444;
+    background: rgba(255, 255, 255, 0.1);
+    transform: rotate(90deg);
+}
+
+.settings-body {
+    padding: 24px;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.settings-body::-webkit-scrollbar {
+    display: none;
+}
+
+/* Settings Items */
+.settings-item {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.settings-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.settings-info {
+    flex: 1;
+    padding-right: 16px;
+}
+
+.settings-title {
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 4px;
+    color: #f1f5f9;
+}
+
+.settings-desc {
+    font-size: 0.85rem;
+    color: #94a3b8;
+}
+
+.settings-action {
+    flex-shrink: 0;
+}
+
+/* Switch Toggle */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.1);
+    transition: .3s;
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 2px;
+    bottom: 2px;
+    background-color: #e2e8f0;
+    transition: .3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+input:checked+.slider {
+    background-color: rgba(56, 189, 248, 0.3);
+    border-color: rgba(56, 189, 248, 0.5);
+}
+
+input:checked+.slider:before {
+    transform: translateX(20px);
+    background-color: #38bdf8;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+}
+
+/* Toast Notification */
+.toast-notification {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #f1f5f9;
+    padding: 10px 20px;
+    border-radius: 99px;
+    font-size: 0.9rem;
+    z-index: 3000;
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    pointer-events: none;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.toast-notification.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+/* Mobile Adaptation */
+@media (max-width: 640px) {
+    .settings-dialog {
+        width: 95%;
+        max-height: 90vh;
+    }
+
+    .settings-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .settings-action {
+        width: 100%;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+    }
+}
+
+/* ========== 游戏规则展开区 ========== */
+.rules-details {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.rules-details:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.rules-summary {
+    padding: 16px 20px;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    user-select: none;
+}
+
+.rules-summary::-webkit-details-marker {
+    display: none;
+}
+
+.rules-arrow {
+    width: 20px;
+    height: 20px;
+    position: relative;
+    opacity: 0.5;
+    transition: transform 0.3s ease-out;
+    flex-shrink: 0;
+}
+
+.rules-arrow::before,
+.rules-arrow::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 10px;
+    height: 2px;
+    background: currentColor;
+    border-radius: 2px;
+}
+
+.rules-arrow::before {
+    left: 2px;
+    transform: rotate(45deg);
+}
+
+.rules-arrow::after {
+    right: 2px;
+    transform: rotate(-45deg);
+}
+
+/* 使用 is-open 类控制箭头旋转（JS 控制） */
+.rules-details.is-open .rules-arrow {
+    transform: rotate(180deg);
+}
+
+/* 关键：使用 grid 动画实现平滑展开/收起 */
+.rules-anim-container {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s ease-out;
+}
+
+.rules-details.is-open .rules-anim-container {
+    grid-template-rows: 1fr;
+}
+
+.rules-content {
+    overflow: hidden;
+    padding: 0 20px 0;
+    color: #94a3b8;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    transition: padding 0.3s ease-out;
+}
+
+.rules-details.is-open .rules-content {
+    padding: 0 20px 20px;
+}
+
+.rules-content h2 {
+    color: #f1f5f9;
+    font-size: 1.1rem;
+    margin: 0 0 8px;
+}
+
+.rules-content hr {
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin: 8px 0 12px;
+}
+
+.rules-content h3 {
+    color: #f1f5f9;
+    font-size: 0.95rem;
+    margin: 16px 0 8px;
+    border-left: 3px solid #38bdf8;
+    padding-left: 8px;
+}
+
+.rules-content h3:first-of-type {
+    margin-top: 8px;
+}
+
+.rules-content p {
+    margin: 0 0 8px;
+}
+
+.rules-content strong {
+    color: #e2e8f0;
+}
