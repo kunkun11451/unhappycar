@@ -832,6 +832,7 @@ class RouteGenerator {
             luaContainer = document.createElement('div');
             luaContainer.id = 'luaConfig';
             luaContainer.className = 'lua-config';
+            luaContainer.style.display = 'none'; 
             
             const resultsContainer = document.getElementById('results');
             resultsContainer.appendChild(luaContainer);
@@ -845,12 +846,6 @@ class RouteGenerator {
                 <div class="lua-actions">
                     <button id="copyLua" class="copy-btn">复制配置</button>
                     <button id="downloadLua" class="download-btn">下载.lua文件</button>
-                </div>
-                <div style="width: 100%; text-align: center; color: #888; font-size: 0.9em; margin-top: 5px;">
-                    <p>根据图片点位排序的全自动传送配置文件,适用于16:10屏幕。</p>
-                    <p>monster:F1追踪的boss行列; pos:追踪后点击的位置; narrow:地图缩(+)放(-)次数;</p>
-                    <p> select:多选时第几个(从下至上); try:重试(用于有地脉的点位); wait:(ms):等待时间(传送副本时等待延迟)</p>
-                    <p> area:地区代码; areawait:等待（用于单独地图加载）; resnar:重置地图大小;</p>
                 </div>
             </div>
             <pre class="lua-content">${luaContent}</pre>
@@ -1145,9 +1140,6 @@ class RouteGenerator {
             
             // 恢复lua配置区域的显示（即使出错也要恢复）
             const luaConfig = document.getElementById('luaConfig');
-            if (luaConfig) {
-                luaConfig.style.display = '';
-            }
             
             // 根据错误类型提供不同的提示
             let errorMessage = '生成图片失败，请重试';
