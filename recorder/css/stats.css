@@ -1,3 +1,38 @@
+/* 自定义滚动条样式 */
+#statsView ::-webkit-scrollbar,
+.donut-legend::-webkit-scrollbar,
+.char-heatmap::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+#statsView ::-webkit-scrollbar-track,
+.donut-legend::-webkit-scrollbar-track,
+.char-heatmap::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#statsView ::-webkit-scrollbar-thumb,
+.donut-legend::-webkit-scrollbar-thumb,
+.char-heatmap::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 3px;
+}
+
+#statsView ::-webkit-scrollbar-thumb:hover,
+.donut-legend::-webkit-scrollbar-thumb:hover,
+.char-heatmap::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
+}
+
+/* Firefox 滚动条 */
+#statsView,
+.donut-legend,
+.char-heatmap {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
+}
+
 /* Tab Controls */
 .tab-controls-wrapper {
   padding: 12px 16px 12px;
@@ -6,7 +41,7 @@
 .tab-controls {
   display: flex;
   gap: 4px;
-  background: rgb(31, 41, 55 ,0.5);
+  background: rgb(31, 41, 55, 0.5);
   padding: 4px;
   border-radius: 8px;
   width: 100%;
@@ -34,7 +69,7 @@
 }
 
 .tab-btn.active {
-  background: rgb(59, 130, 246 ,0.2);
+  background: rgb(59, 130, 246, 0.2);
   color: #fff;
 }
 
@@ -164,7 +199,7 @@
 }
 
 .chart-point {
-  fill: #3b82f6;
+  fill: #3b82f685;
   stroke: #a6aebc;
   transition: r 0.2s ease;
 }
@@ -208,4 +243,467 @@
   border: 1px solid #334155;
   z-index: 10;
   white-space: nowrap;
+}
+
+/* ===== 概览卡片区 ===== */
+.stats-overview {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.overview-card {
+  background: rgba(51, 65, 85, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 16px 12px;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.overview-card:hover {
+  background: rgba(51, 65, 85, 0.5);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.overview-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.overview-label {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.overview-card.highlight-bad .overview-value {
+  color: #f87171;
+}
+
+/* ===== 环形图容器 ===== */
+.donut-charts-container {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.donut-chart-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(51, 65, 85, 0.2);
+  border-radius: 12px;
+  padding: 16px 8px;
+}
+
+.donut-chart-title {
+  font-size: 0.85rem;
+  color: #cbd5e1;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+.donut-chart-svg {
+  width: 120px;
+  height: 120px;
+}
+
+.donut-segment {
+  transition: opacity 0.2s ease;
+  cursor: pointer;
+}
+
+.donut-segment:hover {
+  opacity: 0.8;
+  filter: brightness(1.2);
+}
+
+.donut-center-text {
+  font-size: 0.7rem;
+  fill: #94a3b8;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+.donut-center-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  fill: #f1f5f9;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+.donut-center-count {
+  font-size: 0.65rem;
+  fill: #94a3b8;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+.donut-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 12px;
+  width: 100%;
+  max-height: 100px;
+  overflow-y: auto;
+}
+
+.donut-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  color: #cbd5e1;
+  padding: 2px 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.donut-legend-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.donut-legend-color {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.donut-legend-label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.donut-legend-value {
+  color: #94a3b8;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===== 热力图控制器 ===== */
+.heatmap-controls {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(51, 65, 85, 0.3);
+  color: #94a3b8;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-btn:hover {
+  background: rgba(51, 65, 85, 0.5);
+  color: #e2e8f0;
+}
+
+.filter-btn.active {
+  background: rgba(59, 130, 246, 0.3);
+  border-color: rgba(59, 130, 246, 0.5);
+  color: #fff;
+}
+
+/* ===== 角色排行榜 ===== */
+.char-heatmap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 4px 8px;
+}
+
+.ranking-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background:
+    linear-gradient(to right,
+      rgba(59, 130, 246, 0.25) 0%,
+      rgba(59, 130, 246, 0.15) var(--percent, 0%),
+      rgba(51, 65, 85, 0.2) var(--percent, 0%),
+      rgba(51, 65, 85, 0.2) 100%);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.ranking-row:hover {
+  background:
+    linear-gradient(to right,
+      rgba(59, 130, 246, 0.35) 0%,
+      rgba(59, 130, 246, 0.2) var(--percent, 0%),
+      rgba(51, 65, 85, 0.35) var(--percent, 0%),
+      rgba(51, 65, 85, 0.35) 100%);
+}
+
+.ranking-rank {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #94a3b8;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ranking-row.rank-1 .ranking-rank {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #fff;
+}
+
+.ranking-row.rank-2 .ranking-rank {
+  background: linear-gradient(135deg, #94a3b8, #64748b);
+  color: #fff;
+}
+
+.ranking-row.rank-3 .ranking-rank {
+  background: linear-gradient(135deg, #d97706, #b45309);
+  color: #fff;
+}
+
+.ranking-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.ranking-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  background: rgba(100, 116, 139, 0.3);
+}
+
+.ranking-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ranking-name {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #f1f5f9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ranking-meta {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+.ranking-count {
+  margin-left: auto;
+  text-align: right;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+  padding-left: 12px;
+}
+
+.ranking-empty {
+  color: #64748b;
+  font-size: 0.9rem;
+  padding: 24px;
+  text-align: center;
+}
+
+/* 排行榜行动画 */
+@keyframes rankingRowFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.ranking-row-anim {
+  animation: rankingRowFadeIn 0.3s ease forwards;
+  animation-delay: calc(var(--index) * 30ms);
+  opacity: 0;
+}
+
+.heatmap-cell {
+  aspect-ratio: 1;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+.heatmap-cell:hover {
+  transform: scale(1.1);
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.heatmap-cell img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.heatmap-cell .heatmap-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #fff;
+  opacity: 0;
+  transition: opacity 0.2s;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.heatmap-cell:hover .heatmap-overlay {
+  opacity: 1;
+}
+
+/* 热力图颜色梯度 - 根据禁用回合数 */
+.heatmap-heat-0 {
+  background: rgba(74, 222, 128, 0.2);
+  border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+.heatmap-heat-1 {
+  background: rgba(250, 204, 21, 0.3);
+  border: 1px solid rgba(250, 204, 21, 0.4);
+}
+
+.heatmap-heat-2 {
+  background: rgba(251, 146, 60, 0.4);
+  border: 1px solid rgba(251, 146, 60, 0.5);
+}
+
+.heatmap-heat-3 {
+  background: rgba(248, 113, 113, 0.5);
+  border: 1px solid rgba(248, 113, 113, 0.6);
+}
+
+.heatmap-heat-4 {
+  background: rgba(239, 68, 68, 0.6);
+  border: 1px solid rgba(239, 68, 68, 0.7);
+}
+
+.heatmap-heat-5 {
+  background: rgba(220, 38, 38, 0.7);
+  border: 1px solid rgba(220, 38, 38, 0.8);
+}
+
+.heatmap-tooltip {
+  position: fixed;
+  background: #1e293b;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border: 1px solid #334155;
+  z-index: 10000;
+  white-space: nowrap;
+}
+
+.heatmap-tooltip.visible {
+  opacity: 1;
+}
+
+/* 环形图动画 */
+@keyframes donutReveal {
+  from {
+    stroke-dashoffset: var(--circumference);
+  }
+
+  to {
+    stroke-dashoffset: var(--offset);
+  }
+}
+
+.donut-segment-anim {
+  animation: donutReveal 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* 热力图单元格动画 */
+@keyframes heatmapFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.heatmap-cell-anim {
+  animation: heatmapFadeIn 0.3s ease forwards;
+  animation-delay: calc(var(--index) * 15ms);
+  opacity: 0;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .stats-overview {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .donut-charts-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .char-heatmap {
+    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+  }
 }

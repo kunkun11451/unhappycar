@@ -283,6 +283,55 @@ h2 {
     color: #fca5a5;
 }
 
+/* 角色标签弹窗搜索样式 */
+#charTagsModal .modal-header h3 {
+    flex: 1;
+}
+
+/* 角色标签弹窗搜索框向右展开 */
+#charTagsSearchContainer .search-input {
+    left: 0;
+    right: auto;
+}
+
+#charTagsSearchContainer.active .search-input {
+    padding: 0 12px 0 38px;
+}
+
+#charTagsSearchContainer .btn-search {
+    position: relative;
+    z-index: 2;
+}
+
+
+/* 角色标签卡片动画 */
+.char-tag-card-appear {
+    opacity: 0;
+    transform: scale(.85) translateY(12px);
+    animation: charTagCardEnter .4s cubic-bezier(.25, .8, .3, 1) forwards;
+    animation-delay: calc(var(--stagger, 0)*25ms);
+}
+
+@keyframes charTagCardEnter {
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* 角色标签搜索高亮与模糊 */
+.char-tags-grid.search-active .char-tag-card.search-dim {
+    opacity: 0.25;
+    filter: grayscale(0.6);
+}
+
+.char-tags-grid.search-active .char-tag-card.search-match {
+    opacity: 1;
+    filter: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.3), inset 0 0 10px rgba(59, 130, 246, 0.1);
+}
+
 
 .panel-header h2 {
     margin: 0;
@@ -366,9 +415,8 @@ h2 {
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
     display: flex;
     flex-direction: column;
-    height: 80vh;
-    /* 固定高度确保内部滚动逻辑正常 */
-    max-height: 84vh;
+    height: 90vh;
+    max-height: 90vh;
     animation: modalIn .38s cubic-bezier(.22, .85, .3, 1) both;
 }
 
@@ -977,6 +1025,7 @@ body.modal-open {
         transform: scale(0.8);
         opacity: 0;
     }
+
     to {
         transform: scale(1);
         opacity: 0.95;

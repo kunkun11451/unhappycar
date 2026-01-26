@@ -195,10 +195,12 @@
 
         <div class="settings-item" id="viewAllTagsItem">
           <div class="settings-info">
-            <div class="settings-title">查看所有角色标签</div>
-            <div class="settings-desc">查看全部角色的元素类型、国家、武器类型、体型标签</div>
+            <div class="settings-title">查看角色标签</div>
+            <div class="settings-desc">查看所有角色的标签信息</div>
           </div>
-          <button class="btn primary" id="viewAllTagsBtn">查看</button>
+          <div class="settings-action">
+            <button class="btn primary" id="viewAllTagsBtn">查看</button>
+          </div>
         </div>
 
         <h4 style="text-align: center;">—————— 基础操作 ——————</h4>
@@ -214,11 +216,11 @@
         </div>
         <div class="settings-item">
           <div class="settings-info">
-            <div class="settings-title">历史记录</div>
+            <div class="settings-title">历史记录与统计信息</div>
             <div class="settings-desc">查看详细的抽取历史和统计信息</div>
           </div>
           <div class="settings-action">
-            <button id="modalHistoryBtn" class="btn primary">查看历史</button>
+            <button id="modalHistoryBtn" class="btn primary">查看</button>
           </div>
         </div>
         <div class="settings-item host-only">
@@ -227,7 +229,7 @@
             <div class="settings-desc">清除所有抽取历史和当前记录</div>
           </div>
           <div class="settings-action">
-            <button id="modalResetBtn" class="btn primary danger">重置记录</button>
+            <button id="modalResetBtn" class="btn primary danger">重置</button>
           </div>
         </div>
 
@@ -427,7 +429,20 @@
     <div class="modal-backdrop" data-chartags-close></div>
     <div class="modal-dialog" style="max-width: 1000px;">
       <div class="modal-header">
-        <h3>角色标签</h3>
+        <h3 style="display: flex; align-items: center; gap: 12px;">
+          角色标签
+          <div class="header-search-container" id="charTagsSearchContainer">
+            <input type="text" id="charTagsSearchInput" class="search-input" placeholder="搜索角色/拼音..."
+              autocomplete="off">
+            <button id="charTagsSearchBtn" class="btn-search" title="搜索角色">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </button>
+          </div>
+        </h3>
         <button class="settings-close" data-chartags-close>×</button>
       </div>
       <div class="modal-body" style="padding: 16px; overflow-y: auto;">
@@ -485,17 +500,42 @@
             </table>
           </div>
           <div id="statsView" class="tab-view">
+            <!-- 概览卡片区 -->
+            <div class="stats-overview" id="statsOverview">
+              <div class="overview-card">
+                <div class="overview-value" id="statsTotalRounds">0</div>
+                <div class="overview-label">总回合</div>
+              </div>
+              <div class="overview-card highlight-bad">
+                <div class="overview-value" id="statsZeroAvailRounds">0</div>
+                <div class="overview-label">零可用回合</div>
+              </div>
+              <div class="overview-card highlight-bad">
+                <div class="overview-value" id="statsMostBannedTag">—</div>
+                <div class="overview-label">最惨标签</div>
+              </div>
+              <div class="overview-card highlight-bad">
+                <div class="overview-value" id="statsMostBannedChar">—</div>
+                <div class="overview-label">最惨角色</div>
+              </div>
+            </div>
+
+            <!-- 可用角色趋势 -->
             <div class="stats-section">
               <h4>可用角色数量趋势</h4>
               <div id="availChart" class="line-chart-container"></div>
             </div>
+
+            <!-- 禁用标签统计 - 环形图 -->
             <div class="stats-section">
               <h4>禁用标签统计 (回合数)</h4>
-              <div id="elemStats" class="stats-chart"></div>
+              <div id="elemStats" class="donut-charts-container"></div>
             </div>
+
+            <!-- 角色禁用统计 - 排行榜 -->
             <div class="stats-section">
               <h4>角色禁用统计 (回合数)</h4>
-              <div id="charStats" class="stats-chart"></div>
+              <div id="charStats" class="char-heatmap"></div>
             </div>
           </div>
         </div>

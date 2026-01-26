@@ -143,61 +143,247 @@
         const viewAllTagsBtn = document.getElementById('viewAllTagsBtn');
         const charTagsModal = document.getElementById('charTagsModal');
         const charTagsGrid = document.getElementById('charTagsGrid');
+        const charTagsSearchBtn = document.getElementById('charTagsSearchBtn');
+        const charTagsSearchInput = document.getElementById('charTagsSearchInput');
+        const charTagsSearchContainer = document.getElementById('charTagsSearchContainer');
+
+        // 角色标签弹窗搜索词
+        let charTagsSearchTerm = '';
+
+        // 高亮文本辅助函数
+        function highlightCharTagText(text, search, matchRange) {
+            if (!search || !text) return text;
+            if (matchRange) {
+                const start = matchRange.start;
+                const end = start + matchRange.length;
+                return text.substring(0, start) +
+                    `<span class="name-hl">${text.substring(start, end)}</span>` +
+                    text.substring(end);
+            }
+            const idx = text.toLowerCase().indexOf(search.toLowerCase());
+            if (idx !== -1) {
+                return text.substring(0, idx) +
+                    `<span class="name-hl">${text.substring(idx, idx + search.length)}</span>` +
+                    text.substring(idx + search.length);
+            }
+            return text;
+        }
+
+        // 渲染角色标签列表
+        function renderCharTagsGrid(skipAnims = false) {
+            if (!charTagsGrid) return;
+
+            // 获取当前记录
+            const record = window.__recorder_actions && window.__recorder_actions.getRecord
+                ? window.__recorder_actions.getRecord()
+                : { 元素类型: new Set(), 国家: new Set(), 武器类型: new Set(), 体型: new Set() };
+
+            // 获取角色数据
+            const charData = window.characterData || {};
+            const entries = Object.entries(charData);
+            let displayList = entries.map(([name, data]) => ({ name, data }));
+
+            // 处理搜索逻辑
+            let matches = new Map();
+            const isSearchActive = !!charTagsSearchTerm;
+
+            if (isSearchActive) {
+                const hasPinyinSupport = typeof window.pinyinPro !== 'undefined' && typeof window.pinyinPro.pinyin === 'function';
+                const pinyinFunc = hasPinyinSupport ? window.pinyinPro.pinyin : null;
+
+                displayList.forEach(item => {
+                    const name = item.name;
+                    const lowerName = name.toLowerCase();
+
+                    // 1. 优先尝试直接子串匹配
+                    const subIdx = lowerName.indexOf(charTagsSearchTerm);
+                    if (subIdx !== -1) {
+                        matches.set(name, { start: subIdx, length: charTagsSearchTerm.length });
+                        return;
+                    }
+
+                    // 2. 尝试拼音首字母逻辑
+                    if (window.__brainTeaser && window.__brainTeaser.matchPinyinInitials) {
+                        const res = window.__brainTeaser.matchPinyinInitials(name, charTagsSearchTerm, pinyinFunc);
+                        if (res && res.match) {
+                            matches.set(name, res.range);
+                        }
+                    }
+                });
+
+                // 将匹配项排在前面
+                displayList.sort((a, b) => {
+                    const matchA = matches.has(a.name);
+                    const matchB = matches.has(b.name);
+                    if (matchA && !matchB) return -1;
+                    if (!matchA && matchB) return 1;
+                    return 0;
+                });
+            }
+
+            const globalAnims = settings.animationsEnabled !== false;
+            const anims = globalAnims && !skipAnims;
+
+            // FLIP: 捕获旧位置
+            const oldPosMap = new Map();
+            if (charTagsGrid.children.length > 0) {
+                Array.from(charTagsGrid.children).forEach(el => {
+                    const name = el.getAttribute('title');
+                    if (name) oldPosMap.set(name, el.getBoundingClientRect());
+                });
+            }
+
+            charTagsGrid.innerHTML = displayList.map(({ name, data }, i) => {
+                const avatar = data.头像 || '';
+                const element = data.元素类型 || '';
+                const region = data.国家 || '';
+                const weapon = data.武器类型 || '';
+                const body = data.体型 || '';
+
+                // 检查每个标签是否在当前记录中（被禁用）
+                const elementBanned = element && record.元素类型.has(element);
+                const regionBanned = region && record.国家.has(region);
+                const weaponBanned = weapon && record.武器类型.has(weapon);
+                const bodyBanned = body && record.体型.has(body);
+
+                // 如果是 FLIP 动画（已有旧位置），不播放入场动画
+                const isExisting = oldPosMap.has(name);
+                let cardClass = (anims && !isExisting) ? 'char-tag-card char-tag-card-appear' : 'char-tag-card';
+                let displayName = name;
+
+                if (isSearchActive) {
+                    const matchRange = matches.get(name);
+                    if (matchRange) {
+                        cardClass += ' search-match';
+                        displayName = highlightCharTagText(name, charTagsSearchTerm, matchRange);
+                    } else {
+                        cardClass += ' search-dim';
+                    }
+                }
+
+                const cardStyle = (anims && !isExisting) ? `style="--stagger:${i}"` : '';
+
+                return `
+                    <div class="${cardClass}" ${cardStyle} title="${name}">
+                        ${avatar ? `<img src="${avatar}" alt="${name}" class="avatar">` : '<div class="avatar"></div>'}
+                        <div class="char-tag-info">
+                            <div class="name">${displayName}</div>
+                            <div class="char-tag-row">
+                                <span class="label">元素类型</span>
+                                <span class="value ${element ? '' : 'empty'} ${elementBanned ? 'banned' : ''}">${element || '无'}</span>
+                            </div>
+                            <div class="char-tag-row">
+                                <span class="label">国家</span>
+                                <span class="value ${region ? '' : 'empty'} ${regionBanned ? 'banned' : ''}">${region || '无'}</span>
+                            </div>
+                            <div class="char-tag-row">
+                                <span class="label">武器类型</span>
+                                <span class="value ${weaponBanned ? 'banned' : ''}">${weapon}</span>
+                            </div>
+                            <div class="char-tag-row">
+                                <span class="label">体型</span>
+                                <span class="value ${bodyBanned ? 'banned' : ''}">${body}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // 更新搜索状态类
+            if (isSearchActive) {
+                charTagsGrid.classList.add('search-active');
+            } else {
+                charTagsGrid.classList.remove('search-active');
+            }
+
+            // FLIP: 计算新位置并执行动画
+            if (globalAnims && oldPosMap.size > 0 && !document.hidden) {
+                requestAnimationFrame(() => {
+                    const newItems = Array.from(charTagsGrid.children);
+                    const moved = [];
+                    newItems.forEach(el => {
+                        const name = el.getAttribute('title');
+                        const oldRect = oldPosMap.get(name);
+                        if (oldRect) {
+                            const newRect = el.getBoundingClientRect();
+                            const dx = oldRect.left - newRect.left;
+                            const dy = oldRect.top - newRect.top;
+                            if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
+                                el.style.transform = `translate(${dx}px, ${dy}px)`;
+                                el.style.transition = 'none';
+                                moved.push(el);
+                            }
+                        }
+                    });
+
+                    if (moved.length > 0) {
+                        requestAnimationFrame(() => {
+                            moved.forEach(el => {
+                                el.style.transform = '';
+                                el.style.transition = 'transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)';
+                            });
+                        });
+                    }
+                });
+            }
+        }
+
+        // 关闭搜索框
+        function closeCharTagsSearch() {
+            if (charTagsSearchContainer) {
+                charTagsSearchContainer.classList.remove('active');
+                charTagsSearchInput.value = '';
+                charTagsSearchTerm = '';
+                charTagsSearchBtn.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>`;
+                renderCharTagsGrid(true);
+            }
+        }
 
         if (viewAllTagsBtn && charTagsModal && charTagsGrid) {
             viewAllTagsBtn.addEventListener('click', () => {
-                // 获取当前记录
-                const record = window.__recorder_actions && window.__recorder_actions.getRecord
-                    ? window.__recorder_actions.getRecord()
-                    : { 元素类型: new Set(), 国家: new Set(), 武器类型: new Set(), 体型: new Set() };
+                // 重置搜索状态
+                charTagsSearchTerm = '';
+                if (charTagsSearchInput) charTagsSearchInput.value = '';
+                if (charTagsSearchContainer) {
+                    charTagsSearchContainer.classList.remove('active');
+                    if (charTagsSearchBtn) {
+                        charTagsSearchBtn.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>`;
+                    }
+                }
 
-                // 填充角色数据
-                const charData = window.characterData || {};
-                const entries = Object.entries(charData);
-
-                charTagsGrid.innerHTML = entries.map(([name, data]) => {
-                    const avatar = data.头像 || '';
-                    const element = data.元素类型 || '';
-                    const region = data.国家 || '';
-                    const weapon = data.武器类型 || '';
-                    const body = data.体型 || '';
-
-                    // 检查每个标签是否在当前记录中（被禁用）
-                    const elementBanned = element && record.元素类型.has(element);
-                    const regionBanned = region && record.国家.has(region);
-                    const weaponBanned = weapon && record.武器类型.has(weapon);
-                    const bodyBanned = body && record.体型.has(body);
-
-                    return `
-                        <div class="char-tag-card">
-                            ${avatar ? `<img src="${avatar}" alt="${name}" class="avatar">` : '<div class="avatar"></div>'}
-                            <div class="char-tag-info">
-                                <div class="name">${name}</div>
-                                <div class="char-tag-row">
-                                    <span class="label">元素类型</span>
-                                    <span class="value ${element ? '' : 'empty'} ${elementBanned ? 'banned' : ''}">${element || '无'}</span>
-                                </div>
-                                <div class="char-tag-row">
-                                    <span class="label">国家</span>
-                                    <span class="value ${region ? '' : 'empty'} ${regionBanned ? 'banned' : ''}">${region || '无'}</span>
-                                </div>
-                                <div class="char-tag-row">
-                                    <span class="label">武器类型</span>
-                                    <span class="value ${weaponBanned ? 'banned' : ''}">${weapon}</span>
-                                </div>
-                                <div class="char-tag-row">
-                                    <span class="label">体型</span>
-                                    <span class="value ${bodyBanned ? 'banned' : ''}">${body}</span>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
+                // 渲染角色列表
+                renderCharTagsGrid();
 
                 // 打开弹窗
                 charTagsModal.classList.remove('hidden');
                 document.body.classList.add('modal-open');
             });
+
+            // 搜索框逻辑
+            if (charTagsSearchBtn && charTagsSearchInput && charTagsSearchContainer) {
+                charTagsSearchBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (!charTagsSearchContainer.classList.contains('active')) {
+                        charTagsSearchContainer.classList.add('active');
+                        charTagsSearchInput.focus();
+                        charTagsSearchBtn.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+                    } else {
+                        closeCharTagsSearch();
+                    }
+                });
+
+                charTagsSearchInput.addEventListener('input', () => {
+                    charTagsSearchTerm = charTagsSearchInput.value.trim().toLowerCase();
+                    renderCharTagsGrid(true);
+                });
+
+                // 快捷键 ESC 退出搜索
+                charTagsSearchInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        closeCharTagsSearch();
+                    }
+                });
+            }
 
             // 关闭弹窗
             charTagsModal.querySelectorAll('[data-chartags-close]').forEach(el => {
@@ -207,6 +393,8 @@
                         charTagsModal.classList.add('hidden');
                         charTagsModal.classList.remove('closing');
                         document.body.classList.remove('modal-open');
+                        // 关闭弹窗时重置搜索状态
+                        closeCharTagsSearch();
                     }, 280);
                 });
             });
@@ -295,7 +483,7 @@
                 activeTheme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
             }
             if (lightLink) lightLink.disabled = (activeTheme !== 'light');
-            if (activeTheme === 'light') document.body.classList.add('light-theme'); 
+            if (activeTheme === 'light') document.body.classList.add('light-theme');
             else document.body.classList.remove('light-theme');
         };
 

@@ -341,6 +341,123 @@ input:checked+.slider:before {
   color: #475569;
 }
 
+/* 概览卡片浅色模式 */
+.overview-card {
+  background: rgba(255, 255, 255, 0.5);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+.overview-card:hover {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+.overview-value {
+  color: #0f172a;
+}
+
+.overview-label {
+  color: #64748b;
+}
+
+.overview-card.highlight-bad .overview-value {
+  color: #dc2626;
+}
+
+/* 环形图浅色模式 */
+.donut-chart-wrapper {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.donut-chart-title {
+  color: #475569;
+}
+
+.donut-center-text {
+  fill: #64748b;
+}
+
+.donut-center-label {
+  fill: #0f172a;
+}
+
+.donut-center-count {
+  fill: #64748b;
+}
+
+.donut-legend-item {
+  color: #475569;
+}
+
+.donut-legend-value {
+  color: #64748b;
+}
+
+/* 热力图浅色模式 */
+.filter-btn {
+  background: rgba(255, 255, 255, 0.5);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #475569;
+}
+
+.filter-btn:hover {
+  background: rgba(255, 255, 255, 0.7);
+  color: #0f172a;
+}
+
+.filter-btn.active {
+  background: #e1be88d6;
+  border-color: #d4ac6e;
+  color: #fff;
+}
+
+.heatmap-tooltip {
+  background: #fff;
+  color: #0f172a;
+  border-color: #e2e8f0;
+}
+
+/* 排行榜浅色模式 */
+.ranking-row {
+  background:
+    linear-gradient(to right,
+      rgba(225, 190, 136, 0.35) 0%,
+      rgba(225, 190, 136, 0.2) var(--percent, 0%),
+      rgba(255, 255, 255, 0.4) var(--percent, 0%),
+      rgba(255, 255, 255, 0.4) 100%);
+}
+
+.ranking-row:hover {
+  background:
+    linear-gradient(to right,
+      rgba(225, 190, 136, 0.45) 0%,
+      rgba(225, 190, 136, 0.3) var(--percent, 0%),
+      rgba(255, 255, 255, 0.6) var(--percent, 0%),
+      rgba(255, 255, 255, 0.6) 100%);
+}
+
+.ranking-rank {
+  background: rgba(0, 0, 0, 0.08);
+  color: #64748b;
+}
+
+.ranking-name {
+  color: #0f172a;
+}
+
+.ranking-meta {
+  color: #64748b;
+}
+
+.ranking-count {
+  color: #0f172a;
+}
+
+.ranking-empty {
+  color: #94a3b8;
+}
+
+
 /* Tab Controls Light Theme */
 .tab-controls {
   background: #fff9f0d6;
@@ -429,4 +546,10 @@ input:checked+.slider:before {
   background: rgba(239, 68, 68, 0.2);
   border-color: rgba(239, 68, 68, 0.4);
   color: #dc2626;
+}
+
+/* 角色标签弹窗搜索浅色模式 */
+.char-tags-grid.search-active .char-tag-card.search-match {
+  border-color: #d97706;
+  box-shadow: 0 0 12px rgba(217, 119, 6, 0.3);
 }

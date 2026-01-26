@@ -30,9 +30,9 @@
       btn.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>`;
       // Clear search if necessary
       if (input.value.trim() || panelSearchTerm) {
-         input.value = '';
-         panelSearchTerm = '';
-         renderComplement(true);
+        input.value = '';
+        panelSearchTerm = '';
+        renderComplement(true);
       }
     }
   }
@@ -1042,12 +1042,14 @@
     const attrCounts = {};
     const charCounts = {};
     const labelCategory = {}; // 记录标签所属分类
+    const categoryCounts = { '元素类型': {}, '国家': {}, '武器类型': {}, '体型': {} };
 
     // 初始化计数：包含所有类型的标签
     Object.entries(POOLS).forEach(([cat, pool]) => {
       pool.forEach(val => {
         attrCounts[val] = 0;
         labelCategory[val] = cat;
+        categoryCounts[cat][val] = 0;
       });
     });
 
@@ -1060,7 +1062,10 @@
       ["元素类型", "国家", "武器类型", "体型"].forEach(cat => {
         if (snap && snap[cat]) {
           snap[cat].forEach(val => {
-            if (attrCounts[val] !== undefined) attrCounts[val]++;
+            if (attrCounts[val] !== undefined) {
+              attrCounts[val]++;
+              categoryCounts[cat][val]++;
+            }
           });
         }
       });
@@ -1073,13 +1078,238 @@
       });
     });
 
+    // 渲染概览卡片
+    renderStatsOverview(attrCounts, charCounts);
+
+    // 渲染可用角色趋势
     const availData = history
       .filter(h => h.available !== undefined)
       .map(h => ({ round: h.round, count: h.available }));
-
     renderLineChart('availChart', availData);
-    renderBarChart('elemStats', attrCounts, 'elem-', labelCategory);
-    renderBarChart('charStats', charCounts, 'char-bar');
+
+    // 渲染禁用标签环形图
+    renderDonutCharts('elemStats', categoryCounts);
+
+    // 渲染角色热力图
+    renderCharHeatmap('charStats', charCounts, allChars);
+  }
+
+  // 渲染概览卡片
+  function renderStatsOverview(attrCounts, charCounts) {
+    const totalRoundsEl = document.getElementById('statsTotalRounds');
+    const mostBannedTagEl = document.getElementById('statsMostBannedTag');
+    const mostBannedCharEl = document.getElementById('statsMostBannedChar');
+
+    // 总回合数
+    if (totalRoundsEl) {
+      totalRoundsEl.textContent = history.length;
+    }
+
+    // 零可用回合数（没有角色可用的回合）
+    const zeroAvailRoundsEl = document.getElementById('statsZeroAvailRounds');
+    if (zeroAvailRoundsEl) {
+      const zeroRounds = history.filter(h => h.available === 0).length;
+      zeroAvailRoundsEl.textContent = zeroRounds;
+    }
+
+    // 最惨标签
+    if (mostBannedTagEl) {
+      const sortedTags = Object.entries(attrCounts).sort((a, b) => b[1] - a[1]);
+      if (sortedTags.length > 0 && sortedTags[0][1] > 0) {
+        mostBannedTagEl.textContent = sortedTags[0][0];
+        mostBannedTagEl.title = `${sortedTags[0][0]}: ${sortedTags[0][1]} 回合`;
+      } else {
+        mostBannedTagEl.textContent = '—';
+      }
+    }
+
+    // 最惨角色
+    if (mostBannedCharEl) {
+      const sortedChars = Object.entries(charCounts).sort((a, b) => b[1] - a[1]);
+      if (sortedChars.length > 0 && sortedChars[0][1] > 0) {
+        mostBannedCharEl.textContent = sortedChars[0][0];
+        mostBannedCharEl.title = `${sortedChars[0][0]}: ${sortedChars[0][1]} 回合`;
+      } else {
+        mostBannedCharEl.textContent = '—';
+      }
+    }
+  }
+
+  // 渲染环形图
+  function renderDonutCharts(containerId, categoryCounts) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const categoryNames = {
+      '元素类型': '元素',
+      '国家': '国家',
+      '武器类型': '武器',
+      '体型': '体型'
+    };
+
+    const categoryColors = {
+      '元素类型': ['#0ea5e9', '#06b6d4', '#22d3ee', '#38bdf8', '#7dd3fc', '#a5f3fc', '#e0f2fe'],
+      '国家': ['#eab308', '#facc15', '#fde047', '#fef08a', '#fef9c3', '#fefce8', '#ca8a04'],
+      '武器类型': ['#ef4444', '#f87171', '#fca5a5', '#fecaca', '#fee2e2'],
+      '体型': ['#22c55e', '#4ade80', '#86efac', '#bbf7d0', '#dcfce7']
+    };
+
+    let html = '';
+    let chartIndex = 0;
+
+    Object.entries(categoryCounts).forEach(([cat, counts]) => {
+      const entries = Object.entries(counts).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+      const total = entries.reduce((sum, [, v]) => sum + v, 0);
+      const colors = categoryColors[cat] || ['#64748b'];
+      const chartId = `donut-${chartIndex++}`;
+
+      html += `<div class="donut-chart-wrapper" data-chart-id="${chartId}">
+        <div class="donut-chart-title">${categoryNames[cat]}</div>
+        <svg class="donut-chart-svg" viewBox="0 0 100 100">`;
+
+      if (total === 0) {
+        // 空状态
+        html += `<circle cx="50" cy="50" r="40" fill="none" stroke="rgba(100,116,139,0.3)" stroke-width="12"/>
+          <text x="50" y="50" class="donut-center-text">无数据</text>`;
+      } else {
+        const radius = 40;
+        const circumference = 2 * Math.PI * radius;
+        let currentOffset = 0;
+
+        entries.forEach(([label, count], i) => {
+          const percent = count / total;
+          const dashLength = circumference * percent;
+          const color = colors[i % colors.length];
+
+          html += `<circle cx="50" cy="50" r="${radius}" fill="none" 
+            stroke="${color}" stroke-width="12"
+            stroke-dasharray="${dashLength} ${circumference - dashLength}"
+            stroke-dashoffset="${-currentOffset}"
+            transform="rotate(-90 50 50)"
+            class="donut-segment donut-segment-anim"
+            style="--circumference: ${circumference}; --offset: ${-currentOffset}"
+            data-label="${label}" data-count="${count}" data-chart="${chartId}"/>`;
+
+          currentOffset += dashLength;
+        });
+
+        // 中心文本区域 - 初始留空，分两行显示
+        html += `<text x="50" y="46" class="donut-center-label" data-chart="${chartId}"></text>
+          <text x="50" y="58" class="donut-center-count" data-chart="${chartId}"></text>`;
+      }
+
+      html += `</svg><div class="donut-legend">`;
+
+      entries.forEach(([label, count], i) => {
+        const color = colors[i % colors.length];
+        html += `<div class="donut-legend-item" data-label="${label}" data-count="${count}" data-chart="${chartId}">
+          <div class="donut-legend-color" style="background:${color}"></div>
+          <span class="donut-legend-label">${label}</span>
+          <span class="donut-legend-value">${count}</span>
+        </div>`;
+      });
+
+      html += `</div></div>`;
+    });
+
+    container.innerHTML = html;
+
+    // 绑定 hover 事件
+    container.querySelectorAll('.donut-segment').forEach(segment => {
+      segment.addEventListener('mouseenter', () => {
+        const chartId = segment.dataset.chart;
+        const label = segment.dataset.label;
+        const count = segment.dataset.count;
+        const labelEl = container.querySelector(`.donut-center-label[data-chart="${chartId}"]`);
+        const countEl = container.querySelector(`.donut-center-count[data-chart="${chartId}"]`);
+        if (labelEl) labelEl.textContent = label;
+        if (countEl) countEl.textContent = `${count}回合`;
+      });
+
+      segment.addEventListener('mouseleave', () => {
+        const chartId = segment.dataset.chart;
+        const labelEl = container.querySelector(`.donut-center-label[data-chart="${chartId}"]`);
+        const countEl = container.querySelector(`.donut-center-count[data-chart="${chartId}"]`);
+        if (labelEl) labelEl.textContent = '';
+        if (countEl) countEl.textContent = '';
+      });
+    });
+
+    // 图例项也支持 hover
+    container.querySelectorAll('.donut-legend-item').forEach(item => {
+      item.addEventListener('mouseenter', () => {
+        const chartId = item.dataset.chart;
+        const label = item.dataset.label;
+        const count = item.dataset.count;
+        const labelEl = container.querySelector(`.donut-center-label[data-chart="${chartId}"]`);
+        const countEl = container.querySelector(`.donut-center-count[data-chart="${chartId}"]`);
+        if (labelEl) labelEl.textContent = label;
+        if (countEl) countEl.textContent = `${count}回合`;
+      });
+
+      item.addEventListener('mouseleave', () => {
+        const chartId = item.dataset.chart;
+        const labelEl = container.querySelector(`.donut-center-label[data-chart="${chartId}"]`);
+        const countEl = container.querySelector(`.donut-center-count[data-chart="${chartId}"]`);
+        if (labelEl) labelEl.textContent = '';
+        if (countEl) countEl.textContent = '';
+      });
+    });
+  }
+
+  // 渲染角色排行榜
+  function renderCharHeatmap(containerId, charCounts, allChars) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    // 直接渲染（无筛选）
+    const sorted = Object.entries(charCounts)
+      .filter(([, count]) => count > 0)
+      .sort((a, b) => b[1] - a[1]);
+
+    const maxCount = sorted.length > 0 ? sorted[0][1] : 1;
+    const anims = window.__recorder_settings && window.__recorder_settings.animationsEnabled !== false;
+
+    if (sorted.length === 0) {
+      container.innerHTML = '<div class="ranking-empty">暂无禁用记录</div>';
+      return;
+    }
+
+    let currentRank = 1;
+    let actualIndex = 0; // 实际索引，用于交错动画
+
+    container.innerHTML = sorted.map(([name, count], index) => {
+      // 处理并列排名
+      if (index > 0 && count < sorted[index - 1][1]) {
+        currentRank = index + 1;
+      }
+
+      const char = allChars[name];
+      const avatar = char?.头像 || '';
+      const element = char?.元素类型 || '';
+      const region = char?.国家 || '';
+      const percent = (count / maxCount) * 100;
+      const animClass = anims ? 'ranking-row-anim' : '';
+      const animStyle = anims ? `--index:${actualIndex++};--percent:${percent}%` : `--percent:${percent}%`;
+
+      // 添加特殊排名类，用于 CSS 样式
+      let rankClass = 'ranking-row';
+      if (currentRank === 1) rankClass += ' rank-1';
+      else if (currentRank === 2) rankClass += ' rank-2';
+      else if (currentRank === 3) rankClass += ' rank-3';
+
+      return `<div class="${rankClass} ${animClass}" style="${animStyle}">
+        <div class="ranking-rank">${currentRank}</div>
+        <div class="ranking-avatar">
+          ${avatar ? `<img src="${avatar}" alt="${name}">` : '<div class="avatar-placeholder"></div>'}
+        </div>
+        <div class="ranking-info">
+          <div class="ranking-name">${name}</div>
+          <div class="ranking-meta">${element} · ${region}</div>
+        </div>
+        <div class="ranking-count">${count}</div>
+      </div>`;
+    }).join('');
   }
 
   function renderLineChart(containerId, data) {
@@ -1136,7 +1366,7 @@
         <path d="${areaPath}" class="chart-area" />
         <path d="${linePath}" class="chart-line" />
         ${points.map((p, i) => `
-          <circle cx="${p.x}" cy="${p.y}" r="3.2" class="chart-point ${p.count === 0 ? 'point-zero' : ''} point-anim" 
+          <circle cx="${p.x}" cy="${p.y}" r="2.5" class="chart-point ${p.count === 0 ? 'point-zero' : ''} point-anim" 
             style="animation-delay: ${(i / (points.length || 1)) * 1000}ms; ${p.count === 0 ? 'fill: #ef4444; stroke: #fee2e2;' : ''}"
             data-round="${p.round}" data-count="${p.count}" />
         `).join('')}
