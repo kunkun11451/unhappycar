@@ -1,0 +1,20 @@
+{
+  "name": "UnhappyCar Tools",
+  "short_name": "UnhappyCar",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#0f1012",
+  "theme_color": "#0f1012",
+  "icons": [
+    {
+      "src": "https://upload-bbs.miyoushe.com/upload/2024/06/29/273489775/4be47bf1376bfb4f69c1e3fe26c8a8e8_8119842655567179283.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://upload-bbs.miyoushe.com/upload/2024/06/29/273489775/4be47bf1376bfb4f69c1e3fe26c8a8e8_8119842655567179283.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
