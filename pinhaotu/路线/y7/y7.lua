@@ -1,15 +1,15 @@
 area:yxg, pos: [4200, 46272], narrow: 5--yxg
 area:yxg, pos: [25072, 20492], narrow: 5 --yxg
-area:yxg, pos: [48095, 21968] --yxg
-area:yxg, pos: [47275, 34386] --yxg
-area:yxg, pos: [29195, 46846] --yxg
-area:yxg, pos: [32601, 32460], narrow: -1 --yxg
+area:yxg, pos: [48095, 21968], narrow: 5 --yxg
+area:yxg, pos: [47275, 34386], narrow: 5 --yxg
+area:yxg, pos: [29195, 46846], narrow: 5 --yxg
+area:yxg, pos: [32601, 32460],resnar: 2, narrow: -1 --yxg
 area:dx , pos: [32755, 32583], narrow: 5--cy
-area:dx , pos: [32729, 41436] --cy
-area:dx , pos: [40719, 34960] --cy
-area:dx , pos: [34778, 56723] --cy
-area:dx , pos: [45944, 50944] --cy
-area:dx , pos: [44740, 62338] --cy
+area:dx , pos: [32729, 41436], narrow: 5 --cy
+area:dx , pos: [40719, 34960], narrow: 5 --cy
+area:dx , pos: [34778, 56723], narrow: 5 --cy
+area:dx , pos: [45944, 50944], narrow: 5 --cy
+area:dx , pos: [44740, 62338], narrow: 5 --cy
 area:fd ,resnar:1, pos: [45560, 5041] ,narrow: 2 --fd
 monster: syxclfszz, pos: [45611, 57912] ,narrow: 1--fd
 monster: sxhr, pos: [35644, 48901]--fd

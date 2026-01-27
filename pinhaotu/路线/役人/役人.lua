@@ -1,3 +1,3 @@
-monster: [5,2], pos: [25046, 2131]
-monster: [5,2], pos: [40591, 7705]
-monster: [5,2], pos: [37646, 36886]
+monster: syxclfszz, pos: [25046, 2131]
+monster: syxclfszz, pos: [40591, 7705]
+monster: syxclfszz, pos: [37646, 36886]
