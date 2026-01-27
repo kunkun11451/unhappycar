@@ -218,6 +218,11 @@ h2 {
   color: #475569
 }
 
+.settings-subtitle {
+  color: #64748b;
+  border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
 .settings-action {
   color: #b48a4d
 }

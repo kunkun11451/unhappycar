@@ -131,7 +131,7 @@
       </div>
 
       <div class="settings-body">
-        <h4 style="text-align: center; margin-top: 0px;">—————— 游戏规则 ——————</h4>
+        <h4 class="settings-subtitle" style="text-align: center; margin-top: 0px;">游戏规则</h4>
         <!-- Rules Details -->
         <details class="rules-details" id="rulesDetails">
           <summary class="rules-summary">
@@ -174,7 +174,7 @@
                 </tbody>
               </table>
               <ul>
-                <li>角色的国家以<strong>米游社观测枢角色图鉴</strong>的<strong>地区</strong>分类为准。</li>
+                <li>角色的国家以<strong>「米游社观测枢角色图鉴」</strong>的<strong>「地区」</strong>分类为准。</li>
                 <li>两个奇偶无<strong>元素</strong>和<strong>国家</strong>标签，选择时只考虑体型和武器。</li>
               </ul>
 
@@ -189,6 +189,36 @@
                 <li>每轮只能选择<strong>不符合当前记录中任何特征</strong>的角色，无角色可用时使用旅行者。</li>
                 <li>角色不BP，可以重复使用角色。</li>
               </ul>
+              <h3>* 概率参考</h3>
+              <p>基于百万次模拟（1000000次×10回合「三点一换」和30回合「一点一换」）计算的期望数据：</p>
+              <table class="rules-table stats-reference-table">
+                <thead>
+                  <tr>
+                    <th>抽取模式</th>
+                    <th>平均可用</th>
+                    <th>标准差</th>
+                    <th>零可用概率</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>三点一换</td>
+                    <td>17.02</td>
+                    <td>16.34</td>
+                    <td>5.12%</td>
+                  </tr>
+                  <tr>
+                    <td>一点一换</td>
+                    <td>10.55</td>
+                    <td>12.03</td>
+                    <td>9.28%</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p>总结：请做好坐牢的准备 <img
+                  src="https://upload-bbs.miyoushe.com/upload/2024/06/29/273489775/4be47bf1376bfb4f69c1e3fe26c8a8e8_8119842655567179283.png"
+                  style="height: 4em; vertical-align: middle;"></p>
+
             </div>
           </div>
         </details>
@@ -203,7 +233,7 @@
           </div>
         </div>
 
-        <h4 style="text-align: center;">—————— 基础操作 ——————</h4>
+        <h4 class="settings-subtitle">基础操作</h4>
 
         <div class="settings-item host-only">
           <div class="settings-info">
@@ -246,7 +276,7 @@
           </div>
         </div>
 
-        <h4 style="text-align: center;">—————— 界面设置 ——————</h4>
+        <h4 class="settings-subtitle">界面设置</h4>
 
         <div class="settings-item">
           <div class="settings-info">
@@ -300,7 +330,7 @@
           </div>
         </div>
 
-        <h4 style="text-align: center;">—————— 快捷键设置 ——————</h4>
+        <h4 class="settings-subtitle">快捷键设置</h4>
 
         <div class="settings-item host-only">
           <div class="settings-info">
@@ -365,7 +395,7 @@
             <div class="conflict-msg">快捷键冲突</div>
           </div>
         </div>
-        <h4 clsss="host-only" style="text-align: center;">—————— 在线设置 ——————</h4>
+        <h4 class="settings-subtitle host-only">在线设置</h4>
 
         <div class="settings-item host-only">
           <div class="settings-info">
@@ -510,13 +540,13 @@
                 <div class="overview-value" id="statsZeroAvailRounds">0</div>
                 <div class="overview-label">零可用回合</div>
               </div>
-              <div class="overview-card highlight-bad">
-                <div class="overview-value" id="statsMostBannedTag">—</div>
-                <div class="overview-label">最惨标签</div>
+              <div class="overview-card">
+                <div class="overview-value" id="statsAvgAvail">—</div>
+                <div class="overview-label">平均可用</div>
               </div>
-              <div class="overview-card highlight-bad">
-                <div class="overview-value" id="statsMostBannedChar">—</div>
-                <div class="overview-label">最惨角色</div>
+              <div class="overview-card">
+                <div class="overview-value" id="statsVariance">—</div>
+                <div class="overview-label">标准差</div>
               </div>
             </div>
 

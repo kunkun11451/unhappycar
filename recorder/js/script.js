@@ -1079,7 +1079,7 @@
     });
 
     // 渲染概览卡片
-    renderStatsOverview(attrCounts, charCounts);
+    renderStatsOverview();
 
     // 渲染可用角色趋势
     const availData = history
@@ -1095,10 +1095,11 @@
   }
 
   // 渲染概览卡片
-  function renderStatsOverview(attrCounts, charCounts) {
+  function renderStatsOverview() {
     const totalRoundsEl = document.getElementById('statsTotalRounds');
-    const mostBannedTagEl = document.getElementById('statsMostBannedTag');
-    const mostBannedCharEl = document.getElementById('statsMostBannedChar');
+    const zeroAvailRoundsEl = document.getElementById('statsZeroAvailRounds');
+    const avgAvailEl = document.getElementById('statsAvgAvail');
+    const varianceEl = document.getElementById('statsVariance');
 
     // 总回合数
     if (totalRoundsEl) {
@@ -1106,31 +1107,33 @@
     }
 
     // 零可用回合数（没有角色可用的回合）
-    const zeroAvailRoundsEl = document.getElementById('statsZeroAvailRounds');
     if (zeroAvailRoundsEl) {
       const zeroRounds = history.filter(h => h.available === 0).length;
       zeroAvailRoundsEl.textContent = zeroRounds;
     }
 
-    // 最惨标签
-    if (mostBannedTagEl) {
-      const sortedTags = Object.entries(attrCounts).sort((a, b) => b[1] - a[1]);
-      if (sortedTags.length > 0 && sortedTags[0][1] > 0) {
-        mostBannedTagEl.textContent = sortedTags[0][0];
-        mostBannedTagEl.title = `${sortedTags[0][0]}: ${sortedTags[0][1]} 回合`;
+    // 获取所有可用角色数数据
+    const availData = history.filter(h => h.available !== undefined).map(h => h.available);
+
+    // 平均可用角色数
+    if (avgAvailEl) {
+      if (availData.length > 0) {
+        const avg = availData.reduce((sum, v) => sum + v, 0) / availData.length;
+        avgAvailEl.textContent = avg.toFixed(1);
       } else {
-        mostBannedTagEl.textContent = '—';
+        avgAvailEl.textContent = '—';
       }
     }
 
-    // 最惨角色
-    if (mostBannedCharEl) {
-      const sortedChars = Object.entries(charCounts).sort((a, b) => b[1] - a[1]);
-      if (sortedChars.length > 0 && sortedChars[0][1] > 0) {
-        mostBannedCharEl.textContent = sortedChars[0][0];
-        mostBannedCharEl.title = `${sortedChars[0][0]}: ${sortedChars[0][1]} 回合`;
+    // 标准差
+    if (varianceEl) {
+      if (availData.length > 0) {
+        const avg = availData.reduce((sum, v) => sum + v, 0) / availData.length;
+        const variance = availData.reduce((sum, v) => sum + Math.pow(v - avg, 2), 0) / availData.length;
+        const stdDev = Math.sqrt(variance);
+        varianceEl.textContent = stdDev.toFixed(1);
       } else {
-        mostBannedCharEl.textContent = '—';
+        varianceEl.textContent = '—';
       }
     }
   }
@@ -1148,17 +1151,17 @@
     };
 
     const categoryColors = {
-      '元素类型': ['#0ea5e9', '#06b6d4', '#22d3ee', '#38bdf8', '#7dd3fc', '#a5f3fc', '#e0f2fe'],
-      '国家': ['#eab308', '#facc15', '#fde047', '#fef08a', '#fef9c3', '#fefce8', '#ca8a04'],
-      '武器类型': ['#ef4444', '#f87171', '#fca5a5', '#fecaca', '#fee2e2'],
-      '体型': ['#22c55e', '#4ade80', '#86efac', '#bbf7d0', '#dcfce7']
+      '元素类型': ['#003A8C', '#0050B3', '#096DD9', '#1890FF', '#40A9FF', '#69C0FF', '#91D5FF'],
+      '国家': ['#876800', '#AD8B00', '#D4B106', '#F4D40A', '#FBE139', '#FFEB6B', '#FFF690'],
+      '武器类型': ['#800D00', '#B8292F', '#D9333B', '#E65E67', '#F57582'],
+      '体型': ['#135200 ', '#237804', '#389E0D', '#52C41A', '#73D13D']
     };
 
     let html = '';
     let chartIndex = 0;
 
     Object.entries(categoryCounts).forEach(([cat, counts]) => {
-      const entries = Object.entries(counts).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+      const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
       const total = entries.reduce((sum, [, v]) => sum + v, 0);
       const colors = categoryColors[cat] || ['#64748b'];
       const chartId = `donut-${chartIndex++}`;
@@ -1214,24 +1217,55 @@
 
     container.innerHTML = html;
 
+    // 辅助函数：高亮指定片段，其他变灰
+    function highlightSegment(wrapper, targetLabel) {
+      wrapper.querySelectorAll('.donut-segment').forEach(seg => {
+        if (seg.dataset.label === targetLabel) {
+          seg.classList.add('segment-highlight');
+          seg.classList.remove('segment-dimmed');
+          // 获取片段颜色并设置发光效果
+          const strokeColor = seg.getAttribute('stroke');
+          if (strokeColor) {
+            seg.style.filter = `brightness(1.3) drop-shadow(0 0 6px ${strokeColor}) drop-shadow(0 0 12px ${strokeColor})`;
+          }
+        } else {
+          seg.classList.add('segment-dimmed');
+          seg.classList.remove('segment-highlight');
+          seg.style.filter = '';
+        }
+      });
+    }
+
+    // 辅助函数：清除所有片段的高亮/灰色状态
+    function clearSegmentHighlight(wrapper) {
+      wrapper.querySelectorAll('.donut-segment').forEach(seg => {
+        seg.classList.remove('segment-highlight', 'segment-dimmed');
+        seg.style.filter = '';
+      });
+    }
+
     // 绑定 hover 事件
     container.querySelectorAll('.donut-segment').forEach(segment => {
       segment.addEventListener('mouseenter', () => {
         const chartId = segment.dataset.chart;
         const label = segment.dataset.label;
         const count = segment.dataset.count;
+        const wrapper = segment.closest('.donut-chart-wrapper');
         const labelEl = container.querySelector(`.donut-center-label[data-chart="${chartId}"]`);
         const countEl = container.querySelector(`.donut-center-count[data-chart="${chartId}"]`);
         if (labelEl) labelEl.textContent = label;
         if (countEl) countEl.textContent = `${count}回合`;
+        if (wrapper) highlightSegment(wrapper, label);
       });
 
       segment.addEventListener('mouseleave', () => {
         const chartId = segment.dataset.chart;
+        const wrapper = segment.closest('.donut-chart-wrapper');
         const labelEl = container.querySelector(`.donut-center-label[data-chart="${chartId}"]`);
         const countEl = container.querySelector(`.donut-center-count[data-chart="${chartId}"]`);
         if (labelEl) labelEl.textContent = '';
         if (countEl) countEl.textContent = '';
+        if (wrapper) clearSegmentHighlight(wrapper);
       });
     });
 
@@ -1241,18 +1275,22 @@
         const chartId = item.dataset.chart;
         const label = item.dataset.label;
         const count = item.dataset.count;
+        const wrapper = item.closest('.donut-chart-wrapper');
         const labelEl = container.querySelector(`.donut-center-label[data-chart="${chartId}"]`);
         const countEl = container.querySelector(`.donut-center-count[data-chart="${chartId}"]`);
         if (labelEl) labelEl.textContent = label;
         if (countEl) countEl.textContent = `${count}回合`;
+        if (wrapper) highlightSegment(wrapper, label);
       });
 
       item.addEventListener('mouseleave', () => {
         const chartId = item.dataset.chart;
+        const wrapper = item.closest('.donut-chart-wrapper');
         const labelEl = container.querySelector(`.donut-center-label[data-chart="${chartId}"]`);
         const countEl = container.querySelector(`.donut-center-count[data-chart="${chartId}"]`);
         if (labelEl) labelEl.textContent = '';
         if (countEl) countEl.textContent = '';
+        if (wrapper) clearSegmentHighlight(wrapper);
       });
     });
   }
@@ -1262,12 +1300,11 @@
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    // 直接渲染（无筛选）
+    // 渲染所有角色
     const sorted = Object.entries(charCounts)
-      .filter(([, count]) => count > 0)
       .sort((a, b) => b[1] - a[1]);
 
-    const maxCount = sorted.length > 0 ? sorted[0][1] : 1;
+    const maxCount = sorted.length > 0 ? Math.max(sorted[0][1], 1) : 1;
     const anims = window.__recorder_settings && window.__recorder_settings.animationsEnabled !== false;
 
     if (sorted.length === 0) {
@@ -1288,6 +1325,8 @@
       const avatar = char?.头像 || '';
       const element = char?.元素类型 || '';
       const region = char?.国家 || '';
+      const weapon = char?.武器类型 || '';
+      const body = char?.体型 || '';
       const percent = (count / maxCount) * 100;
       const animClass = anims ? 'ranking-row-anim' : '';
       const animStyle = anims ? `--index:${actualIndex++};--percent:${percent}%` : `--percent:${percent}%`;
@@ -1298,18 +1337,77 @@
       else if (currentRank === 2) rankClass += ' rank-2';
       else if (currentRank === 3) rankClass += ' rank-3';
 
-      return `<div class="${rankClass} ${animClass}" style="${animStyle}">
+      return `<div class="${rankClass} ${animClass}" style="${animStyle}"
+        data-element="${element}" data-region="${region}" data-weapon="${weapon}" data-body="${body}">
         <div class="ranking-rank">${currentRank}</div>
         <div class="ranking-avatar">
           ${avatar ? `<img src="${avatar}" alt="${name}">` : '<div class="avatar-placeholder"></div>'}
         </div>
         <div class="ranking-info">
           <div class="ranking-name">${name}</div>
-          <div class="ranking-meta">${element} · ${region}</div>
+          <div class="ranking-meta">${element} · ${region} · ${weapon} · ${body}</div>
         </div>
         <div class="ranking-count">${count}</div>
       </div>`;
     }).join('');
+
+    // 绑定 hover 事件，联动更新环形图中心显示
+    const elemStats = document.getElementById('elemStats');
+    container.querySelectorAll('.ranking-row').forEach(row => {
+      row.addEventListener('mouseenter', () => {
+        if (!elemStats) return;
+        const element = row.dataset.element;
+        const region = row.dataset.region;
+        const weapon = row.dataset.weapon;
+        const body = row.dataset.body;
+        const tags = { '元素类型': element, '国家': region, '武器类型': weapon, '体型': body };
+
+        elemStats.querySelectorAll('.donut-chart-wrapper').forEach(wrapper => {
+          const chartId = wrapper.dataset.chartId;
+          const labelEl = wrapper.querySelector('.donut-center-label');
+          const countEl = wrapper.querySelector('.donut-center-count');
+          // 从 title 获取分类名称
+          const title = wrapper.querySelector('.donut-chart-title')?.textContent;
+          const categoryMap = { '元素': '元素类型', '国家': '国家', '武器': '武器类型', '体型': '体型' };
+          const cat = categoryMap[title];
+          if (cat && tags[cat]) {
+            const tagValue = tags[cat];
+            if (labelEl) labelEl.textContent = tagValue;
+            // 查找对应标签的回合数
+            const legendItem = wrapper.querySelector(`.donut-legend-item[data-label="${tagValue}"]`);
+            const segmentCount = legendItem?.dataset.count || '0';
+            if (countEl) countEl.textContent = `${segmentCount}回合`;
+            // 高亮对应片段，其他变灰
+            wrapper.querySelectorAll('.donut-segment').forEach(seg => {
+              if (seg.dataset.label === tagValue) {
+                seg.classList.add('segment-highlight');
+                seg.classList.remove('segment-dimmed');
+                // 获取片段颜色并设置发光效果
+                const strokeColor = seg.getAttribute('stroke');
+                if (strokeColor) {
+                  seg.style.filter = `brightness(1.3) drop-shadow(0 0 6px ${strokeColor}) drop-shadow(0 0 12px ${strokeColor})`;
+                }
+              } else {
+                seg.classList.add('segment-dimmed');
+                seg.classList.remove('segment-highlight');
+                seg.style.filter = '';
+              }
+            });
+          }
+        });
+      });
+
+      row.addEventListener('mouseleave', () => {
+        if (!elemStats) return;
+        elemStats.querySelectorAll('.donut-center-label').forEach(el => el.textContent = '');
+        elemStats.querySelectorAll('.donut-center-count').forEach(el => el.textContent = '');
+        // 清除所有片段的高亮/灰色状态和 inline filter
+        elemStats.querySelectorAll('.donut-segment').forEach(seg => {
+          seg.classList.remove('segment-highlight', 'segment-dimmed');
+          seg.style.filter = '';
+        });
+      });
+    });
   }
 
   function renderLineChart(containerId, data) {

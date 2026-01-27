@@ -302,6 +302,7 @@
   background: rgba(51, 65, 85, 0.2);
   border-radius: 12px;
   padding: 16px 8px;
+  overflow: visible;
 }
 
 .donut-chart-title {
@@ -314,6 +315,7 @@
 .donut-chart-svg {
   width: 120px;
   height: 120px;
+  overflow: visible;
 }
 
 .donut-segment {
@@ -324,6 +326,19 @@
 .donut-segment:hover {
   opacity: 0.8;
   filter: brightness(1.2);
+}
+
+/* 高亮状态：被选中的片段 - 发光颜色通过 JS inline style 设置 */
+.donut-segment.segment-highlight {
+  opacity: 1;
+  filter: brightness(1.3);
+  stroke-width: 14;
+}
+
+/* 灰色状态：未被选中的片段 */
+.donut-segment.segment-dimmed {
+  opacity: 0.25;
+  filter: grayscale(0.6);
 }
 
 .donut-center-text {
