@@ -288,33 +288,68 @@
   color: #f87171;
 }
 
+/* ===== 数字滚动动画 ===== */
+.animated-counter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.counter-digit {
+  display: inline-block;
+  position: relative;
+  width: 0.65em;
+  overflow: hidden;
+  font-variant-numeric: tabular-nums;
+}
+
+.counter-wheel {
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
+.counter-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.counter-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 0.35em;
+}
+
 /* ===== 环形图容器 ===== */
 .donut-charts-container {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
 }
 
 .donut-chart-wrapper {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   background: rgba(51, 65, 85, 0.2);
   border-radius: 12px;
-  padding: 16px 8px;
+  padding: 12px;
+  gap: 12px;
   overflow: visible;
 }
 
 .donut-chart-title {
-  font-size: 0.85rem;
-  color: #cbd5e1;
-  margin-bottom: 12px;
-  font-weight: 500;
+  display: none; /* 隐藏外部标题，改用中心文字 */
 }
 
 .donut-chart-svg {
-  width: 120px;
-  height: 120px;
+  width: 90px;
+  height: 90px;
+  flex-shrink: 0;
   overflow: visible;
 }
 
@@ -328,11 +363,9 @@
   filter: brightness(1.2);
 }
 
-/* 高亮状态：被选中的片段 - 发光颜色通过 JS inline style 设置 */
 .donut-segment.segment-highlight {
-  opacity: 1;
-  filter: brightness(1.3);
-  stroke-width: 14;
+  opacity: 0.25;
+  filter: grayscale(0.6);
 }
 
 /* 灰色状态：未被选中的片段 */
@@ -341,36 +374,64 @@
   filter: grayscale(0.6);
 }
 
+/* 高亮指示器环 - 用于平滑移动动画 */
+.donut-highlight-ring {
+  pointer-events: none;
+  opacity: 0;
+  stroke-opacity: 0.5;
+  transition: 
+    stroke 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    stroke-dasharray 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    stroke-dashoffset 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    filter 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.2s ease;
+}
+
+.donut-highlight-ring.active {
+  opacity: 1;
+}
+
+/* 扩张消失动画状态 */
+.donut-highlight-ring.fading {
+  opacity: 0.6;
+  transition: 
+    stroke-dasharray 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    stroke-dashoffset 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    filter 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.4s ease 0.1s;
+}
+
 .donut-center-text {
-  font-size: 0.7rem;
+  font-size: 0.6rem;
   fill: #94a3b8;
   text-anchor: middle;
   dominant-baseline: middle;
 }
 
 .donut-center-label {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 600;
   fill: #f1f5f9;
   text-anchor: middle;
   dominant-baseline: middle;
+  transition: opacity 0.15s ease;
 }
 
 .donut-center-count {
-  font-size: 0.65rem;
+  font-size: 0.55rem;
   fill: #94a3b8;
   text-anchor: middle;
   dominant-baseline: middle;
+  transition: opacity 0.15s ease;
 }
 
 .donut-legend {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-top: 12px;
-  width: 100%;
-  max-height: 100px;
-  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2px 8px;
+  flex: 1;
+  min-width: 0;
+  align-content: center;
 }
 
 .donut-legend-item {
@@ -715,7 +776,36 @@
   }
 
   .donut-charts-container {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .donut-chart-wrapper {
+    width: 100%;
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .donut-chart-svg {
+    width: 70px;
+    height: 70px;
+  }
+
+  .donut-legend {
+    gap: 2px 6px;
+  }
+
+  .donut-legend-item {
+    font-size: 0.65rem;
+    padding: 2px 3px;
+  }
+
+  .donut-center-label {
+    font-size: 0.65rem;
+  }
+
+  .donut-center-count {
+    font-size: 0.5rem;
   }
 
   .char-heatmap {

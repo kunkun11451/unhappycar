@@ -1101,41 +1101,78 @@
     const avgAvailEl = document.getElementById('statsAvgAvail');
     const varianceEl = document.getElementById('statsVariance');
 
-    // 总回合数
-    if (totalRoundsEl) {
-      totalRoundsEl.textContent = history.length;
-    }
-
-    // 零可用回合数（没有角色可用的回合）
-    if (zeroAvailRoundsEl) {
-      const zeroRounds = history.filter(h => h.available === 0).length;
-      zeroAvailRoundsEl.textContent = zeroRounds;
-    }
-
     // 获取所有可用角色数数据
     const availData = history.filter(h => h.available !== undefined).map(h => h.available);
 
-    // 平均可用角色数
-    if (avgAvailEl) {
-      if (availData.length > 0) {
-        const avg = availData.reduce((sum, v) => sum + v, 0) / availData.length;
-        avgAvailEl.textContent = avg.toFixed(1);
-      } else {
-        avgAvailEl.textContent = '—';
-      }
+    // 计算各项数值
+    const totalRounds = history.length;
+    const zeroRounds = history.filter(h => h.available === 0).length;
+    const avg = availData.length > 0 ? availData.reduce((sum, v) => sum + v, 0) / availData.length : null;
+    const stdDev = availData.length > 0 ? Math.sqrt(availData.reduce((sum, v) => sum + Math.pow(v - avg, 2), 0) / availData.length) : null;
+
+    // 使用动画计数器渲染
+    if (totalRoundsEl) animateCounter(totalRoundsEl, totalRounds, 0);
+    if (zeroAvailRoundsEl) animateCounter(zeroAvailRoundsEl, zeroRounds, 0);
+    if (avgAvailEl) animateCounter(avgAvailEl, avg, 1);
+    if (varianceEl) animateCounter(varianceEl, stdDev, 1);
+  }
+
+  // 动画计数器 - 创建滚动数字效果
+  function animateCounter(el, targetValue, decimals) {
+    // 动画禁用时直接显示
+    if (window.__recorder_settings && window.__recorder_settings.animationsEnabled === false) {
+      el.textContent = targetValue === null ? '—' : targetValue.toFixed(decimals);
+      return;
     }
 
-    // 标准差
-    if (varianceEl) {
-      if (availData.length > 0) {
-        const avg = availData.reduce((sum, v) => sum + v, 0) / availData.length;
-        const variance = availData.reduce((sum, v) => sum + Math.pow(v - avg, 2), 0) / availData.length;
-        const stdDev = Math.sqrt(variance);
-        varianceEl.textContent = stdDev.toFixed(1);
-      } else {
-        varianceEl.textContent = '—';
-      }
+    if (targetValue === null) {
+      el.textContent = '—';
+      return;
     }
+
+    const valueStr = targetValue.toFixed(decimals);
+    const height = 28; // 数字高度，与font-size匹配
+
+    // 清空并创建容器
+    el.innerHTML = '';
+    el.classList.add('animated-counter');
+
+    // 为每个字符创建数字轮
+    const chars = valueStr.split('');
+    chars.forEach((char, idx) => {
+      if (char === '.') {
+        // 小数点直接显示
+        const dotSpan = document.createElement('span');
+        dotSpan.className = 'counter-dot';
+        dotSpan.textContent = '.';
+        el.appendChild(dotSpan);
+      } else {
+        const digit = parseInt(char, 10);
+        const digitContainer = document.createElement('span');
+        digitContainer.className = 'counter-digit';
+        digitContainer.style.height = height + 'px';
+
+        // 创建数字轮
+        const wheel = document.createElement('span');
+        wheel.className = 'counter-wheel';
+        for (let i = 0; i <= 9; i++) {
+          const numSpan = document.createElement('span');
+          numSpan.className = 'counter-num';
+          numSpan.style.height = height + 'px';
+          numSpan.textContent = i;
+          wheel.appendChild(numSpan);
+        }
+        digitContainer.appendChild(wheel);
+        el.appendChild(digitContainer);
+
+        // 触发动画，从0滚动到目标数字
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            wheel.style.transform = `translateY(${-digit * height}px)`;
+          }, idx * 50); 
+        });
+      }
+    });
   }
 
   // 渲染环形图
@@ -1166,7 +1203,7 @@
       const colors = categoryColors[cat] || ['#64748b'];
       const chartId = `donut-${chartIndex++}`;
 
-      html += `<div class="donut-chart-wrapper" data-chart-id="${chartId}">
+      html += `<div class="donut-chart-wrapper" data-chart-id="${chartId}" data-title="${categoryNames[cat]}">
         <div class="donut-chart-title">${categoryNames[cat]}</div>
         <svg class="donut-chart-svg" viewBox="0 0 100 100">`;
 
@@ -1196,9 +1233,18 @@
           currentOffset += dashLength;
         });
 
-        // 中心文本区域 - 初始留空，分两行显示
-        html += `<text x="50" y="46" class="donut-center-label" data-chart="${chartId}"></text>
-          <text x="50" y="58" class="donut-center-count" data-chart="${chartId}"></text>`;
+        // 中心文本区域 - 默认显示分类名称，居中显示
+        html += `<text x="50" y="50" class="donut-center-label" data-chart="${chartId}">${categoryNames[cat]}</text>
+          <text x="50" y="62" class="donut-center-count" data-chart="${chartId}"></text>`;
+
+        // 高亮指示器环 - 用于平滑动画
+        html += `<circle cx="50" cy="50" r="40" fill="none" 
+          stroke="transparent" stroke-width="14"
+          stroke-dasharray="0 ${circumference}"
+          stroke-dashoffset="0"
+          transform="rotate(-90 50 50)"
+          class="donut-highlight-ring"
+          data-chart="${chartId}" data-circumference="${circumference}"/>`;
       }
 
       html += `</svg><div class="donut-legend">`;
@@ -1217,37 +1263,99 @@
 
     container.innerHTML = html;
 
-    // 辅助函数：高亮指定片段，其他变灰
+    // 全局延迟重置定时器，用于快速滑动时避免闪烁
+    const resetTimers = {};
+    const RESET_DELAY = 150;
+
+    function scheduleReset(chartId, wrapper, labelEl, countEl) {
+      // 清除之前的定时器
+      if (resetTimers[chartId]) {
+        clearTimeout(resetTimers[chartId]);
+      }
+      resetTimers[chartId] = setTimeout(() => {
+        const title = wrapper ? wrapper.dataset.title : '';
+        if (labelEl) labelEl.textContent = title;
+        if (countEl) countEl.textContent = '';
+        if (wrapper) clearSegmentHighlight(wrapper);
+        delete resetTimers[chartId];
+      }, RESET_DELAY);
+    }
+
+    function cancelReset(chartId) {
+      if (resetTimers[chartId]) {
+        clearTimeout(resetTimers[chartId]);
+        delete resetTimers[chartId];
+      }
+    }
+
+    // 辅助函数：高亮指定片段，其他变灰，并更新高亮指示器环
     function highlightSegment(wrapper, targetLabel) {
+      const ring = wrapper.querySelector('.donut-highlight-ring');
+      const circumference = ring ? parseFloat(ring.dataset.circumference) : 0;
+      let targetSegment = null;
+
       wrapper.querySelectorAll('.donut-segment').forEach(seg => {
         if (seg.dataset.label === targetLabel) {
+          targetSegment = seg;
           seg.classList.add('segment-highlight');
           seg.classList.remove('segment-dimmed');
-          // 获取片段颜色并设置发光效果
-          const strokeColor = seg.getAttribute('stroke');
-          if (strokeColor) {
-            seg.style.filter = `brightness(1.3) drop-shadow(0 0 6px ${strokeColor}) drop-shadow(0 0 12px ${strokeColor})`;
-          }
         } else {
           seg.classList.add('segment-dimmed');
           seg.classList.remove('segment-highlight');
           seg.style.filter = '';
         }
       });
+
+      // 更新高亮指示器环
+      if (ring && targetSegment && circumference) {
+        const dashArray = targetSegment.getAttribute('stroke-dasharray');
+        const dashOffset = targetSegment.getAttribute('stroke-dashoffset');
+        const color = targetSegment.getAttribute('stroke');
+        const dashLength = parseFloat(dashArray.split(' ')[0]);
+
+        ring.setAttribute('stroke', color);
+        ring.setAttribute('stroke-dasharray', `${dashLength} ${circumference - dashLength}`);
+        ring.setAttribute('stroke-dashoffset', dashOffset);
+        ring.style.filter = `brightness(1.4) drop-shadow(0 0 6px ${color}) drop-shadow(0 0 12px ${color})`;
+        ring.classList.add('active');
+      }
     }
 
-    // 辅助函数：清除所有片段的高亮/灰色状态
+    // 辅助函数：清除所有片段的高亮/灰色状态，带有扩张消失动画
     function clearSegmentHighlight(wrapper) {
       wrapper.querySelectorAll('.donut-segment').forEach(seg => {
         seg.classList.remove('segment-highlight', 'segment-dimmed');
         seg.style.filter = '';
       });
+      // 高亮指示器环：扩张到整个圆环，然后淡出
+      const ring = wrapper.querySelector('.donut-highlight-ring');
+      if (ring && ring.classList.contains('active')) {
+        const circumference = parseFloat(ring.dataset.circumference) || 251.33;
+        // 扩张到整个圆环
+        ring.setAttribute('stroke-dasharray', `${circumference} 0`);
+        ring.setAttribute('stroke-dashoffset', '0');
+        // 淡出高光
+        ring.style.filter = 'brightness(1) drop-shadow(0 0 0px transparent)';
+        ring.classList.add('fading');
+        ring.classList.remove('active');
+        // 动画结束后重置状态
+        setTimeout(() => {
+          if (ring.classList.contains('fading')) {
+            ring.classList.remove('fading');
+            ring.style.filter = '';
+          }
+        }, 400);
+      } else if (ring) {
+        ring.classList.remove('active', 'fading');
+        ring.style.filter = '';
+      }
     }
 
     // 绑定 hover 事件
     container.querySelectorAll('.donut-segment').forEach(segment => {
       segment.addEventListener('mouseenter', () => {
         const chartId = segment.dataset.chart;
+        cancelReset(chartId);
         const label = segment.dataset.label;
         const count = segment.dataset.count;
         const wrapper = segment.closest('.donut-chart-wrapper');
@@ -1263,9 +1371,7 @@
         const wrapper = segment.closest('.donut-chart-wrapper');
         const labelEl = container.querySelector(`.donut-center-label[data-chart="${chartId}"]`);
         const countEl = container.querySelector(`.donut-center-count[data-chart="${chartId}"]`);
-        if (labelEl) labelEl.textContent = '';
-        if (countEl) countEl.textContent = '';
-        if (wrapper) clearSegmentHighlight(wrapper);
+        scheduleReset(chartId, wrapper, labelEl, countEl);
       });
     });
 
@@ -1273,6 +1379,7 @@
     container.querySelectorAll('.donut-legend-item').forEach(item => {
       item.addEventListener('mouseenter', () => {
         const chartId = item.dataset.chart;
+        cancelReset(chartId);
         const label = item.dataset.label;
         const count = item.dataset.count;
         const wrapper = item.closest('.donut-chart-wrapper');
@@ -1288,9 +1395,7 @@
         const wrapper = item.closest('.donut-chart-wrapper');
         const labelEl = container.querySelector(`.donut-center-label[data-chart="${chartId}"]`);
         const countEl = container.querySelector(`.donut-center-count[data-chart="${chartId}"]`);
-        if (labelEl) labelEl.textContent = '';
-        if (countEl) countEl.textContent = '';
-        if (wrapper) clearSegmentHighlight(wrapper);
+        scheduleReset(chartId, wrapper, labelEl, countEl);
       });
     });
   }
@@ -1353,8 +1458,16 @@
 
     // 绑定 hover 事件，联动更新环形图中心显示
     const elemStats = document.getElementById('elemStats');
+    let rankingResetTimer = null;
+    const RANKING_RESET_DELAY = 150;
+
     container.querySelectorAll('.ranking-row').forEach(row => {
       row.addEventListener('mouseenter', () => {
+        // 取消之前的重置定时器
+        if (rankingResetTimer) {
+          clearTimeout(rankingResetTimer);
+          rankingResetTimer = null;
+        }
         if (!elemStats) return;
         const element = row.dataset.element;
         const region = row.dataset.region;
@@ -1366,6 +1479,8 @@
           const chartId = wrapper.dataset.chartId;
           const labelEl = wrapper.querySelector('.donut-center-label');
           const countEl = wrapper.querySelector('.donut-center-count');
+          const ring = wrapper.querySelector('.donut-highlight-ring');
+          const circumference = ring ? parseFloat(ring.dataset.circumference) : 0;
           // 从 title 获取分类名称
           const title = wrapper.querySelector('.donut-chart-title')?.textContent;
           const categoryMap = { '元素': '元素类型', '国家': '国家', '武器': '武器类型', '体型': '体型' };
@@ -1377,35 +1492,76 @@
             const legendItem = wrapper.querySelector(`.donut-legend-item[data-label="${tagValue}"]`);
             const segmentCount = legendItem?.dataset.count || '0';
             if (countEl) countEl.textContent = `${segmentCount}回合`;
-            // 高亮对应片段，其他变灰
+            
+            // 高亮对应片段，其他变灰，并更新高亮指示器环
+            let targetSegment = null;
             wrapper.querySelectorAll('.donut-segment').forEach(seg => {
               if (seg.dataset.label === tagValue) {
+                targetSegment = seg;
                 seg.classList.add('segment-highlight');
                 seg.classList.remove('segment-dimmed');
-                // 获取片段颜色并设置发光效果
-                const strokeColor = seg.getAttribute('stroke');
-                if (strokeColor) {
-                  seg.style.filter = `brightness(1.3) drop-shadow(0 0 6px ${strokeColor}) drop-shadow(0 0 12px ${strokeColor})`;
-                }
               } else {
                 seg.classList.add('segment-dimmed');
                 seg.classList.remove('segment-highlight');
                 seg.style.filter = '';
               }
             });
+
+            // 更新高亮指示器环
+            if (ring && targetSegment && circumference) {
+              const dashArray = targetSegment.getAttribute('stroke-dasharray');
+              const dashOffset = targetSegment.getAttribute('stroke-dashoffset');
+              const color = targetSegment.getAttribute('stroke');
+              const dashLength = parseFloat(dashArray.split(' ')[0]);
+
+              ring.setAttribute('stroke', color);
+              ring.setAttribute('stroke-dasharray', `${dashLength} ${circumference - dashLength}`);
+              ring.setAttribute('stroke-dashoffset', dashOffset);
+              ring.style.filter = `brightness(1.4) drop-shadow(0 0 6px ${color}) drop-shadow(0 0 12px ${color})`;
+              ring.classList.add('active');
+            }
           }
         });
       });
 
       row.addEventListener('mouseleave', () => {
         if (!elemStats) return;
-        elemStats.querySelectorAll('.donut-center-label').forEach(el => el.textContent = '');
-        elemStats.querySelectorAll('.donut-center-count').forEach(el => el.textContent = '');
-        // 清除所有片段的高亮/灰色状态和 inline filter
-        elemStats.querySelectorAll('.donut-segment').forEach(seg => {
-          seg.classList.remove('segment-highlight', 'segment-dimmed');
-          seg.style.filter = '';
-        });
+        // 延迟恢复，避免快速滑动时闪烁
+        rankingResetTimer = setTimeout(() => {
+          // 恢复每个环形图的标题显示，并播放扩张消失动画
+          elemStats.querySelectorAll('.donut-chart-wrapper').forEach(wrapper => {
+            const title = wrapper.dataset.title || '';
+            const labelEl = wrapper.querySelector('.donut-center-label');
+            const countEl = wrapper.querySelector('.donut-center-count');
+            const ring = wrapper.querySelector('.donut-highlight-ring');
+            if (labelEl) labelEl.textContent = title;
+            if (countEl) countEl.textContent = '';
+            // 高亮指示器环：扩张到整个圆环，然后淡出
+            if (ring && ring.classList.contains('active')) {
+              const circumference = parseFloat(ring.dataset.circumference) || 251.33;
+              ring.setAttribute('stroke-dasharray', `${circumference} 0`);
+              ring.setAttribute('stroke-dashoffset', '0');
+              ring.style.filter = 'brightness(1) drop-shadow(0 0 0px transparent)';
+              ring.classList.add('fading');
+              ring.classList.remove('active');
+              setTimeout(() => {
+                if (ring.classList.contains('fading')) {
+                  ring.classList.remove('fading');
+                  ring.style.filter = '';
+                }
+              }, 400);
+            } else if (ring) {
+              ring.classList.remove('active', 'fading');
+              ring.style.filter = '';
+            }
+          });
+          // 清除所有片段的高亮/灰色状态
+          elemStats.querySelectorAll('.donut-segment').forEach(seg => {
+            seg.classList.remove('segment-highlight', 'segment-dimmed');
+            seg.style.filter = '';
+          });
+          rankingResetTimer = null;
+        }, RANKING_RESET_DELAY);
       });
     });
   }
