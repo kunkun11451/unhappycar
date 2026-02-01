@@ -14,7 +14,7 @@ class FangweiDrawer {
         this.players = ['1P', '2P', '3P', '4P'];
         this.surpriseItems = ['禁A', '禁E', '禁Q', '禁五星武器'];
         this.elements = ['冰', '火', '水', '雷', '岩', '风', '草'];
-    this.customModes = [];
+        this.customModes = [];
 
         this.currentCustomDetail = { type: 'text', text: '', elements: [] };
         this.currentEditingMode = null;
@@ -44,7 +44,7 @@ class FangweiDrawer {
     }
 
     init() {
-    this.loadCustomModes();
+        this.loadCustomModes();
         this.loadSettings();
         this.setupEventListeners();
         this.updateCustomModesList();
@@ -173,7 +173,7 @@ class FangweiDrawer {
         document.getElementById('resultContainer').style.display = 'block';
         this.updateModeDisplay();
         this.updateDirectionDisplay();
-    this.updatePointDisplay();
+        this.updatePointDisplay();
         this.updateButtonVisibility();
         if (this.currentResults.direction || this.currentResults.mode || this.currentResults.point) {
             document.getElementById('copySection').style.display = 'block';
@@ -196,7 +196,7 @@ class FangweiDrawer {
         } else {
             modeElement.textContent = '-';
         }
-    applyResultMarquee(modeElement);
+        applyResultMarquee(modeElement);
     }
 
     updateDirectionDisplay() {
@@ -299,17 +299,17 @@ class FangweiDrawer {
 
 
 
-    // Custom Mode Management (simplified for brevity, full logic is complex)
+    // Custom Mode Management
     addCustomMode(name, detailConfig = null) {
-        const inputName = name || document.getElementById('customModeName').value;
-        if (!inputName || inputName.trim() === '') {
+        if (!name || name.trim() === '') {
             showToast('请输入模式名称');
             return;
         }
         const id = 'custom_' + Date.now();
         const customMode = {
-            id: id, name: inputName.trim(),
-            detailConfig: detailConfig || { ...this.currentCustomDetail },
+            id: id,
+            name: name.trim(),
+            detailConfig: detailConfig || { type: 'text', text: '', elements: [] },
             enabled: true
         };
         this.customModes.push(customMode);
@@ -318,8 +318,6 @@ class FangweiDrawer {
         this.saveSettings();
         this.updateCustomModesList();
         this.updateSettingsUI();
-        document.getElementById('customModeName').value = '';
-        this.resetCustomDetail();
     }
 
     generateCustomModeDetail(customMode) {
@@ -362,32 +360,38 @@ class FangweiDrawer {
     }
 
     updateCustomModesList() {
-        const container = document.getElementById('customModesList');
+        const container = document.getElementById('customModesContainer');
         if (!container) return;
         container.innerHTML = '';
         this.customModes.forEach(mode => {
             const isEnabled = this.settings.modes[mode.id] !== false;
-            const item = document.createElement('div');
-            item.className = `custom-mode-item${isEnabled ? '' : ' disabled'}`;
-            let detailText = '普通模式';
+            let detailText = '自定义模式';
             if (mode.detailConfig) {
-                if (mode.detailConfig.type === 'text') detailText = `固定: ${mode.detailConfig.text || '无'}`;
-                else detailText = `随机: ${mode.detailConfig.elements.length}项`;
+                if (mode.detailConfig.type === 'text') {
+                    detailText = mode.detailConfig.text || '固定文本模式';
+                } else {
+                    detailText = `随机抽取 ${mode.detailConfig.elements?.length || 0} 项`;
+                }
             }
-            item.innerHTML = `
-                <div class="custom-mode-info">
-                    <div class="custom-mode-name">
-                        <input type="checkbox" ${isEnabled ? 'checked' : ''} onchange="toggleCustomMode('${mode.id}', this.checked)">
-                        ${mode.name}
-                    </div>
-                    <div class="custom-mode-detail">${detailText}</div>
+            const card = document.createElement('div');
+            card.className = 'mode-option-card custom-mode-card';
+            card.innerHTML = `
+                <div class="mode-option-info">
+                    <div class="mode-option-title">${mode.name}<span class="custom-mode-badge">自定义</span></div>
+                    <div class="mode-option-desc">${detailText}</div>
                 </div>
-                <div class="custom-mode-actions">
-                    <button class="btn-sm" onclick="fangweiDrawer.editCustomMode('${mode.id}')">✏️ 编辑</button>
-                    <button class="btn-sm btn-danger" onclick="fangweiDrawer.removeCustomMode('${mode.id}')">删除</button>
-                </div>
+                <button class="mode-edit-btn" onclick="editCustomMode('${mode.id}')" title="编辑">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                </button>
+                <label class="toggle-switch toggle-switch-sm">
+                    <input type="checkbox" id="${mode.id}" ${isEnabled ? 'checked' : ''} onchange="toggleCustomMode('${mode.id}', this.checked)">
+                    <span class="toggle-slider"></span>
+                </label>
             `;
-            container.appendChild(item);
+            container.appendChild(card);
         });
     }
 
@@ -407,6 +411,17 @@ class FangweiDrawer {
         document.getElementById('enablePoint').checked = this.settings.enablePoint;
         const enableModeDetailEl = document.getElementById('enableModeDetail');
         if (enableModeDetailEl) enableModeDetailEl.checked = this.settings.enableModeDetail;
+
+        // 根据enableModeDetail设置初始化mode-options-list的no-detail类
+        const modeOptionsList = document.querySelector('.mode-options-list');
+        if (modeOptionsList) {
+            if (this.settings.enableModeDetail) {
+                modeOptionsList.classList.remove('no-detail');
+            } else {
+                modeOptionsList.classList.add('no-detail');
+            }
+        }
+
         // 恢复点数范围 UI 值
         const pointMinEl = document.getElementById('pointMin');
         const pointMaxEl = document.getElementById('pointMax');
@@ -422,93 +437,135 @@ class FangweiDrawer {
     updateDrawButtonsVisibility() {
         const modeResultItem = document.getElementById('modeResultItem');
         const pointResultItem = document.getElementById('pointResultItem');
-        const modeSettings = document.getElementById('modeSettings');
-        const customModeSection = document.querySelector('.custom-mode-section');
-        const pointSettings = document.getElementById('pointSettings');
+        const modeSettingsArrow = document.getElementById('modeSettingsArrow');
+        const pointSettingsArrow = document.getElementById('pointSettingsArrow');
+        const modeSettingsExpand = document.getElementById('modeSettingsExpand');
+        const pointSettingsExpand = document.getElementById('pointSettingsExpand');
 
+        // Mode settings
         if (this.settings.enableMode) {
             modeResultItem.style.display = 'flex';
-            modeSettings.style.display = 'block';
-            customModeSection.style.display = 'block';
+            if (modeSettingsArrow) {
+                modeSettingsArrow.style.display = 'flex';
+                // 如果之前是展开状态，保持展开；否则保持收起
+            }
         } else {
             modeResultItem.style.display = 'none';
-            modeSettings.style.display = 'none';
-            customModeSection.style.display = 'none';
+            if (modeSettingsArrow) {
+                modeSettingsArrow.style.display = 'none';
+                modeSettingsArrow.classList.remove('rotated');
+            }
+            if (modeSettingsExpand) {
+                modeSettingsExpand.classList.remove('expanded');
+            }
             this.currentResults.mode = '';
             this.currentResults.modeDetail = '';
             this.updateModeDisplay();
         }
 
+        // Point settings
         pointResultItem.style.display = this.settings.enablePoint ? 'flex' : 'none';
-        if (!this.settings.enablePoint) {
+
+        if (this.settings.enablePoint) {
+            if (pointSettingsArrow) {
+                pointSettingsArrow.style.display = 'flex';
+            }
+        } else {
+            if (pointSettingsArrow) {
+                pointSettingsArrow.style.display = 'none';
+                pointSettingsArrow.classList.remove('rotated');
+            }
+            if (pointSettingsExpand) {
+                pointSettingsExpand.classList.remove('expanded');
+            }
             this.currentResults.point = '';
             this.updatePointDisplay();
         }
 
-        if (pointSettings) pointSettings.style.display = this.settings.enablePoint ? 'block' : 'none';
-
         this.updateCopyText();
+    }
+
+    toggleSettingsExpand(expandId, arrowId) {
+        const expandEl = document.getElementById(expandId);
+        const arrowEl = document.getElementById(arrowId);
+        if (expandEl) {
+            expandEl.classList.toggle('expanded');
+        }
+        if (arrowEl) {
+            arrowEl.classList.toggle('rotated');
+        }
     }
 
     setupEventListeners() {
         document.getElementById('enableMode').addEventListener('change', e => { this.settings.enableMode = e.target.checked; this.saveSettings(); this.updateDrawButtonsVisibility(); });
-    document.getElementById('enablePoint').addEventListener('change', e => { this.settings.enablePoint = e.target.checked; this.saveSettings(); this.updateDrawButtonsVisibility(); });
+        document.getElementById('enablePoint').addEventListener('change', e => { this.settings.enablePoint = e.target.checked; this.saveSettings(); this.updateDrawButtonsVisibility(); });
 
-    // 点数范围输入监听
-    const pointMinEl = document.getElementById('pointMin');
-    const pointMaxEl = document.getElementById('pointMax');
-    if (pointMinEl && pointMaxEl) {
-        pointMinEl.addEventListener('change', e => {
-            let min = Number(e.target.value) || 1;
-            let max = Number(pointMaxEl.value) || min;
-            if (min < 1) min = 1;
-            if (min > 999) min = 999;
-            if (min > max) { max = min; pointMaxEl.value = max; }
-            this.settings.pointMin = min;
-            this.settings.pointMax = max;
-            this.saveSettings();
-        });
-        pointMaxEl.addEventListener('change', e => {
-            let max = Number(e.target.value) || 1;
-            let min = Number(pointMinEl.value) || max;
-            if (max < 1) max = 1;
-            if (max > 999) max = 999;
-            if (max < min) { min = max; pointMinEl.value = min; }
-            this.settings.pointMin = min;
-            this.settings.pointMax = max;
-            this.saveSettings();
-        });
-    }
+        // 点数范围输入监听
+        const pointMinEl = document.getElementById('pointMin');
+        const pointMaxEl = document.getElementById('pointMax');
+        if (pointMinEl && pointMaxEl) {
+            pointMinEl.addEventListener('change', e => {
+                let min = Number(e.target.value) || 1;
+                let max = Number(pointMaxEl.value) || min;
+                if (min < 1) min = 1;
+                if (min > 999) min = 999;
+                if (min > max) { max = min; pointMaxEl.value = max; }
+                this.settings.pointMin = min;
+                this.settings.pointMax = max;
+                this.saveSettings();
+            });
+            pointMaxEl.addEventListener('change', e => {
+                let max = Number(e.target.value) || 1;
+                let min = Number(pointMinEl.value) || max;
+                if (max < 1) max = 1;
+                if (max > 999) max = 999;
+                if (max < min) { min = max; pointMinEl.value = min; }
+                this.settings.pointMin = min;
+                this.settings.pointMax = max;
+                this.saveSettings();
+            });
+        }
 
-    const enableModeDetailEl = document.getElementById('enableModeDetail');
-    if (enableModeDetailEl) {
-        enableModeDetailEl.addEventListener('change', e => {
-            this.settings.enableModeDetail = e.target.checked;
-            if (!this.settings.enableModeDetail) {
-                this.currentResults.modeDetail = '';
-            } else if (this.settings.enableMode && this.currentResults.mode) {
-                // 重新生成当前模式详情
-                const key = Object.keys(this.modes).find(k => this.modes[k].name === this.currentResults.mode);
-                const custom = this.customModes.find(m => m.name === this.currentResults.mode);
-                if (custom) {
-                    this.currentResults.modeDetail = this.generateCustomModeDetail(custom);
-                } else if (key) {
-                    switch (key) {
-                        case 'clone': this.currentResults.modeDetail = `克隆 ${this.randomChoice(this.players)}`; break;
-                        case 'swap': this.currentResults.modeDetail = this.generateSwapPairs(); break;
-                        case 'surprise': this.currentResults.modeDetail = this.randomChoice(this.surpriseItems); break;
-                        case 'audience': this.currentResults.modeDetail = this.generateAudienceGroups(); break;
-                        case 'jushi': this.currentResults.modeDetail = this.generateJushiElements(); break;
-                        default: this.currentResults.modeDetail = '';
+        const enableModeDetailEl = document.getElementById('enableModeDetail');
+        if (enableModeDetailEl) {
+            enableModeDetailEl.addEventListener('change', e => {
+                this.settings.enableModeDetail = e.target.checked;
+
+                // 切换mode-options-list的no-detail类
+                const modeOptionsList = document.querySelector('.mode-options-list');
+                if (modeOptionsList) {
+                    if (this.settings.enableModeDetail) {
+                        modeOptionsList.classList.remove('no-detail');
+                    } else {
+                        modeOptionsList.classList.add('no-detail');
                     }
                 }
-            }
-            this.saveSettings();
-            this.updateModeDisplay();
-            this.updateCopyText();
-        });
-    }
-    // 事件抽取已移除
+
+                if (!this.settings.enableModeDetail) {
+                    this.currentResults.modeDetail = '';
+                } else if (this.settings.enableMode && this.currentResults.mode) {
+                    // 重新生成当前模式详情
+                    const key = Object.keys(this.modes).find(k => this.modes[k].name === this.currentResults.mode);
+                    const custom = this.customModes.find(m => m.name === this.currentResults.mode);
+                    if (custom) {
+                        this.currentResults.modeDetail = this.generateCustomModeDetail(custom);
+                    } else if (key) {
+                        switch (key) {
+                            case 'clone': this.currentResults.modeDetail = `克隆 ${this.randomChoice(this.players)}`; break;
+                            case 'swap': this.currentResults.modeDetail = this.generateSwapPairs(); break;
+                            case 'surprise': this.currentResults.modeDetail = this.randomChoice(this.surpriseItems); break;
+                            case 'audience': this.currentResults.modeDetail = this.generateAudienceGroups(); break;
+                            case 'jushi': this.currentResults.modeDetail = this.generateJushiElements(); break;
+                            default: this.currentResults.modeDetail = '';
+                        }
+                    }
+                }
+                this.saveSettings();
+                this.updateModeDisplay();
+                this.updateCopyText();
+            });
+        }
+        // 事件抽取已移除
 
         Object.keys(this.modes).forEach(key => {
             const checkbox = document.getElementById(`mode${key.charAt(0).toUpperCase() + key.slice(1)}`);
@@ -531,8 +588,9 @@ class FangweiDrawer {
             }
         });
 
-        ['customDetailModal', 'settingsModal'].forEach(id => {
+        ['customModeModal', 'settingsModal'].forEach(id => {
             const overlay = document.getElementById(id);
+            if (!overlay) return;
             overlay.addEventListener('click', e => {
                 if (e.target.id === id) {
                     // 统一走平滑关闭动画
@@ -569,6 +627,9 @@ function hideSettingsModal() {
         modal.classList.remove('hide');
     }, 180);
 }
+function toggleSettingsExpand(expandId, arrowId) {
+    if (fangweiDrawer) fangweiDrawer.toggleSettingsExpand(expandId, arrowId);
+}
 function addCustomMode() { fangweiDrawer.addCustomMode(); }
 function toggleCustomMode(id, isChecked) {
     fangweiDrawer.settings.modes[id] = isChecked;
@@ -576,106 +637,245 @@ function toggleCustomMode(id, isChecked) {
     fangweiDrawer.updateCustomModesList();
 }
 
-// Custom Mode Detail Modal
-function showCustomModeDetail(mode = null) {
-    const modal = document.getElementById('customDetailModal');
-    fangweiDrawer.currentEditingMode = mode;
-    const config = mode ? mode.detailConfig : fangweiDrawer.currentCustomDetail;
-    if (modal) {
-        modal.style.display = 'flex';
+// 规则展开/收起切换
+function toggleRulesExpand() {
+    const rulesExpand = document.getElementById('rulesExpand');
+    const rulesArrow = document.getElementById('rulesExpandArrow');
+    if (rulesExpand) {
+        rulesExpand.classList.toggle('expanded');
     }
-    requestAnimationFrame(() => {
-        if (modal) {
-            modal.classList.add('show');
-            modal.classList.remove('hide');
-        }
-        const typeEl = document.getElementById('customModeType');
-        const textEl = document.getElementById('customModeText');
-        const elementsEl = document.getElementById('customModeElements');
-        if (typeEl) typeEl.value = config.type || 'text';
-        if (textEl) textEl.value = config.text || '';
-        if (elementsEl) elementsEl.value = (config.elements || []).join('\n');
-        updateCustomDetailDisplay();
-    });
+    if (rulesArrow) {
+        rulesArrow.classList.toggle('rotated');
+    }
 }
 
-function hideCustomDetail() {
-    const typeEl = document.getElementById('customModeType');
-    const textEl = document.getElementById('customModeText');
-    const elementsEl = document.getElementById('customModeElements');
-    const detailConfig = {
-        type: typeEl ? typeEl.value : 'text',
-        text: textEl ? textEl.value.trim() : '',
-        elements: elementsEl ? elementsEl.value.split('\n').map(s => s.trim()).filter(Boolean) : []
-    };
-    if (fangweiDrawer.currentEditingMode) {
-        fangweiDrawer.currentEditingMode.detailConfig = detailConfig;
+// 主题管理
+function applyTheme(theme) {
+    localStorage.setItem('theme', theme);
+    document.documentElement.setAttribute('data-theme', theme); // 辅助属性
+
+    let effectiveTheme = theme;
+    if (theme === 'system') {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        effectiveTheme = prefersDark ? 'dark' : 'light';
+    }
+
+    if (effectiveTheme === 'dark' || effectiveTheme === 'dark-mode') {
+        document.body.classList.add('dark-mode');
     } else {
-        fangweiDrawer.currentCustomDetail = detailConfig;
+        document.body.classList.remove('dark-mode');
     }
-    fangweiDrawer.saveCustomModes();
-    fangweiDrawer.updateCustomModesList();
-    const modal = document.getElementById('customDetailModal');
-    if (modal) {
-        modal.classList.remove('show');
-        modal.classList.add('hide');
-        setTimeout(() => {
-            modal.style.display = 'none';
-            modal.classList.remove('hide');
-        }, 180);
+
+    // 更新选中状态
+    const radio = document.querySelector(`input[name="theme"][value="${theme}"]`);
+    if (radio) radio.checked = true;
+}
+
+function initTheme() {
+    // 读取旧的设置进行迁移
+    let theme = localStorage.getItem('theme');
+    if (theme === 'dark-mode') theme = 'dark';
+    if (theme === 'light-mode') theme = 'light';
+
+    if (!theme) theme = 'system';
+
+    applyTheme(theme);
+}
+
+// 当前正在编辑的模式ID（null表示新增模式）
+let currentEditingModeId = null;
+
+// 显示添加自定义模式弹窗
+function showAddCustomModeModal() {
+    currentEditingModeId = null;
+    document.getElementById('customModeModalTitle').textContent = '添加自定义模式';
+    document.getElementById('customModeNameInput').value = '';
+    document.getElementById('customModeText').value = '';
+    document.querySelector('input[name="detailType"][value="text"]').checked = true;
+    updateDetailTypeDisplay();
+    setRandomElements([]);
+    document.getElementById('deleteCustomModeBtn').style.display = 'none';
+
+    const modal = document.getElementById('customModeModal');
+    modal.style.display = 'flex';
+    requestAnimationFrame(() => modal.classList.add('show'));
+}
+
+// 编辑自定义模式
+function editCustomMode(id) {
+    const mode = fangweiDrawer.customModes.find(m => m.id === id);
+    if (!mode) return;
+
+    currentEditingModeId = id;
+    document.getElementById('customModeModalTitle').textContent = '编辑自定义模式';
+    document.getElementById('customModeNameInput').value = mode.name;
+
+    const config = mode.detailConfig || { type: 'text', text: '', elements: [] };
+    document.querySelector(`input[name="detailType"][value="${config.type}"]`).checked = true;
+    document.getElementById('customModeText').value = config.text || '';
+    setRandomElements(config.elements || []);
+    updateDetailTypeDisplay();
+    document.getElementById('deleteCustomModeBtn').style.display = 'inline-flex';
+
+    const modal = document.getElementById('customModeModal');
+    modal.style.display = 'flex';
+    requestAnimationFrame(() => modal.classList.add('show'));
+}
+
+// 隐藏自定义模式弹窗
+function hideCustomModeModal() {
+    const modal = document.getElementById('customModeModal');
+    modal.classList.remove('show');
+    modal.classList.add('hide');
+    setTimeout(() => {
+        modal.style.display = 'none';
+        modal.classList.remove('hide');
+    }, 180);
+}
+
+// 保存自定义模式
+function saveCustomMode() {
+    const name = document.getElementById('customModeNameInput').value.trim();
+    if (!name) {
+        showToast('请输入模式名称');
+        return;
+    }
+
+    const detailType = document.querySelector('input[name="detailType"]:checked').value;
+    const detailConfig = {
+        type: detailType,
+        text: document.getElementById('customModeText').value.trim(),
+        elements: getRandomElements()
+    };
+
+    if (currentEditingModeId) {
+        // 编辑模式
+        const mode = fangweiDrawer.customModes.find(m => m.id === currentEditingModeId);
+        if (mode) {
+            mode.name = name;
+            mode.detailConfig = detailConfig;
+            fangweiDrawer.saveCustomModes();
+            fangweiDrawer.updateCustomModesList();
+            showToast('模式已更新');
+        }
+    } else {
+        // 新增模式
+        fangweiDrawer.addCustomMode(name, detailConfig);
+        showToast('模式已添加');
+    }
+
+    hideCustomModeModal();
+}
+
+// 删除自定义模式
+async function deleteCustomMode() {
+    if (!currentEditingModeId) return;
+    const ok = await showConfirm('确定要删除这个自定义模式吗？');
+    if (ok) {
+        fangweiDrawer.customModes = fangweiDrawer.customModes.filter(m => m.id !== currentEditingModeId);
+        delete fangweiDrawer.settings.modes[currentEditingModeId];
+        fangweiDrawer.saveCustomModes();
+        fangweiDrawer.saveSettings();
+        fangweiDrawer.updateCustomModesList();
+        hideCustomModeModal();
+        showToast('模式已删除');
     }
 }
 
-function clearCustomDetail() {
-    const textEl = document.getElementById('customModeText');
-    const elementsEl = document.getElementById('customModeElements');
-    if (textEl) textEl.value = '';
-    if (elementsEl) elementsEl.value = '';
+// 更新详情类型显示
+function updateDetailTypeDisplay() {
+    const detailType = document.querySelector('input[name="detailType"]:checked')?.value || 'text';
+    document.getElementById('fixedTextSection').style.display = detailType === 'text' ? 'block' : 'none';
+    document.getElementById('randomElementsSection').style.display = detailType === 'random' ? 'block' : 'none';
 }
 
-function updateCustomDetailDisplay() {
-    const typeEl = document.getElementById('customModeType');
-    const textSec = document.getElementById('textDetailSection');
-    const randSec = document.getElementById('randomDetailSection');
-    if (!typeEl || !textSec || !randSec) return;
-    const type = typeEl.value;
-    textSec.style.display = type === 'text' ? 'block' : 'none';
-    randSec.style.display = type === 'random' ? 'block' : 'none';
+// 添加随机元素输入框
+function addRandomElement(value = '') {
+    const list = document.getElementById('randomElementsList');
+    if (!list) return;
+
+    const item = document.createElement('div');
+    item.className = 'random-element-item';
+    item.innerHTML = `
+        <input type="text" placeholder="输入元素内容" value="${escapeHtml(value)}">
+        <button type="button" class="random-element-delete" onclick="removeRandomElement(this)" title="删除">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </button>
+    `;
+    list.appendChild(item);
+
+    // 聚焦到新添加的输入框
+    const input = item.querySelector('input');
+    if (input && !value) input.focus();
+}
+
+// 删除随机元素输入框
+function removeRandomElement(btn) {
+    const item = btn.closest('.random-element-item');
+    if (item) item.remove();
+}
+
+// 获取所有随机元素
+function getRandomElements() {
+    const list = document.getElementById('randomElementsList');
+    if (!list) return [];
+    return Array.from(list.querySelectorAll('input'))
+        .map(input => input.value.trim())
+        .filter(Boolean);
+}
+
+// 设置随机元素列表
+function setRandomElements(elements) {
+    const list = document.getElementById('randomElementsList');
+    if (!list) return;
+    list.innerHTML = '';
+    if (elements && elements.length > 0) {
+        elements.forEach(el => addRandomElement(el));
+    } else {
+        // 默认添加一个空输入框
+        addRandomElement();
+    }
+}
+
+// HTML转义
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     fangweiDrawer = new FangweiDrawer();
 
-    const themeToggle = document.getElementById('theme-toggle-checkbox');
-    const currentTheme = localStorage.getItem('theme');
+    // 主题初始化
+    initTheme();
 
-    if (currentTheme) {
-        document.body.classList.add(currentTheme);
-        if (currentTheme === 'dark-mode') {
-            themeToggle.checked = true;
-        }
-    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.body.classList.add('dark-mode');
-        themeToggle.checked = true;
-        localStorage.setItem('theme', 'dark-mode');
-    }
+    // 主题选择事件
+    document.querySelectorAll('input[name="theme"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            applyTheme(e.target.value);
+        });
+    });
 
-    themeToggle.addEventListener('change', function() {
-        if (this.checked) {
-            document.body.classList.add('dark-mode');
-            localStorage.setItem('theme', 'dark-mode');
-        } else {
-            document.body.classList.remove('dark-mode');
-            localStorage.setItem('theme', 'light-mode');
+    // 监听系统主题变化
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        const currentSetting = localStorage.getItem('theme') || 'system';
+        if (currentSetting === 'system') {
+            applyTheme('system');
         }
     });
 
-    const typeEl = document.getElementById('customModeType');
-    if (typeEl) typeEl.addEventListener('change', updateCustomDetailDisplay);
+    // 详情类型选择器事件
+    document.querySelectorAll('input[name="detailType"]').forEach(radio => {
+        radio.addEventListener('change', updateDetailTypeDisplay);
+    });
 
     // 窗口尺寸变化时，重新评估滚动效果
     window.addEventListener('resize', () => {
-        ['modeResult','directionResult','pointResult'].forEach(id => {
+        ['modeResult', 'directionResult', 'pointResult'].forEach(id => {
             const el = document.getElementById(id);
             if (el) applyResultMarquee(el);
         });
