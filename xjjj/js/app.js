@@ -14,9 +14,10 @@
         currentNumberOrder: '', // 纯数字顺序（如 1-2-3-4）
         roundHistory: [],       // 历史记录 [{round: 1, usedChars: ['角色1', '角色2']}]
         currentRound: 0,        // 当前轮次
+        undoStack: [],          // 撤销栈，存储之前的状态
         settings: {
-            orderEnabled: false,
-            theme: 'dark'
+            orderEnabled: true,
+            theme: 'system'
         }
     };
 
@@ -48,6 +49,7 @@
         copyBtn: $('#copyBtn'),
         settingsBtn: $('#settingsBtn'),
         settingsModal: $('#settingsModal'),
+        modalUndoBtn: $('#modalUndoBtn'),
         orderToggle: $('#orderToggle'),
         themeSelect: $('#themeSelect'),
         modalResetBtn: $('#modalResetBtn'),
@@ -69,6 +71,12 @@
         initCharacterPool();
         loadSettings();
         bindEvents();
+
+        // 恢复设置 UI 状态
+        els.orderToggle.checked = state.settings.orderEnabled;
+        els.themeSelect.value = state.settings.theme;
+        els.orderRow.style.display = state.settings.orderEnabled ? 'flex' : 'none';
+
         // 渲染 UI（使用加载的数据）
         renderSelectionArea();
         renderUsedArea();
@@ -87,6 +95,7 @@
         state.currentNumberOrder = '';
         state.roundHistory = [];
         state.currentRound = 0;
+        state.undoStack = [];
     }
 
     function loadSettings() {
@@ -109,6 +118,7 @@
                 state.currentAEQ = poolData.currentAEQ || '';
                 state.currentNumberOrder = poolData.currentNumberOrder || '';
                 state.keepInRound = new Set(poolData.keepInRound || []);
+                state.undoStack = poolData.undoStack || [];
             }
         } catch (e) {
             console.warn('加载设置失败', e);
@@ -134,7 +144,8 @@
                 currentSelection: state.currentSelection,
                 currentAEQ: state.currentAEQ,
                 currentNumberOrder: state.currentNumberOrder,
-                keepInRound: Array.from(state.keepInRound)
+                keepInRound: Array.from(state.keepInRound),
+                undoStack: state.undoStack
             }));
         } catch (e) {
             console.warn('保存角色池失败', e);
@@ -153,6 +164,18 @@
         els.settingsBtn.addEventListener('click', () => openModal(els.settingsModal));
         els.settingsModal.querySelector('.settings-close').addEventListener('click', () => closeModal(els.settingsModal));
         els.settingsModal.querySelector('.settings-backdrop').addEventListener('click', () => closeModal(els.settingsModal));
+
+        // 撤销上一轮
+        els.modalUndoBtn.addEventListener('click', () => {
+            closeModal(els.settingsModal);
+            if (state.undoStack.length === 0) {
+                showToast('无法撤销到更早的状态');
+                return;
+            }
+            showAlert('确认撤销', '确定要撤销本轮的抽取吗？', () => {
+                undoLastRound();
+            }, true);
+        });
 
         // 设置中的重置按钮
         els.modalResetBtn.addEventListener('click', () => {
@@ -228,6 +251,23 @@
     // ===================== 抽取逻辑 =====================
     function drawCharacters() {
         const count = parseInt(els.charCount.value);
+
+        // 保存当前状态快照到撤销栈
+        state.undoStack.push({
+            availablePool: [...state.availablePool],
+            usedCharacters: [...state.usedCharacters],
+            currentSelection: [...state.currentSelection],
+            keepInRound: Array.from(state.keepInRound),
+            currentAEQ: state.currentAEQ,
+            currentNumberOrder: state.currentNumberOrder,
+            roundHistory: JSON.parse(JSON.stringify(state.roundHistory)), // 深拷贝
+            currentRound: state.currentRound
+        });
+
+        // 限制撤销栈大小（例如保留最近50次）
+        if (state.undoStack.length > 50) {
+            state.undoStack.shift();
+        }
 
         // 处理上一轮：未选中（未保留）的角色加入已用池
         if (state.currentSelection.length > 0) {
@@ -357,6 +397,28 @@
         updateStats();
     }
 
+    function undoLastRound() {
+        if (state.undoStack.length === 0) return;
+
+        const prev = state.undoStack.pop();
+        state.availablePool = [...prev.availablePool];
+        state.usedCharacters = [...prev.usedCharacters];
+        state.currentSelection = [...prev.currentSelection];
+        state.keepInRound = new Set(prev.keepInRound);
+        state.currentAEQ = prev.currentAEQ;
+        state.currentNumberOrder = prev.currentNumberOrder;
+        state.roundHistory = JSON.parse(JSON.stringify(prev.roundHistory));
+        state.currentRound = prev.currentRound;
+
+        savePool();
+        renderSelectionArea();
+        renderUsedArea();
+        renderHistory();
+        updateStats();
+        updateCopyArea();
+        showToast('已撤销');
+    }
+
     function resetPool() {
         state.availablePool = getAllCharacterNames();
         state.usedCharacters = [];
@@ -366,6 +428,7 @@
         state.currentNumberOrder = '';
         state.roundHistory = [];
         state.currentRound = 0;
+        state.undoStack = [];
 
         savePool();
         renderSelectionArea();
