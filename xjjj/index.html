@@ -109,6 +109,7 @@
                         <div class="tab-controls">
                             <button class="tab-btn active" data-tab="history">历史记录</button>
                             <button class="tab-btn" data-tab="used">已使用角色</button>
+                            <button class="tab-btn" data-tab="stats">统计</button>
                         </div>
                     </div>
                     <div class="tab-content">
@@ -129,6 +130,21 @@
                         </div>
                         <div class="tab-pane" id="usedPane">
                             <div class="card-grid" id="usedArea"></div>
+                        </div>
+                        <div class="tab-pane" id="statsPane">
+                            <table class="history-table" id="statsTable">
+                                <thead>
+                                    <tr>
+                                        <th>角色</th>
+                                        <th>抽出但未使用次数</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="statsTbody">
+                                    <tr class="empty">
+                                        <td colspan="2">暂无统计</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </section>

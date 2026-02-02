@@ -91,17 +91,39 @@
 
     <!-- Image Gallery Modal -->
     <div id="gallery-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content">
+        <div class="modal-content gallery-modal" id="gallery-modal-content">
             <span class="modal-close">&times;</span>
-            <h2>图片库</h2>
-            <div id="category-container" class="category-container">
-                <!-- Categories will be inserted here by JS -->
+            <div class="gallery-header">
+                <button id="gallery-sidebar-toggle" class="gallery-sidebar-toggle" type="button" aria-expanded="false" aria-label="展开分类">
+                    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+                        <path fill="currentColor" d="M3 6.5h18a1 1 0 1 0 0-2H3a1 1 0 1 0 0 2zm0 6h18a1 1 0 1 0 0-2H3a1 1 0 1 0 0 2zm0 6h18a1 1 0 1 0 0-2H3a1 1 0 1 0 0 2z"/>
+                    </svg>
+                </button>
+                <h2 class="gallery-title">图片库</h2>
             </div>
-            <!-- Custom image category area -->
-            <div id="custom-image-panel" class="custom-image-panel" style="display:none;">
-                <div class="custom-inputs">
+            <div class="gallery-body">
+                <aside id="gallery-sidebar" class="gallery-sidebar" aria-label="分类列表">
+                    <div id="special-category-container" class="special-category-container" aria-label="特殊分类"></div>
+                    <div id="category-index" class="category-index" aria-label="按拼音首字母跳转"></div>
+                    <div id="category-letter-overlay" class="category-letter-overlay" aria-hidden="true">A</div>
+                    <div id="category-container" class="category-container category-list">
+                        <!-- Categories will be inserted here by JS -->
+                    </div>
+                </aside>
+                <div class="gallery-main">
+                    <!-- Custom image category area -->
+                    <div id="custom-image-panel" class="custom-image-panel" style="display:none;">
+                        <div class="custom-inputs">
                     <label for="image-upload" class="custom-label">上传图片（无法记录到“最近使用”）</label>
-                    <input type="file" id="image-upload" accept="image/*" class="custom-file">
+                    <div id="image-dropzone" class="custom-dropzone" role="button" tabindex="0" aria-label="拖拽或点击上传图片">
+                        <input type="file" id="image-upload" accept="image/*" class="custom-file">
+                        <div class="dropzone-content">
+                            <div class="dropzone-icon">
+                                <svg class="icon" style="width: 1em;height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" p-id="1930"><path d="M896 1024H128c-70.656 0-128-57.344-128-128v-281.6c0-14.336 11.264-25.6 25.6-25.6s25.6 11.264 25.6 25.6v281.6c0 42.496 34.304 76.8 76.8 76.8h768c42.496 0 76.8-34.304 76.8-76.8v-281.6c0-14.336 11.264-25.6 25.6-25.6s25.6 11.264 25.6 25.6v281.6c0 70.656-57.344 128-128 128zM512.512 0c6.656 0 13.312 2.56 17.92 7.68 10.24 10.24 10.24 26.112 0 36.352l-256 256c-10.24 10.24-26.112 10.24-36.352 0s-10.24-26.112 0-36.352l256-256c5.12-5.12 11.776-7.68 18.432-7.68z" fill="" p-id="1931"></path><path d="M512.512 0c6.656 0 13.312 2.56 17.92 7.68l256 256c10.24 10.24 10.24 26.112 0 36.352s-26.112 10.24-36.352 0l-256-256c-10.24-10.24-10.24-26.112 0-36.352 5.12-5.12 11.776-7.68 18.432-7.68z" fill="" p-id="1932"></path><path d="M512.512 0c14.336 0 25.6 11.264 25.6 25.6v716.8c0 14.336-11.264 25.6-25.6 25.6s-25.6-11.264-25.6-25.6V25.6c0-14.336 11.264-25.6 25.6-25.6z" fill="" p-id="1933"></path></svg>
+                            </div>
+                            <div class="dropzone-sub">拖拽图片到这里或点击选择文件</div>
+                        </div>
+                    </div>
                     <div class="or-divider"><span>或</span></div>
                     <label for="image-url-input" class="custom-label">输入图片 URL</label>
                     <input type="text" id="image-url-input" placeholder="https://..." class="custom-url">
@@ -146,11 +168,13 @@
                             </span>
                         </div>
                     </div>
-                    <button id="custom-use-btn" class="custom-use-btn">使用该图片</button>
+                            <button id="custom-use-btn" class="custom-use-btn">使用该图片</button>
+                        </div>
+                    </div>
+                    <div id="image-gallery" class="image-gallery">
+                        <!-- Images will be inserted here by JS -->
+                    </div>
                 </div>
-            </div>
-            <div id="image-gallery" class="image-gallery">
-                <!-- Images will be inserted here by JS -->
             </div>
         </div>
     </div>
@@ -188,6 +212,7 @@
     </script>
     <!-- GIF 编码库（gif.js.optimized）用于导出动图 -->
     <script src="https://unpkg.com/gif.js.optimized/dist/gif.js"></script>
+    <script src="https://unpkg.com/pinyin-pro"></script>
     <script src="script.js" defer></script>
     <!-- 详细提示弹窗结构 -->
     <div id="guide-overlay" class="guide-overlay" style="display:none;">

@@ -437,6 +437,36 @@ body.modal-open {
     display: block;
 }
 
+.tab-pane.slide-in-left {
+    animation: tabSlideInLeft 0.22s ease;
+}
+
+.tab-pane.slide-in-right {
+    animation: tabSlideInRight 0.22s ease;
+}
+
+@keyframes tabSlideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-14px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes tabSlideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(14px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
 /* ========== 历史表格样式 ========== */
 .history-table {
     width: 100%;
@@ -470,6 +500,7 @@ body.modal-open {
     color: #64748b;
     padding: 24px;
 }
+
 
 /* ========== 对称布局 ========== */
 @media (min-width: 961px) {

@@ -50,6 +50,252 @@ let lastAppliedThreshold = null;
 let processedPreviewDataURL = null;  // 当前处理后的 dataURL
 let suppressPreviewReimport = false; // 避免处理结果再次触发覆盖原始像素缓存
 
+// 预览区域 GIF 抠图渲染状态
+const previewGifState = {
+    isGif: false,
+    rawSrc: '',
+    baseFrames: [], // 原始合成帧 ImageData
+    frames: [],
+    totalDuration: 0,
+    startTime: 0,
+    rafId: 0,
+    canvas: null,
+    ctx: null,
+    zoomCanvas: null,
+    zoomCtx: null,
+    currentFrame: null,
+    width: 0,
+    height: 0,
+    decoding: false
+};
+
+function isGifSource(src) {
+    if (!src) return false;
+    const lower = String(src).toLowerCase();
+    return lower.includes('.gif') || lower.startsWith('data:image/gif');
+}
+
+function ensurePreviewCanvas() {
+    if (!customPreview) return null;
+    if (!previewGifState.canvas) {
+        const cv = document.createElement('canvas');
+        cv.id = 'custom-preview-canvas';
+        cv.style.cssText = 'display:none; width:auto; height:auto; max-width:100%; border-radius:6px; background:transparent;';
+        customPreview.insertBefore(cv, customPreview.firstChild);
+        previewGifState.canvas = cv;
+        previewGifState.ctx = cv.getContext('2d', { willReadFrequently: true });
+    }
+    return previewGifState.canvas;
+}
+
+function ensureZoomPreviewCanvas() {
+    const wrap = zoomPreviewImg && zoomPreviewImg.parentElement;
+    if (!wrap) return null;
+    if (!previewGifState.zoomCanvas) {
+        const cv = document.createElement('canvas');
+        cv.id = 'zoom-preview-canvas';
+        cv.style.cssText = 'display:none; width:auto; height:auto; max-width:100%; border-radius:6px; background:transparent;';
+        wrap.insertBefore(cv, zoomPreviewImg);
+        previewGifState.zoomCanvas = cv;
+        previewGifState.zoomCtx = cv.getContext('2d', { willReadFrequently: true });
+    }
+    return previewGifState.zoomCanvas;
+}
+
+function stopPreviewGifRender() {
+    if (previewGifState.rafId) cancelAnimationFrame(previewGifState.rafId);
+    previewGifState.rafId = 0;
+    previewGifState.isGif = false;
+    previewGifState.frames = [];
+    previewGifState.totalDuration = 0;
+    previewGifState.startTime = 0;
+    previewGifState.currentFrame = null;
+    if (previewGifState.canvas) previewGifState.canvas.style.display = 'none';
+    if (customPreviewImg) customPreviewImg.style.display = '';
+    if (previewGifState.zoomCanvas) previewGifState.zoomCanvas.style.display = 'none';
+    if (zoomPreviewImg) zoomPreviewImg.style.display = '';
+}
+
+async function buildPreviewGifBaseFrames(src) {
+    if (!src || previewGifState.decoding) return;
+    if (previewGifState.rawSrc === src && previewGifState.baseFrames.length > 0) return;
+    previewGifState.decoding = true;
+    try {
+        const buf = await fetchArrayBuffer(src);
+        const { parseGIF, decompressFrames } = window.gifuctJs || {};
+        if (!parseGIF) throw new Error('GIF 解析库未加载');
+        const gif = parseGIF(buf);
+        const frames = decompressFrames(gif, true);
+        const gifW = gif.lsd && gif.lsd.width ? gif.lsd.width : (frames[0]?.dims?.width || 0);
+        const gifH = gif.lsd && gif.lsd.height ? gif.lsd.height : (frames[0]?.dims?.height || 0);
+
+        const comp = document.createElement('canvas');
+        comp.width = gifW; comp.height = gifH;
+        const cctx = comp.getContext('2d', { willReadFrequently: true });
+
+        let bgFillStyle = null;
+        try {
+            const gct = gif.gct || gif.globalColorTable;
+            const bgIndex = (gif.lsd && (gif.lsd.bgColor ?? gif.lsd.backgroundColor));
+            if (gct && typeof bgIndex === 'number' && gct[bgIndex]) {
+                const [r, g, b] = gct[bgIndex];
+                bgFillStyle = `rgba(${r}, ${g}, ${b}, 1)`;
+            }
+        } catch {}
+        if (bgFillStyle) {
+            cctx.fillStyle = bgFillStyle;
+            cctx.fillRect(0, 0, comp.width, comp.height);
+        } else {
+            cctx.clearRect(0, 0, comp.width, comp.height);
+        }
+
+        let prev = null;
+        const baseFrames = [];
+        for (const f of frames) {
+            if (prev) {
+                if (prev.disposalType === 2) {
+                    const d = prev.dims;
+                    if (bgFillStyle) {
+                        cctx.save();
+                        cctx.fillStyle = bgFillStyle;
+                        cctx.fillRect(d.left, d.top, d.width, d.height);
+                        cctx.restore();
+                    } else {
+                        cctx.clearRect(d.left, d.top, d.width, d.height);
+                    }
+                } else if (prev.disposalType === 3 && prev._restore) {
+                    const d = prev.dims;
+                    cctx.putImageData(prev._restore, d.left, d.top);
+                }
+            }
+            const imageData = new ImageData(new Uint8ClampedArray(f.patch), f.dims.width, f.dims.height);
+            if (f.disposalType === 3) {
+                try {
+                    f._restore = cctx.getImageData(f.dims.left, f.dims.top, f.dims.width, f.dims.height);
+                } catch {}
+            }
+            const patchCanvas = document.createElement('canvas');
+            patchCanvas.width = f.dims.width;
+            patchCanvas.height = f.dims.height;
+            const pctx = patchCanvas.getContext('2d', { willReadFrequently: true });
+            pctx.putImageData(imageData, 0, 0);
+            cctx.drawImage(patchCanvas, f.dims.left, f.dims.top);
+
+            const full = cctx.getImageData(0, 0, comp.width, comp.height);
+            baseFrames.push({ imageData: full, delay: Math.max(20, f.delay || 100) });
+            prev = f;
+        }
+
+        previewGifState.rawSrc = src;
+        previewGifState.baseFrames = baseFrames;
+        previewGifState.width = gifW;
+        previewGifState.height = gifH;
+    } finally {
+        previewGifState.decoding = false;
+    }
+}
+
+function applyPreviewGifBgRemoval(color, threshold) {
+    if (!previewGifState.baseFrames.length || !color) return;
+    const th = Math.max(0, Math.min(255, threshold | 0));
+    const tSq = th * th;
+    const { r: pr, g: pg, b: pb } = color;
+    previewGifState.frames = previewGifState.baseFrames.map(f => {
+        const src = f.imageData;
+        const data = new Uint8ClampedArray(src.data);
+        for (let i = 0; i < data.length; i += 4) {
+            const r = data[i], g = data[i + 1], b = data[i + 2];
+            const dr = r - pr, dg = g - pg, db = b - pb;
+            if (dr * dr + dg * dg + db * db <= tSq) data[i + 3] = 0;
+        }
+        return { imageData: new ImageData(data, src.width, src.height), delay: f.delay };
+    });
+    previewGifState.totalDuration = previewGifState.frames.reduce((s, f) => s + f.delay, 0);
+}
+
+function renderPreviewGif(timestamp) {
+    if (!previewGifState.isGif || !previewGifState.frames.length || !previewGifState.ctx) return;
+    if (!previewGifState.startTime) previewGifState.startTime = timestamp;
+    const elapsed = (timestamp - previewGifState.startTime) % previewGifState.totalDuration;
+    let acc = 0, frame = previewGifState.frames[0];
+    for (let i = 0; i < previewGifState.frames.length; i++) {
+        acc += previewGifState.frames[i].delay;
+        if (elapsed < acc) { frame = previewGifState.frames[i]; break; }
+    }
+    previewGifState.currentFrame = frame.imageData;
+    previewGifState.ctx.putImageData(frame.imageData, 0, 0);
+    if (previewGifState.zoomCtx && previewGifState.zoomCanvas && zoomModal && zoomModal.style.display !== 'none') {
+        previewGifState.zoomCtx.putImageData(frame.imageData, 0, 0);
+    }
+    previewGifState.rafId = requestAnimationFrame(renderPreviewGif);
+}
+
+async function startPreviewGifBgRemoval(src, color, threshold) {
+    if (!isGifSource(src) || !color) return;
+    await buildPreviewGifBaseFrames(src);
+    if (!previewGifState.baseFrames.length) return;
+    const canvas = ensurePreviewCanvas();
+    if (!canvas) return;
+    canvas.width = previewGifState.width || previewGifState.baseFrames[0].imageData.width;
+    canvas.height = previewGifState.height || previewGifState.baseFrames[0].imageData.height;
+    applyPreviewGifBgRemoval(color, threshold);
+    previewGifState.isGif = true;
+    previewGifState.startTime = 0;
+    canvas.style.display = '';
+    if (customPreviewImg) customPreviewImg.style.display = 'none';
+    const zc = ensureZoomPreviewCanvas();
+    if (zc) {
+        zc.width = canvas.width;
+        zc.height = canvas.height;
+        if (zoomModal && zoomModal.style.display !== 'none') {
+            zc.style.display = '';
+            if (zoomPreviewImg) zoomPreviewImg.style.display = 'none';
+        }
+    }
+    if (previewGifState.rafId) cancelAnimationFrame(previewGifState.rafId);
+    previewGifState.rafId = requestAnimationFrame(renderPreviewGif);
+}
+
+async function startPreviewGifPlayback(src) {
+    if (!isGifSource(src)) return;
+    await buildPreviewGifBaseFrames(src);
+    if (!previewGifState.baseFrames.length) return;
+    const canvas = ensurePreviewCanvas();
+    if (!canvas) return;
+    canvas.width = previewGifState.width || previewGifState.baseFrames[0].imageData.width;
+    canvas.height = previewGifState.height || previewGifState.baseFrames[0].imageData.height;
+    previewGifState.frames = previewGifState.baseFrames.map(f => ({ imageData: f.imageData, delay: f.delay }));
+    previewGifState.totalDuration = previewGifState.frames.reduce((s, f) => s + f.delay, 0);
+    previewGifState.isGif = true;
+    previewGifState.startTime = 0;
+    canvas.style.display = '';
+    if (customPreviewImg) customPreviewImg.style.display = 'none';
+    const zc = ensureZoomPreviewCanvas();
+    if (zc) {
+        zc.width = canvas.width;
+        zc.height = canvas.height;
+        if (zoomModal && zoomModal.style.display !== 'none') {
+            zc.style.display = '';
+            if (zoomPreviewImg) zoomPreviewImg.style.display = 'none';
+        }
+    }
+    if (previewGifState.rafId) cancelAnimationFrame(previewGifState.rafId);
+    previewGifState.rafId = requestAnimationFrame(renderPreviewGif);
+}
+
+function pickColorFromPreviewData(evt, targetCanvas, imageData) {
+    if (!imageData || !targetCanvas) return null;
+    const rect = targetCanvas.getBoundingClientRect();
+    const scaleX = imageData.width / rect.width;
+    const scaleY = imageData.height / rect.height;
+    const x = Math.floor((evt.clientX - rect.left) * scaleX);
+    const y = Math.floor((evt.clientY - rect.top) * scaleY);
+    if (x < 0 || y < 0 || x >= imageData.width || y >= imageData.height) return null;
+    const idx = (y * imageData.width + x) * 4;
+    const d = imageData.data;
+    return { r: d[idx], g: d[idx + 1], b: d[idx + 2] };
+}
+
 function ensureWorkingPreviewCanvas() {
     if (!customPreviewImg || !customPreviewImg.complete) return null;
     if (!workingPreviewCanvas) {
@@ -70,7 +316,7 @@ function ensureWorkingPreviewCanvas() {
     return originalPreviewImageData;
 }
 
-function applyBackgroundRemoval(threshold) {
+function applyBackgroundRemoval(threshold, { skipPreviewUpdate = false } = {}) {
     if (!originalPreviewImageData || !pickedColor || !workingPreviewCtx) return;
     threshold = Math.max(0, Math.min(255, threshold|0));
     const { data, width, height } = originalPreviewImageData;
@@ -93,7 +339,7 @@ function applyBackgroundRemoval(threshold) {
     // 使用 dataURL（同步），并阻止重新抓取为“原始”
     suppressPreviewReimport = true;
     processedPreviewDataURL = workingPreviewCanvas.toDataURL('image/png');
-    customPreviewImg.src = processedPreviewDataURL;
+    if (!skipPreviewUpdate && customPreviewImg) customPreviewImg.src = processedPreviewDataURL;
 }
 
 function updateThresholdUI() {
@@ -104,6 +350,7 @@ function updateThresholdUI() {
 
 function resetPreviewRemoval() {
     if (!customPreviewImg || !pendingCustomSrc) return;
+    stopPreviewGifRender();
     customPreviewImg.src = pendingCustomSrc; // 恢复原图
     pickedColor = null;
     lastAppliedThreshold = null;
@@ -135,7 +382,9 @@ if (bgThresholdSlider) {
             } else {
                 ensureWorkingPreviewCanvas();
             }
-            applyBackgroundRemoval(th);
+            const isGifPreview = isGifSource(pendingCustomSrc || (customPreviewImg && customPreviewImg.src));
+            applyBackgroundRemoval(th, { skipPreviewUpdate: isGifPreview });
+            if (isGifPreview) startPreviewGifBgRemoval(pendingCustomSrc || (customPreviewImg && customPreviewImg.src), pickedColor, th);
             lastAppliedThreshold = th;
         }
     });
@@ -168,9 +417,19 @@ if (customPreviewImg) {
             enableBgRemoveToolsIfPossible();
             return;
         }
+        stopPreviewGifRender();
         // 新原图 / 重置后的图：重新建立原始数据
         ensureWorkingPreviewCanvas();
         enableBgRemoveToolsIfPossible();
+        const src = pendingCustomSrc || customPreviewImg.src;
+        const isGifPreview = isGifSource(src);
+        if (isGifPreview) {
+            if (pickedColor && lastAppliedThreshold !== null) {
+                startPreviewGifBgRemoval(src, pickedColor, lastAppliedThreshold);
+            } else {
+                startPreviewGifPlayback(src);
+            }
+        }
     });
     // 取色点击
     customPreviewImg.addEventListener('click', (e) => {
@@ -200,7 +459,31 @@ if (customPreviewImg) {
         // 立即应用当前阈值
         const th = parseInt(bgThresholdSlider.value,10) || 0;
         if (originalPreviewImageData) workingPreviewCtx.putImageData(originalPreviewImageData,0,0);
-        applyBackgroundRemoval(th);
+        const isGifPreview = isGifSource(pendingCustomSrc || customPreviewImg.src);
+        applyBackgroundRemoval(th, { skipPreviewUpdate: isGifPreview });
+        if (isGifPreview) startPreviewGifBgRemoval(pendingCustomSrc || customPreviewImg.src, pickedColor, th);
+        lastAppliedThreshold = th;
+    });
+}
+
+// GIF 预览 canvas 取色
+if (customPreview) {
+    customPreview.addEventListener('click', (e) => {
+        if (!previewGifState.canvas || previewGifState.canvas.style.display === 'none') return;
+        if (!bgRemoveTools || bgRemoveTools.style.display === 'none') return;
+        const imgData = previewGifState.currentFrame || (previewGifState.baseFrames[0] && previewGifState.baseFrames[0].imageData);
+        const picked = pickColorFromPreviewData(e, previewGifState.canvas, imgData);
+        if (!picked) return;
+        pickedColor = picked;
+        if (pickedColorSwatch) pickedColorSwatch.style.background = `rgb(${picked.r},${picked.g},${picked.b})`;
+        updatePickedColorInfo();
+        if (pickedColorPlaceholder) pickedColorPlaceholder.style.display = 'none';
+        if (pickedColorInfo) pickedColorInfo.style.display = 'block';
+        if (bgThresholdWrapper) bgThresholdWrapper.style.display = 'flex';
+        if (bgResetBtn) bgResetBtn.style.display = 'inline-block';
+        syncBigToolsFromSmall();
+        const th = parseInt(bgThresholdSlider.value,10) || 0;
+        startPreviewGifBgRemoval(pendingCustomSrc || (customPreviewImg && customPreviewImg.src), pickedColor, th);
         lastAppliedThreshold = th;
     });
 }
@@ -234,10 +517,35 @@ if (zoomPreviewImg) {
         // 应用当前阈值
         const th = parseInt(bgThresholdSlider.value,10) || 0;
         if (originalPreviewImageData) workingPreviewCtx.putImageData(originalPreviewImageData,0,0);
-        applyBackgroundRemoval(th);
+        const isGifPreview = isGifSource(pendingCustomSrc || (customPreviewImg && customPreviewImg.src));
+        applyBackgroundRemoval(th, { skipPreviewUpdate: isGifPreview });
+        if (isGifPreview) startPreviewGifBgRemoval(pendingCustomSrc || (customPreviewImg && customPreviewImg.src), pickedColor, th);
         lastAppliedThreshold = th;
         // 更新大图展示（因为应用后的 processed 会写回 customPreviewImg.src）
         if (zoomPreviewImg && customPreviewImg) zoomPreviewImg.src = customPreviewImg.src;
+    });
+}
+
+// 放大预览 GIF canvas 取色
+if (zoomModal) {
+    zoomModal.addEventListener('click', (e) => {
+        if (!previewGifState.zoomCanvas || previewGifState.zoomCanvas.style.display === 'none') return;
+        if (e.target !== previewGifState.zoomCanvas) return;
+        if (!bgRemoveTools || bgRemoveTools.style.display === 'none') return;
+        const imgData = previewGifState.currentFrame || (previewGifState.baseFrames[0] && previewGifState.baseFrames[0].imageData);
+        const picked = pickColorFromPreviewData(e, previewGifState.zoomCanvas, imgData);
+        if (!picked) return;
+        pickedColor = picked;
+        if (pickedColorSwatch) pickedColorSwatch.style.background = `rgb(${picked.r},${picked.g},${picked.b})`;
+        updatePickedColorInfo();
+        if (pickedColorPlaceholder) pickedColorPlaceholder.style.display = 'none';
+        if (pickedColorInfo) pickedColorInfo.style.display = 'block';
+        if (bgThresholdWrapper) bgThresholdWrapper.style.display = 'flex';
+        if (bgResetBtn) bgResetBtn.style.display = 'inline-block';
+        syncBigToolsFromSmall();
+        const th = parseInt(bgThresholdSlider.value,10) || 0;
+        startPreviewGifBgRemoval(pendingCustomSrc || (customPreviewImg && customPreviewImg.src), pickedColor, th);
+        lastAppliedThreshold = th;
     });
 }
 
@@ -263,10 +571,19 @@ function updatePickedColorInfo(){
 // ---- Zoom (Large Preview) logic ----
 function openZoomModal(){
     if (!zoomModal) return;
+    zoomModal.style.display = 'flex';
     if (zoomPreviewImg && customPreviewImg) {
         zoomPreviewImg.src = customPreviewImg.src;
     }
-    zoomModal.style.display = 'flex';
+    const isGifPreview = isGifSource(pendingCustomSrc || (customPreviewImg && customPreviewImg.src));
+    if (isGifPreview && pickedColor) {
+        startPreviewGifBgRemoval(pendingCustomSrc || (customPreviewImg && customPreviewImg.src), pickedColor, parseInt(bgThresholdSlider.value,10) || 0);
+    } else if (isGifPreview) {
+        startPreviewGifPlayback(pendingCustomSrc || (customPreviewImg && customPreviewImg.src));
+    } else if (previewGifState.zoomCanvas) {
+        previewGifState.zoomCanvas.style.display = 'none';
+        if (zoomPreviewImg) zoomPreviewImg.style.display = '';
+    }
     requestAnimationFrame(()=>zoomModal.classList.add('active'));
     // Sync state
     syncBigToolsFromSmall();
@@ -306,7 +623,9 @@ if (bgThresholdSliderBig){
         updateThresholdUI();
         const th = parseInt(bgThresholdSlider.value,10) || 0;
         if (originalPreviewImageData) workingPreviewCtx.putImageData(originalPreviewImageData,0,0);
-        applyBackgroundRemoval(th);
+        const isGifPreview = isGifSource(pendingCustomSrc || (customPreviewImg && customPreviewImg.src));
+        applyBackgroundRemoval(th, { skipPreviewUpdate: isGifPreview });
+        if (isGifPreview) startPreviewGifBgRemoval(pendingCustomSrc || (customPreviewImg && customPreviewImg.src), pickedColor, th);
         lastAppliedThreshold = th;
         // 更新大预览图片
         if (zoomPreviewImg && customPreviewImg) zoomPreviewImg.src = customPreviewImg.src;
@@ -328,9 +647,159 @@ if (zoomCloseBtn){
 let pendingCustomSrc = '';
 const galleryBtn = document.getElementById('gallery-btn');
 const galleryModal = document.getElementById('gallery-modal');
+const galleryModalContent = document.getElementById('gallery-modal-content');
 const modalClose = document.querySelector('.modal-close');
+const gallerySidebar = document.getElementById('gallery-sidebar');
+const gallerySidebarToggle = document.getElementById('gallery-sidebar-toggle');
+const categoryIndex = document.getElementById('category-index');
+const specialCategoryContainer = document.getElementById('special-category-container');
+const categoryLetterOverlay = document.getElementById('category-letter-overlay');
 const categoryContainer = document.getElementById('category-container');
 const imageGallery = document.getElementById('image-gallery');
+const imageDropzone = document.getElementById('image-dropzone');
+
+function isMobileSidebar() {
+    return window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+}
+
+function setGallerySidebarOpen(open) {
+    if (!galleryModalContent || !gallerySidebar || !gallerySidebarToggle) return;
+    if (!isMobileSidebar()) open = true;
+    galleryModalContent.classList.toggle('sidebar-open', open);
+    gallerySidebar.classList.toggle('expanded', open);
+    gallerySidebarToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+
+if (gallerySidebarToggle) {
+    gallerySidebarToggle.addEventListener('click', () => {
+        const isOpen = galleryModalContent && galleryModalContent.classList.contains('sidebar-open');
+        setGallerySidebarOpen(!isOpen);
+    });
+}
+
+if (galleryModalContent) {
+    galleryModalContent.addEventListener('click', (e) => {
+        if (!isMobileSidebar()) return;
+        if (!galleryModalContent.classList.contains('sidebar-open')) return;
+        const target = e.target;
+        if (gallerySidebar && gallerySidebar.contains(target)) return;
+        if (gallerySidebarToggle && gallerySidebarToggle.contains(target)) return;
+        setGallerySidebarOpen(false);
+    });
+}
+
+function getPinyinInitial(text) {
+    const ch = (text || '').trim().charAt(0);
+    if (!ch) return '#';
+    const name = (text || '').trim();
+    const override = polyphonicOverrides[name];
+    if (override && override.initial) return override.initial.toUpperCase();
+    try {
+        const { pinyin } = window.pinyinPro || {};
+        if (pinyin) {
+            const py = pinyin(ch, { pattern: 'first', toneType: 'none' });
+            if (py) return String(py).charAt(0).toUpperCase();
+        }
+    } catch {}
+    const code = ch.charCodeAt(0);
+    if (code >= 65 && code <= 90) return ch.toUpperCase();
+    if (code >= 97 && code <= 122) return ch.toUpperCase();
+    return '#';
+}
+
+const pinyinCollator = new Intl.Collator('zh-Hans-u-co-pinyin', { numeric: true, sensitivity: 'base' });
+
+function getPinyinSortKey(text) {
+    const name = (text || '').trim();
+    const override = polyphonicOverrides[name];
+    if (override && override.pinyin) return override.pinyin;
+    try {
+        const { pinyin } = window.pinyinPro || {};
+        if (pinyin) {
+            const raw = pinyin(text || '', { toneType: 'none' });
+            return String(raw).toLowerCase().replace(/[^a-z0-9]/g, '');
+        }
+    } catch {}
+    return (text || '').toLowerCase();
+}
+
+// 多音字自定义覆盖：key为分类名称，pinyin为完整拼音（无声调），initial为首字母
+const polyphonicOverrides = {
+    '重云': { pinyin: 'chongyun', initial: 'C' },
+    '茜特菈莉': { pinyin: 'xitelali', initial: 'X' }
+};
+
+function buildCategoryIndexButton(letter) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = letter;
+    btn.dataset.letter = letter;
+    btn.addEventListener('click', () => {
+        jumpToLetter(letter);
+    });
+    return btn;
+}
+
+function showLetterOverlay(letter) {
+    if (!categoryLetterOverlay) return;
+    categoryLetterOverlay.textContent = letter;
+    categoryLetterOverlay.classList.add('show');
+    clearTimeout(categoryLetterOverlay._hideTimer);
+    categoryLetterOverlay._hideTimer = setTimeout(() => {
+        categoryLetterOverlay.classList.remove('show');
+    }, 500);
+}
+
+function jumpToLetter(letter) {
+    if (!categoryContainer) return;
+    const target = categoryContainer.querySelector(`[data-separator="${letter}"]`);
+    if (target) {
+        const offset = target.offsetTop - categoryContainer.offsetTop;
+        categoryContainer.scrollTop = Math.max(0, offset - 4);
+        showLetterOverlay(letter);
+    }
+}
+
+function buildCategoryItem(categoryName, urls) {
+    const item = document.createElement('div');
+    item.className = 'category-item';
+    item.dataset.category = categoryName;
+    const initial = getPinyinInitial(categoryName);
+    item.dataset.initial = initial;
+
+    const img = document.createElement('img');
+    if (categoryName === '自定义图片') {
+        const plusSvg = encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 90 90"><rect fill="#efe8d6" x="0" y="0" width="90" height="90" rx="10"/><path d="M45 20v50M20 45h50" stroke="#8b6b3e" stroke-width="6" stroke-linecap="round"/></svg>');
+        img.src = `data:image/svg+xml;utf8,${plusSvg}`;
+    } else {
+        let src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+        if (urls && urls.length > 0) {
+            if (categoryName === '最近使用') {
+                src = urls[0];
+            } else {
+                const randIndex = Math.floor(Math.random() * urls.length);
+                src = urls[randIndex];
+            }
+        }
+        img.src = src;
+    }
+    img.loading = 'lazy';
+    img.alt = `${categoryName} 首图`;
+    img.onerror = () => {
+        img.style.visibility = 'hidden';
+    };
+
+    const span = document.createElement('span');
+    span.textContent = categoryName;
+
+    item.appendChild(img);
+    item.appendChild(span);
+    item.addEventListener('click', () => {
+        displayCategory(categoryName);
+    });
+
+    return item;
+}
 // --- First-load tip modal ---
 const NO_TIP_KEY = 'pt_no_first_load_tip_v1';
 const USAGE_TIP_DISMISS_KEY = 'pt_usage_tip_dismiss_v1';
@@ -391,9 +860,9 @@ function showFirstLoadTipIfNeeded() {
     };
     overlay.addEventListener('click', (e) => { if (e.target === overlay) hide(); });
 
-    // 进度统计：字体 + 背景图 + 分类 JSON（数量 = jsonFiles.length）
-    let total = 0;
-    try { total = 2 + (Array.isArray(jsonFiles) ? jsonFiles.length : 0); } catch { total = 2; }
+    // 进度统计：字体 + 背景图 + 分类 JSON（1个文件）
+    let total = 3; 
+    try { total = 3; } catch { total = 3; }
     let loaded = 0;
     const update = () => {
         const pct = Math.max(0, Math.min(100, Math.round((loaded / Math.max(1, total)) * 100)));
@@ -694,18 +1163,9 @@ let lastPinchAppliedValue = null; // 上次应用到 slider 的值，避免重�
 let pinchPrevDist = null; // 上一帧两指距离
 
 // --- Gallery Data ---
-const jsonFiles = [
-    "原神×瑞幸咖啡联动.json", "小红书×心海联动.json", "抖音×八重神子联动.json",
-    "达达利亚×小米.json", "原神×必胜客.json", "原神×一加手机.json",
-    "派蒙的画作第1-2弹.json", "派蒙的画作第3-4弹.json", "派蒙的画作第5-6弹.json",
-    "派蒙的画作第7-8弹.json", "派蒙的画作第9-10弹.json", "派蒙的画作第11-12弹.json",
-    "派蒙的画作第13-14弹.json", "派蒙的画作第15-16弹.json", "派蒙的画作第17-18弹.json",
-    "派蒙的画作第19-20弹.json", "派蒙的画作第21-22弹.json", "派蒙的画作第23-24弹.json",
-    "派蒙的画作第25-26弹.json", "派蒙的画作第27-28弹.json", "派蒙的画作第29-30弹.json",
-    "派蒙的画作第31-32弹.json", "派蒙的画作第33-34弹.json", "派蒙的画作第35-36弹.json",
-    "派蒙的画作第37-38弹.json", "派蒙的画作第39-40弹.json", "派蒙的画作第41-42弹.json",
-    "派蒙的画作第43-44弹.json","崩铁.json"
-];
+// const jsonFiles = []; // 已弃用，改用 image_urls.json
+const IMAGE_URLS_FILE = "image_urls.json";
+
 const galleryData = {};
 // ---- Recents (最近使用) ----
 const RECENTS_KEY = 'gallery_recents_v1';
@@ -730,7 +1190,7 @@ function ensureRecentsCategory() {
 }
 
 function updateRecentsButtonThumb() {
-    const btn = categoryContainer.querySelector('.category-btn[data-category="最近使用"]');
+    const btn = categoryContainer.querySelector('.category-item[data-category="最近使用"]');
     if (!btn) return;
     const img = btn.querySelector('img');
     const first = recentImages && recentImages[0];
@@ -755,7 +1215,7 @@ function addToRecents(url, refreshUI = false) {
     if (refreshUI) {
         updateRecentsButtonThumb();
         // 如果当前在“最近使用”分类，刷新图片墙
-        const active = document.querySelector('.category-btn.active');
+        const active = document.querySelector('.category-item.active');
         if (active && active.dataset.category === '最近使用') {
             displayCategory('最近使用');
         }
@@ -1156,7 +1616,7 @@ function drawGuidelines() {
     ctx.restore();
 }
 
-async function loadImage(src) {
+async function loadImage(src, bgOptions = null) {
     // 若已有主图，将其转存为静态叠加层（不移除）
     if (userImg) {
         overlays.push({
@@ -1254,6 +1714,24 @@ async function loadImage(src) {
                 const pctx = patchCanvas.getContext('2d', { willReadFrequently: true });
                 pctx.putImageData(imageData, 0, 0);
                 cctx.drawImage(patchCanvas, f.dims.left, f.dims.top);
+
+                // 如果有抠图选项，处理当前合成帧
+                if (bgOptions && bgOptions.color) {
+                    const fullData = cctx.getImageData(0, 0, comp.width, comp.height);
+                    const fd = fullData.data;
+                    const {r:pr, g:pg, b:pb} = bgOptions.color;
+                    const th = bgOptions.threshold || 0;
+                    const tSq = th * th;
+                    for (let i=0; i<fd.length; i+=4) {
+                       const r=fd[i], g=fd[i+1], b=fd[i+2]; // alpha ignored for distance
+                       // 简单 RGB 距离
+                       const dr = r - pr, dg = g - pg, db = b - pb;
+                       if (dr*dr + dg*dg + db*db <= tSq) {
+                           fd[i+3] = 0;
+                       }
+                    }
+                    cctx.putImageData(fullData, 0, 0);
+                }
 
                 // 导出合成帧（优先 ImageBitmap，更快；不支持时退回 dataURL）
                 let frameImage;
@@ -1359,24 +1837,18 @@ function createImage(src) {
 // --- Gallery Modal Logic ---
 
 async function initGallery() {
-    const promises = jsonFiles.map(file => 
-                fetch(isFullVersion ? `../pic/${file}` : `pic/${file}`).then(res => {
-            if (!res.ok) throw new Error(`加载失败: ${file}`);
-            return res.json();
-                }).then(data => ({ status: 'fulfilled', value: data }))
-                    .catch(err => ({ status: 'rejected', reason: err, file }))
-                    .finally(() => { try { window.__ptPreloadTick && window.__ptPreloadTick(); } catch {} })
-    );
-    const results = await Promise.all(promises);
-    results.forEach((r, index) => {
-        const categoryName = jsonFiles[index].replace('.json', '');
-        if (r.status === 'fulfilled' && Array.isArray(r.value) && r.value.length > 0) {
-            galleryData[categoryName] = r.value;
-        } else {
-            // 跳过不可用分类
-            console.warn('跳过分类', categoryName, r.reason || '无图片');
-        }
-    });
+    try {
+        const url = isFullVersion ? `../${IMAGE_URLS_FILE}` : IMAGE_URLS_FILE;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`加载失败: ${url}`);
+        const data = await res.json();
+        Object.assign(galleryData, data);
+    } catch (err) {
+        console.error('Failed to load gallery data:', err);
+    } finally {
+        try { window.__ptPreloadTick && window.__ptPreloadTick(); } catch {}
+    }
+
     // 插入“最近使用”置顶分类
     ensureRecentsCategory();
     populateCategories();
@@ -1388,174 +1860,106 @@ async function initGallery() {
 }
 
 function populateCategories() {
-    let wrap = categoryContainer.parentElement;
-    if (!wrap || !wrap.classList || !wrap.classList.contains('category-wrap')) {
-        wrap = document.createElement('div');
-        wrap.className = 'category-wrap';
-        const parent = categoryContainer.parentNode;
-        parent.insertBefore(wrap, categoryContainer);
-        wrap.appendChild(categoryContainer);
-    }
-    // 重建分类条，保证顺序：最近使用 -> 其他
+    if (!categoryContainer) return;
+    // 重建分类条，保证顺序：自定义图片 -> 最近使用 -> 其他
     categoryContainer.innerHTML = '';
-    const order = ['自定义图片', '最近使用', ...Object.keys(galleryData).filter(n => n !== '最近使用')];
-    for (const categoryName of order) {
+    if (categoryIndex) categoryIndex.innerHTML = '';
+    if (specialCategoryContainer) specialCategoryContainer.innerHTML = '';
+
+    const allNames = Array.from(new Set(Object.keys(galleryData)));
+    const specialNames = ['自定义图片', '最近使用'];
+    specialNames.forEach(name => {
+        const urls = galleryData[name];
+        if (!specialCategoryContainer) return;
+        if (!urls || urls.length === 0) {
+            if (name !== '最近使用' && name !== '自定义图片') return;
+        }
+        const item = buildCategoryItem(name, urls);
+        specialCategoryContainer.appendChild(item);
+    });
+
+    const normalNames = allNames.filter(n => !specialNames.includes(n));
+    const sorted = normalNames.sort((a, b) => pinyinCollator.compare(getPinyinSortKey(a), getPinyinSortKey(b)));
+
+    const initialsInList = new Set();
+    let lastInitial = '';
+    for (const categoryName of sorted) {
         const urls = galleryData[categoryName];
         if (!urls || urls.length === 0) {
             // “最近使用”和“自定义图片”允许为空也展示按钮；其他无图跳过
             if (categoryName !== '最近使用' && categoryName !== '自定义图片') continue;
         }
-
-        const btn = document.createElement('div');
-        btn.className = 'category-btn';
-        btn.dataset.category = categoryName;
-
-        const img = document.createElement('img');
-        if (categoryName === '自定义图片') {
-            const plusSvg = encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="90" height="90" viewBox="0 0 90 90"><rect fill="#efe8d6" x="0" y="0" width="90" height="90" rx="10"/><path d="M45 20v50M20 45h50" stroke="#8b6b3e" stroke-width="6" stroke-linecap="round"/></svg>');
-            img.src = `data:image/svg+xml;utf8,${plusSvg}`;
-        } else {
-            img.src = (urls && urls[0]) || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+        const item = buildCategoryItem(categoryName, urls);
+        const initial = item.dataset.initial;
+        if (initial && initial !== lastInitial) {
+            const sep = document.createElement('div');
+            sep.className = 'category-separator';
+            sep.dataset.separator = initial;
+            sep.innerHTML = '<span></span>';
+            sep.querySelector('span').textContent = initial;
+            categoryContainer.appendChild(sep);
+            lastInitial = initial;
         }
-        img.loading = 'lazy';
-        img.alt = `${categoryName} 首图`;
-        img.onerror = () => {
-            img.style.visibility = 'hidden';
-        };
-        
-        const span = document.createElement('span');
-        span.textContent = categoryName;
-
-        btn.appendChild(img);
-        btn.appendChild(span);
-
-        btn.addEventListener('click', () => {
-            displayCategory(categoryName);
-        });
-
-    categoryContainer.appendChild(btn);
+        initialsInList.add(initial);
+        categoryContainer.appendChild(item);
     }
 
-    // 鼠标滚轮横向滚动支持
-    categoryContainer.addEventListener('wheel', (e) => {
-        if (!categoryContainer.classList.contains('expanded')) {
-            if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-                e.preventDefault();
-                categoryContainer.scrollLeft += e.deltaY;
-            }
-        }
-    }, { passive: false });
     // 初始化“最近使用”缩略图可见性
     updateRecentsButtonThumb();
-    try {
-        if (!categoryContainer.classList.contains('expanded')) {
-            categoryContainer._collapsedH = categoryContainer.getBoundingClientRect().height;
-        }
-        if (!categoryContainer._resizeBound) {
-            window.addEventListener('resize', () => {
-                if (!categoryContainer.classList.contains('expanded')) {
-                    categoryContainer._collapsedH = categoryContainer.getBoundingClientRect().height;
-                }
-            });
-            categoryContainer._resizeBound = true;
-        }
-    } catch {}
 
-    let toggle = wrap.querySelector('.category-expand-toggle');
-    if (!toggle) {
-        toggle = document.createElement('div');
-        toggle.className = 'category-expand-toggle';
-        toggle.textContent = '展开';
-        wrap.appendChild(toggle);
-        const setExpanded = (expanded) => {
-            const el = categoryContainer;
-            const w = wrap;
-            const D = 280; 
-            if (el.classList.contains('animating')) return;
-            const endCleanup = () => {
-                el.style.transition = '';
-                el.style.height = '';
-                el.classList.remove('animating');
-            };
-            if (expanded) {
-                const fromH = el.getBoundingClientRect().height;
-                el.style.height = fromH + 'px';
-                el.classList.add('animating');
-                requestAnimationFrame(() => {
-                    el.classList.add('expanded');
-                    w.classList.add('expanded');
-                    toggle.textContent = '收起';
-                    const maxPx = Math.max(80, Math.round(window.innerHeight * 0.42));
-                    const toH = Math.min(el.scrollHeight, maxPx);
-                    el.style.transition = `height ${D}ms ease`;
-                    requestAnimationFrame(() => { el.style.height = toH + 'px'; });
-                });
-                const onEnd = (ev) => { if (ev.propertyName === 'height') { el.removeEventListener('transitionend', onEnd); endCleanup(); } };
-                el.addEventListener('transitionend', onEnd);
-            } else {
-                const fromH = el.getBoundingClientRect().height;
-                const collapsedH = Math.max(1, Math.round(el._collapsedH || 140));
-                el.style.height = fromH + 'px';
-                el.classList.add('animating');
-                el.style.transition = `height ${D}ms ease`;
-                requestAnimationFrame(() => { el.style.height = collapsedH + 'px'; });
-                const onEnd = (ev) => {
-                    if (ev.propertyName !== 'height') return;
-                    el.removeEventListener('transitionend', onEnd);
-                    el.classList.remove('expanded');
-                    w.classList.remove('expanded');
-                    toggle.textContent = '展开';
-                    endCleanup();
-                };
-                el.addEventListener('transitionend', onEnd);
-            }
-        };
-        toggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const willExpand = !categoryContainer.classList.contains('expanded');
-            setExpanded(willExpand);
+    if (categoryIndex) {
+        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+        letters.forEach(letter => {
+            if (initialsInList.has(letter)) categoryIndex.appendChild(buildCategoryIndexButton(letter));
         });
-        categoryContainer._setExpanded = setExpanded;
     }
+}
+
+if (categoryIndex) {
+    let isPointerDown = false;
+    const handlePointer = (clientX, clientY) => {
+        const el = document.elementFromPoint(clientX, clientY);
+        if (!el) return;
+        const btn = el.closest && el.closest('#category-index button');
+        if (btn && btn.dataset.letter) jumpToLetter(btn.dataset.letter);
+    };
+    categoryIndex.addEventListener('pointerdown', (e) => {
+        isPointerDown = true;
+        categoryIndex.setPointerCapture(e.pointerId);
+        handlePointer(e.clientX, e.clientY);
+    });
+    categoryIndex.addEventListener('pointermove', (e) => {
+        if (!isPointerDown) return;
+        handlePointer(e.clientX, e.clientY);
+    });
+    categoryIndex.addEventListener('pointerup', (e) => {
+        isPointerDown = false;
+        try { categoryIndex.releasePointerCapture(e.pointerId); } catch {}
+    });
+    categoryIndex.addEventListener('pointercancel', () => { isPointerDown = false; });
 }
 
 function displayCategory(categoryName) {
     // Update active button
-    document.querySelectorAll('.category-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.category === categoryName);
+    document.querySelectorAll('.category-item').forEach(item => {
+        item.classList.toggle('active', item.dataset.category === categoryName);
     });
 
-    // 若当前为“展开”多行模式，选择后自动收起
-    if (categoryContainer && categoryContainer.classList.contains('expanded')) {
-        if (typeof categoryContainer._setExpanded === 'function') {
-            categoryContainer._setExpanded(false);
-        } else {
-            categoryContainer.classList.remove('expanded');
-            if (categoryContainer.parentElement && categoryContainer.parentElement.classList.contains('category-wrap')) {
-                categoryContainer.parentElement.classList.remove('expanded');
-            }
-        }
-    }
-
     // 自动滚动激活项到可视范围
-    const activeBtn = [...categoryContainer.children].find(el => el.dataset.category === categoryName);
-    if (activeBtn) {
-        const containerRect = categoryContainer.getBoundingClientRect();
-        const btnRect = activeBtn.getBoundingClientRect();
-        if (btnRect.left < containerRect.left || btnRect.right > containerRect.right) {
-            activeBtn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-        }
-    }
+    // 保持当前列表滚动位置不变
 
     // 特殊分类：自定义图片
     if (categoryName === '自定义图片') {
         if (customPanel) customPanel.style.display = 'block';
         if (imageGallery) imageGallery.style.display = 'none';
+        if (isMobileSidebar()) setGallerySidebarOpen(false);
         return;
     } else {
         if (customPanel) customPanel.style.display = 'none';
         if (imageGallery) imageGallery.style.display = 'grid';
     }
+
+    if (isMobileSidebar()) setGallerySidebarOpen(false);
 
     // Populate images for normal categories
     imageGallery.innerHTML = '';
@@ -1593,6 +1997,7 @@ function openGalleryModal() {
     } catch {}
 
     galleryModal.style.display = 'flex';
+    setGallerySidebarOpen(true);
     // 等待下一帧以触发过渡
     requestAnimationFrame(() => {
         galleryModal.classList.remove('closing');
@@ -1984,8 +2389,7 @@ imageSizeInput.addEventListener('change', () => {
     imageSizeSlider.value = String(v);
     redrawCanvas();
 });
-imageUpload.addEventListener('change', async (e) => {
-    const file = e.target.files[0];
+function loadCustomFile(file) {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -1998,12 +2402,40 @@ imageUpload.addEventListener('change', async (e) => {
         }
     };
     reader.readAsDataURL(file);
+}
+
+imageUpload.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    loadCustomFile(file);
 });
+
+if (imageDropzone) {
+    imageDropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        imageDropzone.classList.add('dragover');
+    });
+    imageDropzone.addEventListener('dragleave', () => {
+        imageDropzone.classList.remove('dragover');
+    });
+    imageDropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        imageDropzone.classList.remove('dragover');
+        const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        loadCustomFile(file);
+    });
+    imageDropzone.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            if (imageUpload) imageUpload.click();
+        }
+    });
+}
 imageUrlInput.addEventListener('input', (e) => {
     const url = (e.target.value || '').trim();
     // 基础校验
     if (!url) {
         pendingCustomSrc = '';
+        stopPreviewGifRender();
         if (customPreview) customPreview.style.display = 'none';
         return;
     }
@@ -2020,9 +2452,28 @@ if (customUseBtn) {
     customUseBtn.addEventListener('click', async () => {
     const raw = (pendingCustomSrc || '').trim();
     if (!raw) { showTipModal('请先上传图片或输入 URL'); return; }
-    // 如果有处理结果且已经应用过阈值（pickedColor != null），使用处理后的 dataURL
-    const finalSrc = (processedPreviewDataURL && pickedColor && lastAppliedThreshold !== null) ? processedPreviewDataURL : raw;
-    await loadImage(finalSrc);
+    
+    // 检查是否应用了抠图：如果有 pickedColor 且阈值已应用
+    const hasBgRemove = (pickedColor && lastAppliedThreshold !== null);
+
+    // 逻辑修正：
+    // 1. 如果是GIF源(raw包含.gif或data:image/gif)，且有抠图参数 -> 传参给 loadImage 重新解析
+    // 2. 如果是静态图，且有抠图参数 -> 优先使用 processedPreviewDataURL (已处理好的静态图)
+    // 3. 否则 -> 使用 raw
+    
+    const isGifSource = raw.toLowerCase().includes('.gif') || raw.toLowerCase().startsWith('data:image/gif');
+    
+    if (isGifSource && hasBgRemove) {
+        // GIF + 抠图：传原图 + 参数
+        await loadImage(raw, { color: pickedColor, threshold: lastAppliedThreshold });
+    } else if (hasBgRemove && processedPreviewDataURL) {
+        // 静态图 + 抠图：直接用预览结果
+        await loadImage(processedPreviewDataURL);
+    } else {
+        // 无抠图或普通情况
+        await loadImage(raw);
+    }
+
     if (raw.startsWith('http')) addToRecents(raw, true); // 记录原始 URL（而不是 dataURL）
     if (typeof closeGalleryModal === 'function') closeGalleryModal();
     });

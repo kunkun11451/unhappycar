@@ -15,6 +15,7 @@
         roundHistory: [],       // 历史记录 [{round: 1, usedChars: ['角色1', '角色2']}]
         currentRound: 0,        // 当前轮次
         undoStack: [],          // 撤销栈，存储之前的状态
+        drawStats: {},          // 统计信息 { [name]: { drawn: 0, unused: 0 } }
         settings: {
             orderEnabled: true,
             theme: 'system'
@@ -62,10 +63,14 @@
         toast: $('#toast'),
         lightThemeLink: $('#lightThemeLink'),
         historyTbody: $('#historyTbody'),
+        statsTbody: $('#statsTbody'),
         tabBtns: $$('.tab-btn'),
         tabPanes: $$('.tab-pane'),
         rulesDetails: $('#rulesDetails')
     };
+
+    const tabOrder = Array.from(els.tabBtns).map(btn => btn.dataset.tab);
+    let currentTab = tabOrder.find(tab => document.getElementById(tab + 'Pane')?.classList.contains('active')) || tabOrder[0] || 'history';
 
     function init() {
         initCharacterPool();
@@ -81,9 +86,34 @@
         renderSelectionArea();
         renderUsedArea();
         renderHistory();
+        renderStatsTable();
         updateStats();
         updateCopyArea();
         applyTheme(state.settings.theme);
+    }
+
+    function buildEmptyStats() {
+        const stats = {};
+        getAllCharacterNames().forEach(name => {
+            stats[name] = { drawn: 0, unused: 0 };
+        });
+        return stats;
+    }
+
+    function normalizeStats(saved) {
+        const stats = buildEmptyStats();
+        if (saved && typeof saved === 'object') {
+            Object.keys(stats).forEach(name => {
+                if (saved[name]) {
+                    const s = saved[name];
+                    stats[name] = {
+                        drawn: Number(s.drawn) || 0,
+                        unused: Number(s.unused) || 0
+                    };
+                }
+            });
+        }
+        return stats;
     }
 
     function initCharacterPool() {
@@ -96,6 +126,7 @@
         state.roundHistory = [];
         state.currentRound = 0;
         state.undoStack = [];
+        state.drawStats = buildEmptyStats();
     }
 
     function loadSettings() {
@@ -119,6 +150,9 @@
                 state.currentNumberOrder = poolData.currentNumberOrder || '';
                 state.keepInRound = new Set(poolData.keepInRound || []);
                 state.undoStack = poolData.undoStack || [];
+                state.drawStats = normalizeStats(poolData.drawStats || {});
+            } else {
+                state.drawStats = buildEmptyStats();
             }
         } catch (e) {
             console.warn('加载设置失败', e);
@@ -145,7 +179,8 @@
                 currentAEQ: state.currentAEQ,
                 currentNumberOrder: state.currentNumberOrder,
                 keepInRound: Array.from(state.keepInRound),
-                undoStack: state.undoStack
+                undoStack: state.undoStack,
+                drawStats: state.drawStats
             }));
         } catch (e) {
             console.warn('保存角色池失败', e);
@@ -240,12 +275,31 @@
     }
 
     function switchTab(tabName) {
+        if (tabName === currentTab) return;
+
+        const currentIndex = tabOrder.indexOf(currentTab);
+        const nextIndex = tabOrder.indexOf(tabName);
+        const direction = nextIndex > currentIndex ? 'right' : 'left';
+
         els.tabBtns.forEach(btn => {
             btn.classList.toggle('active', btn.dataset.tab === tabName);
         });
         els.tabPanes.forEach(pane => {
-            pane.classList.toggle('active', pane.id === tabName + 'Pane');
+            pane.classList.remove('active', 'slide-in-left', 'slide-in-right');
         });
+
+        const targetPane = document.getElementById(tabName + 'Pane');
+        if (targetPane) {
+            const slideClass = direction === 'right' ? 'slide-in-right' : 'slide-in-left';
+            targetPane.classList.add('active', slideClass);
+            const handle = () => {
+                targetPane.classList.remove(slideClass);
+                targetPane.removeEventListener('animationend', handle);
+            };
+            targetPane.addEventListener('animationend', handle);
+        }
+
+        currentTab = tabName;
     }
 
     // ===================== 抽取逻辑 =====================
@@ -261,7 +315,8 @@
             currentAEQ: state.currentAEQ,
             currentNumberOrder: state.currentNumberOrder,
             roundHistory: JSON.parse(JSON.stringify(state.roundHistory)), // 深拷贝
-            currentRound: state.currentRound
+            currentRound: state.currentRound,
+            drawStats: JSON.parse(JSON.stringify(state.drawStats))
         });
 
         // 限制撤销栈大小（例如保留最近50次）
@@ -281,6 +336,13 @@
                         usedThisRound.push(name);
                     }
                 }
+            });
+            // 统计：本轮未使用（被标记为“未使用/保留”）的角色
+            state.keepInRound.forEach(name => {
+                if (!state.drawStats[name]) {
+                    state.drawStats[name] = { drawn: 0, unused: 0 };
+                }
+                state.drawStats[name].unused += 1;
             });
             // 记录历史
             if (usedThisRound.length > 0) {
@@ -310,6 +372,14 @@
         const shuffled = [...state.availablePool].sort(() => Math.random() - 0.5);
         state.currentSelection = shuffled.slice(0, count);
 
+        // 统计：本轮抽出的角色
+        state.currentSelection.forEach(name => {
+            if (!state.drawStats[name]) {
+                state.drawStats[name] = { drawn: 0, unused: 0 };
+            }
+            state.drawStats[name].drawn += 1;
+        });
+
         // 始终生成 AEQ 排序（格式：Q-E-A）
         state.currentAEQ = generateAEQOrder();
 
@@ -324,6 +394,7 @@
         renderSelectionArea();
         renderUsedArea();
         renderHistory();
+        renderStatsTable();
         updateStats();
         updateCopyArea();
 
@@ -409,11 +480,13 @@
         state.currentNumberOrder = prev.currentNumberOrder;
         state.roundHistory = JSON.parse(JSON.stringify(prev.roundHistory));
         state.currentRound = prev.currentRound;
+        state.drawStats = JSON.parse(JSON.stringify(prev.drawStats || buildEmptyStats()));
 
         savePool();
         renderSelectionArea();
         renderUsedArea();
         renderHistory();
+        renderStatsTable();
         updateStats();
         updateCopyArea();
         showToast('已撤销');
@@ -429,11 +502,13 @@
         state.roundHistory = [];
         state.currentRound = 0;
         state.undoStack = [];
+        state.drawStats = buildEmptyStats();
 
         savePool();
         renderSelectionArea();
         renderUsedArea();
         renderHistory();
+        renderStatsTable();
         updateCopyArea();
         updateStats();
         showToast('角色池已重置');
@@ -454,6 +529,7 @@
         renderSelectionArea();
         renderUsedArea();
         renderHistory();
+        renderStatsTable();
         updateStats();
         updateCopyArea();
 
@@ -507,9 +583,43 @@
         });
     }
 
+    function renderStatsTable() {
+        els.statsTbody.innerHTML = '';
+
+        const names = getAllCharacterNames();
+        if (names.length === 0) {
+            els.statsTbody.innerHTML = '<tr class="empty"><td colspan="2">暂无统计</td></tr>';
+            return;
+        }
+
+        const rows = names.map(name => {
+            const stats = state.drawStats[name] || { drawn: 0, unused: 0 };
+            return { name, unused: stats.unused || 0 };
+        }).filter(item => item.unused > 0);
+
+        if (rows.length === 0) {
+            els.statsTbody.innerHTML = '<tr class="empty"><td colspan="2">暂无统计</td></tr>';
+            return;
+        }
+
+        rows.sort((a, b) => {
+            if (b.unused !== a.unused) return b.unused - a.unused;
+            return a.name.localeCompare(b.name, 'zh-Hans');
+        });
+
+        rows.forEach(item => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${item.name}</td>
+                <td>${item.unused}</td>
+            `;
+            els.statsTbody.appendChild(tr);
+        });
+    }
+
     function createCharacterCard(name, index, isSelection) {
         const card = document.createElement('div');
-        card.className = 'card card-appear';
+        card.className = isSelection ? 'card card-appear' : 'card';
         card.style.setProperty('--stagger', index);
 
         const isKept = state.keepInRound.has(name);
