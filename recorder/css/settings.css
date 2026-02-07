@@ -192,6 +192,16 @@
     font-weight: 500;
     margin-bottom: 4px;
     color: #f1f5f9;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.settings-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    opacity: 0.55;
 }
 
 .settings-desc {
@@ -315,13 +325,18 @@
 
 #settingsBtn:hover {
     color: #f8fafc;
-    transform: rotate(45deg);
+}
+
+#settingsBtn:hover svg {
+    animation-play-state: running;
 }
 
 #settingsBtn svg {
     width: 24px;
     height: 24px;
     display: block;
+    animation: spin 3s linear infinite;
+    animation-play-state: paused;
 }
 
 /* 开关样式 */
@@ -373,6 +388,13 @@ input:checked+.slider:before {
     transform: translateX(20px);
     background-color: #38bdf8;
     box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+}
+
+/* Hide shortcut settings on touch devices (mobile) */
+@media (pointer: coarse) {
+    .shortcut-section {
+        display: none !important;
+    }
 }
 
 /* Mobile Adaptation */

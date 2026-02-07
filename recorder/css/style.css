@@ -223,11 +223,11 @@ h2 {
 }
 
 .char-tag-card .avatar {
-    width: 80px;
+    width: 95px;
     height: 95px;
     object-fit: cover;
     border-radius: 10px;
-    background: rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
     flex-shrink: 0;
 }
 
@@ -753,8 +753,7 @@ body.modal-open {
     aspect-ratio: 1/1;
     object-fit: cover;
     border-radius: 10px;
-    background: rgba(0, 0, 0, 0.2);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 
 .card h3 {
@@ -999,7 +998,7 @@ body.modal-open {
 #settingsBtn:hover {
     background: rgba(255, 255, 255, 0.15);
     color: #f1f5f9;
-    transform: rotate(30deg) scale(1.1);
+    transform: scale(1.1);
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
 }
 
@@ -1343,27 +1342,49 @@ body.light-theme .rules-table th {
         flex: 1;
         overflow-y: auto;
         padding-right: 4px;
-        /* 防止滚动条盖住内容 */
         min-height: 0;
-        /* 重要的 flex scroll fix */
+    }
+
+    #brainTeaserContainer {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    #btResult {
+        flex: 1;
+        overflow-y: hidden;
+        overflow-x: hidden;
+        min-height: 0;
+        padding-right: 4px;
+    }
+
+    #btResult.bt-has-results {
+        overflow-y: auto;
     }
 
     /* 自定义滚动条样式 */
-    #complementList::-webkit-scrollbar {
+    #complementList::-webkit-scrollbar,
+    #btResult::-webkit-scrollbar {
         width: 6px;
     }
 
-    #complementList::-webkit-scrollbar-track {
+    #complementList::-webkit-scrollbar-track,
+    #btResult::-webkit-scrollbar-track {
         background: rgba(0, 0, 0, 0.1);
         border-radius: 4px;
     }
 
-    #complementList::-webkit-scrollbar-thumb {
+    #complementList::-webkit-scrollbar-thumb,
+    #btResult::-webkit-scrollbar-thumb {
         background: rgba(255, 255, 255, 0.15);
         border-radius: 4px;
     }
 
-    #complementList::-webkit-scrollbar-thumb:hover {
+    #complementList::-webkit-scrollbar-thumb:hover,
+    #btResult::-webkit-scrollbar-thumb:hover {
         background: rgba(255, 255, 255, 0.25);
     }
 
@@ -1429,7 +1450,13 @@ body.light-theme .rules-table th {
     }
 
     #lastDraw.rows {
-        grid-template-columns: repeat(4, 1fr)
+        grid-template-columns: repeat(2, 1fr)
+    }
+
+    #lastDraw .label,
+    #lastDraw .badge {
+        white-space: nowrap;
+        overflow: hidden;
     }
 
     .card-grid {

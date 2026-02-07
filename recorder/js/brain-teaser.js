@@ -57,7 +57,18 @@
                 this.showPlaceholder(true);
             }
 
-            // 3. 隐藏默认列表由 script.js 处理
+            // 4. 添加底部验证提示
+            if (panel) {
+                let hint = panel.querySelector('.bt-verify-hint');
+                if (!hint) {
+                    hint = document.createElement('div');
+                    hint.className = 'bt-verify-hint';
+                    hint.textContent = '搜索后点击即可验证是否可用';
+                    panel.appendChild(hint);
+                }
+            }
+
+            // 5. 隐藏默认列表由 script.js 处理
         },
 
         hideUI: function () {
@@ -74,6 +85,12 @@
                 if (this.resultContainer) this.resultContainer.innerHTML = '';
                 if (this.input) this.input.value = '';
             }
+
+            // 3. 移除底部验证提示
+            if (panel) {
+                const hint = panel.querySelector('.bt-verify-hint');
+                if (hint) hint.remove();
+            }
         },
 
         injectStyles: function () {
@@ -88,12 +105,58 @@
                 .bt-placeholder-anim {
                     animation: bt-zoom-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
                 }
+                .verification-card {
+                    cursor: pointer;
+                    transition: border-color 0.3s, box-shadow 0.3s, transform 0.2s;
+                }
+                .verification-card:active {
+                    transform: scale(0.97);
+                }
+                .verify-success {
+                    border-color: rgba(34, 197, 94, 0.7) !important;
+                    box-shadow: 0 0 12px rgba(34, 197, 94, 0.35), inset 0 0 8px rgba(34, 197, 94, 0.1) !important;
+                }
+                .verify-fail {
+                    border-color: rgba(239, 68, 68, 0.7) !important;
+                    box-shadow: 0 0 12px rgba(239, 68, 68, 0.35), inset 0 0 8px rgba(239, 68, 68, 0.1) !important;
+                    animation: bt-shake 0.45s ease-in-out;
+                }
+                @keyframes bt-shake {
+                    0%, 100% { transform: translateX(0); }
+                    15% { transform: translateX(-6px); }
+                    30% { transform: translateX(5px); }
+                    45% { transform: translateX(-4px); }
+                    60% { transform: translateX(3px); }
+                    75% { transform: translateX(-2px); }
+                    90% { transform: translateX(1px); }
+                }
+                @keyframes bt-badge-flash {
+                    0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+                    20% { box-shadow: 0 0 8px 2px rgba(239, 68, 68, 0.7); border-color: rgba(239, 68, 68, 0.8); background: rgba(239, 68, 68, 0.25); }
+                    50% { box-shadow: 0 0 4px 1px rgba(239, 68, 68, 0.4); }
+                    70% { box-shadow: 0 0 8px 2px rgba(239, 68, 68, 0.7); border-color: rgba(239, 68, 68, 0.8); background: rgba(239, 68, 68, 0.25); }
+                    100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+                }
+                .bt-badge-flash-active {
+                    animation: bt-badge-flash 0.8s ease-in-out;
+                    border-color: rgba(239, 68, 68, 0.6) !important;
+                }
+                .bt-verify-hint {
+                    text-align: center;
+                    font-size: 0.72rem;
+                    color: #64748b;
+                    margin-top: 8px;
+                    padding: 4px 0;
+                    opacity: 0.6;
+                    user-select: none;
+                }
             `;
             document.head.appendChild(style);
         },
 
         showPlaceholder: function (animate = true) {
             if (this.resultContainer) {
+                this.resultContainer.classList.remove('bt-has-results');
                 const animClass = animate ? 'bt-placeholder-anim' : '';
                 const opacity = animate ? '0' : '0.95';
 
@@ -109,7 +172,7 @@
         },
 
         handleSearch: function () {
-            const val = this.input.value.trim().toLowerCase();
+            const val = this.input.value.trim().toLowerCase().replace(/'/g, '');
             if (!val) {
                 this.showPlaceholder();
                 return;
@@ -174,38 +237,90 @@
                 if (!data) return '';
 
                 const avatar = data.头像 || '';
-                // 检查是否已经验证过（可选，这里简化为每次都重新生成卡片）
                 return `
                     <div class="card verification-card" onclick="window.__brainTeaser.verify('${name}', this)">
                         ${avatar ? `<img src="${avatar}" alt="${name}" class="avatar">` : ''}
                         <h3>${name}</h3>
-                        <div class="verify-hint">点击验证</div>
                     </div>
                 `;
             }).join('');
 
             this.resultContainer.innerHTML = html;
+            this.resultContainer.classList.add('bt-has-results');
         },
 
         verify: function (name, cardElement) {
             if (!cardElement) return;
 
+            // Prevent re-triggering on already-verified cards during animation
+            if (cardElement.classList.contains('verify-success') || cardElement.classList.contains('verify-fail')) {
+                return;
+            }
+
             // Check applicability
             const isAvailable = this.availableList.some(item => item.name === name);
 
-            // Removing existing status classes
-            cardElement.classList.remove('verify-success', 'verify-fail');
-            const hint = cardElement.querySelector('.verify-hint');
-
             if (isAvailable) {
                 cardElement.classList.add('verify-success');
-                if (hint) hint.textContent = '正确：可用';
-                window.showToast?.('正确！该角色可用', 1500);
             } else {
                 cardElement.classList.add('verify-fail');
-                if (hint) hint.textContent = '错误：不可用';
-                window.showToast?.('错误！该角色不可用', 1500);
+
+                // Flash the badges in the record area that ban this character
+                this.flashBanReasons(name);
+
+                // Remove fail class after animation to allow re-verification on new search
+                setTimeout(() => {
+                    cardElement.classList.remove('verify-fail');
+                }, 1500);
             }
+        },
+
+        // 闪烁record区域中导致该角色被禁用的badge
+        flashBanReasons: function (name) {
+            const data = window.characterData ? window.characterData[name] : null;
+            if (!data) return;
+
+            const record = window.__recorder_actions && window.__recorder_actions.getRecord
+                ? window.__recorder_actions.getRecord()
+                : null;
+            if (!record) return;
+
+            // 收集匹配的禁用值
+            const bannedValues = [];
+            const charElem = data.元素类型;
+            const charNation = data.国家 || '其他';
+            const charWeapon = data.武器类型;
+            const charBody = data.体型 || '';
+
+            if (charElem && record.元素类型.has(charElem)) bannedValues.push(charElem);
+            if (charNation && record.国家.has(charNation)) bannedValues.push(charNation);
+            if (charWeapon && record.武器类型.has(charWeapon)) bannedValues.push(charWeapon);
+            if (charBody && record.体型.has(charBody)) bannedValues.push(charBody);
+
+            if (bannedValues.length === 0) return;
+
+            // 在 #record 中找到对应的 badge 并闪烁
+            const recordEl = document.getElementById('record');
+            if (!recordEl) return;
+
+            const allBadges = recordEl.querySelectorAll('.badge');
+            allBadges.forEach(badge => {
+                // 获取 badge 的文本值（考虑不同显示模式）
+                let badgeText = badge.getAttribute('title') || '';
+                if (!badgeText) {
+                    const textEl = badge.querySelector('.badge-text');
+                    badgeText = textEl ? textEl.textContent.trim() : badge.textContent.trim();
+                }
+                if (bannedValues.includes(badgeText)) {
+                    badge.classList.remove('bt-badge-flash-active');
+                    // Force reflow to restart animation
+                    void badge.offsetWidth;
+                    badge.classList.add('bt-badge-flash-active');
+                    badge.addEventListener('animationend', () => {
+                        badge.classList.remove('bt-badge-flash-active');
+                    }, { once: true });
+                }
+            });
         },
 
         handleSurrender: function () {

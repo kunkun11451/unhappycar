@@ -1807,7 +1807,7 @@
       });
 
       searchInput.addEventListener('input', () => {
-        panelSearchTerm = searchInput.value.trim().toLowerCase();
+        panelSearchTerm = searchInput.value.trim().toLowerCase().replace(/'/g, '');
         renderComplement(true);
       });
 
