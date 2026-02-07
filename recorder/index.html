@@ -34,12 +34,45 @@
 
     <!-- 在线房间信息栏 -->
     <div id="onlineRoomBar" class="panel online-room-bar hidden">
-      <div class="room-info">
+      <div class="room-bar-left">
         <span id="roomModeDisplay" class="room-mode">观众模式</span>
-        <span class="room-label">房间:</span>
-        <span id="roomCodeDisplay">------</span>
+        <span id="connectionStatus" class="room-status"></span>
+        <span class="room-divider"></span>
+        <span class="room-label">房间</span>
+        <span id="roomCodeDisplay" class="room-code">------</span>
       </div>
-      <button id="leaveRoomBtn" class="btn danger">离开房间</button>
+      <div class="room-bar-right">
+        <button id="copyRoomLinkBtn" class="btn btn-icon" title="复制房间链接">
+          <!-- Replced with 'Copy' icon -->
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+            <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+          </svg>
+        </button>
+        <div class="qr-wrapper">
+          <button id="showQRBtn" class="btn btn-icon" title="显示房间二维码">
+            <!-- Replaced with simplified 'QR' icon -->
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <path d="M14 17h7" />
+              <path d="M17 14v7" />
+            </svg>
+          </button>
+          <div id="qrPopover" class="qr-popover hidden">
+            <canvas id="qrCanvas"></canvas>
+          </div>
+        </div>
+        <button id="leaveRoomBtn" class="btn btn-icon danger" title="离开房间">
+          <!-- Refined 'Log Out' icon -->
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+        </button>
+      </div>
     </div>
 
     <div class="layout-desktop">

@@ -17,7 +17,7 @@
         .btn-icon-sm { background: none; border: none; cursor: pointer; opacity: 0.7; padding: 2px; font-size: 1.1em; }
         .btn-icon-sm:hover { opacity: 1; transform: scale(1.1); }
         
-        .room-status { font-size: 0.8em; margin-left: 4px; }
+        .room-status { font-size: 0.75em; }
         .status-connecting { color: #f59e0b; }
         .status-disconnected { color: #ef4444; }
         .btn-icon-sm { background: none; border: none; cursor: pointer; opacity: 0.7; padding: 2px; font-size: 1.1em; }
@@ -27,44 +27,33 @@
         body.viewer-mode #drawBtn { display: none !important; }
         body.viewer-mode .host-only { display: none !important; }
         
-        /* 在线房间信息栏样式 - 继承 panel 基础样式 */
+        /* ===== 在线房间信息栏 ===== */
         .online-room-bar {
             display: flex !important;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
             margin-top: 0;
             margin-bottom: 20px;
-            /* 覆盖 panel 默认 margin 以便标题对齐 */
+            gap: 12px;
+            padding: 10px 16px !important;
+            z-index: 10;
         }
         .online-room-bar.hidden { display: none !important; }
-        
-        .online-room-bar .room-info {
+
+        /* 左区：模式 + 房间码 */
+        .online-room-bar .room-bar-left {
             display: flex;
             align-items: center;
-            gap: 15px;
-            font-size: 1rem;
-        }
-        .online-room-bar .room-label {
-            color: #94a3b8;
-            font-weight: 500;
-        }
-        .online-room-bar .room-code {
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-            font-weight: 600;
-            color: #38bdf8;
-            font-size: 1.2rem;
-            letter-spacing: 2px;
-            background: rgba(56, 189, 248, 0.1);
-            padding: 4px 14px;
-            border-radius: 8px;
-            border: 1px solid rgba(56, 189, 248, 0.2);
+            gap: 8px;
+            min-width: 0;
+            flex: 1;
         }
         .online-room-bar .room-mode {
             background: rgba(16, 185, 129, 0.15);
             color: #10b981;
-            padding: 4px 12px;
+            padding: 3px 10px;
             border-radius: 6px;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 600;
             border: 1px solid rgba(16, 185, 129, 0.3);
             white-space: nowrap;
@@ -74,71 +63,121 @@
             color: #3b82f6;
             border-color: rgba(59, 130, 246, 0.3);
         }
-
-        /* 离开按钮特定样式，确保在最右侧 */
-        #leaveRoomBtn {
+        .online-room-bar .room-divider {
+            width: 1px;
+            height: 16px;
+            background: rgba(255, 255, 255, 0.1);
             flex-shrink: 0;
-            margin-left: 20px;
+        }
+        .online-room-bar .room-label {
+            color: #64748b;
+            font-size: 0.8rem;
+            font-weight: 500;
+            flex-shrink: 0;
+        }
+        .online-room-bar .room-code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-weight: 700;
+            color: #38bdf8;
+            font-size: 1.1rem;
+            letter-spacing: 3px;
+            white-space: nowrap;
+        }
+
+        /* 右区：操作按钮组 */
+        .online-room-bar .room-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .online-room-bar .btn-icon.danger {
+            color: #94a3b8;
+        }
+        .online-room-bar .btn-icon.danger:hover {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.35);
+            color: #f87171;
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.15);
+        }
+        /* 复制成功反馈 */
+        .online-room-bar .btn-icon.copy-ok {
+            color: #10b981 !important;
+            border-color: rgba(16, 185, 129, 0.4) !important;
+            background: rgba(16, 185, 129, 0.12) !important;
+        }
+
+        /* 二维码弹出层（向下弹出） */
+        .qr-wrapper { position: relative; }
+        .qr-popover {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: #fff;
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.45);
+            z-index: 999;
+            opacity: 0;
+            transform: translateY(-6px) scale(0.95);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            pointer-events: none;
+        }
+        .qr-popover::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            right: 14px;
+            width: 12px;
+            height: 12px;
+            background: #fff;
+            transform: rotate(45deg);
+            border-radius: 2px;
+        }
+        .qr-popover.visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+        .qr-popover.hidden { display: none; }
+        .qr-popover canvas {
+            display: block;
+            width: 140px;
+            height: 140px;
+            border-radius: 6px;
+        }
+
+        /* ===== 手机端适配 ===== */
+        @media (max-width: 560px) {
+            .online-room-bar {
+                gap: 8px;
+                padding: 10px 12px !important;
+            }
+            .online-room-bar .room-bar-left {
+                flex: 1;
+                min-width: 0;
+            }
+            .online-room-bar .room-code {
+                font-size: 0.95rem;
+                letter-spacing: 2px;
+            }
+            .online-room-bar .room-label {
+                display: none;
+            }
+            .online-room-bar .room-divider {
+                display: none;
+            }
+            .qr-popover {
+                right: -40px;
+            }
+            .qr-popover::before {
+                right: 54px;
+            }
         }
     `;
     document.head.appendChild(style);
 
 
-
-    function insertUI() {
-        const joinBtn = document.getElementById('joinRoomBtn');
-        const joinInput = document.getElementById('joinRoomInput');
-
-        if (joinBtn && joinInput) {
-            // 限制只能输入数字
-            joinInput.addEventListener('input', (e) => {
-                joinInput.value = joinInput.value.replace(/\D/g, '').slice(0, 6);
-            });
-
-            joinBtn.addEventListener('click', () => {
-                const code = joinInput.value.trim();
-                if (code.length === 6) {
-                    // 跳转到带 room 参数的链接
-                    const url = `${window.location.origin}${window.location.pathname}?room=${code}`;
-                    window.location.href = url;
-                } else {
-                    window.showToast('请输入6位数字房间码');
-                }
-            });
-        }
-
-        // 离开房间按钮
-        const leaveRoomBtn = document.getElementById('leaveRoomBtn');
-        if (leaveRoomBtn) {
-            leaveRoomBtn.addEventListener('click', () => {
-                if (isHost) {
-                    // 主持人离开房间
-                    if (confirm('确定要关闭房间吗？<br>此房间将直接解散。')) {
-                        closeHost();
-                    }
-                } else {
-                    // 观众离开房间
-                    if (confirm('确定要离开房间吗？')) {
-                        // 刷新页面回到主页
-                        window.location.href = window.location.origin + window.location.pathname;
-                    }
-                }
-            });
-        }
-
-
-
-        // 绑定 Loader 退出按钮
-        const exitBtn = document.getElementById('loaderExitBtn');
-        if (exitBtn) {
-            exitBtn.addEventListener('click', () => {
-                // 清除 URL 参数并刷新
-                const url = new URL(window.location.href);
-                url.searchParams.delete('room');
-                window.location.href = url.toString();
-            });
-        }
-    }
 
     function checkIo(cb) {
         if (window.io) cb();
@@ -159,7 +198,6 @@
             }
         } else if (status === 'connecting') {
             if (statusEl) {
-                statusEl.textContent = '(连接中...)';
                 statusEl.className = 'room-status status-connecting';
             }
             if (roomModeDisplay) {
@@ -574,6 +612,102 @@
                 window.location.href = window.location.origin + window.location.pathname;
             });
         }
+
+        // ===== 房间信息栏按钮绑定 =====
+
+        // 获取当前房间链接（兼容 roomCode 未设置时从 URL 参数获取）
+        function getRoomUrl() {
+            const code = roomCode || new URLSearchParams(window.location.search).get('room');
+            if (!code) return null;
+            return `${window.location.origin}${window.location.pathname}?room=${code}`;
+        }
+
+        // Clipboard 降级方案（移动端 http 等场景）
+        function fallbackCopy(text) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.cssText = 'position:fixed;left:-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            try {
+                document.execCommand('copy');
+                window.showToast?.('房间链接已复制');
+                const btn = document.getElementById('copyRoomLinkBtn');
+                if (btn) {
+                    btn.classList.add('copy-ok');
+                    setTimeout(() => btn.classList.remove('copy-ok'), 1200);
+                }
+            } catch (e) { window.showToast?.('复制失败，请手动复制'); }
+            document.body.removeChild(ta);
+        }
+
+        // 复制房间链接按钮
+        const copyLinkBtn = document.getElementById('copyRoomLinkBtn');
+        if (copyLinkBtn) {
+            copyLinkBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const url = getRoomUrl();
+                if (!url) { window.showToast?.('房间尚未连接'); return; }
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(url).then(() => {
+                        window.showToast?.('房间链接已复制');
+                        copyLinkBtn.classList.add('copy-ok');
+                        setTimeout(() => copyLinkBtn.classList.remove('copy-ok'), 1200);
+                    }).catch(() => {
+                        fallbackCopy(url);
+                    });
+                } else {
+                    fallbackCopy(url);
+                }
+            });
+        }
+
+        // 二维码按钮 hover/click 逻辑
+        const qrWrapper = document.querySelector('.qr-wrapper');
+        const showQRBtn = document.getElementById('showQRBtn');
+        const qrPopover = document.getElementById('qrPopover');
+        let qrGenerated = false;
+
+        function showQR() {
+            const url = getRoomUrl();
+            if (!url) { window.showToast?.('房间尚未连接'); return; }
+            if (!qrGenerated) generateQR();
+            qrPopover.classList.remove('hidden');
+            requestAnimationFrame(() => qrPopover.classList.add('visible'));
+        }
+        function hideQR() {
+            qrPopover.classList.remove('visible');
+            setTimeout(() => {
+                if (!qrPopover.classList.contains('visible')) qrPopover.classList.add('hidden');
+            }, 200);
+        }
+        function markQRDirty() { qrGenerated = false; }
+
+        if (qrWrapper && showQRBtn && qrPopover) {
+            showQRBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (qrPopover.classList.contains('visible')) {
+                    hideQR();
+                } else {
+                    showQR();
+                }
+            });
+            document.addEventListener('click', (e) => {
+                if (!qrWrapper.contains(e.target) && qrPopover.classList.contains('visible')) {
+                    hideQR();
+                }
+            });
+        }
+
+        function generateQR() {
+            const canvas = document.getElementById('qrCanvas');
+            const url = getRoomUrl();
+            if (!canvas || !url) return;
+            drawQR(canvas, url);
+            qrGenerated = true;
+        }
+
+        window.__roomQR = { markDirty: markQRDirty };
     }
 
     function updateRoomUI() {
@@ -584,18 +718,20 @@
 
         if (roomBar && roomCodeDisplay && roomModeDisplay) {
             roomBar.classList.remove('hidden');
-            roomCodeDisplay.textContent = roomCode || '连接中...';
+            roomCodeDisplay.textContent = roomCode || '------';
             roomModeDisplay.textContent = isHost ? '主持模式' : '观众模式';
             if (leaveBtn) {
-                leaveBtn.textContent = isHost ? '关闭房间' : '离开房间';
+                leaveBtn.title = isHost ? '关闭房间' : '离开房间';
             }
             updateConnectionStatus('connected');
+            // 标记 QR 需要重新生成
+            if (window.__roomQR) window.__roomQR.markDirty();
         }
 
         // 更新设置面板状态：可点击复制
         const statusEl = document.getElementById('onlineStatus');
         if (statusEl && roomCode) {
-            statusEl.innerHTML = '🔗 复制链接';
+            statusEl.innerHTML = '房间已开启，点击复制链接';
             statusEl.style.color = '#38bdf8';
             statusEl.style.cursor = 'pointer';
             statusEl.onclick = (e) => {
@@ -655,28 +791,37 @@
             joinRoom(roomParam);
         }
 
-        // 绑定复制
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('#copyRoomLink')) {
-                const url = new URL(window.location.href);
-                url.searchParams.set('room', roomCode);
-
-                // 处理 file:// 协议复制出来的链接问题 (file:// 不太好分享，但为了完整性)
-                let text = url.toString();
-
-                navigator.clipboard.writeText(text);
-                const btn = e.target.closest('#copyRoomLink');
-                const original = btn.textContent;
-                btn.textContent = '✅';
-                setTimeout(() => btn.textContent = original, 1000);
-            }
-        });
     }
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
         init();
+    }
+
+    // ===== 极简 QR Code 生成器 (Canvas) =====
+    // 使用 QR Server API 通过 Image 加载到 Canvas
+    function drawQR(canvas, text) {
+        const size = 280; // 2x for retina
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, size, size);
+
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+            ctx.drawImage(img, 0, 0, size, size);
+        };
+        img.onerror = () => {
+            // fallback: 显示文字
+            ctx.fillStyle = '#333';
+            ctx.font = '12px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('二维码加载失败', size / 2, size / 2);
+        };
+        img.src = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(text)}&margin=8`;
     }
 
     // 暴露给 Settings 调用
