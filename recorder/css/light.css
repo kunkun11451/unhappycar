@@ -1,4 +1,8 @@
 /* 浅色主题覆盖样式 */
+html {
+  background-color: #eae6df;
+}
+
 body {
   background:
     radial-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px) 0 0 / 3px 3px,
@@ -12,6 +16,18 @@ body {
 
 .light-theme #settingsBtn:hover {
   color: #0f172a;
+}
+
+body.light-theme .settings-color-input {
+    border-color: rgba(0, 0, 0, 0.2);
+}
+
+body.light-theme .settings-range {
+  accent-color: #e1be88;
+}
+
+body.light-theme .settings-file-input {
+    color: #334155;
 }
 
 h1,
@@ -43,8 +59,8 @@ h2 {
 }
 
 .panel {
-  background: rgba(255, 255, 255, 0.35);
-  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(20px);
   border-color: rgba(255, 255, 255, 0.6);
   color: #0f172a;
@@ -124,7 +140,7 @@ h2 {
 }
 
 .card {
-  background: #e8c48e03;
+  background: #ffffff6b;
   border-color: #e8c48e75;
   color: #0f172a
 }
@@ -216,6 +232,20 @@ h2 {
 
 .settings-desc {
   color: #475569
+}
+
+body.light-theme .emoji-pick-footer {
+  background: rgba(255, 255, 255, 0.7);
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+body.light-theme .emoji-selected-zone {
+  background: rgba(225, 190, 136, 0.15);
+  border-color: rgba(225, 190, 136, 0.4);
+}
+
+body.light-theme .emoji-selected-label {
+  color: #b45309;
 }
 
 .settings-subtitle {

@@ -67,10 +67,11 @@
         if (closeBtn) closeBtn.addEventListener('click', closeSettings);
         if (backdrop) backdrop.addEventListener('click', closeSettings);
 
-        // 规则说明折叠动画处理
-        const rulesDetails = document.getElementById('rulesDetails');
-        if (rulesDetails) {
-            const summary = rulesDetails.querySelector('.rules-summary');
+        // 规则说明折叠动画处理 (支持多个折叠面板)
+        document.querySelectorAll('.rules-details').forEach(details => {
+            const summary = details.querySelector('.rules-summary');
+            if(!summary) return;
+            
             let closeTimeout = null;
 
             summary.addEventListener('click', (e) => {
@@ -82,24 +83,24 @@
                     closeTimeout = null;
                 }
 
-                const isOpen = rulesDetails.classList.contains('is-open');
+                const isOpen = details.classList.contains('is-open');
 
                 if (isOpen) {
                     // 收起动画
-                    rulesDetails.classList.remove('is-open');
+                    details.classList.remove('is-open');
                     closeTimeout = setTimeout(() => {
-                        rulesDetails.removeAttribute('open');
+                        details.removeAttribute('open');
                         closeTimeout = null;
                     }, 350);
                 } else {
                     // 展开动画 - 先确保 open 属性存在
-                    rulesDetails.setAttribute('open', '');
+                    details.setAttribute('open', '');
                     // 强制重排后添加动画类
-                    rulesDetails.offsetHeight; // 触发重排
-                    rulesDetails.classList.add('is-open');
+                    details.offsetHeight; // 触发重排
+                    details.classList.add('is-open');
                 }
             });
-        }
+        });
 
         // 初始化脑筋急转弯模式开关
         const brainTeaserToggle = document.getElementById('brainTeaserToggle');
@@ -234,7 +235,11 @@
             }
 
             charTagsGrid.innerHTML = displayList.map(({ name, data }, i) => {
-                const avatar = data.头像 || '';
+                // 使用头像设置模块获取头像URL（如果存在）
+                let avatar = data.头像 || '';
+                if (window.__avatar_settings && window.__avatar_settings.getAvatarUrlSync) {
+                    avatar = window.__avatar_settings.getAvatarUrlSync(name, data) || avatar;
+                }
                 const element = data.元素类型 || '';
                 const region = data.国家 || '';
                 const weapon = data.武器类型 || '';

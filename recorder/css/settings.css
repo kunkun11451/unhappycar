@@ -224,6 +224,28 @@
     flex-shrink: 0;
 }
 
+.settings-action-inline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.settings-color-input {
+    width: 40px;
+    height: 32px;
+    padding: 0;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: transparent;
+    cursor: pointer;
+}
+
+.settings-file-input {
+    max-width: 180px;
+    color: #e2e8f0;
+    font-size: 0.85rem;
+}
+
 /* Buttons in Settings */
 .settings-action .btn {
     padding: 6px 12px;
@@ -531,4 +553,483 @@ body.light-theme .loader-content {
 body.light-theme .spinner-large {
     border: 4px solid rgba(0, 0, 0, 0.1);
     border-top: 4px solid #2563eb;
+}
+
+/* ===== Avatar Settings Modal Styles ===== */
+#avatarPreferenceModal .settings-dialog,
+#emojiMaterialModal .settings-dialog {
+    max-width: 800px;
+    height: 85vh;
+    max-height: 85vh;
+    width: 95%;
+    margin: auto;
+    /* 固定高度，避免搜索时高度变化 */
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+.avatar-pref-body {
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.emoji-pick-body {
+    flex: 1;
+    min-height: 0;
+}
+
+#emojiMaterialModal .char-list-container {
+    min-height: 0;
+}
+
+.settings-footer {
+    padding: 16px 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.char-search-bar {
+    margin-bottom: 16px;
+}
+
+.char-search-bar .search-input {
+    width: 100%;
+    padding: 10px 16px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #e2e8f0;
+    font-size: 0.95rem;
+}
+
+.char-search-bar .search-input:focus {
+    outline: none;
+    border-color: rgba(56, 189, 248, 0.5);
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+}
+
+.char-list-container {
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    flex: 1;
+    padding: 0 24px 20px 24px;
+}
+
+.char-list-container::-webkit-scrollbar {
+    display: none;
+}
+
+/* Character Preference Item */
+.char-pref-item {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.char-pref-item:hover {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.char-pref-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.char-pref-header:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.char-pref-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
+}
+
+.char-pref-name {
+    flex: 1;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #f1f5f9;
+}
+
+.char-emoji-count {
+    font-size: 0.8rem;
+    color: #64748b;
+    padding: 2px 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+.char-expand-btn {
+    background: none !important;
+    border: none;
+    color: #94a3b8;
+    padding: 4px;
+    cursor: pointer;
+    transition: transform 0.3s ease, color 0.2s ease;
+}
+
+.char-expand-btn:hover {
+    background: none !important;
+    color: #38bdf8;
+}
+
+.char-pref-item.expanded .char-expand-btn {
+    transform: rotate(180deg);
+}
+
+/* Emoji Panel - Two Zones */
+.char-emoji-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    /* Collapsed state */
+    max-height: 0;
+    opacity: 0;
+    padding: 0 14px;
+    overflow: hidden;
+    border-top: 1px solid transparent;
+
+    background: rgba(0, 0, 0, 0.15);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.char-pref-item.expanded .char-emoji-panel {
+    max-height: 800px;
+    opacity: 1;
+    padding: 12px 14px;
+    border-top-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Emoji Zone (Selected / Unselected) */
+.emoji-zone {
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.emoji-pick-body {
+    padding: 0;
+}
+
+.emoji-pick-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-height: 45vh;
+    overflow: auto;
+    padding: 12px 14px;
+}
+
+.emoji-pick-footer {
+    padding: 12px 14px 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex-shrink: 0;
+    margin-top: auto;
+}
+
+.emoji-selected-zone {
+    background: rgba(56, 189, 248, 0.08);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    border-radius: 8px;
+    padding: 8px;
+}
+
+.emoji-selected-label {
+    font-size: 0.75rem;
+    color: #38bdf8;
+    margin-bottom: 8px;
+}
+
+.emoji-pick-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.selected-zone {
+    background: rgba(56, 189, 248, 0.08);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+}
+
+.unselected-zone {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.zone-label {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-bottom: 8px;
+    padding-left: 4px;
+}
+
+.selected-zone .zone-label {
+    color: #38bdf8;
+}
+
+/* Emoji Grid */
+.emoji-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 60px;
+}
+
+.emoji-option {
+    position: relative;
+    width: 75px;
+    height: 75px;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    background: rgba(0, 0, 0, 0.2);
+    flex-shrink: 0;
+}
+
+.emoji-option:hover {
+    transform: scale(1.08);
+    border-color: rgba(56, 189, 248, 0.6);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.emoji-option:active {
+    transform: scale(0.95);
+}
+
+.emoji-option img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.emoji-check {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 22px;
+    height: 22px;
+    background: #38bdf8;
+    border-radius: 50%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.emoji-option.selected .emoji-check {
+    display: flex;
+}
+
+.emoji-check svg {
+    stroke: white;
+}
+
+/* Loading & Empty States */
+.loading-placeholder,
+.no-chars-msg {
+    text-align: center;
+    padding: 40px 20px;
+    color: #94a3b8;
+    font-size: 0.95rem;
+}
+
+/* Light Mode Adaptations for Avatar Settings */
+body.light-theme .avatar-pref-dialog {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: #1e293b;
+}
+
+body.light-theme .char-pref-item {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
+body.light-theme .char-pref-name {
+    color: #1e293b;
+}
+
+body.light-theme .char-emoji-count {
+    background: rgba(0, 0, 0, 0.05);
+    color: #64748b;
+}
+
+body.light-theme .char-search-bar .search-input {
+    background: rgba(0, 0, 0, 0.05);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: #1e293b;
+}
+
+body.light-theme .char-emoji-panel {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+body.light-theme .selected-zone {
+    background: rgba(225, 190, 136, 0.15);
+    border-color: rgba(225, 190, 136, 0.4);
+}
+
+body.light-theme .selected-zone .zone-label {
+    color: #b45309;
+}
+
+body.light-theme .unselected-zone {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(0, 0, 0, 0.06);
+}
+
+body.light-theme .emoji-option {
+    border-color: rgba(0, 0, 0, 0.1);
+    background: rgba(0, 0, 0, 0.03);
+}
+
+body.light-theme .settings-footer {
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
+/* Display Preference Sub-item */
+.settings-item.sub-item {
+    margin-left: 20px;
+    margin-top: -4px;
+    border-left: 2px solid rgba(56, 189, 248, 0.3);
+    border-radius: 0 12px 12px 0;
+    background: rgba(56, 189, 248, 0.03);
+}
+
+.settings-item.sub-item:hover {
+    background: rgba(56, 189, 248, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Empty Zone Hint */
+.empty-zone-hint {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 60px;
+    padding: 16px 12px;
+    text-align: center;
+    color: #64748b;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    background: rgba(56, 189, 248, 0.03);
+    border-radius: 8px;
+    border: 1px dashed rgba(56, 189, 248, 0.2);
+}
+
+.empty-zone-hint span {
+    display: block;
+}
+
+body.light-theme .empty-zone-hint {
+    color: #92400e;
+    background: rgba(225, 190, 136, 0.1);
+    border-color: rgba(225, 190, 136, 0.3);
+}
+
+/* Mobile Adaptations */
+@media (max-width: 768px) {
+    .avatar-pref-dialog {
+        height: 90vh;
+        max-height: 90vh;
+        width: 95%;
+        max-width: 95%;
+        border-radius: 16px;
+        margin: auto;
+    }
+
+    .avatar-pref-body {
+        padding: 16px;
+        flex: 1;
+        overflow-y: auto;
+    }
+
+    .char-list-container {
+        max-height: calc(90vh - 180px);
+    }
+
+    .emoji-option {
+        width: 60px;
+        height: 60px;
+    }
+
+    .char-pref-header {
+        padding: 10px 12px;
+    }
+
+    .emoji-grid {
+        gap: 6px;
+    }
+}
+
+/* Avatar Settings Search Bar - New Implementation */
+.avatar-pref-search-container {
+    margin-bottom: 12px;
+    padding: 20px 24px 0 24px;
+    flex-shrink: 0;
+}
+
+.avatar-pref-search-input {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px; /* Matching char-pref-item radius */
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.02); /* Matching char-pref-item bg */
+    color: #e2e8f0;
+    font-size: 0.95rem;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+}
+
+.avatar-pref-search-input:hover {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.avatar-pref-search-input:focus {
+    outline: none;
+    border-color: rgba(56, 189, 248, 0.5);
+    background: rgba(0, 0, 0, 0.25);
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
+}
+
+/* Light Mode Adaptation for Search Input */
+body.light-theme .avatar-pref-search-input {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(0, 0, 0, 0.08);
+    color: #1e293b;
+}
+
+body.light-theme .avatar-pref-search-input:hover {
+    background: rgba(0, 0, 0, 0.04);
+}
+
+body.light-theme .avatar-pref-search-input:focus {
+    background: rgba(255, 255, 255, 0.8);
+    border-color: rgba(56, 189, 248, 0.6);
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
 }

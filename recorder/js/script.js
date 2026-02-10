@@ -854,7 +854,11 @@
     }
 
     grid.innerHTML = displayList.map(({ name, data }, i) => {
-      const avatar = data.头像 || '';
+      // 使用头像设置模块获取头像URL（如果存在）
+      let avatar = data.头像 || '';
+      if (window.__avatar_settings && window.__avatar_settings.getAvatarUrlSync) {
+        avatar = window.__avatar_settings.getAvatarUrlSync(name, data) || avatar;
+      }
       // If we are doing FLIP (cards already existed), don't play entry animation
       const isExisting = oldPosMap.has(name);
       let cardClass = (anims && !isExisting) ? 'card card-appear' : 'card';
@@ -1169,7 +1173,7 @@
         requestAnimationFrame(() => {
           setTimeout(() => {
             wheel.style.transform = `translateY(${-digit * height}px)`;
-          }, idx * 50); 
+          }, idx * 50);
         });
       }
     });
@@ -1492,7 +1496,7 @@
             const legendItem = wrapper.querySelector(`.donut-legend-item[data-label="${tagValue}"]`);
             const segmentCount = legendItem?.dataset.count || '0';
             if (countEl) countEl.textContent = `${segmentCount}回合`;
-            
+
             // 高亮对应片段，其他变灰，并更新高亮指示器环
             let targetSegment = null;
             wrapper.querySelectorAll('.donut-segment').forEach(seg => {
