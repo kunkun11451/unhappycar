@@ -2,7 +2,7 @@
     const STORAGE_KEY = 'recorder_personalize_settings_v1';
     const DEFAULT_SETTINGS = {
         backgroundMode: 'default', // default | color | image | emoji
-        backgroundColor: '#1f1f1f',
+        backgroundColor: '#ffffff',
         backgroundImage: '',
         emojiImages: [],
         emojiLayout: 'mix',
@@ -12,7 +12,7 @@
 
     let settings = JSON.parse(localStorage.getItem(STORAGE_KEY)) || DEFAULT_SETTINGS;
     if (!settings.backgroundMode) settings.backgroundMode = 'default';
-    if (!settings.backgroundColor) settings.backgroundColor = '#1f1f1f';
+    if (!settings.backgroundColor) settings.backgroundColor = '#ffffff';
     if (!Array.isArray(settings.emojiImages)) settings.emojiImages = [];
     if (!settings.emojiLayout) settings.emojiLayout = 'mix';
     if (typeof settings.emojiScale !== 'number') settings.emojiScale = 1.0;
@@ -507,6 +507,33 @@
         }
     }
 
+    let lastEmojiWallpaperDataUrl = '';
+
+    function updatePreviewAspect() {
+        const previewBox = document.getElementById('personalizePreviewBox');
+        if (!previewBox) return;
+        const w = Math.max(1, window.innerWidth || 1);
+        const h = Math.max(1, window.innerHeight || 1);
+        previewBox.style.aspectRatio = `${w} / ${h}`;
+    }
+
+    function updateEmojiPreview(dataUrl) {
+        const previewImage = document.getElementById('personalizePreviewImage');
+        const previewBox = document.getElementById('personalizePreviewBox');
+        if (!previewImage || !previewBox) return;
+
+        if (!dataUrl) {
+            previewImage.removeAttribute('src');
+            previewImage.style.opacity = '0';
+            previewBox.style.backgroundColor = settings.backgroundColor || '#1f1f1f';
+            return;
+        }
+
+        previewImage.src = dataUrl;
+        previewImage.style.opacity = '1';
+        previewBox.style.backgroundColor = 'transparent';
+    }
+
     async function applySettings() {
         ensureStyleTag();
         const bgContainer = ensureBackgroundContainer();
@@ -532,6 +559,8 @@
             bgContainer.style.backgroundImage = 'none';
             bgContainer.style.backgroundColor = 'transparent';
             root.style.removeProperty('--personalize-bg-color');
+            lastEmojiWallpaperDataUrl = '';
+            updateEmojiPreview('');
             return;
         }
 
@@ -547,19 +576,29 @@
         if (settings.backgroundMode === 'image' && settings.backgroundImage) {
             bgContainer.style.backgroundImage = `url("${settings.backgroundImage}")`;
             bgContainer.style.backgroundSize = 'cover';
+            lastEmojiWallpaperDataUrl = '';
+            updateEmojiPreview('');
         } else if (settings.backgroundMode === 'color') {
             bgContainer.style.backgroundImage = 'none';
+            lastEmojiWallpaperDataUrl = '';
+            updateEmojiPreview('');
         } else if (settings.backgroundMode === 'emoji') {
              const images = await loadEmojiImagesForCanvas(settings.emojiImages || []);
              if (!images.length) {
                  bgContainer.style.backgroundImage = 'none';
+                 lastEmojiWallpaperDataUrl = '';
+                 updateEmojiPreview('');
                  return;
              }
              const bgData = drawEmojiWallpaper(images, settings.emojiLayout, settings.backgroundColor, settings.emojiSeed, settings.emojiScale);
+             lastEmojiWallpaperDataUrl = bgData || '';
              bgContainer.style.backgroundImage = bgData ? `url("${bgData}")` : 'none';
              bgContainer.style.backgroundSize = '100% 100%';
+             updateEmojiPreview(lastEmojiWallpaperDataUrl);
         } else {
              bgContainer.style.backgroundImage = 'none';
+             lastEmojiWallpaperDataUrl = '';
+             updateEmojiPreview('');
         }
     }
 
@@ -920,6 +959,7 @@
         const emojiItem = document.getElementById('personalizeEmojiItem');
         const emojiLayoutItem = document.getElementById('personalizeEmojiLayoutItem');
         const emojiScaleItem = document.getElementById('personalizeEmojiScaleItem');
+        const previewItem = document.getElementById('personalizePreviewItem');
         const downloadItem = document.getElementById('personalizeDownloadItem');
 
         if (bgColorItem) bgColorItem.style.display = (settings.backgroundMode === 'color' || settings.backgroundMode === 'emoji') ? 'flex' : 'none';
@@ -927,6 +967,7 @@
         if (emojiItem) emojiItem.style.display = settings.backgroundMode === 'emoji' ? 'flex' : 'none';
         if (emojiLayoutItem) emojiLayoutItem.style.display = settings.backgroundMode === 'emoji' ? 'flex' : 'none';
         if (emojiScaleItem) emojiScaleItem.style.display = settings.backgroundMode === 'emoji' ? 'flex' : 'none';
+        if (previewItem) previewItem.style.display = settings.backgroundMode === 'emoji' ? 'flex' : 'none';
         if (downloadItem) downloadItem.style.display = settings.backgroundMode === 'emoji' ? 'flex' : 'none';
     }
 
@@ -939,6 +980,8 @@
         const emojiLayoutSelect = document.getElementById('personalizeEmojiLayout');
         const emojiScaleSelect = document.getElementById('personalizeEmojiScale');
         const downloadBtn = document.getElementById('personalizeDownloadBtn');
+
+        updatePreviewAspect();
 
         if (downloadBtn) {
             downloadBtn.addEventListener('click', async () => {
@@ -1121,6 +1164,7 @@
     let lastWindowWidth = window.innerWidth;
     
     window.addEventListener('resize', () => {
+        updatePreviewAspect();
         if (settings.backgroundMode !== 'emoji') return;
         
         // Ignore vertical-only resizes (address bar toggling on mobile)

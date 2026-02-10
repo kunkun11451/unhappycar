@@ -407,6 +407,7 @@
           </summary>
           <div class="rules-anim-container">
             <div class="rules-content">
+              <h4 class="settings-subtitle">界面元素设置</h4>
               <div class="settings-item" style="margin-top: 10px; padding: 10px 14px; margin-bottom: 8px; background: rgba(255, 255, 255, 0.02);">
                 <div class="settings-info">
                   <div class="settings-title" style="font-size: 0.95rem;"><svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -455,7 +456,7 @@
                   <button class="btn primary" id="displayPrefBtn">编辑</button>
                 </div>
               </div>
-
+        <h4 class="settings-subtitle">墙纸设置</h4>
               <div class="settings-item" style="padding: 10px 14px; margin-bottom: 8px; background: rgba(255, 255, 255, 0.02);">
                 <div class="settings-info">
                   <div class="settings-title" style="font-size: 0.95rem;"><svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -561,6 +562,23 @@
                 <div class="settings-action" style="display: flex; align-items: center; gap: 10px;">
                   <input type="range" id="personalizeEmojiScale" min="0.1" max="5.0" step="0.1" value="1.0" class="settings-range" style="width: 120px; accent-color: var(--primary-color);">
                   <span id="personalizeEmojiScaleValue" style="min-width: 2.5em; text-align: right; font-variant-numeric: tabular-nums; font-size: 0.9rem;">1.0</span>
+                </div>
+              </div>
+
+              <div class="settings-item" id="personalizePreviewItem" style="padding: 10px 14px; margin-bottom: 8px; background: rgba(255, 255, 255, 0.02); align-items: flex-start;">
+                <div class="settings-info" style="width: 100%;">
+                  <div class="settings-title"><svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="4" width="18" height="14" rx="2" ry="2" />
+                      <path d="M8 10h8" />
+                      <path d="M8 14h5" />
+                    </svg>预览墙纸</div>
+                  <div class="settings-desc" style="font-size: 0.8rem;">显示当前生成的表情符号墙纸预览</div>
+                  <div class="settings-action" style="margin-top: 10px; width: 100%;">
+                    <div id="personalizePreviewBox" style="width: 100%; aspect-ratio: 9 / 16; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(0, 0, 0, 0.25);">
+                      <img id="personalizePreviewImage" alt="墙纸预览" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+                    </div>
+                  </div>
                 </div>
               </div>
 

@@ -134,10 +134,6 @@
         });
         document.getElementById('modalHistoryBtn').addEventListener('click', () => {
             window.__recorder_actions.openHistory();
-            // 直接隐藏，不等待动画，避免层级冲突
-            settingsModal.classList.add('hidden');
-            settingsModal.classList.remove('closing');
-            document.body.classList.remove('modal-open');
         });
 
         // 查看所有角色标签按钮
