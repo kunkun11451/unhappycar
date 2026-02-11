@@ -217,8 +217,8 @@ h2 {
 }
 
 .settings-item {
-  background: rgba(0, 0, 0, 0.02);
-  border-color: #e6eef6;
+  background: rgb(200 200 200 / 15%);
+  border-color: #c7c7c7;
   color: #0f172a
 }
 

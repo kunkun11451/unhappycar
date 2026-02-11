@@ -1278,7 +1278,7 @@ body.light-theme .settings-select option {
 /* Light Theme Adaptations for Rules */
 body.light-theme .rules-details {
     background: rgba(0, 0, 0, 0.02);
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-color: #c7c7c7;
 }
 
 body.light-theme .rules-details:hover {

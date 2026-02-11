@@ -213,7 +213,7 @@
         return all;
     }
 
-    function drawEmojiWallpaper(images, layout, bgColor, seed, scaleFactor, customWidth, customHeight, customDpr) {
+    function drawEmojiWallpaper(images, layout, bgColor, seed, scaleFactor, customWidth, customHeight, customDpr, returnCanvas = false) {
         const w = customWidth || window.innerWidth;
         const h = customHeight || window.innerHeight;
         const dpr = customDpr || window.devicePixelRatio || 1;
@@ -227,7 +227,7 @@
         ctx.fillStyle = bgColor || '#1f1f1f';
         ctx.fillRect(0, 0, w, h);
 
-        if (!images.length) return canvas.toDataURL('image/png');
+        if (!images.length) return returnCanvas ? canvas : canvas.toDataURL('image/png');
 
         const rng = createRng(seed || 1);
         const random = () => rng();
@@ -500,10 +500,10 @@
         }
 
         try {
-            return canvas.toDataURL('image/png');
+            return returnCanvas ? canvas : canvas.toDataURL('image/png');
         } catch (error) {
             console.warn('Failed to export emoji wallpaper:', error);
-            return '';
+            return returnCanvas ? null : '';
         }
     }
 
@@ -674,6 +674,7 @@
                         <div class="emoji-grid" id="emojiSelectedGrid"></div>
                     </div>
                     <div class="emoji-pick-actions">
+                        <button class="btn" id="emojiPickPresetBtn" style="margin-right: auto;">预设</button>
                         <button class="btn" id="emojiPickClear">清空</button>
                         <button class="btn primary" id="emojiPickConfirm">确认</button>
                     </div>
@@ -942,6 +943,23 @@
             });
         }
 
+        const presetBtn = modal.querySelector('#emojiPickPresetBtn');
+        if (presetBtn) {
+            presetBtn.addEventListener('click', (e) => {
+                showPresetMenu(e.target, selected, (newSelection) => {
+                     // Update selected array
+                     selected.splice(0, selected.length, ...newSelection);
+                     renderSelected();
+                     // Refresh char list to show correct selection state
+                     if (searchInput) {
+                         renderCharList(searchInput.value.trim().replace(/'/g, ''));
+                     } else {
+                         renderCharList();
+                     }
+                });
+            });
+        }
+
         const closeModal = () => {
             modal.classList.add('closing');
             setTimeout(() => {
@@ -951,6 +969,162 @@
 
         modal.querySelector('.settings-close').addEventListener('click', closeModal);
         modal.querySelector('.settings-backdrop').addEventListener('click', closeModal);
+    }
+
+    function showPresetMenu(triggerBtn, currentSelection, onLoadCallback) {
+        let menu = document.getElementById('emojiPresetMenu');
+        if (menu) menu.remove();
+
+        menu = document.createElement('div');
+        menu.id = 'emojiPresetMenu';
+        menu.style.cssText = `
+            position: absolute;
+            z-index: 2200;
+            background: rgba(30, 30, 30, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 4px;
+            min-width: 160px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            color: #f1f5f9;
+            font-size: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        `;
+
+        const rect = triggerBtn.getBoundingClientRect();
+        // Adjust for modal scroll/viewport? triggerBtn is fixed in modal footer usually?
+        // Modal uses fixed positioning. The menu is appended to body, so we need page coordinates.
+        // rect values are viewport relative.
+        // window.scrollY is needed if body scrolls. But settings modal is fixed full screen.
+        menu.style.left = rect.left + 'px';
+        menu.style.bottom = (window.innerHeight - rect.top + 5) + 'px'; // Show above button if footer is at bottom
+        // Or show below? Footer is usually at bottom.
+        // Let's check modal style. It's centered.
+        // Let's just put it below button for now, or detect.
+        menu.style.top = (rect.bottom + 5) + 'px';
+        menu.style.bottom = 'auto'; // Reset
+        
+        // If too close to bottom, flip
+        if (window.innerHeight - rect.bottom < 200) {
+            menu.style.top = 'auto';
+            menu.style.bottom = (window.innerHeight - rect.top + 5) + 'px';
+        }
+
+        if (!Array.isArray(settings.emojiPresets)) settings.emojiPresets = [];
+
+        // Save Item
+        const saveItem = document.createElement('div');
+        saveItem.innerHTML = '<span>+ 保存当前预设</span>';
+        saveItem.style.cssText = 'padding: 8px 12px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; transition: background 0.2s;';
+        saveItem.onmouseover = () => saveItem.style.background = 'rgba(255, 255, 255, 0.1)';
+        saveItem.onmouseout = () => saveItem.style.background = 'transparent';
+        saveItem.onclick = () => {
+            if (currentSelection.length === 0) {
+                if (window.showCustomAlert) window.showCustomAlert('请先选择表情素材');
+                else alert('请先选择表情素材');
+                return;
+            }
+            
+            const defaultName = `预设 ${settings.emojiPresets.length + 1}`;
+            const handleSave = (name) => {
+                if (name) {
+                    const existingIdx = settings.emojiPresets.findIndex(p => p.name === name);
+                    if (existingIdx >= 0) {
+                        const doOverwrite = () => {
+                            settings.emojiPresets[existingIdx].images = [...currentSelection];
+                            saveSettings();
+                        };
+
+                        if (window.showCustomConfirm) {
+                            window.showCustomConfirm(`预设 "${name}" 已存在，是否覆盖？`, doOverwrite, null, '覆盖预设', '覆盖');
+                        } else if (confirm(`预设 "${name}" 已存在，是否覆盖？`)) {
+                             doOverwrite();
+                        }
+                    } else {
+                        settings.emojiPresets.push({
+                            name: name,
+                            images: [...currentSelection]
+                        });
+                        saveSettings();
+                    }
+                }
+            };
+            
+            menu.remove(); // Remove menu before showing prompt
+
+            if (window.showCustomPrompt) {
+                window.showCustomPrompt('请输入预设名称', defaultName, handleSave, null, '保存预设');
+            } else {
+                const name = prompt('请输入预设名称', defaultName);
+                if (name) handleSave(name);
+            }
+        };
+        menu.appendChild(saveItem);
+
+        // Divider
+        if (settings.emojiPresets.length > 0) {
+            const separator = document.createElement('div');
+            separator.style.cssText = 'height: 1px; background: rgba(255, 255, 255, 0.1); margin: 4px 6px;';
+            menu.appendChild(separator);
+
+            settings.emojiPresets.forEach((preset, idx) => {
+                const item = document.createElement('div');
+                item.style.cssText = 'padding: 8px 12px; cursor: pointer; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s;';
+                item.title = `包含 ${preset.images.length} 个表情`;
+                
+                const label = document.createElement('span');
+                label.textContent = preset.name;
+                label.style.cssText = 'overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 120px;';
+                
+                const del = document.createElement('span');
+                del.innerHTML = '&times;';
+                del.style.cssText = 'opacity: 0.6; font-size: 1.2em; padding: 0 4px; margin-right: -4px;';
+                del.onmouseover = () => del.style.opacity = '1';
+                del.onmouseout = () => del.style.opacity = '0.6';
+                del.onclick = (e) => {
+                    e.stopPropagation();
+                    const handleDelete = () => {
+                        settings.emojiPresets.splice(idx, 1);
+                        saveSettings();
+                        menu.remove();
+                    };
+
+                    if (window.showCustomConfirm) {
+                        window.showCustomConfirm(`确定要删除预设 "${preset.name}" 吗？`, handleDelete, null, '删除预设');
+                    } else if (confirm(`删除预设 "${preset.name}"?`)) {
+                        handleDelete();
+                    }
+                };
+
+                item.appendChild(label);
+                item.appendChild(del);
+                
+                item.onmouseover = () => item.style.background = 'rgba(255, 255, 255, 0.1)';
+                item.onmouseout = () => item.style.background = 'transparent';
+                item.onclick = () => {
+                   if (onLoadCallback) onLoadCallback(preset.images);
+                   menu.remove();
+                };
+                
+                menu.appendChild(item);
+            });
+        }
+
+        document.body.appendChild(menu);
+
+        // Backdrop/Click-outsie
+        const outsideHandler = (e) => {
+            if (!menu.contains(e.target) && e.target !== triggerBtn) {
+                menu.remove();
+                document.removeEventListener('mousedown', outsideHandler);
+            }
+        };
+        // Delay adding listener to avoid immediate trigger
+        setTimeout(() => document.addEventListener('mousedown', outsideHandler), 0);
     }
 
     function syncUiVisibility() {
@@ -978,7 +1152,8 @@
         const bgClearBtn = document.getElementById('personalizeBgClear');
         const emojiPickBtn = document.getElementById('personalizeEmojiPickBtn');
         const emojiLayoutSelect = document.getElementById('personalizeEmojiLayout');
-        const emojiScaleSelect = document.getElementById('personalizeEmojiScale');
+        const emojiScaleDecreaseBtn = document.getElementById('emojiScaleDecrease');
+        const emojiScaleIncreaseBtn = document.getElementById('emojiScaleIncrease');
         const downloadBtn = document.getElementById('personalizeDownloadBtn');
 
         updatePreviewAspect();
@@ -1030,7 +1205,7 @@
 
                     // Large render warning or limit could be added here if needed
 
-                    const bgData = drawEmojiWallpaper(
+                    const renderCanvas = drawEmojiWallpaper(
                         images, 
                         settings.emojiLayout, 
                         settings.backgroundColor, 
@@ -1038,19 +1213,31 @@
                         settings.emojiScale,
                         undefined, 
                         undefined, 
-                        targetDpr
+                        targetDpr,
+                        true
                     );
-                    
-                    if (bgData) {
+
+                    if (renderCanvas) {
                         updateStatus('导出图片...');
                         await nextFrame();
-                        
+
+                        const blob = await new Promise(resolve => {
+                            renderCanvas.toBlob(resolve, 'image/png');
+                        });
+
+                        if (!blob) {
+                            if (window.showCustomAlert) window.showCustomAlert('导出失败：无法生成图片');
+                            return;
+                        }
+
                         const link = document.createElement('a');
+                        const url = URL.createObjectURL(blob);
                         link.download = `emoji-wallpaper-${Date.now()}-${scale}x.png`;
-                        link.href = bgData;
+                        link.href = url;
                         document.body.appendChild(link);
                         link.click();
                         document.body.removeChild(link);
+                        URL.revokeObjectURL(url);
                     }
                 } catch (e) {
                     console.error('Wallpaper generation failed:', e);
@@ -1072,22 +1259,38 @@
             });
         }
         
-        if (emojiScaleSelect) {
-            emojiScaleSelect.value = settings.emojiScale || 1.0;
-            const updateValueDisplay = (val) => {
-                const display = document.getElementById('personalizeEmojiScaleValue');
-                if (display) display.textContent = parseFloat(val).toFixed(1);
+        const emojiScaleValueDisplay = document.getElementById('personalizeEmojiScaleValue');
+        if (emojiScaleDecreaseBtn && emojiScaleIncreaseBtn && emojiScaleValueDisplay) {
+            let currentScale = settings.emojiScale || 1.0;
+            let renderTimer = null;
+            
+            const updateScale = (newScale) => {
+                // Constrain values
+                if (newScale < 0.1) newScale = 0.1;
+                if (newScale > 5.0) newScale = 5.0;
+                
+                currentScale = newScale;
+                emojiScaleValueDisplay.textContent = currentScale.toFixed(1);
+                
+                settings.emojiScale = currentScale;
+                saveSettings();
+                
+                // Debounce heavy rendering
+                if (renderTimer) clearTimeout(renderTimer);
+                renderTimer = setTimeout(() => {
+                    applySettings();
+                }, 300);
             };
-            updateValueDisplay(emojiScaleSelect.value);
 
-            emojiScaleSelect.addEventListener('input', (e) => {
-                updateValueDisplay(e.target.value);
+            // Initialize display
+            emojiScaleValueDisplay.textContent = currentScale.toFixed(1);
+
+            emojiScaleDecreaseBtn.addEventListener('click', () => {
+                updateScale(Math.round((currentScale - 0.1) * 10) / 10);
             });
 
-            emojiScaleSelect.addEventListener('change', (e) => {
-                settings.emojiScale = parseFloat(e.target.value);
-                saveSettings();
-                applySettings(); 
+            emojiScaleIncreaseBtn.addEventListener('click', () => {
+                updateScale(Math.round((currentScale + 0.1) * 10) / 10);
             });
         }
 
@@ -1146,6 +1349,28 @@
         if (emojiPickBtn) {
             emojiPickBtn.addEventListener('click', () => {
                 openEmojiMaterialModal();
+            });
+        }
+        
+        const refreshSeedBtn = document.getElementById('refreshSeedBtn');
+        if (refreshSeedBtn) {
+            refreshSeedBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                settings.emojiSeed = Date.now();
+                saveSettings();
+                applySettings();
+                
+                const icon = refreshSeedBtn.querySelector('svg');
+                if (icon) {
+                    icon.style.transition = 'transform 0.4s ease-out';
+                    icon.style.transform = 'rotate(180deg)';
+                    setTimeout(() => {
+                        icon.style.transition = 'none';
+                        icon.style.transform = 'rotate(0deg)';
+                    }, 400);
+                }
             });
         }
 

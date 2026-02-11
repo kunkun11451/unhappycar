@@ -833,6 +833,7 @@
         const modal = document.getElementById('alertModal');
         const titleEl = document.getElementById('alertTitle');
         const msgEl = document.getElementById('alertMessage');
+        const inputEl = document.getElementById('alertInput');
         const okBtn = document.getElementById('alertOkBtn');
         const closeBtn = document.getElementById('alertCloseBtn');
         const backdrop = modal.querySelector('.settings-backdrop');
@@ -843,13 +844,26 @@
             return;
         }
 
+        // Cancel previous closing animation
+        modal.classList.remove('closing');
+        const openId = Date.now();
+        modal.dataset.openId = openId;
+
+        if (inputEl) inputEl.classList.add('hidden');
+
         titleEl.textContent = title;
         msgEl.textContent = msg;
         modal.classList.remove('hidden');
 
         const closeModal = () => {
+             // Only close if we are still the relevant session
+            if (modal.dataset.openId != openId) return;
+            
             modal.classList.add('closing');
             modal.addEventListener('animationend', () => {
+                // If ID changed during animation, it means a new dialog opened
+                if (modal.dataset.openId != openId) return;
+                
                 modal.classList.remove('hidden');
                 modal.classList.remove('closing');
                 modal.classList.add('hidden'); // Ensure hidden is back
@@ -877,6 +891,7 @@
         const modal = document.getElementById('alertModal');
         const titleEl = document.getElementById('alertTitle');
         const msgEl = document.getElementById('alertMessage');
+        const inputEl = document.getElementById('alertInput');
         const okBtn = document.getElementById('alertOkBtn');
         const cancelBtn = document.getElementById('alertCancelBtn');
         const closeBtn = document.getElementById('alertCloseBtn');
@@ -891,6 +906,13 @@
             return;
         }
 
+        // Cancel previous closing animation
+        modal.classList.remove('closing');
+        const openId = Date.now();
+        modal.dataset.openId = openId;
+
+        if (inputEl) inputEl.classList.add('hidden');
+
         titleEl.textContent = title;
         msgEl.textContent = msg;
         okBtn.textContent = confirmText;
@@ -901,8 +923,13 @@
         modal.classList.remove('hidden');
 
         const closeModal = () => {
+             // Only close if we are still the relevant session
+            if (modal.dataset.openId != openId) return;
+
             modal.classList.add('closing');
             modal.addEventListener('animationend', () => {
+                if (modal.dataset.openId != openId) return;
+
                 modal.classList.remove('hidden');
                 modal.classList.remove('closing');
                 modal.classList.add('hidden');
@@ -944,6 +971,114 @@
         // Let's just clone it to clear listeners.
         const newBackdrop = backdrop.cloneNode(true);
         backdrop.parentNode.replaceChild(newBackdrop, backdrop);
+    };
+
+    // 自定义 Prompt 功能
+    window.showCustomPrompt = function (msg, defaultValue = '', onConfirm, onCancel = null, title = '输入', confirmText = '确定', cancelText = '取消') {
+        const modal = document.getElementById('alertModal');
+        const titleEl = document.getElementById('alertTitle');
+        const msgEl = document.getElementById('alertMessage');
+        const inputEl = document.getElementById('alertInput');
+        const okBtn = document.getElementById('alertOkBtn');
+        const cancelBtn = document.getElementById('alertCancelBtn');
+        const closeBtn = document.getElementById('alertCloseBtn');
+        const backdrop = modal.querySelector('.settings-backdrop');
+
+        if (!modal) {
+            const result = prompt(msg, defaultValue);
+            if (result !== null) {
+                if (onConfirm) onConfirm(result);
+            } else {
+                if (onCancel) onCancel();
+            }
+            return;
+        }
+
+        // Cancel previous closing animation
+        modal.classList.remove('closing');
+        const openId = Date.now();
+        modal.dataset.openId = openId;
+
+        titleEl.textContent = title;
+        msgEl.textContent = msg;
+        okBtn.textContent = confirmText;
+        
+        if (inputEl) {
+            inputEl.value = defaultValue;
+            inputEl.classList.remove('hidden');
+            // Give focus after a tick to ensure visibility
+            setTimeout(() => inputEl.focus(), 50);
+        }
+
+        if (cancelBtn) {
+            cancelBtn.textContent = cancelText;
+            cancelBtn.classList.remove('hidden');
+        }
+        
+        modal.classList.remove('hidden');
+
+        const closeModal = () => {
+             // Only close if we are still the relevant session
+            if (modal.dataset.openId != openId) return;
+
+            modal.classList.add('closing');
+            modal.addEventListener('animationend', () => {
+                if (modal.dataset.openId != openId) return;
+
+                modal.classList.remove('hidden');
+                modal.classList.remove('closing');
+                modal.classList.add('hidden');
+                if (inputEl) inputEl.value = ''; // Clean up
+            }, { once: true });
+        };
+
+        // Reset OK Button
+        const newOk = okBtn.cloneNode(true);
+        okBtn.parentNode.replaceChild(newOk, okBtn);
+        newOk.addEventListener('click', () => {
+            const currentInput = document.getElementById('alertInput');
+            const val = currentInput ? currentInput.value : '';
+            closeModal();
+            if (onConfirm) onConfirm(val);
+        });
+
+        // Reset Cancel Button
+        if (cancelBtn) {
+            const newCancel = cancelBtn.cloneNode(true);
+            cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
+            newCancel.addEventListener('click', () => {
+                closeModal();
+                if (onCancel) onCancel();
+            });
+        }
+        
+        // Reset Close Button
+        const newClose = closeBtn.cloneNode(true);
+        closeBtn.parentNode.replaceChild(newClose, closeBtn);
+        newClose.addEventListener('click', () => {
+            closeModal();
+            if (onCancel) onCancel();
+        });
+
+         // Reset Backdrop
+        const newBackdrop = backdrop.cloneNode(true);
+        backdrop.parentNode.replaceChild(newBackdrop, backdrop);
+
+        // Enter key support
+        if (inputEl) {
+             // Clone input to remove old listeners
+            const newInput = inputEl.cloneNode(true);
+            inputEl.parentNode.replaceChild(newInput, inputEl);
+            newInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    newOk.click();
+                } else if (e.key === 'Escape') {
+                    if (cancelBtn) cancelBtn.click();
+                    else newClose.click();
+                }
+            });
+        }
     };
 
     // 自定义 Toast 功能
