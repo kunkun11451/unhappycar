@@ -266,7 +266,7 @@
 
                 return `
                     <div class="${cardClass}" ${cardStyle} title="${name}">
-                        ${avatar ? `<img src="${avatar}" alt="${name}" class="avatar">` : '<div class="avatar"></div>'}
+                        ${avatar ? `<div class="avatar-wrapper"><img src="${avatar}" class="avatar-glow" aria-hidden="true"><img src="${avatar}" alt="${name}" class="avatar"></div>` : '<div class="avatar-wrapper"><div class="avatar"></div></div>'}
                         <div class="char-tag-info">
                             <div class="name">${displayName}</div>
                             <div class="char-tag-row">

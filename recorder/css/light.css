@@ -588,3 +588,29 @@ input:checked+.slider:before {
   border-color: #d97706;
   box-shadow: 0 0 12px rgba(217, 119, 6, 0.3);
 }
+
+/* 浅色模式下的头像液态玻璃反光效果适配 */
+.char-tag-card .avatar-wrapper::after,
+.card .avatar-wrapper::after,
+.ranking-avatar .avatar-wrapper::after {
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.8),
+                inset 0 -1px 1px rgba(0, 0, 0, 0.05);
+}
+
+.char-tag-card .avatar,
+.card .avatar,
+.ranking-avatar .avatar {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.char-tag-card .avatar-glow,
+.card .avatar-glow,
+.ranking-avatar .avatar-glow {
+    opacity: 0.5;
+}
+
+.avatar-placeholder {
+    background: rgba(100, 116, 139, 0.15);
+}

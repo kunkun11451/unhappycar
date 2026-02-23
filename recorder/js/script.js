@@ -137,13 +137,13 @@
         const changes = lastEntry.changes || null;
 
         // 2. 显示本次抽取（带动画效果，renderLast 内部若 changes 存在会带动画类）
-        renderLast(window.__recorder_lastDraw, changes);
+        const lastAnimDuration = renderLast(window.__recorder_lastDraw, changes);
 
         // 3. 更新历史表格
         renderHistoryTable();
 
         // 4. 延迟更新记录列表
-        const delay = (window.__recorder_settings && window.__recorder_settings.animationsEnabled === false) ? 0 : 800;
+        const delay = (window.__recorder_settings && window.__recorder_settings.animationsEnabled === false) ? 0 : (lastAnimDuration + 150);
         setTimeout(() => {
           renderRecord(changes, () => {
             renderComplement();
@@ -260,6 +260,13 @@
   // 抽取一次
   function drawOnce() {
     closePanelSearch();
+    // 平滑移除当前记录区域中上一轮的绿色高亮
+    const recordEl = document.getElementById('record');
+    if (recordEl) {
+      recordEl.querySelectorAll('.badge.badge-add').forEach(node => {
+        node.classList.remove('badge-add', 'add-anim');
+      });
+    }
     // 重置 Brain Teaser 状态 (Host端)
     if (window.__brainTeaser) window.__brainTeaser.reset();
 
@@ -302,7 +309,7 @@
     // 渲染
     // 缓存本次抽取，供复制
     window.__recorder_lastDraw = last;
-    renderLast(last, lastChanges);
+    const lastAnimDuration = renderLast(last, lastChanges);
     // 记录历史
     // 记录当前记录快照（使用顺序数组保持展示顺序）
     const snapshot = {
@@ -323,8 +330,8 @@
       changes: lastChanges
     });
     renderHistoryTable();
-    // 延迟显示当前记录动画（0.8s）
-    const delay = (window.__recorder_settings && window.__recorder_settings.animationsEnabled === false) ? 0 : 800;
+    // 延迟显示当前记录动画（等待本次Ban位逐步动画完成后再开始）
+    const delay = (window.__recorder_settings && window.__recorder_settings.animationsEnabled === false) ? 0 : (lastAnimDuration + 150);
     setTimeout(() => {
       renderRecord(lastChanges, () => {
         // 仅在仍是最新一次抽取时渲染可用角色
@@ -515,10 +522,14 @@
     });
 
     const chips = parts.join('');
-    return `<div><div class="label">${label}</div><div class="group">${chips || '<span class="badge">—</span>'}</div></div>`;
+    return `<div><div class="label">${label}</div><div class="group">${chips}</div></div>`;
   }
 
   function renderLast(last, changes) {
+    const animsEnabled = (window.__recorder_settings && window.__recorder_settings.animationsEnabled !== false);
+    const restoring = !!window.__recorder_restoring;
+    const doAnims = animsEnabled && !restoring;
+
     const el = document.getElementById('lastDraw');
     el.innerHTML = [
       (() => { const c = changes && changes.元素类型; const arr = (c && c.op === 'remove') ? [{ removed: true, noAnim: true, pulse: true, value: last.元素类型 }] : [last.元素类型]; return renderListRow('元素类型', arr, c); })(),
@@ -526,10 +537,55 @@
       (() => { const c = changes && changes.武器类型; const arr = (c && c.op === 'remove') ? [{ removed: true, noAnim: true, pulse: true, value: last.武器类型 }] : [last.武器类型]; return renderListRow('武器类型', arr, c); })(),
       (() => { const c = changes && changes.体型; const arr = (c && c.op === 'remove') ? [{ removed: true, noAnim: true, pulse: true, value: last.体型 }] : [last.体型]; return renderListRow('体型', arr, c); })(),
     ].join('');
+
+    // 逐步动画：所有 badge 先隐藏再逐个弹出，弹出后再依次上色
+    if (doAnims && changes) {
+      const allBadges = Array.from(el.querySelectorAll('.badge'));
+
+      // 收集每个 badge 的颜色类并剥离
+      const colorData = allBadges.map(badge => {
+        const pending = [];
+        if (badge.classList.contains('badge-add')) { pending.push('badge-add'); badge.classList.remove('badge-add'); }
+        if (badge.classList.contains('badge-remove')) { pending.push('badge-remove'); badge.classList.remove('badge-remove'); }
+        if (badge.classList.contains('add-anim')) { badge.classList.remove('add-anim'); }
+        return pending;
+      });
+
+      // Phase 1: 所有 badge 先隐藏，同时弹出
+      allBadges.forEach(badge => {
+        badge.classList.add('badge-hidden');
+      });
+      requestAnimationFrame(() => {
+        allBadges.forEach(badge => {
+          badge.classList.remove('badge-hidden');
+          badge.classList.add('add-anim');
+        });
+      });
+
+      // Phase 2: 弹出结束后，逐个平滑变色（通过 CSS transition，不再弹跳）
+      const colorStart = 500;
+      const COLOR_STAGGER = 120;
+      let colorIndex = 0;
+      allBadges.forEach((badge, i) => {
+        if (colorData[i].length > 0) {
+          setTimeout(() => {
+            colorData[i].forEach(cls => badge.classList.add(cls));
+          }, colorStart + colorIndex * COLOR_STAGGER);
+          colorIndex++;
+        }
+      });
+
+      // 返回整个动画的总持续时间
+      const lastColorEnd = colorIndex > 0 ? colorStart + (colorIndex - 1) * COLOR_STAGGER + 450 : 500;
+      return lastColorEnd;
+    }
+    return 0;
   }
 
   function renderRecord(changes, done) {
     const anims = (window.__recorder_settings && window.__recorder_settings.animationsEnabled !== false);
+    const restoring = !!window.__recorder_restoring;
+    const doAnims = anims && !restoring;
     const el = document.getElementById('record');
     const rows = ["元素类型", "国家", "武器类型", "体型"].map(cat => {
       let base = order[cat].slice();
@@ -550,67 +606,77 @@
         const parent = node.parentElement;
         if (parent) {
           parent.removeChild(node);
-          const hasReal = parent.querySelector('.badge:not(.badge-remove)');
-          if (!hasReal) {
-            const placeholder = document.createElement('span');
-            placeholder.className = 'badge';
-            placeholder.textContent = '—';
-            parent.appendChild(placeholder);
-          }
         }
       });
       if (typeof done === 'function') done();
       return;
     }
 
-    // 删除徽标：先闪烁（flash-phase），再收缩消失
+    // 收集所有需要动画的 badges，按行顺序排列（元素类型→国家→武器类型→体型）
+    const animBadges = [];
+    const rowDivs = el.querySelectorAll(':scope > div');
+    rowDivs.forEach(row => {
+      row.querySelectorAll('.removal-flash').forEach(node => {
+        node.classList.remove('removal-flash', 'badge-remove');
+        animBadges.push({ el: node, type: 'remove' });
+      });
+      row.querySelectorAll('.add-anim').forEach(node => {
+        node.classList.remove('add-anim');
+        node.classList.add('badge-hidden');
+        animBadges.push({ el: node, type: 'add' });
+      });
+    });
+
+    if (animBadges.length === 0) {
+      if (typeof done === 'function') setTimeout(() => done(), 460);
+      return;
+    }
+
     const FLASH_DURATION = 1000;
-    requestAnimationFrame(() => {
-      const removalNodes = el.querySelectorAll('.removal-flash');
-      let finished = 0;
-      const total = removalNodes.length;
-      removalNodes.forEach(node => {
-        node.classList.add('flash-phase');
-        const w = node.getBoundingClientRect().width;
-        node.style.width = w + 'px';
-        setTimeout(() => {
-          // 进入收缩阶段
-          node.classList.add('collapsing');
-          // 再下一帧应用收缩属性（类里已定义）
-          requestAnimationFrame(() => {
-            // nothing extra
-          });
-        }, FLASH_DURATION);
-        node.addEventListener('transitionend', (e) => {
-          if (e.propertyName === 'width') {
-            const parent = node.parentElement;
-            if (parent) {
-              parent.removeChild(node);
-              // 若该组已无其他非删除徽标，补一个占位
-              const hasReal = parent.querySelector('.badge:not(.badge-remove)');
-              const hasRemove = parent.querySelector('.badge-remove');
-              if (!hasReal && !hasRemove) {
-                const placeholder = document.createElement('span');
-                placeholder.className = 'badge';
-                placeholder.textContent = '—';
-                parent.appendChild(placeholder);
+    const STAGGER = 150;
+    const BASE_DELAY = 200;
+    const removalTotal = animBadges.filter(b => b.type === 'remove').length;
+    let removalFinished = 0;
+
+    animBadges.forEach((data, i) => {
+      setTimeout(() => {
+        requestAnimationFrame(() => {
+          if (data.type === 'remove') {
+            const node = data.el;
+            node.classList.add('badge-remove', 'removal-flash');
+            node.classList.add('flash-phase');
+            const w = node.getBoundingClientRect().width;
+            node.style.width = w + 'px';
+            setTimeout(() => {
+              node.classList.add('collapsing');
+            }, FLASH_DURATION);
+            node.addEventListener('transitionend', (e) => {
+              if (e.propertyName === 'width') {
+                const parent = node.parentElement;
+                if (parent) {
+                  parent.removeChild(node);
+                }
+                removalFinished++;
+                if (removalFinished === removalTotal && typeof done === 'function') {
+                  done();
+                }
               }
-            }
-            finished++;
-            if (finished === total && typeof done === 'function') {
-              // 所有删除动画完成（包含收缩）
-              done();
-            }
+            });
+          } else {
+            data.el.classList.remove('badge-hidden');
+            data.el.classList.add('add-anim');
           }
         });
-      });
-      if (total === 0) {
-        // 没有删除：等待可能存在的新增弹跳动画（约 450ms），再调用回调
-        if (typeof done === 'function') {
-          setTimeout(() => done(), 460);
-        }
-      }
+      }, BASE_DELAY + i * STAGGER);
     });
+
+    // 没有删除动画时，等待最后一个新增动画完成后回调
+    if (removalTotal === 0) {
+      const lastDelay = BASE_DELAY + (animBadges.length - 1) * STAGGER;
+      if (typeof done === 'function') {
+        setTimeout(() => done(), lastDelay + 460);
+      }
+    }
   }
 
   // 生成用于复制的文本
@@ -874,7 +940,7 @@
       }
       const cardStyle = (anims && !isExisting) ? `--stagger:${i}` : '';
       return `<div class="${cardClass}" style="${cardStyle}" title="${name}">
-        ${avatar ? `<img src="${avatar}" alt="${name}" class="avatar">` : ''}
+        ${avatar ? `<div class="avatar-wrapper"><img src="${avatar}" class="avatar-glow" aria-hidden="true"><img src="${avatar}" alt="${name}" class="avatar"></div>` : ''}
         <h3>${displayName}</h3>
       </div>`;
     }).join('');
@@ -1450,7 +1516,7 @@
         data-element="${element}" data-region="${region}" data-weapon="${weapon}" data-body="${body}">
         <div class="ranking-rank">${currentRank}</div>
         <div class="ranking-avatar">
-          ${avatar ? `<img src="${avatar}" alt="${name}">` : '<div class="avatar-placeholder"></div>'}
+          ${avatar ? `<div class="avatar-wrapper"><img src="${avatar}" class="avatar-glow" aria-hidden="true"><img src="${avatar}" alt="${name}" class="avatar"></div>` : '<div class="avatar-placeholder"></div>'}
         </div>
         <div class="ranking-info">
           <div class="ranking-name">${name}</div>

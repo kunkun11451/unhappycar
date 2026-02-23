@@ -239,7 +239,7 @@
                 const avatar = data.头像 || '';
                 return `
                     <div class="card verification-card" onclick="window.__brainTeaser.verify('${name}', this)">
-                        ${avatar ? `<img src="${avatar}" alt="${name}" class="avatar">` : ''}
+                        ${avatar ? `<div class="avatar-wrapper"><img src="${avatar}" class="avatar-glow" aria-hidden="true"><img src="${avatar}" alt="${name}" class="avatar"></div>` : ''}
                         <h3>${name}</h3>
                     </div>
                 `;
