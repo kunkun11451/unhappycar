@@ -1213,6 +1213,11 @@ body.light-theme .badge .img-icon[alt="挪德卡莱"] {
     background-color: rgba(0, 0, 0, 0.5);
 }
 
+#btInput {
+    background-image: none !important;
+    padding-right: 12px !important;
+}
+
 /* Light Theme Adaptations for Select */
 body.light-theme .settings-select {
     background-color: rgba(255, 255, 255, 0.5);

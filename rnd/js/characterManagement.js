@@ -324,11 +324,11 @@ function initCharacterManagement() {
     weaponFilterContainer.className = "filter-container";
 
     const weaponTypes = {
-        "弓": "https://homdgcat.wiki/homdgcat-res/AvatarSkill/Skill_A_02.png",
-        "长柄武器": "https://homdgcat.wiki/homdgcat-res/AvatarSkill/Skill_A_03.png",
-        "法器": "https://homdgcat.wiki/homdgcat-res/AvatarSkill/Skill_A_Catalyst_MD.png",
-        "双手剑": "https://homdgcat.wiki/homdgcat-res/AvatarSkill/Skill_A_04.png",
-        "单手剑": "https://homdgcat.wiki/homdgcat-res/AvatarSkill/Skill_A_01.png"
+        '弓': 'https://upload-bbs.miyoushe.com/upload/2026/02/24/284249424/35a7e5bab7b2ee97d79e2cc055c2922f_6542701528289378136.png',
+        '长柄武器': 'https://upload-bbs.miyoushe.com/upload/2026/02/24/284249424/6853501f9aa3bf01a16ff734b654678a_2633346180400109686.png',
+        '法器': 'https://upload-bbs.miyoushe.com/upload/2026/02/24/284249424/fd7eb2eb48680aa9b1042296e8c99c96_2921164432939280308.png',
+        '双手剑': 'https://upload-bbs.miyoushe.com/upload/2026/02/24/284249424/883b0e3e3746d86f89754308954f2187_8860028975768290912.png',
+        '单手剑': 'https://upload-bbs.miyoushe.com/upload/2026/02/24/284249424/d184c1947787d8106d3d9e4409f068f5_267450943913260561.png'
     };
 
     Object.entries(weaponTypes).forEach(([weapon, url]) => {

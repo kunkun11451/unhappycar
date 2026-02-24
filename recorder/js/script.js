@@ -72,7 +72,10 @@
       hasLastDraw,
       lastDraw: window.__recorder_lastDraw,
       // Add Brain Teaser Mode to sync state
-      brainTeaserMode: (window.__recorder_settings && window.__recorder_settings.brainTeaserMode)
+      brainTeaserMode: (window.__recorder_settings && window.__recorder_settings.brainTeaserMode),
+      // Add Events state
+      eventsEnabled: (window.__events_manager && window.__events_manager.enabled),
+      lastDrawnEvent: (window.__events_manager && window.__events_manager.lastDrawnEvent)
     };
   }
 
@@ -98,6 +101,24 @@
       // Update internal BT state visibility (handled in renderComplement, but force hide if off)
       if (!state.brainTeaserMode && window.__brainTeaser) {
         window.__brainTeaser.hideUI();
+      }
+    }
+
+    // Sync Events Mode
+    if (state.eventsEnabled !== undefined && window.__events_manager) {
+      window.__events_manager.enabled = state.eventsEnabled;
+      const eventsToggle = document.getElementById('eventsToggle');
+      if (eventsToggle) {
+        eventsToggle.checked = state.eventsEnabled;
+      }
+      window.__events_manager.updateDisplayVisibility();
+      
+      if (state.lastDrawnEvent !== undefined) {
+        window.__events_manager.lastDrawnEvent = state.lastDrawnEvent;
+        const el = document.getElementById('eventContent');
+        if (el) {
+          el.textContent = state.lastDrawnEvent;
+        }
       }
     }
 
@@ -177,7 +198,13 @@
       if (availPanel) availPanel.classList.remove('hidden');
     } else {
       // 确保清除上一次的显示（如果是重置或加入新房间为空状态时）
-      document.getElementById('lastDraw').innerHTML = '';
+      window.__recorder_lastDraw = {
+        元素类型: '',
+        国家: '',
+        武器类型: '',
+        体型: ''
+      };
+      renderLast(window.__recorder_lastDraw, null);
       if (lastBar) lastBar.classList.add('hidden');
       if (recBar) recBar.classList.add('hidden');
 
@@ -198,6 +225,13 @@
     if (!hasLastDraw) {
       if (lastBar) lastBar.classList.add('hidden');
       if (recBar) recBar.classList.add('hidden');
+      window.__recorder_lastDraw = {
+        元素类型: '',
+        国家: '',
+        武器类型: '',
+        体型: ''
+      };
+      renderLast(window.__recorder_lastDraw, null);
       renderHistoryTable();
       renderRecord(null, () => renderComplement());
       return;
@@ -234,6 +268,13 @@
         restoreState(JSON.parse(raw));
       } else {
         // 无论是否有数据，都执行初始渲染以确保界面状态正确
+        window.__recorder_lastDraw = {
+          元素类型: '',
+          国家: '',
+          武器类型: '',
+          体型: ''
+        };
+        renderLast(window.__recorder_lastDraw, null);
         renderHistoryTable();
         renderRecord(null, () => { renderComplement(); });
       }
@@ -269,6 +310,9 @@
     }
     // 重置 Brain Teaser 状态 (Host端)
     if (window.__brainTeaser) window.__brainTeaser.reset();
+
+    // 随机事件抽取
+    if (window.__events_manager) window.__events_manager.draw();
 
     const token = ++currentAnimationToken;
     const last = {
@@ -371,9 +415,25 @@
     if (history.length === 0) {
       Object.values(record).forEach(s => s.clear());
       Object.keys(order).forEach(k => order[k].length = 0);
-      document.getElementById('lastDraw').innerHTML = '';
+      
+      // 清空 lastDraw 内容，但保留结构以显示空 badge
+      window.__recorder_lastDraw = {
+        元素类型: '',
+        国家: '',
+        武器类型: '',
+        体型: ''
+      };
+      renderLast(window.__recorder_lastDraw, null);
+      
       hasLastDraw = false;
-      window.__recorder_lastDraw = null;
+
+      // 清除事件缓存
+      if (window.__events_manager) {
+        window.__events_manager.lastDrawnEvent = "等待抽取...";
+        window.__events_manager.saveSettings();
+        const el = document.getElementById('eventContent');
+        if (el) el.textContent = "等待抽取...";
+      }
 
       const lastBar = document.getElementById('lastCopyBar');
       const recBar = document.getElementById('recordCopyBar');
@@ -428,12 +488,29 @@
     closePanelSearch();
     Object.values(record).forEach(s => s.clear());
     Object.keys(order).forEach(k => order[k].length = 0);
-    document.getElementById('lastDraw').innerHTML = '';
+    
+    // 清空 lastDraw 内容，但保留结构以显示空 badge
+    window.__recorder_lastDraw = {
+      元素类型: '',
+      国家: '',
+      武器类型: '',
+      体型: ''
+    };
+    renderLast(window.__recorder_lastDraw, null);
+    
     history.length = 0; renderHistoryTable();
     renderRecord(null, () => { renderComplement(); });
     // 隐藏复制控件与可用复制区域
     hasLastDraw = false;
-    window.__recorder_lastDraw = null;
+    
+    // 清除事件缓存
+    if (window.__events_manager) {
+      window.__events_manager.lastDrawnEvent = "等待抽取...";
+      window.__events_manager.saveSettings();
+      const el = document.getElementById('eventContent');
+      if (el) el.textContent = "等待抽取...";
+    }
+
     const lastBar = document.getElementById('lastCopyBar');
     const recBar = document.getElementById('recordCopyBar');
     const copyAvail = document.getElementById('copyAvailable');
@@ -683,7 +760,13 @@
   function formatLastDrawText() {
     const last = window.__recorder_lastDraw;
     if (!last) return '本次抽取：— — — —';
-    return `本次抽取：${last.元素类型} ${last.国家} ${last.武器类型} ${last.体型}`;
+    let text = `${last.元素类型} ${last.国家} ${last.武器类型} ${last.体型}`;
+
+    // 如果事件功能开启且有抽取内容，追加事件内容
+    if (window.__events_manager && window.__events_manager.enabled && window.__events_manager.lastDrawnEvent) {
+      text += ` ；${window.__events_manager.lastDrawnEvent}`;
+    }
+    return text;
   }
 
   function formatCurrentRecordText() {
@@ -1480,6 +1563,7 @@
       .sort((a, b) => b[1] - a[1]);
 
     const maxCount = sorted.length > 0 ? Math.max(sorted[0][1], 1) : 1;
+    const totalRounds = history.length || 1; // Prevent division by zero
     const anims = window.__recorder_settings && window.__recorder_settings.animationsEnabled !== false;
 
     if (sorted.length === 0) {
@@ -1502,7 +1586,11 @@
       const region = char?.国家 || '';
       const weapon = char?.武器类型 || '';
       const body = char?.体型 || '';
-      const percent = (count / maxCount) * 100;
+      
+      // Calculate percentage based on total rounds
+      const percent = (count / totalRounds) * 100;
+      const percentStr = percent.toFixed(1);
+      
       const animClass = anims ? 'ranking-row-anim' : '';
       const animStyle = anims ? `--index:${actualIndex++};--percent:${percent}%` : `--percent:${percent}%`;
 
@@ -1520,7 +1608,7 @@
         </div>
         <div class="ranking-info">
           <div class="ranking-name">${name}</div>
-          <div class="ranking-meta">${element} · ${region} · ${weapon} · ${body}</div>
+          <div class="ranking-meta">${percentStr}%</div>
         </div>
         <div class="ranking-count">${count}</div>
       </div>`;
@@ -1696,23 +1784,51 @@
         `).join('')}
         ${xAxisHtml}
       </svg>
-      <div class="chart-tooltip"></div>
     `;
 
-    // Tooltip 逻辑
-    const tooltip = container.querySelector('.chart-tooltip');
+    // Tooltip: check or create global tooltip
+    let tooltip = document.getElementById('global-chart-tooltip');
+    if (!tooltip) {
+      tooltip = document.createElement('div');
+      tooltip.id = 'global-chart-tooltip';
+      tooltip.className = 'chart-tooltip';
+      document.body.appendChild(tooltip);
+    } else {
+      // Hide tooltip when re-rendering to prevent stuck tooltip
+      tooltip.style.opacity = '0';
+    }
+
     container.querySelectorAll('.chart-point').forEach(p => {
       p.addEventListener('mouseenter', (e) => {
         const r = p.getAttribute('data-round');
         const c = p.getAttribute('data-count');
+        
         tooltip.innerHTML = `第 ${r} 轮: ${c} 人可用`;
         tooltip.style.opacity = '1';
-        tooltip.style.left = `${e.offsetX + 10}px`;
-        tooltip.style.top = `${e.offsetY - 30}px`;
+        
+        const tipWidth = tooltip.offsetWidth || 100; // Fallback width
+        let left = e.clientX + 10;
+        let top = e.clientY - 30;
+        
+        // Prevent overflow
+        if (left + tipWidth > window.innerWidth) {
+            left = e.clientX - tipWidth - 10;
+        }
+        
+        tooltip.style.left = `${left}px`;
+        tooltip.style.top = `${top}px`;
       });
       p.addEventListener('mousemove', (e) => {
-        tooltip.style.left = `${e.offsetX + 10}px`;
-        tooltip.style.top = `${e.offsetY - 30}px`;
+         const tipWidth = tooltip.offsetWidth || 100;
+         let left = e.clientX + 10;
+         let top = e.clientY - 30;
+
+         if (left + tipWidth > window.innerWidth) {
+             left = e.clientX - tipWidth - 10;
+         }
+
+         tooltip.style.left = `${left}px`;
+         tooltip.style.top = `${top}px`;
       });
       p.addEventListener('mouseleave', () => {
         tooltip.style.opacity = '0';
@@ -1891,6 +2007,9 @@
 
     // 尝试加载数据
     loadState();
+    
+    // 初始化事件管理器
+    if (window.__events_manager) window.__events_manager.init();
   }
 
   // 暴露给外部使用的函数

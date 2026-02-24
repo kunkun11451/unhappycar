@@ -178,12 +178,6 @@
                 return;
             }
 
-            // Surrender Check
-            if (val === '我是笨蛋') {
-                this.handleSurrender();
-                return;
-            }
-
             // Search Logic
             const allNames = Object.keys(window.characterData || {});
             let matches = [];
