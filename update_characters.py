@@ -305,9 +305,7 @@ def main():
     args = parser.parse_args()
     
     files_to_update = [
-        os.path.join("js", "characters.js"),
-        os.path.join("recorder", "characters.js"),
-        os.path.join("xjjj", "characters.js")
+        os.path.join("rnd", "js", "characters.js"),
     ]
 
     if args.command == "scrape" or args.command is None:

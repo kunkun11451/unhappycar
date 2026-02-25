@@ -1,5 +1,13 @@
 // 角色数据
 window.characterData = {
+    "法尔伽": {
+        "头像": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/699e3449/bd2ad505d700cc342095d8ddd49d0c7b.png",
+        "元素类型": "风",
+        "武器类型": "双手剑",
+        "星级": "五星",
+        "体型": "成男",
+        "国家": "蒙德"
+    },
     "兹白": {
         "头像": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/6966dc8c/b7ea76f3f77eec4997dad6576c183939.png",
         "元素类型": "岩",
