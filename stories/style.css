@@ -1,0 +1,533 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+body {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    color: #fff;
+}
+
+/* 背景图与自适应 */
+.background {
+    position: fixed;
+    top: -5%;
+    left: -5%;
+    width: 110%;
+    height: 110%;
+    background-image: url('https://upload-bbs.miyoushe.com/upload/2026/03/10/284249424/b6c1e283f47880258ca588705ce41842_2259726059241321503.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: -1;
+    /* 轻微高斯模糊背景本身，让前景更突出 */
+    filter: blur(10px) brightness(0.85);
+}
+
+/* 毛玻璃主面板 */
+.player-container {
+    width: 95%;
+    max-width: 400px;
+    min-height: 480px;
+    height: 60vh;
+    max-height: 600px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 30px;
+    padding: 25px 25px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 32px 0 rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+/* 通用按钮样式 */
+button {
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.icon-btn {
+    font-size: 1.2rem;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.icon-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+}
+
+/* 头部 */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: ce4ter;
+    margin-bottom: 30px;
+}
+
+.header .title {
+    font-size: 1.1rem;
+    font-weight: 500;
+    letter-spacing: 2px;
+}
+
+/* 封面与信息 */
+.track-info {
+    text-align: center;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+/* 封面图片 */
+.cover-wrapper {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: -20px auto 20px auto;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    border: 3px solid rgba(255,255,255,0.2);
+    /* 解决部分设备旋转模糊问题 */
+    transform: translateZ(0);
+}
+
+.player-cover {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    animation: rotateCover 25s linear infinite;
+    animation-play-state: paused;
+}
+
+.player-container.isPlaying .player-cover {
+    animation-play-state: running;
+}
+
+@keyframes rotateCover {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 书名与章节滚动条 */
+.marquee-container {
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+    /* 边缘渐变遮罩，使两端不要那么唐突生硬 */
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+}
+
+.marquee-text {
+    display: inline-block;
+    white-space: nowrap;
+    /* 解决一些动画抖动 */
+    will-change: transform;
+}
+
+.marquee-text.scroll {
+    animation: marquee-scroll linear infinite alternate;
+}
+
+@keyframes marquee-scroll {
+    0%, 25% { transform: translateX(0); }
+    75%, 100% { transform: translateX(var(--scroll-dist)); }
+}
+
+.book-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin-bottom: 15px;
+    line-height: 1.3;
+    text-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    display: inline-block;
+}
+
+.chapter-title {
+    font-size: 1.2rem;
+    font-weight: 300;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    display: inline-block;
+}
+
+/* 进度条 */
+.progress-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 40px;
+    gap: 15px;
+    padding: 0 10px;
+}
+
+.time {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-variant-numeric: tabular-nums;
+}
+
+.progress-bar-wrapper {
+    flex-grow: 1;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+    position: relative;
+}
+
+.progress {
+    height: 100%;
+    background: linear-gradient(90deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,1) 100%);
+    width: 0%;
+    border-radius: 3px;
+    position: relative;
+    min-width: 6px;
+}
+
+.progress::after {
+    content: '';
+    position: absolute;
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 12px;
+    height: 12px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 5px rgba(0,0,0,0.3);
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.progress-bar-wrapper.dragging .progress::after {
+    transform: translateY(-50%) scale(1.5);
+    background: #4ade80;
+}
+
+/* 控制区 */
+.controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    padding: 0 10px;
+    width: 100%;
+}
+
+.primary-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 280px;
+}
+
+.secondary-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 280px;
+    padding: 0;
+}
+
+.icon-btn svg {
+    pointer-events: none;
+}
+
+.play-btn {
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+.text-btn {
+    font-size: 1rem;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 8px 12px;
+    border-radius: 15px;
+}
+
+.text-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* 模态框通用毛玻璃样式 */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end; /* 默认底部弹出 */
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.glass-panel {
+    background: rgba(30, 30, 30, 0.6);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    width: 100%;
+    max-width: 400px;
+    border-top-left-radius: 25px;
+    border-top-right-radius: 25px;
+    padding: 20px;
+    transform: translateY(100%);
+    transition: transform 0.3s ease-out;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.drawer-fixed {
+    height: 70vh;
+}
+
+.modal-overlay.active .glass-panel {
+    transform: translateY(0);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.modal-body {
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.modal-body::-webkit-scrollbar {
+    width: 5px;
+}
+.modal-body::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 5px;
+}
+
+/* 列表样式 */
+.options-list {
+    list-style: none;
+}
+
+.options-list li, .book-item {
+    padding: 15px;
+    margin-bottom: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.options-list li:hover, .book-item:hover, .chapter-item:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.options-list li.active {
+    background: rgba(255,255,255,0.25);
+    font-weight: bold;
+}
+
+/* 自定义输入框样式 */
+.input-option {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+    font-size: 0.95rem;
+}
+
+.input-option input {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    padding: 5px 8px;
+    border-radius: 5px;
+    width: 60px;
+    text-align: center;
+    font-size: 16px; /* 至少 16px 以防止 iOS 自动放大 */
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
+}
+
+.input-option input:focus {
+    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.input-row {
+    width: 100%;
+    margin-bottom: 5px;
+}
+
+.countdown-display {
+    width: 100%;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #4ade80;
+    margin-top: 5px;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 5px;
+    border-radius: 5px;
+}
+
+/* 倍速拖动条模式样式 */
+.speed-slider-container {
+    padding: 20px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+.speed-value-display {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #4ade80;
+}
+.speed-slider {
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+    outline: none;
+}
+.speed-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+.speed-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+.speed-marks {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    font-size: 0.8rem;
+    color: #ccc;
+    padding: 0;
+}
+
+/* 顶部书籍选择框 */
+.book-dropdown {
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 1rem;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+.book-dropdown option {
+    background: #1e1e1e;
+    color: #fff;
+}
+
+.book-dropdown:focus {
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* 章节列表网格化布局优化 */
+.chapter-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.chapter-item {
+    padding: 12px 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    color: #e0e0e0;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.chapter-item:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+.chapter-item.playing {
+    background: rgba(74, 222, 128, 0.2);
+    color: #4ade80;
+    font-weight: bold;
+    border-left: 4px solid #4ade80;
+}
+
+/* 倒计时显示 */
+.timer-countdown {
+    margin-top: 15px;
+    text-align: center;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    font-size: 0.9rem;
+}

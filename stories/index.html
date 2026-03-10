@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>stories</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="https://upload-bbs.miyoushe.com/upload/2026/02/02/284249424/69cdea8060c889a0302415294ca0600b_6320169270240776196.png" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="background"></div>
+
+    <div class="player-container">
+        <!-- 头部 -->
+        <div class="header">
+            <!-- <button class="icon-btn" id="settingsBtn" title="设置"><i class="fas fa-ellipsis-v"></i></button> -->
+        </div>
+
+        <!-- 封面与信息 -->
+        <div class="track-info">
+            <div class="cover-wrapper">
+                <img src="https://upload-bbs.miyoushe.com/upload/2026/02/02/284249424/69cdea8060c889a0302415294ca0600b_6320169270240776196.png" alt="cover" class="player-cover" id="playerCover">
+            </div>
+            <div class="marquee-container">
+                <h2 class="book-title marquee-text" id="bookTitle">加载中...</h2>
+            </div>
+            <div class="marquee-container">
+                <h3 class="chapter-title marquee-text" id="chapterTitle">加载中...</h3>
+            </div>
+        </div>
+
+        <!-- 进度条 -->
+        <div class="progress-container">
+            <span class="time" id="currentTime">00:00</span>
+            <div class="progress-bar-wrapper" id="progressWrapper">
+                <div class="progress-bar">
+                    <div class="progress" id="progress"></div>
+                </div>
+            </div>
+            <span class="time" id="duration">00:00</span>
+        </div>
+
+        <!-- 控制区 -->
+        <div class="controls">
+            <!-- 第一排 -->
+            <div class="primary-controls">
+                <button class="icon-btn" id="prevBtn"><i class="fas fa-step-backward"></i></button>
+                <button class="icon-btn" id="backward10Btn">
+                    <svg class="icon" style="width: 1em;height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1614"><path d="M512 46.592A465.408 465.408 0 1 1 46.592 512a34.9184 34.9184 0 0 1 69.7856-0.7168v7.2704a395.6224 395.6224 0 1 0 116.224-286.72h82.432a34.9184 34.9184 0 1 1 0 69.8368H151.3984a34.9184 34.9184 0 0 1-34.1504-34.9184V103.936a34.9184 34.9184 0 1 1 69.7856 0V178.688A464.2816 464.2816 0 0 1 512 46.5408z m105.984 274.944c48.4864 0 81.92 16.384 100.352 49.152 15.36 27.648 23.04 73.8816 23.04 138.752v4.2496c-0.3072 66.3552-7.9872 113.0496-23.04 140.1344-18.0736 32.4096-51.3536 48.64-99.84 48.64-48.7936 0-82.2784-15.872-100.352-47.616-15.36-26.9824-23.04-73.0624-23.04-138.24v-4.352c0.3584-63.9488 8.0384-110.08 23.04-138.496 18.432-34.816 51.712-52.224 99.84-52.224z m-205.824 6.144v368.64H347.136V390.656l-75.776 40.448V373.76l86.528-46.08h54.272z m206.3872 49.664h-1.0752c-12.288 0-22.1696 2.56-29.696 7.68a45.312 45.312 0 0 0-16.4864 22.9376l-0.4096 1.1264c-6.144 17.408-9.216 52.5824-9.216 105.472v7.3728c0.1024 20.0704 0.6144 37.5808 1.536 52.5312 1.3824 16.7424 3.9424 30.3616 7.68 40.96 6.7072 20.48 22.2208 30.72 46.5408 30.72h1.0752c23.9104 0 39.424-10.3936 46.592-31.232 5.632-16.128 8.4992-48.64 8.704-97.4336V512c0-23.9104-0.512-44.3904-1.536-61.44a159.744 159.744 0 0 0-7.168-41.472c-6.7072-21.1968-22.2208-31.744-46.5408-31.744z" fill="currentColor" p-id="1615"></path></svg>
+                </button>
+                <button class="icon-btn play-btn" id="playBtn"><i class="fas fa-play"></i></button>
+                <button class="icon-btn" id="forward10Btn">
+                    <svg class="icon" style="width: 1em;height: 1em;vertical-align: middle;fill: currentColor;overflow: hidden;" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1005"><path d="M512 46.592c123.648 0 239.3088 48.5376 324.9664 132.096V103.936a34.9184 34.9184 0 1 1 69.7856 0V266.752a34.9184 34.9184 0 0 1-34.1504 34.9184H708.9664a34.9184 34.9184 0 1 1 0-69.7856h82.432a395.6224 395.6224 0 1 0 116.224 286.72v-6.6048a34.9184 34.9184 0 0 1 69.8368 0A465.408 465.408 0 1 1 512 46.592z m105.984 274.944c48.4864 0 81.92 16.384 100.352 49.152 15.36 27.648 23.04 73.8816 23.04 138.752v4.2496c-0.3072 66.3552-7.9872 113.0496-23.04 140.1344-18.0736 32.4096-51.3536 48.64-99.84 48.64-48.7936 0-82.2784-15.872-100.352-47.616-15.36-26.9824-23.04-73.0624-23.04-138.24v-4.352c0.3584-63.9488 8.0384-110.08 23.04-138.496 18.432-34.816 51.712-52.224 99.84-52.224z m-205.824 6.144v368.64H347.136V390.656l-75.776 40.448V373.76l86.528-46.08h54.272z m206.3872 49.664h-1.0752c-12.288 0-22.1696 2.56-29.696 7.68-7.5264 5.12-13.1584 13.1584-16.896 24.064l-0.4096 1.28c-5.7856 17.5616-8.704 51.712-8.8064 102.3488v1.8432c0 23.1936 0.512 43.1616 1.536 59.904 1.3824 16.7424 3.9424 30.3616 7.68 40.96 6.7072 20.48 22.2208 30.72 46.5408 30.72h1.0752c23.9104 0 39.424-10.3936 46.592-31.232 5.7856-16.7424 8.704-51.0464 8.704-102.912v-7.3216a995.328 995.328 0 0 0-1.536-54.1184 159.744 159.744 0 0 0-7.168-41.472c-6.7072-21.1968-22.2208-31.744-46.5408-31.744z" p-id="1006"></path></svg>
+                </button>
+                <button class="icon-btn" id="nextBtn"><i class="fas fa-step-forward"></i></button>
+            </div>
+
+            <!-- 第二排 -->
+            <div class="secondary-controls">
+                <button class="text-btn" id="speedBtn">1.0x</button>
+                <button class="text-btn icon-btn" id="menuBtn" title="选集" style="width: auto; padding: 0 15px; border-radius: 20px; gap: 8px; font-size: 0.9rem; align-items: center; display: flex;"><i class="fas fa-list"></i> 书籍与章节</button>
+                <button class="icon-btn" id="timerBtn" title="定时"><i class="fas fa-clock"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 选集模态框 (侧边栏) -->
+    <div class="modal-overlay" id="menuModal">
+        <div class="modal-content glass-panel drawer drawer-fixed">
+            <div class="modal-header">
+                <select id="bookSelect" class="book-dropdown"></select>
+                <button class="icon-btn close-btn"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" id="bookList">
+                <!-- 动态生成列表 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 定时器模态框 -->
+    <div class="modal-overlay" id="timerModal">
+        <div class="modal-content glass-panel popup">
+            <div class="modal-header">
+                <h3>定时关闭</h3>
+                <button class="icon-btn close-btn"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <ul class="options-list">
+                    <li data-time="0" class="active">不开启</li>
+                    <li class="input-option" id="timeOptionLi">
+                        <div class="input-row">
+                            <input type="number" id="customTimeInput" value="30" min="1" max="999" pattern="[0-9]*" inputmode="numeric"> 分钟后停止播放
+                        </div>
+                        <div class="countdown-display" id="timeCountdownDisplay" style="display: none;">
+                            剩余时间: <span id="timeRemaining">--:--</span>
+                        </div>
+                    </li>
+                    <li class="input-option" id="episodeOptionLi">
+                        <div class="input-row">
+                            播放完 <input type="number" id="customEpisodeInput" value="1" min="1" max="50" pattern="[0-9]*" inputmode="numeric"> 集后停止播放
+                        </div>
+                        <div class="countdown-display" id="episodeCountdownDisplay" style="display: none;">
+                            剩余: <span id="episodeRemaining">0</span> 集
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 倍速模态框 -->
+    <div class="modal-overlay" id="speedModal">
+        <div class="modal-content glass-panel popup">
+            <div class="modal-header">
+                <h3>播放速度</h3>
+                <button class="icon-btn close-btn"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="speed-slider-container">
+                    <span class="speed-value-display" id="speedValueDisplay">1.0x</span>
+                    <input type="range" class="speed-slider" id="speedSlider" min="0" max="5" value="2" step="1">
+                    <div class="speed-marks">
+                        <span>0.5</span>
+                        <span>0.75</span>
+                        <span>1.0</span>
+                        <span>1.25</span>
+                        <span>1.5</span>
+                        <span>2.0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <audio id="audioPlayer"></audio>
+    <script src="data.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
