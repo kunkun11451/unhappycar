@@ -605,18 +605,36 @@
                       <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
                       <circle cx="8.5" cy="8.5" r="1.5" />
                       <path d="M21 15l-5-5L5 21" />
-                    </svg>页面背景</div>
-                  <div class="settings-desc" style="font-size: 0.8rem;">选择使用默认背景、纯色、自定义图片或表情符号墙纸</div>
+                    </svg>同步使用主持人的墙纸</div>
+                  <div class="settings-desc" style="font-size: 0.8rem;">加入房间时，使用主持人当前使用的墙纸（如果主持人设置了除默认和自定义图片以外的墙纸时生效）</div>
                 </div>
                 <div class="settings-action">
-                  <select id="personalizeBgMode" class="settings-select">
-                    <option value="default">默认</option>
-                    <option value="color">自定义颜色</option>
-                    <option value="image">自定义图片</option>
-                    <option value="emoji">表情符号</option>
-                  </select>
+                  <label class="switch">
+                    <input type="checkbox" id="useHostWallpaperToggle">
+                    <span class="slider"></span>
+                  </label>
                 </div>
               </div>
+              <div id="wallpaperSettingsContainer">
+                <div class="settings-item" style="padding: 10px 14px; margin-bottom: 8px; background: rgba(255, 255, 255, 0.02);">
+                  <div class="settings-info">
+                    <div class="settings-title" style="font-size: 0.95rem;"><svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                        <circle cx="8.5" cy="8.5" r="1.5" />
+                        <path d="M21 15l-5-5L5 21" />
+                      </svg>页面背景</div>
+                    <div class="settings-desc" style="font-size: 0.8rem;">选择使用默认背景、纯色、自定义图片或表情符号墙纸</div>
+                  </div>
+                  <div class="settings-action">
+                    <select id="personalizeBgMode" class="settings-select">
+                      <option value="default">默认</option>
+                      <option value="color">自定义颜色</option>
+                      <option value="image">自定义图片</option>
+                      <option value="emoji">表情符号</option>
+                    </select>
+                  </div>
+                </div>
 
               <div class="settings-item" id="personalizeBgColorItem" style="padding: 10px 14px; margin-bottom: 8px; background: rgba(255, 255, 255, 0.02);">
                 <div class="settings-info">
@@ -746,6 +764,7 @@
                   </select>
                   <button class="btn" id="personalizeDownloadBtn" style="min-width: 70px;">下载</button>
                 </div>
+              </div>
               </div>
             </div>
           </div>

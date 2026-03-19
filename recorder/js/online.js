@@ -4,6 +4,7 @@
     let isHost = false;
     // Versioned Sync: Track local version
     let currentVersion = 0;
+    let lastSyncedPayload = null;
 
     const params = new URLSearchParams(window.location.search);
     const roomParam = params.get('room');
@@ -190,6 +191,12 @@
 
 
 
+    // Expose online state getter for components that need re-hydration
+    window.__onlineMode = {
+        getLastSyncedPayload: () => lastSyncedPayload,
+        isHost: () => isHost
+    };
+
     function checkIo(cb) {
         if (window.io) cb();
         else setTimeout(() => checkIo(cb), 100);
@@ -345,6 +352,7 @@
             if (version > currentVersion) {
                 console.log(`Applying new state version: ${version} (was ${currentVersion})`);
                 currentVersion = version;
+                lastSyncedPayload = payload;
 
                 if (!isHost && window.__recorder_actions && window.__recorder_actions.restoreState) {
                     window.__recorder_actions.restoreState(payload);

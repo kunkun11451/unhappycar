@@ -7,7 +7,8 @@
         emojiImages: [],
         emojiLayout: 'mix',
         emojiScale: 1.0,
-        emojiSeed: 0
+        emojiSeed: 0,
+        useHostWallpaper: true
     };
 
     let settings = JSON.parse(localStorage.getItem(STORAGE_KEY)) || DEFAULT_SETTINGS;
@@ -16,12 +17,95 @@
     if (!Array.isArray(settings.emojiImages)) settings.emojiImages = [];
     if (!settings.emojiLayout) settings.emojiLayout = 'mix';
     if (typeof settings.emojiScale !== 'number') settings.emojiScale = 1.0;
+    if (typeof settings.useHostWallpaper !== 'boolean') settings.useHostWallpaper = true;
     if (!settings.emojiSeed) settings.emojiSeed = 0;
     if (!settings.backgroundImage) settings.backgroundImage = '';
+
+    // Export internal interface for online sync
+    window.__personalize_settings = {
+        getExportState: () => {
+            if (settings.backgroundMode === 'color') {
+                return {
+                    backgroundMode: 'color',
+                    backgroundColor: settings.backgroundColor
+                };
+            } else if (settings.backgroundMode === 'emoji') {
+                return {
+                    backgroundMode: 'emoji',
+                    backgroundColor: settings.backgroundColor,
+                    emojiImages: settings.emojiImages || [],
+                    emojiLayout: settings.emojiLayout || 'mix',
+                    emojiScale: settings.emojiScale || 1.0,
+                    emojiSeed: settings.emojiSeed || 0
+                };
+            }
+            return null; // Don't export default or image
+        },
+        importState: async (state) => {
+            if (!settings.useHostWallpaper) return; // Only process if viewer wants it
+
+            const bgContainer = ensureBackgroundContainer();
+            const root = document.documentElement;
+
+            if (!state || (state.backgroundMode !== 'color' && state.backgroundMode !== 'emoji')) {
+                // If the host has default/image or we didn't get state, revert to viewer's own settings
+                applySettings();
+                return;
+            }
+
+            // Reset legacy inline styles
+            document.body.style.removeProperty('background-color');
+            document.body.style.removeProperty('background-image');
+            document.body.style.removeProperty('background-size');
+            document.body.style.removeProperty('background-position');
+            document.body.style.removeProperty('background-repeat');
+            document.body.style.removeProperty('background-attachment');
+
+            // Apply host theme
+            setThemeLock(true); // Since it's color/emoji
+            root.classList.add('personalize-active');
+            document.body.classList.add('personalize-bg');
+            bgContainer.style.display = 'block';
+
+            if (state.backgroundMode === 'color') {
+                root.style.setProperty('--personalize-bg-color', state.backgroundColor);
+                bgContainer.style.backgroundColor = state.backgroundColor;
+                bgContainer.style.backgroundImage = 'none';
+                lastEmojiWallpaperDataUrl = '';
+            } else if (state.backgroundMode === 'emoji') {
+                root.style.setProperty('--personalize-bg-color', state.backgroundColor);
+                bgContainer.style.backgroundColor = state.backgroundColor;
+                
+                try {
+                    const images = await loadEmojiImagesForCanvas(state.emojiImages);
+                    if (images.length > 0) {
+                        const bgData = drawEmojiWallpaper(
+                            images, 
+                            state.emojiLayout, 
+                            state.backgroundColor, 
+                            state.emojiSeed, 
+                            state.emojiScale
+                        );
+                        bgContainer.style.backgroundImage = `url("${bgData}")`;
+                        bgContainer.style.backgroundSize = 'cover';
+                    } else {
+                        bgContainer.style.backgroundImage = 'none';
+                    }
+                } catch (e) {
+                    console.error("Failed to render host emoji wallpaper", e);
+                }
+            }
+        },
+        settings: settings
+    };
 
     function saveSettings() {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+            // Trigger state sync if host
+            if (!document.body.classList.contains('viewer-mode') && window.__recorder_actions && window.__recorder_actions.pushStateChange) {
+                window.__recorder_actions.pushStateChange(); // Broadcast wallpaper change
+            }
             return true;
         } catch (err) {
             console.warn('Failed to save personalize settings:', err);
@@ -1171,9 +1255,38 @@
         if (emojiScaleItem) emojiScaleItem.style.display = settings.backgroundMode === 'emoji' ? 'flex' : 'none';
         if (previewItem) previewItem.style.display = settings.backgroundMode === 'emoji' ? 'flex' : 'none';
         if (downloadItem) downloadItem.style.display = settings.backgroundMode === 'emoji' ? 'flex' : 'none';
+
+        if (settings.useHostWallpaper) {
+            document.body.classList.add('use-host-wallpaper');
+        } else {
+            document.body.classList.remove('use-host-wallpaper');
+        }
     }
 
     function init() {
+        const useHostWallpaperToggle = document.getElementById('useHostWallpaperToggle');
+        if (useHostWallpaperToggle) {
+            useHostWallpaperToggle.checked = settings.useHostWallpaper;
+            useHostWallpaperToggle.addEventListener('change', (e) => {
+                settings.useHostWallpaper = e.target.checked;
+                saveSettings();
+                syncUiVisibility();
+                
+                // If turning it on as a viewer, attempt to fetch state from host.
+                // We don't have direct access to socket, but we can trigger a state sync request or
+                // just rely on the host's next broadcast. For now, it will apply when host updates or viewer rejoins.
+                // A local applySettings will clear out the current wallpaper if the host hasn't synced yet.
+                if (settings.useHostWallpaper && document.body.classList.contains('viewer-mode')) {
+                    if (window.__recorder_actions && window.__recorder_actions.notifyViewerWallpaperPreferenceChanged) {
+                        window.__recorder_actions.notifyViewerWallpaperPreferenceChanged();
+                    }
+                } else {
+                    // Revert to viewer's own settings
+                    applySettings();
+                }
+            });
+        }
+        
         const bgModeSelect = document.getElementById('personalizeBgMode');
         const bgColorInput = document.getElementById('personalizeBgColor');
         const bgImageInput = document.getElementById('personalizeBgImage');
@@ -1418,6 +1531,26 @@
     
     window.addEventListener('resize', () => {
         updatePreviewAspect();
+        
+        // Viewer logic: Need to re-render host wallpaper if they are using it and it's emoji type
+        if (settings.useHostWallpaper && document.body.classList.contains('viewer-mode')) {
+             if (window.__onlineMode && window.__onlineMode.getLastSyncedPayload) {
+                 const payload = window.__onlineMode.getLastSyncedPayload();
+                 if (payload && payload.personalizeState && payload.personalizeState.backgroundMode === 'emoji') {
+                     // Check vertical-only resizes
+                     const currentWidth = window.innerWidth;
+                     if (Math.abs(currentWidth - lastWindowWidth) < 10) return;
+                     lastWindowWidth = currentWidth;
+             
+                     if (resizeTimer) clearTimeout(resizeTimer);
+                     resizeTimer = setTimeout(() => {
+                         window.__personalize_settings.importState(payload.personalizeState);
+                     }, 120);
+                     return;
+                 }
+             }
+        }
+
         if (settings.backgroundMode !== 'emoji') return;
         
         // Ignore vertical-only resizes (address bar toggling on mobile)

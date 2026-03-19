@@ -15,6 +15,10 @@ body {
     min-height: 100vh;
 }
 
+body.viewer-mode.use-host-wallpaper #wallpaperSettingsContainer {
+    display: none !important;
+}
+
 /* 确保表单控件与按钮使用同一字体（解决按钮/输入框未应用字体问题） */
 button,
 input,

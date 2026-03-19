@@ -66,7 +66,7 @@
   let onStateChangeCallback = null;
 
   function getState() {
-    return {
+    let state = {
       history,
       order,
       hasLastDraw,
@@ -77,11 +77,23 @@
       eventsEnabled: (window.__events_manager && window.__events_manager.enabled),
       lastDrawnEvent: (window.__events_manager && window.__events_manager.lastDrawnEvent)
     };
+    
+    // Add personalize state (wallpaper) if available
+    if (window.__personalize_settings && window.__personalize_settings.getExportState) {
+        state.personalizeState = window.__personalize_settings.getExportState();
+    }
+    
+    return state;
   }
 
 
   function restoreState(state) {
     if (!state) return;
+
+    // Restore personalize state if available
+    if (state.personalizeState !== undefined && window.__personalize_settings && window.__personalize_settings.importState) {
+        window.__personalize_settings.importState(state.personalizeState);
+    } // If the host turns off their custom wallpaper, state.personalizeState will be undefined or null
 
     const lastBar = document.getElementById('lastCopyBar');
     const recBar = document.getElementById('recordCopyBar');
@@ -2031,7 +2043,20 @@
     formatLastDrawText,
     formatCurrentRecordText,
     copyWithFeedback,
-    getRecord: () => record // 暴露当前记录供角色标签弹窗使用
+    getRecord: () => record, // 暴露当前记录供角色标签弹窗使用
+    notifyViewerWallpaperPreferenceChanged: () => {
+        if (window.__onlineMode && window.__onlineMode.getLastSyncedPayload) {
+            const payload = window.__onlineMode.getLastSyncedPayload();
+            if (payload) {
+                if (window.__personalize_settings && window.__personalize_settings.importState) {
+                    window.__personalize_settings.importState(payload.personalizeState || null);
+                }
+            }
+        }
+    },
+    pushStateChange: () => {
+        if (onStateChangeCallback) onStateChangeCallback(getState());
+    }
   };
 
   if (document.readyState === 'loading') {
