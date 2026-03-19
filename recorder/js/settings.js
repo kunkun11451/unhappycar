@@ -974,11 +974,12 @@
     };
 
     // 自定义 Prompt 功能
-    window.showCustomPrompt = function (msg, defaultValue = '', onConfirm, onCancel = null, title = '输入', confirmText = '确定', cancelText = '取消') {
+    window.showCustomPrompt = function (msg, defaultValue = '', onConfirm, onCancel = null, title = '输入', confirmText = '确定', cancelText = '取消', dropdownList = null) {
         const modal = document.getElementById('alertModal');
         const titleEl = document.getElementById('alertTitle');
         const msgEl = document.getElementById('alertMessage');
         const inputEl = document.getElementById('alertInput');
+        const dropdownEl = document.getElementById('alertDropdown');
         const okBtn = document.getElementById('alertOkBtn');
         const cancelBtn = document.getElementById('alertCancelBtn');
         const closeBtn = document.getElementById('alertCloseBtn');
@@ -1029,6 +1030,7 @@
                 modal.classList.remove('closing');
                 modal.classList.add('hidden');
                 if (inputEl) inputEl.value = ''; // Clean up
+                if (dropdownEl) dropdownEl.classList.add('hidden');
             }, { once: true });
         };
 
@@ -1064,7 +1066,6 @@
         const newBackdrop = backdrop.cloneNode(true);
         backdrop.parentNode.replaceChild(newBackdrop, backdrop);
 
-        // Enter key support
         if (inputEl) {
              // Clone input to remove old listeners
             const newInput = inputEl.cloneNode(true);
@@ -1078,6 +1079,38 @@
                     else newClose.click();
                 }
             });
+
+            if (dropdownEl) {
+                dropdownEl.innerHTML = '';
+                dropdownEl.classList.add('hidden');
+                if (dropdownList && dropdownList.length > 0) {
+                    dropdownList.forEach(item => {
+                        const div = document.createElement('div');
+                        div.textContent = item;
+                        div.style.padding = '8px 12px';
+                        div.style.cursor = 'pointer';
+                        div.style.borderBottom = '1px solid var(--border-color)';
+                        
+                        div.addEventListener('mouseenter', () => { div.style.background = 'var(--hover-bg, rgba(0,0,0,0.05))'; });
+                        div.addEventListener('mouseleave', () => { div.style.background = 'transparent'; });
+                        
+                        div.addEventListener('mousedown', (e) => {
+                            // Prevent input from losing focus immediately, or allow it but we set value
+                            e.preventDefault();
+                            newInput.value = item;
+                            dropdownEl.classList.add('hidden');
+                        });
+                        dropdownEl.appendChild(div);
+                    });
+
+                    newInput.addEventListener('focus', () => {
+                        dropdownEl.classList.remove('hidden');
+                    });
+                    newInput.addEventListener('blur', () => {
+                        dropdownEl.classList.add('hidden');
+                    });
+                }
+            }
         }
     };
 

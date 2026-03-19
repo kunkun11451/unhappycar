@@ -92,12 +92,15 @@
             flex-shrink: 0;
         }
         .online-room-bar .btn-icon.danger {
-            color: #94a3b8;
+            color: #F1F5F9E3;
+        }
+        body.light-theme .online-room-bar .btn-icon.danger {
+            color: #0F172A;
         }
         .online-room-bar .btn-icon.danger:hover {
             background: rgba(239, 68, 68, 0.15);
             border-color: rgba(239, 68, 68, 0.35);
-            color: #f87171;
+            color: #f87171 !important;
             box-shadow: 0 0 12px rgba(239, 68, 68, 0.15);
         }
         /* 复制成功反馈 */
@@ -146,6 +149,14 @@
             height: 140px;
             border-radius: 6px;
         }
+        .qr-loading {
+            position: absolute;
+            top: 12px; left: 12px; right: 12px; bottom: 12px;
+            display: flex; justify-content: center; align-items: center;
+            background: rgba(255, 255, 255, 0.9);
+            z-index: 10; border-radius: 6px;
+        }
+        .qr-loading.hidden { display: none !important; }
 
         /* ===== 手机端适配 ===== */
         @media (max-width: 560px) {
@@ -809,10 +820,14 @@
         ctx.fillStyle = '#fff';
         ctx.fillRect(0, 0, size, size);
 
+        const qrLoading = document.getElementById('qrLoading');
+        if (qrLoading) qrLoading.classList.remove('hidden');
+
         const img = new Image();
         img.crossOrigin = 'anonymous';
         img.onload = () => {
             ctx.drawImage(img, 0, 0, size, size);
+            if (qrLoading) qrLoading.classList.add('hidden');
         };
         img.onerror = () => {
             // fallback: 显示文字
@@ -820,6 +835,7 @@
             ctx.font = '12px sans-serif';
             ctx.textAlign = 'center';
             ctx.fillText('二维码加载失败', size / 2, size / 2);
+            if (qrLoading) qrLoading.classList.add('hidden');
         };
         img.src = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(text)}&margin=8`;
     }

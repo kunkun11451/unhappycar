@@ -690,13 +690,22 @@
         const maxSelected = 12;
 
         const selected = Array.isArray(settings.emojiImages) ? settings.emojiImages.slice(0, maxSelected) : [];
+        let localBgColor = settings.backgroundColor || '#242424';
 
         const renderSelected = () => {
             if (selectedLabel) {
                 selectedLabel.textContent = `已勾选 ${selected.length} / 12`;
             }
             if (selectedGrid) {
-                selectedGrid.innerHTML = selected.map(url => `
+                const bgColorHex = localBgColor;
+                const bgColorItemHtml = `
+                    <div class="emoji-option bg-color-picker" style="background-color: ${bgColorHex}; position: relative; border: 2px solid rgba(255,255,255,0.2);" title="点击调整背景颜色">
+                        <input type="color" value="${bgColorHex}" style="position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; inset: 0;" id="emojiQuickBgColor">
+                        <div style="position: absolute; bottom: 4px; left: 0; right: 0; text-align: center; color: #fff; font-size: 0.6rem; text-shadow: 0 0 4px rgba(0,0,0,0.8), 0 0 2px rgba(0,0,0,0.8), 0 0 1px rgba(0,0,0,1); pointer-events: none; white-space: nowrap; transform: scale(0.9);">当前背景颜色</div>
+                    </div>
+                `;
+
+                selectedGrid.innerHTML = bgColorItemHtml + selected.map(url => `
                     <div class="emoji-option selected" data-url="${url}">
                         <img src="${url}" alt="已选表情" loading="lazy">
                         <div class="emoji-check">
@@ -706,6 +715,15 @@
                         </div>
                     </div>
                 `).join('');
+
+                const quickColorInput = selectedGrid.querySelector('#emojiQuickBgColor');
+                const bgColorItem = selectedGrid.querySelector('.bg-color-picker');
+                if (quickColorInput && bgColorItem) {
+                    quickColorInput.addEventListener('input', (e) => {
+                        bgColorItem.style.backgroundColor = e.target.value;
+                        localBgColor = e.target.value;
+                    });
+                }
             }
         };
 
@@ -905,6 +923,11 @@
                 settings.emojiImages = selected.slice(0, maxSelected);
                 settings.emojiSeed = Date.now();
                 settings.backgroundMode = 'emoji';
+                
+                settings.backgroundColor = localBgColor;
+                const mainColorInput = document.getElementById('personalizeBgColor');
+                if (mainColorInput) mainColorInput.value = localBgColor;
+                
                 const bgModeSelect = document.getElementById('personalizeBgMode');
                 if (bgModeSelect) bgModeSelect.value = 'emoji';
                 saveSettings();
@@ -946,9 +969,12 @@
         const presetBtn = modal.querySelector('#emojiPickPresetBtn');
         if (presetBtn) {
             presetBtn.addEventListener('click', (e) => {
-                showPresetMenu(e.target, selected, (newSelection) => {
+                showPresetMenu(e.target, selected, localBgColor, (newSelection, loadedPreset) => {
                      // Update selected array
                      selected.splice(0, selected.length, ...newSelection);
+                     if (loadedPreset && loadedPreset.bgColor) {
+                         localBgColor = loadedPreset.bgColor;
+                     }
                      renderSelected();
                      // Refresh char list to show correct selection state
                      if (searchInput) {
@@ -971,7 +997,7 @@
         modal.querySelector('.settings-backdrop').addEventListener('click', closeModal);
     }
 
-    function showPresetMenu(triggerBtn, currentSelection, onLoadCallback) {
+    function showPresetMenu(triggerBtn, currentSelection, currentBgColor, onLoadCallback) {
         let menu = document.getElementById('emojiPresetMenu');
         if (menu) menu.remove();
 
@@ -1029,13 +1055,13 @@
                 return;
             }
             
-            const defaultName = `预设 ${settings.emojiPresets.length + 1}`;
             const handleSave = (name) => {
                 if (name) {
                     const existingIdx = settings.emojiPresets.findIndex(p => p.name === name);
                     if (existingIdx >= 0) {
                         const doOverwrite = () => {
                             settings.emojiPresets[existingIdx].images = [...currentSelection];
+                            settings.emojiPresets[existingIdx].bgColor = currentBgColor;
                             saveSettings();
                         };
 
@@ -1047,7 +1073,8 @@
                     } else {
                         settings.emojiPresets.push({
                             name: name,
-                            images: [...currentSelection]
+                            images: [...currentSelection],
+                            bgColor: currentBgColor
                         });
                         saveSettings();
                     }
@@ -1057,9 +1084,10 @@
             menu.remove(); // Remove menu before showing prompt
 
             if (window.showCustomPrompt) {
-                window.showCustomPrompt('请输入预设名称', defaultName, handleSave, null, '保存预设');
+                const existingNames = settings.emojiPresets.map(p => p.name);
+                window.showCustomPrompt('请输入预设名称', '', handleSave, null, '保存预设', '确定', '取消', existingNames);
             } else {
-                const name = prompt('请输入预设名称', defaultName);
+                const name = prompt('请输入预设名称', '');
                 if (name) handleSave(name);
             }
         };
@@ -1106,7 +1134,7 @@
                 item.onmouseover = () => item.style.background = 'rgba(255, 255, 255, 0.1)';
                 item.onmouseout = () => item.style.background = 'transparent';
                 item.onclick = () => {
-                   if (onLoadCallback) onLoadCallback(preset.images);
+                   if (onLoadCallback) onLoadCallback(preset.images, preset);
                    menu.remove();
                 };
                 
@@ -1296,7 +1324,7 @@
 
         if (bgColorInput) {
             bgColorInput.value = settings.backgroundColor;
-            bgColorInput.addEventListener('input', (e) => {
+            bgColorInput.addEventListener('change', (e) => {
                 settings.backgroundColor = e.target.value;
                 if (settings.backgroundMode !== 'emoji') {
                     settings.backgroundMode = 'color';

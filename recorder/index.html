@@ -63,6 +63,9 @@
             </svg>
           </button>
           <div id="qrPopover" class="qr-popover hidden">
+            <div id="qrLoading" class="qr-loading hidden">
+              <div class="spinner-large" style="width: 30px; height: 30px; border-width: 3px; margin: 0; border-top-color: #3b82f6; border-right-color: rgba(0,0,0,0.1); border-bottom-color: rgba(0,0,0,0.1); border-left-color: rgba(0,0,0,0.1);"></div>
+            </div>
             <canvas id="qrCanvas"></canvas>
           </div>
         </div>
@@ -594,6 +597,7 @@
                 </div>
               </div>
         <h4 class="settings-subtitle">墙纸设置</h4>
+        <div class="settings-desc" style="font-size: 0.8rem; text-align: center; margin-top: -10px; margin-bottom: 12px;">选择非”默认“的背景时，外观主题将锁定为浅色</div>
               <div class="settings-item" style="padding: 10px 14px; margin-bottom: 8px; background: rgba(255, 255, 255, 0.02);">
                 <div class="settings-info">
                   <div class="settings-title" style="font-size: 0.95rem;"><svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -711,13 +715,7 @@
                       <path d="M8 10h8" />
                       <path d="M8 14h5" />
                     </svg>预览墙纸
-                    <button id="refreshSeedBtn" class="btn primary" style="margin-left: auto;" title="刷新随机种子">
-                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M23 4v6h-6"></path>
-                        <path d="M1 20v-6h6"></path>
-                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-                      </svg>
-                    </button>
+                    <button id="refreshSeedBtn" class="btn primary" style="margin-left: auto;">刷新种子</button>
                   </div>
                   <div class="settings-desc" style="font-size: 0.8rem;">显示当前生成的表情符号墙纸预览</div>
                   <div class="settings-action" style="margin-top: 10px; width: 100%;">
@@ -808,7 +806,10 @@
       <div class="settings-body" style="padding: 24px; text-align: center;">
         <div id="alertMessage" style="font-size: 1rem; margin-bottom: 24px; line-height: 1.5; word-wrap: break-word;">
         </div>
-        <input type="text" id="alertInput" class="settings-select hidden" style="margin-bottom: 24px; width: 100%; text-align: left; padding: 10px;" autocomplete="off">
+        <div style="position: relative; width: 100%; margin-bottom: 24px;">
+          <input type="text" id="alertInput" class="settings-select hidden" style="width: 100%; text-align: left; padding: 10px; margin-bottom: 0;" autocomplete="off">
+          <div id="alertDropdown" class="hidden" style="position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-primary, #ffffff); border: 1px solid var(--border-color, #ccc); border-top: none; border-radius: 0 0 8px 8px; max-height: 150px; overflow-y: auto; z-index: 10; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); text-align: left;"></div>
+        </div>
         <div style="display: flex; gap: 12px; justify-content: center;">
           <button id="alertCancelBtn" class="btn hidden" style="flex: 1; justify-content: center;">取消</button>
           <button id="alertOkBtn" class="btn primary" style="flex: 1; justify-content: center;">确定</button>
