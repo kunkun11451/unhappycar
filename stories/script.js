@@ -299,38 +299,37 @@ function setupEventListeners() {
         setTimer(0);
     });
 
-    const activateTimeMode = () => {
-        const timeInput = document.getElementById('customTimeInput');
-        const minutes = parseInt(timeInput.value);
-        if (minutes > 0) setTimer(minutes);
-    };
+    const timeValues = [15, 30, 45, 60, 90, 120];
+    const timeSlider = document.getElementById('timeSlider');
+    const timeValueDisplay = document.getElementById('timeValueDisplay');
+    const timeOptionLi = document.getElementById('timeOptionLi');
 
-    const activateEpisodeMode = () => {
-        const episodeInput = document.getElementById('customEpisodeInput');
-        const episodes = parseInt(episodeInput.value);
-        if (episodes > 0) setEpisodeTimer(episodes);
-    };
-
-    document.getElementById('timeOptionLi').addEventListener('click', (e) => {
-        if (e.target.tagName !== 'INPUT') {
-            activateTimeMode();
-        }
-    });
-    document.getElementById('customTimeInput').addEventListener('input', () => {
-        if (document.getElementById('timeOptionLi').classList.contains('active')) {
-            activateTimeMode();
-        }
+    timeOptionLi?.addEventListener('click', () => {
+        const val = parseInt(timeSlider.value);
+        const minutes = timeValues[val];
+        setTimer(minutes);
     });
 
-    document.getElementById('episodeOptionLi').addEventListener('click', (e) => {
-        if (e.target.tagName !== 'INPUT') {
-            activateEpisodeMode();
-        }
+    timeSlider?.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value);
+        const minutes = timeValues[val];
+        timeValueDisplay.textContent = minutes + '分钟';
+        setTimer(minutes);
     });
-    document.getElementById('customEpisodeInput').addEventListener('input', () => {
-        if (document.getElementById('episodeOptionLi').classList.contains('active')) {
-            activateEpisodeMode();
-        }
+
+    const episodeSlider = document.getElementById('episodeSlider');
+    const episodeValueDisplay = document.getElementById('episodeValueDisplay');
+    const episodeOptionLi = document.getElementById('episodeOptionLi');
+
+    episodeOptionLi?.addEventListener('click', () => {
+        const episodes = parseInt(episodeSlider.value);
+        setEpisodeTimer(episodes);
+    });
+
+    episodeSlider?.addEventListener('input', (e) => {
+        const episodes = parseInt(e.target.value);
+        episodeValueDisplay.textContent = episodes + '集';
+        setEpisodeTimer(episodes);
     });
 }
 
@@ -492,15 +491,21 @@ function renderChapterList(bIndex) {
 // 定时器逻辑
 function updateTimerUI(type) {
     document.querySelectorAll('#timerModal .options-list li').forEach(l => l.classList.remove('active'));
+    document.getElementById('timeSliderWrapper').classList.remove('active');
+    document.getElementById('episodeSliderWrapper').classList.remove('active');
+    
     document.getElementById('timeCountdownDisplay').style.display = 'none';
     document.getElementById('episodeCountdownDisplay').style.display = 'none';
+    
     if (type === 0) {
         document.querySelector('#timerModal li[data-time="0"]').classList.add('active');
     } else if (type === 'time') {
-        document.getElementById('timeOptionLi').classList.add('active');
+        document.getElementById('timeSliderWrapper').classList.add('active');
+        document.getElementById('timeSliderWrapper').classList.add('active');
         document.getElementById('timeCountdownDisplay').style.display = 'block';
     } else if (type === 'episode') {
         document.getElementById('episodeOptionLi').classList.add('active');
+        document.getElementById('episodeSliderWrapper').classList.add('active');
         document.getElementById('episodeCountdownDisplay').style.display = 'block';
     }
 }

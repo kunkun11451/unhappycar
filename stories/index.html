@@ -2,7 +2,9 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#2c2c2c">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>stories</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="https://upload-bbs.miyoushe.com/upload/2026/02/02/284249424/69cdea8060c889a0302415294ca0600b_6320169270240776196.png" type="image/png">
@@ -80,7 +82,7 @@
 
     <!-- 定时器模态框 -->
     <div class="modal-overlay" id="timerModal">
-        <div class="modal-content glass-panel popup">
+        <div class="modal-content glass-panel popup timer-fixed-height">
             <div class="modal-header">
                 <h3>定时关闭</h3>
                 <button class="icon-btn close-btn"><i class="fas fa-times"></i></button>
@@ -88,22 +90,42 @@
             <div class="modal-body">
                 <ul class="options-list">
                     <li data-time="0" class="active">不开启</li>
-                    <li class="input-option" id="timeOptionLi">
-                        <div class="input-row">
-                            <input type="number" id="customTimeInput" value="30" min="1" max="999" pattern="[0-9]*" inputmode="numeric"> 分钟后停止播放
+                    <li id="timeOptionLi">定时关闭</li>
+                    <div class="timer-slider-wrapper" id="timeSliderWrapper">
+                        <div class="speed-slider-container">
+                            <span class="speed-value-display" id="timeValueDisplay">30分钟</span>
+                            <input type="range" class="speed-slider" id="timeSlider" min="0" max="5" value="1" step="1">
+                            <div class="speed-marks">
+                                <span>15</span>
+                                <span>30</span>
+                                <span>45</span>
+                                <span>60</span>
+                                <span>90</span>
+                                <span>120</span>
+                            </div>
+                            <div class="countdown-display" id="timeCountdownDisplay" style="display: none; width: 100%; text-align: center; margin-top: 10px;">
+                                剩余时间: <span id="timeRemaining">--:--</span>
+                            </div>
                         </div>
-                        <div class="countdown-display" id="timeCountdownDisplay" style="display: none;">
-                            剩余时间: <span id="timeRemaining">--:--</span>
+                    </div>
+                    
+                    <li id="episodeOptionLi">播放完集数</li>
+                    <div class="timer-slider-wrapper" id="episodeSliderWrapper">
+                        <div class="speed-slider-container">
+                            <span class="speed-value-display" id="episodeValueDisplay">1集</span>
+                            <input type="range" class="speed-slider" id="episodeSlider" min="1" max="5" value="1" step="1">
+                            <div class="speed-marks">
+                                <span>1</span>
+                                <span>2</span>
+                                <span>3</span>
+                                <span>4</span>
+                                <span>5</span>
+                            </div>
+                            <div class="countdown-display" id="episodeCountdownDisplay" style="display: none; width: 100%; text-align: center; margin-top: 10px;">
+                                剩余: <span id="episodeRemaining">0</span> 集
+                            </div>
                         </div>
-                    </li>
-                    <li class="input-option" id="episodeOptionLi">
-                        <div class="input-row">
-                            播放完 <input type="number" id="customEpisodeInput" value="1" min="1" max="50" pattern="[0-9]*" inputmode="numeric"> 集后停止播放
-                        </div>
-                        <div class="countdown-display" id="episodeCountdownDisplay" style="display: none;">
-                            剩余: <span id="episodeRemaining">0</span> 集
-                        </div>
-                    </li>
+                    </div>
                 </ul>
             </div>
         </div>
