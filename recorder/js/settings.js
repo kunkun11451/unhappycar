@@ -375,7 +375,7 @@
                 });
 
                 charTagsSearchInput.addEventListener('input', () => {
-                    charTagsSearchTerm = charTagsSearchInput.value.trim().toLowerCase().replace(/'/g, '');
+                    charTagsSearchTerm = charTagsSearchInput.value.trim().toLowerCase().replace(/['\s]/g, '');
                     renderCharTagsGrid(true);
                 });
 

@@ -1009,7 +1009,7 @@
     const oldPosMap = new Map();
     if (grid && grid.children.length > 0) {
       Array.from(grid.children).forEach(el => {
-        const name = el.getAttribute('title');
+        const name = el.dataset.name; 
         if (name) oldPosMap.set(name, el.getBoundingClientRect());
       });
     }
@@ -1034,7 +1034,7 @@
         }
       }
       const cardStyle = (anims && !isExisting) ? `--stagger:${i}` : '';
-      return `<div class="${cardClass}" style="${cardStyle}" title="${name}">
+      return `<div class="${cardClass}" style="${cardStyle}" data-name="${name}">
         ${avatar ? `<div class="avatar-wrapper"><img src="${avatar}" class="avatar-glow" aria-hidden="true"><img src="${avatar}" alt="${name}" class="avatar"></div>` : ''}
         <h3>${displayName}</h3>
       </div>`;
@@ -1059,7 +1059,7 @@
           const newItems = Array.from(grid.children);
           const moved = [];
           newItems.forEach(el => {
-            const name = el.getAttribute('title');
+            const name = el.dataset.name;
             const oldRect = oldPosMap.get(name);
             if (oldRect) {
               const newRect = el.getBoundingClientRect();
@@ -2005,7 +2005,7 @@
       });
 
       searchInput.addEventListener('input', () => {
-        panelSearchTerm = searchInput.value.trim().toLowerCase().replace(/'/g, '');
+        panelSearchTerm = searchInput.value.trim().toLowerCase().replace(/['\s]/g, '');
         renderComplement(true);
       });
 

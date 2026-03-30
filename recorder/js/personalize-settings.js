@@ -1045,7 +1045,7 @@
         const searchInput = modal.querySelector('#emojiPickSearch');
         if (searchInput) {
             searchInput.addEventListener('input', (e) => {
-                const term = e.target.value.trim().replace(/'/g, '');
+                const term = e.target.value.trim().replace(/['\s]/g, '');
                 renderCharList(term);
             });
         }
@@ -1062,7 +1062,7 @@
                      renderSelected();
                      // Refresh char list to show correct selection state
                      if (searchInput) {
-                         renderCharList(searchInput.value.trim().replace(/'/g, ''));
+                         renderCharList(searchInput.value.trim().replace(/['\s]/g, ''));
                      } else {
                          renderCharList();
                      }

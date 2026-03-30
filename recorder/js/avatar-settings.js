@@ -439,7 +439,7 @@
         const searchInput = modal.querySelector('#avatarPrefSearch');
         if (searchInput) {
             searchInput.addEventListener('input', (e) => {
-                const term = e.target.value.trim().replace(/'/g, '');
+                const term = e.target.value.trim().replace(/['\s]/g, '');
                 renderCharList(term);
             });
         }

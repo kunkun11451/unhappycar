@@ -172,7 +172,7 @@
         },
 
         handleSearch: function () {
-            const val = this.input.value.trim().toLowerCase().replace(/'/g, '');
+            const val = this.input.value.trim().toLowerCase().replace(/['\s]/g, '');
             if (!val) {
                 this.showPlaceholder();
                 return;

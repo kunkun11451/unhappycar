@@ -42,6 +42,12 @@
         renderSettingsUI: function () {
             const toggle = document.getElementById('eventsToggle');
             const editBtn = document.getElementById('editEventsBtn');
+            const editEventsItem = document.getElementById('editEventsItem');
+
+            // 初始显示逻辑
+            if (editEventsItem) {
+                editEventsItem.style.display = this.enabled ? '' : 'none';
+            }
 
             if (toggle) {
                 // 初始化状态
@@ -51,6 +57,10 @@
                     this.enabled = e.target.checked;
                     this.saveSettings();
                     this.updateDisplayVisibility();
+                    
+                    if (editEventsItem) {
+                        editEventsItem.style.display = this.enabled ? '' : 'none';
+                    }
                     
                     // 如果关闭了事件抽取，清除缓存
                     if (!this.enabled) {
