@@ -41,7 +41,6 @@
         // 绑定设置面板的事件
         renderSettingsUI: function () {
             const toggle = document.getElementById('eventsToggle');
-            const editBtn = document.getElementById('editEventsBtn');
             const editEventsItem = document.getElementById('editEventsItem');
 
             // 初始显示逻辑
@@ -76,8 +75,8 @@
                 });
             }
 
-            if (editBtn) {
-                editBtn.addEventListener('click', () => {
+            if (editEventsItem) {
+                editEventsItem.addEventListener('click', () => {
                     this.openEditModal();
                 });
             }

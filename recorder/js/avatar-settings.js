@@ -484,7 +484,6 @@
     function setupUI() {
         const avatarModeSelect = document.getElementById('avatarModeSelect');
         const displayPrefItem = document.getElementById('displayPrefItem');
-        const displayPrefBtn = document.getElementById('displayPrefBtn');
 
         if (avatarModeSelect) {
             avatarModeSelect.value = avatarSettings.avatarMode;
@@ -514,8 +513,8 @@
             });
         }
 
-        if (displayPrefBtn) {
-            displayPrefBtn.addEventListener('click', () => {
+        if (displayPrefItem) {
+            displayPrefItem.addEventListener('click', () => {
                 openDisplayPreferenceModal();
             });
         }

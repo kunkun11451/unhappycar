@@ -204,17 +204,17 @@
         switch (action) {
             case 'undo':
                 // 调用撤销功能
-                const modalUndoBtn = document.getElementById('modalUndoBtn');
-                if (modalUndoBtn) {
-                    modalUndoBtn.click();
+                const modalUndoBtnItem = document.getElementById('modalUndoBtnItem');
+                if (modalUndoBtnItem) {
+                    modalUndoBtnItem.click();
                 }
                 break;
 
             case 'history':
                 // 打开历史记录
-                const modalHistoryBtn = document.getElementById('modalHistoryBtn');
-                if (modalHistoryBtn) {
-                    modalHistoryBtn.click();
+                const modalHistoryBtnItem = document.getElementById('modalHistoryBtnItem');
+                if (modalHistoryBtnItem) {
+                    modalHistoryBtnItem.click();
                 }
                 break;
 
@@ -229,9 +229,9 @@
 
             case 'reset':
                 // 重置记录
-                const modalResetBtn = document.getElementById('modalResetBtn');
-                if (modalResetBtn) {
-                    modalResetBtn.click();
+                const modalResetBtnItem = document.getElementById('modalResetBtnItem');
+                if (modalResetBtnItem) {
+                    modalResetBtnItem.click();
                 }
                 break;
         }

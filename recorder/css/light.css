@@ -226,6 +226,19 @@ h2 {
   background: rgba(0, 0, 0, 0.04)
 }
 
+.settings-item.clickable-item:active {
+  background: rgba(0, 0, 0, 0.08);
+  transform: translateY(0);
+}
+
+body.light-theme .ripple {
+  background-color: rgba(0, 0, 0, 0.15);
+}
+
+.chevron-right.danger-icon {
+  color: #ef4444;
+}
+
 .settings-title {
   color: #0f172a
 }
@@ -614,3 +627,35 @@ input:checked+.slider:before {
 .avatar-placeholder {
     background: rgba(100, 116, 139, 0.15);
 }
+
+/* Light theme for Difficulty Slider */
+.light-theme .difficulty-slider {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.light-theme .difficulty-slider:hover {
+    background: rgba(0, 0, 0, 0.18);
+}
+
+.light-theme .difficulty-slider::-webkit-slider-thumb {
+    background: #d4ac6e;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.light-theme .difficulty-slider::-webkit-slider-thumb:hover {
+    background: #c39a5c;
+}
+
+.light-theme .difficulty-slider::-moz-range-thumb {
+    background: #d4ac6e;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.light-theme .difficulty-slider::-moz-range-thumb:hover {
+    background: #c39a5c;
+}
+
+.light-theme .difficulty-hint {
+  color: #64748b;
+}
+

@@ -71,6 +71,7 @@
       order,
       hasLastDraw,
       lastDraw: window.__recorder_lastDraw,
+      difficultyLevel: (window.__difficulty_manager && typeof window.__difficulty_manager.level === 'number') ? window.__difficulty_manager.level : 0,
       // Add Brain Teaser Mode to sync state
       brainTeaserMode: (window.__recorder_settings && window.__recorder_settings.brainTeaserMode),
       // Add Events state
@@ -89,6 +90,11 @@
 
   function restoreState(state) {
     if (!state) return;
+
+    // Sync Difficulty level (host -> viewers)
+    if (state.difficultyLevel !== undefined && window.__difficulty_manager && window.__difficulty_manager.setLevel) {
+      window.__difficulty_manager.setLevel(parseInt(state.difficultyLevel, 10) || 0);
+    }
 
     // Restore personalize state if available
     if (state.personalizeState !== undefined && window.__personalize_settings && window.__personalize_settings.importState) {
@@ -327,11 +333,13 @@
     if (window.__events_manager) window.__events_manager.draw();
 
     const token = ++currentAnimationToken;
+    // 通过难度管理器抽取
+    const pick = window.__difficulty_manager ? window.__difficulty_manager.pick.bind(window.__difficulty_manager) : pickRandom;
     const last = {
-      元素类型: pickRandom(POOLS.元素类型),
-      国家: pickRandom(POOLS.国家),
-      武器类型: pickRandom(POOLS.武器类型),
-      体型: pickRandom(POOLS.体型),
+      元素类型: pick(POOLS.元素类型, '元素类型', record),
+      国家: pick(POOLS.国家, '国家', record),
+      武器类型: pick(POOLS.武器类型, '武器类型', record),
+      体型: pick(POOLS.体型, '体型', record),
     };
     // 计算并记录操作 + 原位置索引（删除时用）
     const lastChanges = {};
@@ -606,8 +614,12 @@
 
       const classStr = ['badge', ...extraClasses].join(' ');
       attrStr = (hasIcon && badgeMode === 'icon') ? `title="${val}"` : attrStr; // Use attrStr, fallback to aria-label if set
+      const hideStyle = !val ? ' style="visibility: hidden;"' : '';
+      if (!val) {
+        content = '&nbsp;';
+      }
 
-      return `<span class="${classStr}" ${attrStr}>${content}</span>`;
+      return `<span class="${classStr}" ${attrStr}${hideStyle}>${content}</span>`;
     });
 
     const chips = parts.join('');
@@ -1168,7 +1180,7 @@
     const tbody = document.getElementById('historyTbody');
     if (!tbody) return;
     if (history.length === 0) {
-      tbody.innerHTML = '<tr class="empty"><td colspan="5">暂无记录</td></tr>';
+      tbody.innerHTML = '<tr class="empty"><td colspan="6">暂无记录</td></tr>';
       return;
     }
     tbody.innerHTML = history.map(h => {

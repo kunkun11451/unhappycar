@@ -20,6 +20,7 @@
     if (typeof settings.useHostWallpaper !== 'boolean') settings.useHostWallpaper = true;
     if (!settings.emojiSeed) settings.emojiSeed = 0;
     if (!settings.backgroundImage) settings.backgroundImage = '';
+    let personalizeSyncTimer = null;
 
     // Export internal interface for online sync
     window.__personalize_settings = {
@@ -99,12 +100,21 @@
         settings: settings
     };
 
-    function saveSettings() {
+    function saveSettings(options = {}) {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
             // Trigger state sync if host
             if (!document.body.classList.contains('viewer-mode') && window.__recorder_actions && window.__recorder_actions.pushStateChange) {
-                window.__recorder_actions.pushStateChange(); // Broadcast wallpaper change
+                const debounceMs = Number(options.debounceSyncMs || 0);
+                if (debounceMs > 0) {
+                    if (personalizeSyncTimer) clearTimeout(personalizeSyncTimer);
+                    personalizeSyncTimer = setTimeout(() => {
+                        personalizeSyncTimer = null;
+                        window.__recorder_actions.pushStateChange(); // Broadcast wallpaper change
+                    }, debounceMs);
+                } else {
+                    window.__recorder_actions.pushStateChange(); // Broadcast wallpaper change
+                }
             }
             return true;
         } catch (err) {
@@ -1291,7 +1301,7 @@
         const bgColorInput = document.getElementById('personalizeBgColor');
         const bgImageInput = document.getElementById('personalizeBgImage');
         const bgClearBtn = document.getElementById('personalizeBgClear');
-        const emojiPickBtn = document.getElementById('personalizeEmojiPickBtn');
+        const personalizeEmojiItem = document.getElementById('personalizeEmojiItem');
         const emojiLayoutSelect = document.getElementById('personalizeEmojiLayout');
         const emojiScaleDecreaseBtn = document.getElementById('emojiScaleDecrease');
         const emojiScaleIncreaseBtn = document.getElementById('emojiScaleIncrease');
@@ -1414,7 +1424,7 @@
                 emojiScaleValueDisplay.textContent = currentScale.toFixed(1);
                 
                 settings.emojiScale = currentScale;
-                saveSettings();
+                saveSettings({ debounceSyncMs: 3500 });
                 
                 // Debounce heavy rendering
                 if (renderTimer) clearTimeout(renderTimer);
@@ -1487,8 +1497,8 @@
             });
         }
 
-        if (emojiPickBtn) {
-            emojiPickBtn.addEventListener('click', () => {
+        if (personalizeEmojiItem) {
+            personalizeEmojiItem.addEventListener('click', () => {
                 openEmojiMaterialModal();
             });
         }

@@ -123,21 +123,21 @@
         }
 
         // 绑定弹窗内的按钮
-        document.getElementById('modalUndoBtn').addEventListener('click', () => {
+        document.getElementById('modalUndoBtnItem').addEventListener('click', () => {
             window.__recorder_actions.undo();
         });
-        document.getElementById('modalResetBtn').addEventListener('click', () => {
+        document.getElementById('modalResetBtnItem').addEventListener('click', () => {
             const doConfirm = window.showCustomConfirm || ((msg, cb) => { if (confirm(msg)) cb(); });
             doConfirm('确定要重置所有记录吗？此操作无法撤销。', () => {
                 window.__recorder_actions.reset();
             }, null, '重置记录', '确定', '取消');
         });
-        document.getElementById('modalHistoryBtn').addEventListener('click', () => {
+        document.getElementById('modalHistoryBtnItem').addEventListener('click', () => {
             window.__recorder_actions.openHistory();
         });
 
         // 查看所有角色标签按钮
-        const viewAllTagsBtn = document.getElementById('viewAllTagsBtn');
+        const viewAllTagsItem = document.getElementById('viewAllTagsItem');
         const charTagsModal = document.getElementById('charTagsModal');
         const charTagsGrid = document.getElementById('charTagsGrid');
         const charTagsSearchBtn = document.getElementById('charTagsSearchBtn');
@@ -340,8 +340,8 @@
             }
         }
 
-        if (viewAllTagsBtn && charTagsModal && charTagsGrid) {
-            viewAllTagsBtn.addEventListener('click', () => {
+        if (viewAllTagsItem && charTagsModal && charTagsGrid) {
+            viewAllTagsItem.addEventListener('click', () => {
                 // 重置搜索状态
                 charTagsSearchTerm = '';
                 if (charTagsSearchInput) charTagsSearchInput.value = '';
@@ -1133,5 +1133,37 @@
             toast.classList.remove('show');
         }, duration);
     };
+
+    // 全局处理 clickable-item 的涟漪动画
+    document.addEventListener('click', function(e) {
+        const item = e.target.closest('.clickable-item');
+        if (item) {
+            const rect = item.getBoundingClientRect();
+            let x = e.clientX - rect.left;
+            let y = e.clientY - rect.top;
+
+            // 如果是通过键盘触发（如回车键），坐标可能为 0
+            if (e.clientX === 0 && e.clientY === 0) {
+                x = rect.width / 2;
+                y = rect.height / 2;
+            }
+
+            const ripple = document.createElement('div');
+            ripple.className = 'ripple';
+            
+            // 确保涟漪能覆盖整个区域
+            const size = Math.max(rect.width, rect.height); 
+            ripple.style.width = ripple.style.height = `${size}px`;
+            ripple.style.left = `${x - size / 2}px`;
+            ripple.style.top = `${y - size / 2}px`;
+            
+            item.appendChild(ripple);
+            
+            // 动画结束后移除元素
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        }
+    });
 
 })();
