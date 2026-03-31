@@ -241,7 +241,7 @@
     margin: 28px 0 16px;
     padding-bottom: 8px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    color: #94a3b8;
+    color: var(--pc-font-muted, #94a3b8);
     font-size: 0.9rem;
     font-weight: 500;
     text-align: center;
@@ -557,7 +557,7 @@ input:checked+.slider:before {
 body.light-theme .toast-notification {
     background: rgba(255, 255, 255, 0.9);
     border-color: rgba(0, 0, 0, 0.1);
-    color: #0f172a;
+    color: var(--pc-font-color);
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
@@ -613,7 +613,7 @@ body.light-theme .viewer-loader {
 }
 
 body.light-theme .loader-content {
-    color: #475569;
+    color: var(--pc-font-muted);
 }
 
 body.light-theme .spinner-large {
@@ -710,6 +710,7 @@ body.light-theme .spinner-large {
     align-items: center;
     gap: 12px;
     padding: 12px 14px;
+    color: var(--pc-font-color, #f1f5f9);
     cursor: pointer;
     transition: background 0.2s ease;
 }
@@ -731,7 +732,7 @@ body.light-theme .spinner-large {
     flex: 1;
     font-size: 0.95rem;
     font-weight: 500;
-    color: #f1f5f9;
+    color: var(--pc-font-color, #f1f5f9);
 }
 
 .char-emoji-count {
@@ -891,6 +892,42 @@ body.light-theme .spinner-large {
     object-fit: cover;
 }
 
+.quick-theme-picker {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.quick-theme-row {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.quick-theme-row:last-child {
+    border-bottom: none;
+}
+
+.quick-theme-row span {
+    color: #ffffff;
+    font-size: 0.64rem;
+    letter-spacing: 0.5px;
+    pointer-events: none;
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.85), 0 0 1px rgba(0, 0, 0, 0.9);
+}
+
+.quick-theme-row input[type="color"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+}
+
 .emoji-check {
     position: absolute;
     top: 4px;
@@ -918,7 +955,7 @@ body.light-theme .spinner-large {
 .no-chars-msg {
     text-align: center;
     padding: 40px 20px;
-    color: #94a3b8;
+    color: var(--pc-font-muted, #94a3b8);
     font-size: 0.95rem;
 }
 
@@ -954,8 +991,8 @@ body.light-theme .char-emoji-panel {
 }
 
 body.light-theme .selected-zone {
-    background: rgba(225, 190, 136, 0.15);
-    border-color: rgba(225, 190, 136, 0.4);
+    background: rgba(var(--pc-btn-rgb), 0.15);
+    border-color: rgba(var(--pc-btn-rgb), 0.4);
 }
 
 body.light-theme .selected-zone .zone-label {
@@ -1014,8 +1051,8 @@ body.light-theme .settings-footer {
 
 body.light-theme .empty-zone-hint {
     color: #92400e;
-    background: rgba(225, 190, 136, 0.1);
-    border-color: rgba(225, 190, 136, 0.3);
+    background: rgba(var(--pc-btn-rgb), 0.1);
+    border-color: rgba(var(--pc-btn-rgb), 0.3);
 }
 
 /* Mobile Adaptations */
@@ -1065,7 +1102,7 @@ body.light-theme .empty-zone-hint {
     border-radius: 10px; /* Matching char-pref-item radius */
     border: 1px solid rgba(255, 255, 255, 0.05);
     background: rgba(255, 255, 255, 0.02); /* Matching char-pref-item bg */
-    color: #e2e8f0;
+    color: var(--pc-font-color, #e2e8f0);
     font-size: 0.95rem;
     box-sizing: border-box;
     transition: all 0.2s ease;
@@ -1077,16 +1114,16 @@ body.light-theme .empty-zone-hint {
 
 .avatar-pref-search-input:focus {
     outline: none;
-    border-color: rgba(56, 189, 248, 0.5);
+    border-color: rgba(var(--pc-btn-rgb, 56, 189, 248), 0.6);
     background: rgba(0, 0, 0, 0.25);
-    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
+    box-shadow: 0 0 0 3px rgba(var(--pc-btn-rgb, 56, 189, 248), 0.15);
 }
 
 /* Light Mode Adaptation for Search Input */
 body.light-theme .avatar-pref-search-input {
     background: rgba(0, 0, 0, 0.02);
     border-color: rgba(0, 0, 0, 0.08);
-    color: #1e293b;
+    color: var(--pc-font-color);
 }
 
 body.light-theme .avatar-pref-search-input:hover {
@@ -1095,8 +1132,8 @@ body.light-theme .avatar-pref-search-input:hover {
 
 body.light-theme .avatar-pref-search-input:focus {
     background: rgba(255, 255, 255, 0.8);
-    border-color: rgba(56, 189, 248, 0.6);
-    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+    border-color: rgba(var(--pc-btn-rgb), 0.6);
+    box-shadow: 0 0 0 3px rgba(var(--pc-btn-rgb), 0.15);
 }
 
 /* Custom Range Slider for Difficulty */

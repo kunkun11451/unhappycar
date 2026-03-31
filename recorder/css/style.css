@@ -1249,19 +1249,19 @@ body.light-theme .badge .img-icon[alt="挪德卡莱"] {
 body.light-theme .settings-select {
     background-color: rgba(255, 255, 255, 0.5);
     border-color: rgba(0, 0, 0, 0.1);
-    color: #334155;
+    color: var(--pc-font-muted-dark);
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
 }
 
 body.light-theme .settings-select:focus {
     background-color: rgba(255, 255, 255, 0.8);
-    border-color: rgb(225, 190, 136);
-    box-shadow: 0 0 0 3px rgba(225, 190, 136, 0.15);
+    border-color: var(--pc-btn-color);
+    box-shadow: 0 0 0 3px rgba(var(--pc-btn-rgb), 0.15);
 }
 
 body.light-theme .settings-select option {
     background-color: #ffffff;
-    color: #334155;
+    color: var(--pc-font-muted-dark);
 }
 
 /* Rules Details Styling */
@@ -1327,13 +1327,9 @@ body.light-theme .settings-select option {
 }
 
 .rules-anim-container {
-    display: grid;
-    grid-template-rows: 0fr;
-    transition: grid-template-rows 0.3s ease-out;
-}
-
-.rules-details.is-open .rules-anim-container {
-    grid-template-rows: 1fr;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease-out;
 }
 
 .rules-details .rules-arrow {
@@ -1362,7 +1358,7 @@ body.light-theme .settings-select option {
 }
 
 .rules-content h3 {
-    color: #f1f5f9;
+    color: var(--pc-font-color, #f1f5f9);
     font-size: 0.95rem;
     margin: 16px 0 8px;
     border-left: 3px solid #38bdf8;
@@ -1394,7 +1390,7 @@ body.light-theme .settings-select option {
 
 .rules-table th {
     background: rgba(255, 255, 255, 0.05);
-    color: #64748b;
+    color: var(--pc-font-muted, #64748b);
 }
 
 /* Light Theme Adaptations for Rules */
@@ -1408,11 +1404,11 @@ body.light-theme .rules-details:hover {
 }
 
 body.light-theme .rules-content {
-    color: #475569;
+    color: var(--pc-font-muted);
 }
 
 body.light-theme .rules-content h3 {
-    color: #1e293b;
+    color: var(--pc-font-color);
 }
 
 body.light-theme .rules-table th,
@@ -1422,7 +1418,7 @@ body.light-theme .rules-table td {
 
 body.light-theme .rules-table th {
     background: rgba(0, 0, 0, 0.05);
-    color: #64748b;
+    color: var(--pc-font-muted);
 }
 
 /* ====== Responsive ====== */

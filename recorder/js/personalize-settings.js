@@ -8,7 +8,9 @@
         emojiLayout: 'mix',
         emojiScale: 1.0,
         emojiSeed: 0,
-        useHostWallpaper: true
+        useHostWallpaper: true,
+        fontColor: '#0f172a',
+        btnColor: '#e1be88'
     };
 
     let settings = JSON.parse(localStorage.getItem(STORAGE_KEY)) || DEFAULT_SETTINGS;
@@ -20,7 +22,10 @@
     if (typeof settings.useHostWallpaper !== 'boolean') settings.useHostWallpaper = true;
     if (!settings.emojiSeed) settings.emojiSeed = 0;
     if (!settings.backgroundImage) settings.backgroundImage = '';
+    if (!settings.fontColor) settings.fontColor = '#0f172a';
+    if (!settings.btnColor) settings.btnColor = '#e1be88';
     let personalizeSyncTimer = null;
+    const WALLPAPER_SYNC_DEBOUNCE_MS = 5000;
 
     // Export internal interface for online sync
     window.__personalize_settings = {
@@ -28,12 +33,16 @@
             if (settings.backgroundMode === 'color') {
                 return {
                     backgroundMode: 'color',
-                    backgroundColor: settings.backgroundColor
+                    backgroundColor: settings.backgroundColor,
+                    fontColor: settings.fontColor,
+                    btnColor: settings.btnColor
                 };
             } else if (settings.backgroundMode === 'emoji') {
                 return {
                     backgroundMode: 'emoji',
                     backgroundColor: settings.backgroundColor,
+                    fontColor: settings.fontColor,
+                    btnColor: settings.btnColor,
                     emojiImages: settings.emojiImages || [],
                     emojiLayout: settings.emojiLayout || 'mix',
                     emojiScale: settings.emojiScale || 1.0,
@@ -73,9 +82,11 @@
                 bgContainer.style.backgroundColor = state.backgroundColor;
                 bgContainer.style.backgroundImage = 'none';
                 lastEmojiWallpaperDataUrl = '';
+                applyElementColorsFromState(state);
             } else if (state.backgroundMode === 'emoji') {
                 root.style.setProperty('--personalize-bg-color', state.backgroundColor);
                 bgContainer.style.backgroundColor = state.backgroundColor;
+                applyElementColorsFromState(state);
                 
                 try {
                     const images = await loadEmojiImagesForCanvas(state.emojiImages);
@@ -124,6 +135,64 @@
             }
             return false;
         }
+    }
+
+    function saveWallpaperSettings() {
+        return saveSettings({ debounceSyncMs: WALLPAPER_SYNC_DEBOUNCE_MS });
+    }
+
+    function hexToRgb(hex) {
+        if (!hex || hex.length !== 7) return '255, 255, 255';
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `${r}, ${g}, ${b}`;
+    }
+
+    function applyElementColorsFromState(state) {
+        const root = document.body;
+        const props = ['--pc-font-color', '--pc-font-muted', '--pc-font-muted-rgb', '--pc-font-muted-dark', '--pc-btn-color', '--pc-btn-rgb', '--pc-btn-hover', '--pc-btn-hover-border'];
+
+        if (!state || (state.backgroundMode !== 'color' && state.backgroundMode !== 'emoji')) {
+            props.forEach(p => root.style.removeProperty(p));
+            return;
+        }
+
+        const fontColor = state.fontColor || '#0f172a';
+        const btnColor = state.btnColor || '#e1be88';
+
+        root.style.setProperty('--pc-font-color', fontColor);
+        root.style.setProperty('--pc-font-muted', `color-mix(in srgb, ${fontColor}, white 40%)`);
+        root.style.setProperty('--pc-font-muted-dark', `color-mix(in srgb, ${fontColor}, white 20%)`);
+        root.style.setProperty('--pc-font-muted-rgb', hexToRgb(fontColor));
+
+        root.style.setProperty('--pc-btn-color', btnColor);
+        root.style.setProperty('--pc-btn-rgb', hexToRgb(btnColor));
+        root.style.setProperty('--pc-btn-hover', `color-mix(in srgb, ${btnColor}, black 10%)`);
+        root.style.setProperty('--pc-btn-hover-border', `color-mix(in srgb, ${btnColor}, black 20%)`);
+    }
+
+    
+    function applyElementColors() {
+        const root = document.body;
+        if (settings.backgroundMode === 'default') {
+            const props = ['--pc-font-color', '--pc-font-muted', '--pc-font-muted-rgb', '--pc-font-muted-dark', '--pc-btn-color', '--pc-btn-rgb', '--pc-btn-hover', '--pc-btn-hover-border'];
+            props.forEach(p => root.style.removeProperty(p));
+            return;
+        }
+
+        const fontColor = settings.fontColor || '#0f172a';
+        const btnColor = settings.btnColor || '#e1be88';
+
+        root.style.setProperty('--pc-font-color', fontColor);
+        root.style.setProperty('--pc-font-muted', `color-mix(in srgb, ${fontColor}, white 40%)`);
+        root.style.setProperty('--pc-font-muted-dark', `color-mix(in srgb, ${fontColor}, white 20%)`);
+        root.style.setProperty('--pc-font-muted-rgb', hexToRgb(fontColor));
+
+        root.style.setProperty('--pc-btn-color', btnColor);
+        root.style.setProperty('--pc-btn-rgb', hexToRgb(btnColor));
+        root.style.setProperty('--pc-btn-hover', `color-mix(in srgb, ${btnColor}, black 10%)`);
+        root.style.setProperty('--pc-btn-hover-border', `color-mix(in srgb, ${btnColor}, black 20%)`);
     }
 
     function ensureBackgroundContainer() {
@@ -655,6 +724,7 @@
             root.style.removeProperty('--personalize-bg-color');
             lastEmojiWallpaperDataUrl = '';
             updateEmojiPreview('');
+            applyElementColors();
             return;
         }
 
@@ -682,6 +752,7 @@
                  bgContainer.style.backgroundImage = 'none';
                  lastEmojiWallpaperDataUrl = '';
                  updateEmojiPreview('');
+                 applyElementColors();
                  return;
              }
              const bgData = drawEmojiWallpaper(images, settings.emojiLayout, settings.backgroundColor, settings.emojiSeed, settings.emojiScale);
@@ -694,6 +765,7 @@
              lastEmojiWallpaperDataUrl = '';
              updateEmojiPreview('');
         }
+        applyElementColors();
     }
 
     function updateEmojiCount() {
@@ -785,21 +857,59 @@
 
         const selected = Array.isArray(settings.emojiImages) ? settings.emojiImages.slice(0, maxSelected) : [];
         let localBgColor = settings.backgroundColor || '#242424';
+        let localFontColor = settings.fontColor || '#0f172a';
+        let localBtnColor = settings.btnColor || '#e1be88';
+
+        const renderQuickColorPicker = (container, bgColor, fontColor, btnColor) => {
+            if (!container) return;
+
+            container.innerHTML = `
+                <div class="emoji-option bg-color-picker quick-theme-picker" style="position: relative; border: 2px solid rgba(255,255,255,0.2);" title="点击对应区域调整颜色">
+                    <div class="quick-theme-row" data-role="bg" style="background:${bgColor};">
+                        <span>背景</span>
+                        <input type="color" value="${bgColor}" id="emojiQuickBgColor" aria-label="背景颜色">
+                    </div>
+                    <div class="quick-theme-row" data-role="font" style="background:${fontColor};">
+                        <span>文字</span>
+                        <input type="color" value="${fontColor}" id="emojiQuickFontColor" aria-label="文字颜色">
+                    </div>
+                    <div class="quick-theme-row" data-role="btn" style="background:${btnColor};">
+                        <span>控件</span>
+                        <input type="color" value="${btnColor}" id="emojiQuickBtnColor" aria-label="控件颜色">
+                    </div>
+                </div>
+            `;
+
+            const bindColorInput = (id, onColor) => {
+                const input = container.querySelector(`#${id}`);
+                if (!input) return;
+                input.addEventListener('input', (e) => {
+                    const value = e.target.value;
+                    onColor(value);
+                    const row = input.closest('.quick-theme-row');
+                    if (row) row.style.background = value;
+                });
+            };
+
+            bindColorInput('emojiQuickBgColor', (value) => {
+                localBgColor = value;
+            });
+            bindColorInput('emojiQuickFontColor', (value) => {
+                localFontColor = value;
+            });
+            bindColorInput('emojiQuickBtnColor', (value) => {
+                localBtnColor = value;
+            });
+        };
 
         const renderSelected = () => {
             if (selectedLabel) {
                 selectedLabel.textContent = `已勾选 ${selected.length} / 12`;
             }
             if (selectedGrid) {
-                const bgColorHex = localBgColor;
-                const bgColorItemHtml = `
-                    <div class="emoji-option bg-color-picker" style="background-color: ${bgColorHex}; position: relative; border: 2px solid rgba(255,255,255,0.2);" title="点击调整背景颜色">
-                        <input type="color" value="${bgColorHex}" style="position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; inset: 0;" id="emojiQuickBgColor">
-                        <div style="position: absolute; bottom: 4px; left: 0; right: 0; text-align: center; color: #fff; font-size: 0.6rem; text-shadow: 0 0 4px rgba(0,0,0,0.8), 0 0 2px rgba(0,0,0,0.8), 0 0 1px rgba(0,0,0,1); pointer-events: none; white-space: nowrap; transform: scale(0.9);">当前背景颜色</div>
-                    </div>
-                `;
-
-                selectedGrid.innerHTML = bgColorItemHtml + selected.map(url => `
+                selectedGrid.innerHTML = `
+                    <div id="emojiQuickThemePickerMount"></div>
+                ` + selected.map(url => `
                     <div class="emoji-option selected" data-url="${url}">
                         <img src="${url}" alt="已选表情" loading="lazy">
                         <div class="emoji-check">
@@ -810,14 +920,8 @@
                     </div>
                 `).join('');
 
-                const quickColorInput = selectedGrid.querySelector('#emojiQuickBgColor');
-                const bgColorItem = selectedGrid.querySelector('.bg-color-picker');
-                if (quickColorInput && bgColorItem) {
-                    quickColorInput.addEventListener('input', (e) => {
-                        bgColorItem.style.backgroundColor = e.target.value;
-                        localBgColor = e.target.value;
-                    });
-                }
+                const quickPickerMount = selectedGrid.querySelector('#emojiQuickThemePickerMount');
+                renderQuickColorPicker(quickPickerMount, localBgColor, localFontColor, localBtnColor);
             }
         };
 
@@ -1019,12 +1123,18 @@
                 settings.backgroundMode = 'emoji';
                 
                 settings.backgroundColor = localBgColor;
+                settings.fontColor = localFontColor;
+                settings.btnColor = localBtnColor;
                 const mainColorInput = document.getElementById('personalizeBgColor');
                 if (mainColorInput) mainColorInput.value = localBgColor;
+                const mainFontColorInput = document.getElementById('personalizeFontColor');
+                if (mainFontColorInput) mainFontColorInput.value = localFontColor;
+                const mainBtnColorInput = document.getElementById('personalizeBtnColor');
+                if (mainBtnColorInput) mainBtnColorInput.value = localBtnColor;
                 
                 const bgModeSelect = document.getElementById('personalizeBgMode');
                 if (bgModeSelect) bgModeSelect.value = 'emoji';
-                saveSettings();
+                saveWallpaperSettings();
                 updateEmojiCount();
                 applySettings();
                 syncUiVisibility();
@@ -1063,11 +1173,17 @@
         const presetBtn = modal.querySelector('#emojiPickPresetBtn');
         if (presetBtn) {
             presetBtn.addEventListener('click', (e) => {
-                showPresetMenu(e.target, selected, localBgColor, (newSelection, loadedPreset) => {
+                showPresetMenu(e.target, selected, {
+                    bgColor: localBgColor,
+                    fontColor: localFontColor,
+                    btnColor: localBtnColor
+                }, (newSelection, loadedPreset) => {
                      // Update selected array
                      selected.splice(0, selected.length, ...newSelection);
-                     if (loadedPreset && loadedPreset.bgColor) {
-                         localBgColor = loadedPreset.bgColor;
+                     if (loadedPreset) {
+                         localBgColor = loadedPreset.bgColor || localBgColor;
+                         localFontColor = loadedPreset.fontColor || localFontColor;
+                         localBtnColor = loadedPreset.btnColor || localBtnColor;
                      }
                      renderSelected();
                      // Refresh char list to show correct selection state
@@ -1091,7 +1207,7 @@
         modal.querySelector('.settings-backdrop').addEventListener('click', closeModal);
     }
 
-    function showPresetMenu(triggerBtn, currentSelection, currentBgColor, onLoadCallback) {
+    function showPresetMenu(triggerBtn, currentSelection, currentColors, onLoadCallback) {
         let menu = document.getElementById('emojiPresetMenu');
         if (menu) menu.remove();
 
@@ -1155,7 +1271,9 @@
                     if (existingIdx >= 0) {
                         const doOverwrite = () => {
                             settings.emojiPresets[existingIdx].images = [...currentSelection];
-                            settings.emojiPresets[existingIdx].bgColor = currentBgColor;
+                            settings.emojiPresets[existingIdx].bgColor = currentColors.bgColor;
+                            settings.emojiPresets[existingIdx].fontColor = currentColors.fontColor;
+                            settings.emojiPresets[existingIdx].btnColor = currentColors.btnColor;
                             saveSettings();
                         };
 
@@ -1168,7 +1286,9 @@
                         settings.emojiPresets.push({
                             name: name,
                             images: [...currentSelection],
-                            bgColor: currentBgColor
+                            bgColor: currentColors.bgColor,
+                            fontColor: currentColors.fontColor,
+                            btnColor: currentColors.btnColor
                         });
                         saveSettings();
                     }
@@ -1257,6 +1377,9 @@
         const emojiScaleItem = document.getElementById('personalizeEmojiScaleItem');
         const previewItem = document.getElementById('personalizePreviewItem');
         const downloadItem = document.getElementById('personalizeDownloadItem');
+        const fontColorItem = document.getElementById('personalizeFontColorItem');
+        const btnColorItem = document.getElementById('personalizeBtnColorItem');
+        const wallpaperColorGroupDetails = document.getElementById('wallpaperColorGroupDetails');
 
         if (bgColorItem) bgColorItem.style.display = (settings.backgroundMode === 'color' || settings.backgroundMode === 'emoji') ? 'flex' : 'none';
         if (bgImageItem) bgImageItem.style.display = settings.backgroundMode === 'image' ? 'flex' : 'none';
@@ -1265,6 +1388,9 @@
         if (emojiScaleItem) emojiScaleItem.style.display = settings.backgroundMode === 'emoji' ? 'flex' : 'none';
         if (previewItem) previewItem.style.display = settings.backgroundMode === 'emoji' ? 'flex' : 'none';
         if (downloadItem) downloadItem.style.display = settings.backgroundMode === 'emoji' ? 'flex' : 'none';
+        if (fontColorItem) fontColorItem.style.display = settings.backgroundMode === 'default' ? 'none' : 'flex';
+        if (btnColorItem) btnColorItem.style.display = settings.backgroundMode === 'default' ? 'none' : 'flex';
+        if (wallpaperColorGroupDetails) wallpaperColorGroupDetails.style.display = settings.backgroundMode === 'default' ? 'none' : 'block';
 
         if (settings.useHostWallpaper) {
             document.body.classList.add('use-host-wallpaper');
@@ -1274,6 +1400,55 @@
     }
 
     function init() {
+        
+        const fontColorInput = document.getElementById('personalizeFontColor');
+        if (fontColorInput) {
+            fontColorInput.value = settings.fontColor || '#0f172a';
+            fontColorInput.addEventListener('input', (e) => {
+                settings.fontColor = e.target.value;
+                applyElementColors();
+            });
+            fontColorInput.addEventListener('change', (e) => {
+                settings.fontColor = e.target.value;
+                saveWallpaperSettings();
+                applyElementColors();
+            });
+        }
+        
+        const resetFontBtn = document.getElementById('resetFontColorBtn');
+        if (resetFontBtn) {
+            resetFontBtn.addEventListener('click', () => {
+                settings.fontColor = '#0f172a';
+                if(fontColorInput) fontColorInput.value = settings.fontColor;
+                saveWallpaperSettings();
+                applyElementColors();
+            });
+        }
+
+        const btnColorInput = document.getElementById('personalizeBtnColor');
+        if (btnColorInput) {
+            btnColorInput.value = settings.btnColor || '#e1be88';
+            btnColorInput.addEventListener('input', (e) => {
+                settings.btnColor = e.target.value;
+                applyElementColors();
+            });
+            btnColorInput.addEventListener('change', (e) => {
+                settings.btnColor = e.target.value;
+                saveWallpaperSettings();
+                applyElementColors();
+            });
+        }
+        
+        const resetBtnBtn = document.getElementById('resetBtnColorBtn');
+        if (resetBtnBtn) {
+            resetBtnBtn.addEventListener('click', () => {
+                settings.btnColor = '#e1be88';
+                if(btnColorInput) btnColorInput.value = settings.btnColor;
+                saveWallpaperSettings();
+                applyElementColors();
+            });
+        }
+
         const useHostWallpaperToggle = document.getElementById('useHostWallpaperToggle');
         if (useHostWallpaperToggle) {
             useHostWallpaperToggle.checked = settings.useHostWallpaper;
@@ -1404,7 +1579,7 @@
             bgModeSelect.value = settings.backgroundMode;
             bgModeSelect.addEventListener('change', (e) => {
                 settings.backgroundMode = e.target.value;
-                saveSettings();
+                saveWallpaperSettings();
                 applySettings();
                 syncUiVisibility();
             });
@@ -1424,7 +1599,7 @@
                 emojiScaleValueDisplay.textContent = currentScale.toFixed(1);
                 
                 settings.emojiScale = currentScale;
-                saveSettings({ debounceSyncMs: 3500 });
+                saveWallpaperSettings();
                 
                 // Debounce heavy rendering
                 if (renderTimer) clearTimeout(renderTimer);
@@ -1453,7 +1628,7 @@
                     settings.backgroundMode = 'color';
                     if (bgModeSelect) bgModeSelect.value = 'color';
                 }
-                saveSettings();
+                saveWallpaperSettings();
                 applySettings();
                 syncUiVisibility();
             });
@@ -1468,7 +1643,7 @@
                     settings.backgroundImage = dataUrl;
                     settings.backgroundMode = 'image';
                     if (bgModeSelect) bgModeSelect.value = 'image';
-                    saveSettings();
+                    saveWallpaperSettings();
                     applySettings();
                     syncUiVisibility();
                 });
@@ -1481,7 +1656,7 @@
                 settings.backgroundMode = 'default';
                 if (bgModeSelect) bgModeSelect.value = 'default';
                 if (bgImageInput) bgImageInput.value = '';
-                saveSettings();
+                saveWallpaperSettings();
                 applySettings();
                 syncUiVisibility();
             });
@@ -1492,7 +1667,7 @@
             emojiLayoutSelect.addEventListener('change', (e) => {
                 settings.emojiLayout = e.target.value;
                 settings.emojiSeed = Date.now();
-                saveSettings();
+                saveWallpaperSettings();
                 applySettings();
             });
         }
@@ -1510,7 +1685,7 @@
                 e.stopPropagation();
                 
                 settings.emojiSeed = Date.now();
-                saveSettings();
+                saveWallpaperSettings();
                 applySettings();
                 
                 const icon = refreshSeedBtn.querySelector('svg');

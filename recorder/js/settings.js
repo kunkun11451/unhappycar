@@ -70,34 +70,63 @@
         // 规则说明折叠动画处理 (支持多个折叠面板)
         document.querySelectorAll('.rules-details').forEach(details => {
             const summary = details.querySelector('.rules-summary');
+            const animContainer = details.querySelector('.rules-anim-container');
             if(!summary) return;
-            
-            let closeTimeout = null;
+
+            if (details.hasAttribute('open')) {
+                details.classList.add('is-open');
+                if (animContainer) animContainer.style.maxHeight = 'none';
+            } else {
+                details.classList.remove('is-open');
+                if (animContainer) animContainer.style.maxHeight = '0px';
+            }
 
             summary.addEventListener('click', (e) => {
                 e.preventDefault(); // 阻止原生瞬间切换
 
-                // 清除任何正在进行的定时器，支持连续点击打断
-                if (closeTimeout) {
-                    clearTimeout(closeTimeout);
-                    closeTimeout = null;
-                }
-
                 const isOpen = details.classList.contains('is-open');
 
-                if (isOpen) {
-                    // 收起动画
-                    details.classList.remove('is-open');
-                    closeTimeout = setTimeout(() => {
+                if (!animContainer) {
+                    if (isOpen) {
+                        details.classList.remove('is-open');
                         details.removeAttribute('open');
-                        closeTimeout = null;
-                    }, 350);
+                    } else {
+                        details.setAttribute('open', '');
+                        details.classList.add('is-open');
+                    }
+                    return;
+                }
+
+                if (isOpen) {
+                    // 收起动画：从当前高度过渡到 0
+                    animContainer.style.maxHeight = `${animContainer.scrollHeight}px`;
+                    // 触发重排确保浏览器采纳当前高度
+                    animContainer.offsetHeight;
+                    details.classList.remove('is-open');
+                    animContainer.style.maxHeight = '0px';
+
+                    const onCloseEnd = (evt) => {
+                        if (evt.propertyName !== 'max-height') return;
+                        details.removeAttribute('open');
+                        animContainer.removeEventListener('transitionend', onCloseEnd);
+                    };
+                    animContainer.addEventListener('transitionend', onCloseEnd);
                 } else {
-                    // 展开动画 - 先确保 open 属性存在
+                    // 展开动画：先打开，再从 0 过渡到内容高度
                     details.setAttribute('open', '');
-                    // 强制重排后添加动画类
-                    details.offsetHeight; // 触发重排
                     details.classList.add('is-open');
+                    animContainer.style.maxHeight = '0px';
+
+                    requestAnimationFrame(() => {
+                        animContainer.style.maxHeight = `${animContainer.scrollHeight}px`;
+                    });
+
+                    const onOpenEnd = (evt) => {
+                        if (evt.propertyName !== 'max-height') return;
+                        animContainer.style.maxHeight = 'none';
+                        animContainer.removeEventListener('transitionend', onOpenEnd);
+                    };
+                    animContainer.addEventListener('transitionend', onOpenEnd);
                 }
             });
         });

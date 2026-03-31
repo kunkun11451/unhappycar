@@ -706,22 +706,73 @@
                   </div>
                 </div>
 
-              <div class="settings-item" id="personalizeBgColorItem" style="padding: 10px 14px; margin-bottom: 8px; background: rgba(255, 255, 255, 0.02);">
-                <div class="settings-info">
-                  <div class="settings-title" style="font-size: 0.95rem;"><svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle>
-                      <circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle>
-                      <circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle>
-                      <circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle>
-                      <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.551-2.5 5.551-5.652C22 5.61 17.5 2 12 2z"></path>
-                    </svg>背景颜色</div>
-                  <div class="settings-desc" style="font-size: 0.8rem;">选择背景颜色</div>
-                </div>
-                <div class="settings-action">
-                  <input type="color" id="personalizeBgColor" class="settings-color-input" aria-label="背景颜色">
-                </div>
-              </div>
+                <details class="rules-details" id="wallpaperColorGroupDetails" style="margin-bottom: 8px;">
+                  <summary class="rules-summary" style="padding: 10px 14px; background: rgba(255, 255, 255, 0.02);">
+                    <div class="settings-info">
+                      <div class="settings-title" style="font-size: 0.95rem;">
+                        <svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                          <circle cx="8.5" cy="8.5" r="1.5" />
+                          <path d="M21 15l-5-5L5 21" />
+                        </svg>背景与元素颜色
+                      </div>
+                      <div class="settings-desc" style="font-size: 0.8rem;">设置背景颜色、字体颜色与按钮及控件颜色</div>
+                    </div>
+                    <div class="rules-arrow"></div>
+                  </summary>
+                  <div class="rules-anim-container">
+                    <div class="rules-content">
+                      <div class="settings-item" id="personalizeBgColorItem" style="padding: 10px 14px; margin-bottom: 8px; background: rgba(255, 255, 255, 0.02);">
+                        <div class="settings-info">
+                          <div class="settings-title" style="font-size: 0.95rem;"><svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle>
+                              <circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle>
+                              <circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle>
+                              <circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle>
+                              <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.551-2.5 5.551-5.652C22 5.61 17.5 2 12 2z"></path>
+                            </svg>背景颜色</div>
+                          <div class="settings-desc" style="font-size: 0.8rem;">选择背景颜色</div>
+                        </div>
+                        <div class="settings-action">
+                          <input type="color" id="personalizeBgColor" class="settings-color-input" aria-label="背景颜色">
+                        </div>
+                      </div>
+
+                      <div class="settings-item" id="personalizeFontColorItem" style="padding: 10px 14px; margin-bottom: 8px; background: rgba(255, 255, 255, 0.02);">
+                        <div class="settings-info">
+                          <div class="settings-title" style="font-size: 0.95rem;">字体颜色</div>
+                          <div class="settings-desc" style="font-size: 0.8rem;">调整界面中各类文本及图标的颜色</div>
+                        </div>
+                        <div class="settings-action" style="display: flex; gap: 8px;">
+                          <input type="color" id="personalizeFontColor" class="settings-color-input" value="#0f172a">
+                          <button class="btn btn-icon" id="resetFontColorBtn" title="恢复默认" style="padding: 4px;">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                              <path d="M3 3v5h5"></path>
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div class="settings-item" id="personalizeBtnColorItem" style="padding: 10px 14px; margin-bottom: 8px; background: rgba(255, 255, 255, 0.02);">
+                        <div class="settings-info">
+                          <div class="settings-title" style="font-size: 0.95rem;">按钮及控件颜色</div>
+                          <div class="settings-desc" style="font-size: 0.8rem;">调整按钮、边框、开关等控件的颜色</div>
+                        </div>
+                        <div class="settings-action" style="display: flex; gap: 8px;">
+                          <input type="color" id="personalizeBtnColor" class="settings-color-input" value="#e1be88">
+                          <button class="btn btn-icon" id="resetBtnColorBtn" title="恢复默认" style="padding: 4px;">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                              <path d="M3 3v5h5"></path>
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </details>
 
               <div class="settings-item" id="personalizeBgImageItem" style="padding: 10px 14px; margin-bottom: 8px; background: rgba(255, 255, 255, 0.02);">
                 <div class="settings-info">
@@ -792,7 +843,7 @@
                 </div>
                 <div class="settings-action" style="display: flex; align-items: center; gap: 10px;">
                   <button class="btn btn-icon" id="emojiScaleDecrease" style="width: 28px; height: 28px; padding: 0;">-</button>
-                  <span id="personalizeEmojiScaleValue" style="min-width: 3em; text-align: center; font-variant-numeric: tabular-nums; font-size: 0.9rem;">1.0</span>
+                  <span id="personalizeEmojiScaleValue" style="min-width: 3em; text-align: center; font-variant-numeric: tabular-nums; font-size: 0.9rem; color: var(--pc-font-color, inherit);">1.0</span>
                   <button class="btn btn-icon" id="emojiScaleIncrease" style="width: 28px; height: 28px; padding: 0;">+</button>
                 </div>
               </div>
@@ -838,6 +889,7 @@
                 </div>
               </div>
               </div>
+
             </div>
           </div>
         </details>

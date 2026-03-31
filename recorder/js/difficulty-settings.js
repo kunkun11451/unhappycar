@@ -24,7 +24,7 @@
     constructor() {
       this.level = 0; // -10 to 10
       this.syncTimer = null;
-      this.syncDelay = 320;
+      this.syncDelay = 5000;
       this.load();
       this.initUI();
     }
@@ -65,9 +65,8 @@
           this.scheduleSync(false);
         });
 
-        // 在用户停止拖动（松手）后立即同步一次
         slider.addEventListener('change', () => {
-          this.scheduleSync(true);
+          this.scheduleSync(false);
         });
       });
     }

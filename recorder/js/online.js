@@ -71,7 +71,7 @@
             flex-shrink: 0;
         }
         .online-room-bar .room-label {
-            color: #64748b;
+            color: var(--pc-font-muted, #64748b);
             font-size: 0.8rem;
             font-weight: 500;
             flex-shrink: 0;
@@ -93,10 +93,10 @@
             flex-shrink: 0;
         }
         .online-room-bar .btn-icon.danger {
-            color: #F1F5F9E3;
+            color: var(--pc-font-color, #F1F5F9E3);
         }
         body.light-theme .online-room-bar .btn-icon.danger {
-            color: #0F172A;
+            color: var(--pc-font-color);
         }
         .online-room-bar .btn-icon.danger:hover {
             background: rgba(239, 68, 68, 0.15);
@@ -223,7 +223,7 @@
             }
         } else if (status === 'disconnected') {
             if (statusEl) {
-                statusEl.textContent = '(已断开)';
+                statusEl.textContent = '(已断开，正在重连)';
                 statusEl.className = 'room-status status-disconnected';
             }
             if (roomModeDisplay) {
