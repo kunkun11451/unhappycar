@@ -204,7 +204,7 @@ h2 {
 }
 
 #record.rows>div .label {
-  color: #64748b;
+  color: var(--pc-font-muted);
 }
 
 .copy-highlight {
@@ -578,7 +578,7 @@ input:checked+.slider:before {
 }
 
 .char-tag-row .label {
-  color: #64748b;
+  color: var(--pc-font-muted);
 }
 
 .char-tag-row .value {

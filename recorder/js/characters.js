@@ -56,18 +56,6 @@ window.characterData = {
         "体型": "成女",
         "国家": "挪德卡莱"
     },
-    "奇偶·男性": {
-        "头像": "https://fastcdn.mihoyo.com/static-resource-v2/2025/10/16/af27ded694227c5c49f0f75730eecbb9_8978606435920695541.png",
-        "武器类型": "单手剑",
-        "星级": "五星",
-        "体型": "少年"
-    },
-    "奇偶·女性": {
-        "头像": "https://fastcdn.mihoyo.com/static-resource-v2/2025/10/16/7328f006a498626b32a1e187c0dba1ea_3540908881493819725.png",
-        "武器类型": "单手剑",
-        "星级": "五星",
-        "体型": "少女"
-    },
     "菲林斯": {
         "头像": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/68c0b17a/6aae9f16cbe14ac60dd6eb2956e4acf2.png",
         "元素类型": "雷",
