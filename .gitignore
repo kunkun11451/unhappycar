@@ -2,6 +2,7 @@ node_modules/
 package.json
 package-lock.json
 .vscode/
+.github/
 *.log
 approved_events/
 pending_events/

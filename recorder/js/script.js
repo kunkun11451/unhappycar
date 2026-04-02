@@ -72,6 +72,7 @@
       hasLastDraw,
       lastDraw: window.__recorder_lastDraw,
       difficultyLevel: (window.__difficulty_manager && typeof window.__difficulty_manager.level === 'number') ? window.__difficulty_manager.level : 0,
+      difficultyGuaranteeThreshold: (window.__difficulty_manager && typeof window.__difficulty_manager.guaranteeThreshold === 'number') ? window.__difficulty_manager.guaranteeThreshold : 0,
       // Add Brain Teaser Mode to sync state
       brainTeaserMode: (window.__recorder_settings && window.__recorder_settings.brainTeaserMode),
       // Add Events state
@@ -94,6 +95,10 @@
     // Sync Difficulty level (host -> viewers)
     if (state.difficultyLevel !== undefined && window.__difficulty_manager && window.__difficulty_manager.setLevel) {
       window.__difficulty_manager.setLevel(parseInt(state.difficultyLevel, 10) || 0);
+    }
+
+    if (state.difficultyGuaranteeThreshold !== undefined && window.__difficulty_manager && window.__difficulty_manager.setGuaranteeThreshold) {
+      window.__difficulty_manager.setGuaranteeThreshold(parseInt(state.difficultyGuaranteeThreshold, 10) || 0);
     }
 
     // Restore personalize state if available
@@ -849,6 +854,12 @@
       () => record.体型.size === 0 || !record.体型.has(charBody),
     ];
     return checks.every(fn => fn());
+  }
+
+  function getAvailableCount() {
+    const all = window.characterData || {};
+    const entries = Object.entries(all);
+    return entries.filter(([, data]) => isComplement(data)).length;
   }
 
   // 辅助函数：根据匹配范围高亮文本
@@ -2055,6 +2066,7 @@
     formatLastDrawText,
     formatCurrentRecordText,
     copyWithFeedback,
+    getAvailableCount,
     getRecord: () => record, // 暴露当前记录供角色标签弹窗使用
     notifyViewerWallpaperPreferenceChanged: () => {
         if (window.__onlineMode && window.__onlineMode.getLastSyncedPayload) {

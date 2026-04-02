@@ -23,6 +23,7 @@
   class DifficultyManager {
     constructor() {
       this.level = 0; // -10 to 10
+      this.guaranteeThreshold = 0; 
       this.syncTimer = null;
       this.syncDelay = 5000;
       this.load();
@@ -37,6 +38,14 @@
           this.level = 0;
         }
       }
+
+      const savedThreshold = localStorage.getItem('recorder_difficulty_guarantee_threshold');
+      if (savedThreshold !== null) {
+        this.guaranteeThreshold = parseInt(savedThreshold, 10);
+        if (![0, 5, 10, 15, 20].includes(this.guaranteeThreshold)) {
+          this.guaranteeThreshold = 0;
+        }
+      }
     }
 
     save() {
@@ -45,6 +54,7 @@
         return;
       }
       localStorage.setItem('recorder_difficulty', this.level);
+      localStorage.setItem('recorder_difficulty_guarantee_threshold', this.guaranteeThreshold);
     }
 
     initUI() {
@@ -52,10 +62,14 @@
         this.updateBadge(); // Initial badge render
         const slider = document.getElementById('difficultySlider');
         const label = document.getElementById('difficultyLabel');
-        if (!slider || !label) return;
+        const guaranteeSlider = document.getElementById('difficultyGuaranteeSlider');
+        const guaranteeLabel = document.getElementById('difficultyGuaranteeLabel');
+        if (!slider || !label || !guaranteeSlider || !guaranteeLabel) return;
 
         slider.value = this.level;
         this.updateLabel(this.level, label);
+        guaranteeSlider.value = this.thresholdToSliderValue(this.guaranteeThreshold);
+        this.updateGuaranteeLabel(this.guaranteeThreshold, guaranteeLabel);
 
         slider.addEventListener('input', (e) => {
           this.level = parseInt(e.target.value, 10);
@@ -66,6 +80,19 @@
         });
 
         slider.addEventListener('change', () => {
+          this.scheduleSync(false);
+        });
+
+        guaranteeSlider.addEventListener('input', (e) => {
+          const sliderVal = parseInt(e.target.value, 10);
+          this.guaranteeThreshold = this.sliderValueToThreshold(sliderVal);
+          this.updateGuaranteeLabel(this.guaranteeThreshold, guaranteeLabel);
+          this.updateBadge();
+          this.save();
+          this.scheduleSync(false);
+        });
+
+        guaranteeSlider.addEventListener('change', () => {
           this.scheduleSync(false);
         });
       });
@@ -98,6 +125,43 @@
       return level < 0 ? ('+' + pct + '%爽度') : ('+' + pct + '%牢度');
     }
 
+    sliderValueToThreshold(val) {
+      if (val <= 0) return 0;
+      return val * 5;
+    }
+
+    thresholdToSliderValue(threshold) {
+      if (!threshold || threshold <= 0) return 0;
+      return Math.round(threshold / 5);
+    }
+
+    updateGuaranteeLabel(threshold, labelNode) {
+      if (!labelNode) return;
+      if (!threshold) {
+        labelNode.textContent = '关闭';
+      } else {
+        labelNode.textContent = '可用角色≤' + threshold + '时，抽中已有标签概率+50%';
+      }
+    }
+
+    setGuaranteeThreshold(threshold) {
+      const parsed = parseInt(threshold, 10);
+      if (![0, 5, 10, 15, 20].includes(parsed)) {
+        this.guaranteeThreshold = 0;
+      } else {
+        this.guaranteeThreshold = parsed;
+      }
+
+      const guaranteeSlider = document.getElementById('difficultyGuaranteeSlider');
+      const guaranteeLabel = document.getElementById('difficultyGuaranteeLabel');
+      if (guaranteeSlider && guaranteeLabel) {
+        guaranteeSlider.value = this.thresholdToSliderValue(this.guaranteeThreshold);
+        this.updateGuaranteeLabel(this.guaranteeThreshold, guaranteeLabel);
+      }
+
+      this.updateBadge();
+    }
+
     setLevel(val) {
         this.level = val;
         // Update UI if it exists
@@ -113,16 +177,33 @@
     updateBadge() {
         const hint = document.getElementById('difficultyHint');
         const hintLine2 = document.getElementById('difficultyHintLine2');
+        const hintLine3 = document.getElementById('difficultyHintLine3');
         const badge = document.getElementById('difficultyBadge');
         const badgeText = document.getElementById('difficultyBadgeText');
         const idx = this.level + 10;
 
         if (hint && hintLine2) {
-          if (this.level === 0) {
+          if (this.level === 0 && this.guaranteeThreshold === 0) {
             hint.classList.add('hidden');
           } else {
             hint.classList.remove('hidden');
-            hintLine2.textContent = this.getCompactHintText(this.level);
+            if (this.level !== 0) {
+              hintLine2.textContent = this.getCompactHintText(this.level);
+              hintLine2.classList.remove('hidden');
+            } else {
+              hintLine2.classList.add('hidden');
+              hintLine2.textContent = '';
+            }
+
+            if (hintLine3) {
+              if (this.guaranteeThreshold > 0) {
+                hintLine3.textContent = '≤' + this.guaranteeThreshold + '时兜底';
+                hintLine3.classList.remove('hidden');
+              } else {
+                hintLine3.textContent = '';
+                hintLine3.classList.add('hidden');
+              }
+            }
           }
         }
 
@@ -144,7 +225,7 @@
 
     pick(arr, category, recordSet) {
       if (!arr || arr.length === 0) return null;
-      if (this.level === 0 || !recordSet || !recordSet[category]) {
+      if (!recordSet || !recordSet[category]) {
         return arr[Math.floor(Math.random() * arr.length)];
       }
 
@@ -157,6 +238,13 @@
       const baseInProb = currentRecord.size / arr.length;
       
       let targetInProb = baseInProb - bonus;
+
+      if (this.guaranteeThreshold > 0 && window.__recorder_actions && typeof window.__recorder_actions.getAvailableCount === 'function') {
+        const availableCount = window.__recorder_actions.getAvailableCount();
+        if (typeof availableCount === 'number' && availableCount <= this.guaranteeThreshold) {
+          targetInProb += 0.5;
+        }
+      }
       
       if (targetInProb < 0) targetInProb = 0;
       if (targetInProb > 1) targetInProb = 1;
