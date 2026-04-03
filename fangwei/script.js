@@ -143,12 +143,49 @@ class FangweiDrawer {
         this.addAnimation('directionResult');
     }
 
+    getCustomCharLength(str) {
+        let len = 0;
+        for (let i = 0; i < str.length; i++) {
+            const c = str.charCodeAt(i);
+            if (c >= 0 && c <= 127) {
+                len += 1;
+            } else {
+                len += 2;
+            }
+        }
+        return len;
+    }
+
     drawPoint() {
-        // 使用设置中的点数范围进行抽取（含端点）
-        const min = Math.max(1, Math.min(Number(this.settings.pointMin) || 1, Number(this.settings.pointMax) || 1));
-        const max = Math.max(min, Number(this.settings.pointMax) || min);
-        const value = Math.floor(Math.random() * (max - min + 1)) + min;
-        this.currentResults.point = `${value}点`;
+        const isEasterEgg = window.location.search.includes('猴') || new URLSearchParams(window.location.search).has('猴');
+        if (isEasterEgg) {
+            let prefixText = '';
+            if (this.settings.enableMode && this.currentResults.mode) {
+                prefixText += this.currentResults.modeDetail
+                    ? `${this.currentResults.mode}：${this.currentResults.modeDetail} `
+                    : `${this.currentResults.mode} `;
+            }
+            if (this.currentResults.direction) {
+                prefixText += this.currentResults.direction;
+            }
+            let currentLen = this.getCustomCharLength(prefixText + (prefixText ? ' ' : ''));
+            let targetDigitsLen = 80 - currentLen - 2; // -2 for '点'
+            let valStr = '';
+            if (targetDigitsLen > 0) {
+                for(let i = 0; i < targetDigitsLen; i++) {
+                    valStr += Math.floor(Math.random() * 10);
+                }
+            } else {
+                valStr = Math.floor(Math.random() * 10).toString();
+            }
+            this.currentResults.point = `${valStr}点`;
+        } else {
+            // 使用设置中的点数范围进行抽取（含端点）
+            const min = Math.max(1, Math.min(Number(this.settings.pointMin) || 1, Number(this.settings.pointMax) || 1));
+            const max = Math.max(min, Number(this.settings.pointMax) || min);
+            const value = Math.floor(Math.random() * (max - min + 1)) + min;
+            this.currentResults.point = `${value}点`;
+        }
         this.updatePointDisplay();
         this.updateCopyText();
         this.addAnimation('pointResult');
