@@ -350,7 +350,7 @@
         if (emojiUrlsCache) return emojiUrlsCache;
 
         try {
-            const response = await fetch('js/image_urls.json');
+            const response = await fetch('../pt/image_urls.json');
             emojiUrlsCache = await response.json();
             return emojiUrlsCache;
         } catch (error) {
