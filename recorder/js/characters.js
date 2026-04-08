@@ -1,5 +1,13 @@
 // 角色数据
 window.characterData = {
+    "莉奈娅": {
+        "头像": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/69d58c7d/d1c44e49e1fcfdf9474ba6c2d2c9369d.png",
+        "元素类型": "岩",
+        "武器类型": "弓",
+        "星级": "五星",
+        "体型": "少女",
+        "国家": "挪德卡莱"
+    },
     "法尔伽": {
         "头像": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/699e3449/bd2ad505d700cc342095d8ddd49d0c7b.png",
         "元素类型": "风",
