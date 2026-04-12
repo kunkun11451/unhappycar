@@ -161,6 +161,14 @@
             gap: 2rem;
         }
 
+        .slide.others .slide-content {
+            flex-direction: column;
+            justify-content: center;
+            align-items: stretch;
+            max-width: 980px;
+            gap: 1.5rem;
+        }
+
         .hero-title {
             font-size: 5rem;
             font-weight: 800;
@@ -177,6 +185,72 @@
             color: var(--text-secondary);
             max-width: 600px;
             line-height: 1.6;
+        }
+
+        .others-title {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #fff;
+            text-align: center;
+        }
+
+        .others-subtitle {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .others-list {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .others-item {
+            height: 100%;
+        }
+
+        .others-item a {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 14px 16px;
+            min-height: 170px;
+            height: 100%;
+            border-radius: 14px;
+            text-decoration: none;
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            transition: all 0.25s ease;
+            justify-content: space-between;
+        }
+
+        .others-item a:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
+        }
+
+        .others-name {
+            font-size: 1.06rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .others-desc {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            flex: 1;
+        }
+
+        .others-url {
+            font-size: 0.88rem;
+            color: #94a3b8;
+            word-break: break-all;
         }
 
         /* Navigation Grid on Hero Page */
@@ -434,6 +508,10 @@
                 margin-top: 1rem;
             }
 
+            .others-list {
+                grid-template-columns: 1fr;
+            }
+
             .slide-content {
                 flex-direction: column;
                 height: 90vh;
@@ -505,6 +583,7 @@
                     <div class="nav-btn" data-target="6">史镶金随机数</div>
                     <div class="nav-btn" data-target="7">随机Ban位抽取</div>
                     <div class="nav-btn" data-target="8">自动BP记录器</div>
+                    <div class="nav-btn" data-target="9">其他</div>
                 </div>
             </div>
         </section>
@@ -730,6 +809,35 @@
                         <iframe data-src="https://unhappycar.tech/" class="preview-iframe"></iframe>
                     </div>
                 </div>
+            </div>
+        </section>
+
+        <!-- Tool 9: Others Collection -->
+        <section class="slide others">
+            <div class="slide-content">
+                <h2 class="others-title">其他</h2>
+                <p class="others-subtitle">赤石小游戏合集</p>
+                <ul class="others-list">
+                    <li class="others-item">
+                        <a href="https://garage.unhappycar.tech/Musk-Simulator/" target="_blank" rel="noopener noreferrer">
+                            <span class="others-name">我是首富？</span>
+                            <span class="others-desc">挑战花光¥2,500,000,000,000.00</span>
+                        </a>
+                    </li>
+                    <li class="others-item">
+                        <a href="https://garage.unhappycar.tech/fipper/" target="_blank" rel="noopener noreferrer">
+                            <span class="others-name">翻硬币</span>
+                            <span class="others-desc">翻硬币赚钱翻更多的硬币（</span>
+                        </a>
+                    </li>
+                    <li class="others-item">
+                        <a href="https://garage.unhappycar.tech/whwc/" target="_blank" rel="noopener noreferrer">
+                            <span class="others-name">我画我猜</span>
+                            <span class="others-desc">紧张刺激的绘画猜词游戏</span>
+                        </a>
+                    </li>
+                </ul>
+                <p class="others-subtitle">. . . . . .</p>
             </div>
         </section>
 
