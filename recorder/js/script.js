@@ -75,6 +75,7 @@
       difficultyGuaranteeThreshold: (window.__difficulty_manager && typeof window.__difficulty_manager.guaranteeThreshold === 'number') ? window.__difficulty_manager.guaranteeThreshold : 0,
       // Add Brain Teaser Mode to sync state
       brainTeaserMode: (window.__recorder_settings && window.__recorder_settings.brainTeaserMode),
+      brainTeaserCurrentBlind: (window.__recorder_settings && window.__recorder_settings.brainTeaserCurrentBlind),
       // Add Events state
       eventsEnabled: (window.__events_manager && window.__events_manager.enabled),
       lastDrawnEvent: (window.__events_manager && window.__events_manager.lastDrawnEvent)
@@ -124,6 +125,21 @@
       // Update internal BT state visibility (handled in renderComplement, but force hide if off)
       if (!state.brainTeaserMode && window.__brainTeaser) {
         window.__brainTeaser.hideUI();
+      }
+
+      const blindContainer = document.getElementById('brainTeaserCurrentBlindContainer');
+      if (blindContainer) {
+        blindContainer.classList.toggle('hidden', !state.brainTeaserMode);
+      }
+    }
+
+    if (state.brainTeaserCurrentBlind !== undefined) {
+      if (!window.__recorder_settings) window.__recorder_settings = {};
+      window.__recorder_settings.brainTeaserCurrentBlind = !!state.brainTeaserCurrentBlind;
+
+      const blindToggle = document.getElementById('brainTeaserCurrentBlindToggle');
+      if (blindToggle) {
+        blindToggle.checked = !!state.brainTeaserCurrentBlind;
       }
     }
 
@@ -635,13 +651,30 @@
     const animsEnabled = (window.__recorder_settings && window.__recorder_settings.animationsEnabled !== false);
     const restoring = !!window.__recorder_restoring;
     const doAnims = animsEnabled && !restoring;
+    const hideLatestColors = !!(window.__recorder_settings && window.__recorder_settings.brainTeaserMode && window.__recorder_settings.brainTeaserCurrentBlind);
 
     const el = document.getElementById('lastDraw');
     el.innerHTML = [
-      (() => { const c = changes && changes.元素类型; const arr = (c && c.op === 'remove') ? [{ removed: true, noAnim: true, pulse: true, value: last.元素类型 }] : [last.元素类型]; return renderListRow('元素类型', arr, c); })(),
-      (() => { const c = changes && changes.国家; const arr = (c && c.op === 'remove') ? [{ removed: true, noAnim: true, pulse: true, value: last.国家 }] : [last.国家]; return renderListRow('国家', arr, c); })(),
-      (() => { const c = changes && changes.武器类型; const arr = (c && c.op === 'remove') ? [{ removed: true, noAnim: true, pulse: true, value: last.武器类型 }] : [last.武器类型]; return renderListRow('武器类型', arr, c); })(),
-      (() => { const c = changes && changes.体型; const arr = (c && c.op === 'remove') ? [{ removed: true, noAnim: true, pulse: true, value: last.体型 }] : [last.体型]; return renderListRow('体型', arr, c); })(),
+      (() => {
+        const c = hideLatestColors ? null : (changes && changes.元素类型);
+        const arr = (hideLatestColors || !(changes && changes.元素类型 && changes.元素类型.op === 'remove')) ? [last.元素类型] : [{ removed: true, noAnim: true, pulse: true, value: last.元素类型 }];
+        return renderListRow('元素类型', arr, c);
+      })(),
+      (() => {
+        const c = hideLatestColors ? null : (changes && changes.国家);
+        const arr = (hideLatestColors || !(changes && changes.国家 && changes.国家.op === 'remove')) ? [last.国家] : [{ removed: true, noAnim: true, pulse: true, value: last.国家 }];
+        return renderListRow('国家', arr, c);
+      })(),
+      (() => {
+        const c = hideLatestColors ? null : (changes && changes.武器类型);
+        const arr = (hideLatestColors || !(changes && changes.武器类型 && changes.武器类型.op === 'remove')) ? [last.武器类型] : [{ removed: true, noAnim: true, pulse: true, value: last.武器类型 }];
+        return renderListRow('武器类型', arr, c);
+      })(),
+      (() => {
+        const c = hideLatestColors ? null : (changes && changes.体型);
+        const arr = (hideLatestColors || !(changes && changes.体型 && changes.体型.op === 'remove')) ? [last.体型] : [{ removed: true, noAnim: true, pulse: true, value: last.体型 }];
+        return renderListRow('体型', arr, c);
+      })(),
     ].join('');
 
     // 逐步动画：所有 badge 先隐藏再逐个弹出，弹出后再依次上色
@@ -693,6 +726,13 @@
     const restoring = !!window.__recorder_restoring;
     const doAnims = anims && !restoring;
     const el = document.getElementById('record');
+    const panelEl = document.getElementById('recordPanel');
+    const enableSpoiler = !!(window.__recorder_settings && window.__recorder_settings.brainTeaserMode && window.__recorder_settings.brainTeaserCurrentBlind);
+    el.classList.remove('spoiler');
+    if (panelEl) {
+      panelEl.classList.toggle('spoiler', enableSpoiler);
+    }
+
     const rows = ["元素类型", "国家", "武器类型", "体型"].map(cat => {
       let base = order[cat].slice();
       const ch = changes && changes[cat];
@@ -1189,6 +1229,11 @@
   // ===== 历史表格 =====
   function renderHistoryTable() {
     const tbody = document.getElementById('historyTbody');
+    const historyViewEl = document.getElementById('historyView');
+    const hideHistoryByBlind = !!(window.__recorder_settings && window.__recorder_settings.brainTeaserMode && window.__recorder_settings.brainTeaserCurrentBlind);
+    if (historyViewEl) {
+      historyViewEl.classList.toggle('spoiler', hideHistoryByBlind);
+    }
     if (!tbody) return;
     if (history.length === 0) {
       tbody.innerHTML = '<tr class="empty"><td colspan="6">暂无记录</td></tr>';
@@ -1203,7 +1248,9 @@
         if (!ch) {
           return `<td>${last[cat]}</td>`;
         }
-        const badgeClass = ch.op === 'add' ? 'hist-badge hist-badge-add' : 'hist-badge hist-badge-remove';
+        const badgeClass = hideHistoryByBlind
+          ? 'hist-badge'
+          : (ch.op === 'add' ? 'hist-badge hist-badge-add' : 'hist-badge hist-badge-remove');
         return `<td><span class="${badgeClass}">${last[cat]}</span></td>`;
       }
       function tdSnap(cat) {
@@ -1959,6 +2006,15 @@
   }
 
   function init() {
+    const syncBackgroundState = () => {
+      document.body.classList.toggle('in-background', document.hidden || document.visibilityState !== 'visible');
+    };
+
+    document.addEventListener('visibilitychange', syncBackgroundState);
+    window.addEventListener('pagehide', syncBackgroundState);
+    window.addEventListener('pageshow', syncBackgroundState);
+    syncBackgroundState();
+
     document.getElementById('drawBtn').addEventListener('click', drawOnce);
 
     const historyBtn = document.getElementById('historyBtn');

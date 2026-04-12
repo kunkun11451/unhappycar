@@ -103,7 +103,7 @@
           </div>
           <div class="rows" id="lastDraw"></div>
         </section>
-        <section class="panel">
+        <section class="panel" id="recordPanel">
           <div class="panel-header">
             <h2>当前Ban位记录</h2>
             <div class="controls hidden" id="recordCopyBar">
@@ -363,11 +363,32 @@
                       stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
                     </svg>脑筋急转弯模式</div>
-                  <div class="settings-desc">关闭可用角色展示，什么能用自己来猜</div>
+                  <div class="settings-desc">关闭可用角色展示，什么能用自己来猜<img
+                  src="https://upload-bbs.miyoushe.com/upload/2024/06/29/273489775/4be47bf1376bfb4f69c1e3fe26c8a8e8_8119842655567179283.png"
+                  style="height: 2em; vertical-align: middle;"></div>
                 </div>
                 <div class="settings-action">
                   <label class="switch">
                     <input type="checkbox" id="brainTeaserToggle">
+                    <span class="slider"></span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="settings-item hidden" id="brainTeaserCurrentBlindContainer">
+                <div class="settings-info">
+                  <div class="settings-title"><svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"></path>
+                      <line x1="3" y1="3" x2="21" y2="21"></line>
+                    </svg>隐藏当前记录显示</div>
+                  <div class="settings-desc">当前记录还有啥也自己想<img
+                  src="https://upload-bbs.miyoushe.com/upload/2024/06/29/273489775/4be47bf1376bfb4f69c1e3fe26c8a8e8_8119842655567179283.png"
+                  style="height: 2em; vertical-align: middle;"></div>
+                </div>
+                <div class="settings-action">
+                  <label class="switch">
+                    <input type="checkbox" id="brainTeaserCurrentBlindToggle">
                     <span class="slider"></span>
                   </label>
                 </div>

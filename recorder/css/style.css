@@ -1654,3 +1654,223 @@ body.light-theme .rules-table th {
         font-size: 16px !important;
     }
 }
+
+#recordPanel.spoiler {
+    --x-direction: var(--background-size);
+    --y-direction: 0;
+    --background-url: url("./spoiler.png");
+    --background-size: 256px;
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    background: rgba(0, 0, 0, 0.25) var(--background-url);
+    background-size: var(--background-size) var(--background-size);
+    animation: 20s linear infinite dots-animation;
+}
+
+#recordPanel.spoiler .rows,
+#recordPanel.spoiler .panel-header .controls {
+    filter: blur(8px) saturate(0.85);
+    opacity: 0.62;
+    transform: scale(1.01);
+    transition: filter 220ms ease, transform 220ms ease, opacity 220ms ease;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+#recordPanel.spoiler .panel-header {
+    position: relative;
+    z-index: 10;
+    pointer-events: none;
+}
+
+#recordPanel.spoiler .panel-header h2 {
+    pointer-events: auto;
+    user-select: auto;
+    -webkit-user-select: auto;
+    filter: none;
+    opacity: 1;
+}
+
+#recordPanel.spoiler,
+#recordPanel.spoiler *:not(.panel-header h2) {
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+#recordPanel.spoiler::before,
+#recordPanel.spoiler::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: auto;
+    z-index: 5;
+    background-image: var(--background-url);
+    background-size: var(--background-size) var(--background-size);
+    background-repeat: repeat;
+}
+
+#recordPanel.spoiler::before {
+    --x-direction: 0;
+    --y-direction: var(--background-size);
+    background-position: calc(var(--x-direction) / 2) calc(var(--y-direction) / 2);
+    animation: 21s linear -7s infinite dots-animation, 2s linear -0.8s infinite opacity-breath;
+}
+
+#recordPanel.spoiler::after {
+    --x-direction: calc(-1 * var(--background-size));
+    --y-direction: calc(-1 * var(--background-size));
+    background-position: calc(var(--x-direction) / 2) calc(var(--y-direction) / 2);
+    animation: 22s linear -14s infinite dots-animation, 2s linear -1.5s infinite opacity-breath;
+}
+
+@keyframes dots-animation {
+    0% {
+        background-position: 0 0;
+    }
+
+    100% {
+        background-position: var(--x-direction) var(--y-direction);
+    }
+}
+
+@keyframes opacity-breath {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.1;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+body.in-background #recordPanel.spoiler,
+body.in-background #recordPanel.spoiler::before,
+body.in-background #recordPanel.spoiler::after {
+    animation-play-state: paused;
+}
+
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 2dppx) {
+    #recordPanel.spoiler {
+        --background-url: url("./spoiler.png");
+    }
+}
+
+@media (-webkit-min-device-pixel-ratio: 3), (min-resolution: 3dppx) {
+    #recordPanel.spoiler {
+        --background-url: url("./spoiler.png");
+    }
+}
+
+body.light-theme #recordPanel.spoiler {
+    background-image: var(--background-url);
+    background-color: rgba(255, 255, 255, 0.12);
+    background-size: var(--background-size) var(--background-size);
+}
+
+body.light-theme #recordPanel.spoiler::before,
+body.light-theme #recordPanel.spoiler::after {
+    mix-blend-mode: multiply;
+    filter: brightness(0.35) contrast(1.35);
+}
+
+body.light-theme #recordPanel.spoiler::before {
+    opacity: 0.9;
+}
+
+body.light-theme #recordPanel.spoiler::after {
+    opacity: 0.78;
+}
+
+#historyView.spoiler {
+    --x-direction: var(--background-size);
+    --y-direction: 0;
+    --background-url: url("./spoiler.png");
+    --background-size: 256px;
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    background: rgba(0, 0, 0, 0.22) var(--background-url);
+    background-size: var(--background-size) var(--background-size);
+    animation: 20s linear infinite dots-animation;
+}
+
+#historyView.spoiler .history-table {
+    filter: blur(8px) saturate(0.85);
+    opacity: 0.62;
+    transform: scale(1.01);
+    transition: filter 220ms ease, transform 220ms ease, opacity 220ms ease;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+#historyView.spoiler,
+#historyView.spoiler * {
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+#historyView.spoiler::before,
+#historyView.spoiler::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: auto;
+    z-index: 5;
+    background-image: var(--background-url);
+    background-size: var(--background-size) var(--background-size);
+    background-repeat: repeat;
+}
+
+#historyView.spoiler::before {
+    --x-direction: 0;
+    --y-direction: var(--background-size);
+    background-position: calc(var(--x-direction) / 2) calc(var(--y-direction) / 2);
+    animation: 21s linear -7s infinite dots-animation, 2s linear -0.8s infinite opacity-breath;
+}
+
+#historyView.spoiler::after {
+    --x-direction: calc(-1 * var(--background-size));
+    --y-direction: calc(-1 * var(--background-size));
+    background-position: calc(var(--x-direction) / 2) calc(var(--y-direction) / 2);
+    animation: 22s linear -14s infinite dots-animation, 2s linear -1.5s infinite opacity-breath;
+}
+
+body.in-background #historyView.spoiler,
+body.in-background #historyView.spoiler::before,
+body.in-background #historyView.spoiler::after {
+    animation-play-state: paused;
+}
+
+body.light-theme #historyView.spoiler {
+    background-image: var(--background-url);
+    background-color: rgba(255, 255, 255, 0.12);
+    background-size: var(--background-size) var(--background-size);
+}
+
+body.light-theme #historyView.spoiler::before,
+body.light-theme #historyView.spoiler::after {
+    mix-blend-mode: multiply;
+    filter: brightness(0.35) contrast(1.35);
+}
+
+body.light-theme #historyView.spoiler::before {
+    opacity: 0.9;
+}
+
+body.light-theme #historyView.spoiler::after {
+    opacity: 0.78;
+}
+

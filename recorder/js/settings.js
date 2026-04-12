@@ -7,6 +7,7 @@
         copyAllInOneEnabled: false,
         customContextMenuEnabled: true,
         brainTeaserMode: false,
+        brainTeaserCurrentBlind: false,
         shortcuts: {
             draw: 'None',
             lastDraw: 'None',
@@ -24,6 +25,10 @@
     if (settings.copyAllInOneEnabled === undefined) settings.copyAllInOneEnabled = false;
     if (settings.customContextMenuEnabled === undefined) settings.customContextMenuEnabled = true;
     if (settings.brainTeaserMode === undefined) settings.brainTeaserMode = false;
+    if (settings.brainTeaserCurrentBlind === undefined) settings.brainTeaserCurrentBlind = false;
+    if (!settings.shortcuts || typeof settings.shortcuts !== 'object') {
+        settings.shortcuts = { ...DEFAULT_SETTINGS.shortcuts };
+    }
     if (!settings.shortcuts.copyAllInOne) settings.shortcuts.copyAllInOne = 'None';
 
     window.__recorder_settings = settings;
@@ -133,10 +138,35 @@
 
         // 初始化脑筋急转弯模式开关
         const brainTeaserToggle = document.getElementById('brainTeaserToggle');
+        const brainTeaserCurrentBlindContainer = document.getElementById('brainTeaserCurrentBlindContainer');
+        const brainTeaserCurrentBlindToggle = document.getElementById('brainTeaserCurrentBlindToggle');
+
+        function syncBrainTeaserBlindVisibility() {
+            if (!brainTeaserCurrentBlindContainer) return;
+            brainTeaserCurrentBlindContainer.classList.toggle('hidden', !settings.brainTeaserMode);
+        }
+
+        if (brainTeaserCurrentBlindToggle) {
+            brainTeaserCurrentBlindToggle.checked = !!settings.brainTeaserCurrentBlind;
+            brainTeaserCurrentBlindToggle.addEventListener('change', (e) => {
+                settings.brainTeaserCurrentBlind = e.target.checked;
+                saveSettings();
+
+                if (window.__recorder_actions && window.__recorder_actions.refresh) {
+                    window.__recorder_actions.refresh();
+                }
+                if (window.__recorder_online && window.__recorder_online.forceSync) {
+                    window.__recorder_online.forceSync();
+                }
+            });
+        }
+
         if (brainTeaserToggle) {
             brainTeaserToggle.checked = settings.brainTeaserMode;
+            syncBrainTeaserBlindVisibility();
             brainTeaserToggle.addEventListener('change', (e) => {
                 settings.brainTeaserMode = e.target.checked;
+                syncBrainTeaserBlindVisibility();
                 saveSettings();
 
                 // 触发 UI 刷新
@@ -706,6 +736,8 @@
             return;
         }
 
+        const recordCopyLocked = !!(settings.brainTeaserMode && settings.brainTeaserCurrentBlind);
+
         if (pressedShortcut === settings.shortcuts.draw) {
             lastActionTime = now;
             lastActionShortcut = pressedShortcut;
@@ -726,6 +758,10 @@
                 actions.copyWithFeedback(actions.formatLastDrawText(), btn, true);
                 e.preventDefault();
             } else if (pressedShortcut === settings.shortcuts.currentRecord) {
+                if (recordCopyLocked) {
+                    e.preventDefault();
+                    return;
+                }
                 lastActionTime = now;
                 lastActionShortcut = pressedShortcut;
                 const btn = document.getElementById('copyRecordBtn');
@@ -748,6 +784,7 @@
         const actions = window.__recorder_actions;
         const copyBox = document.getElementById('copyAvailable');
         const copyPanel = document.getElementById('copyAvailablePanel');
+        const recordCopyLocked = !!(settings.brainTeaserMode && settings.brainTeaserCurrentBlind);
 
         // Check availability/visibility of copy area
         // If hidden, treat as empty (step over)
@@ -774,6 +811,12 @@
             actions.copyWithFeedback(actions.formatLastDrawText(), btn, true);
             allInOneStep = 1;
         } else if (allInOneStep === 1) {
+            if (recordCopyLocked) {
+                allInOneStep = 2;
+                currentCopyIndex = 0;
+                handleAllInOne();
+                return;
+            }
             const btn = document.getElementById('copyRecordBtn');
             actions.copyWithFeedback(actions.formatCurrentRecordText().replace(/水/g, '氵'), btn, true);
             allInOneStep = 2;
