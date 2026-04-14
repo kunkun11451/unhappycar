@@ -184,6 +184,9 @@
         // 绑定弹窗内的按钮
         document.getElementById('modalUndoBtnItem').addEventListener('click', () => {
             window.__recorder_actions.undo();
+            if (window.showToast) {
+                window.showToast('已撤销一次抽取');
+            }
         });
         document.getElementById('modalResetBtnItem').addEventListener('click', () => {
             const doConfirm = window.showCustomConfirm || ((msg, cb) => { if (confirm(msg)) cb(); });

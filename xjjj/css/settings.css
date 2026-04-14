@@ -199,6 +199,34 @@
     color: #94a3b8;
 }
 
+.settings-item.clickable-item {
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.settings-item.clickable-item:active {
+    background: rgba(255, 255, 255, 0.12);
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    transform: scale(0);
+    animation: ripple-animation 0.6s linear;
+    background-color: rgba(255, 255, 255, 0.25);
+    pointer-events: none;
+}
+
+@keyframes ripple-animation {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
 .settings-action {
     flex-shrink: 0;
 }
@@ -287,13 +315,13 @@ input:checked+.slider:before {
     }
 
     .settings-item {
-        flex-direction: column;
-        align-items: flex-start;
+        flex-direction: row;
+        align-items: center;
         gap: 12px;
     }
 
     .settings-action {
-        width: 100%;
+        width: auto;
         display: flex;
         justify-content: flex-end;
         align-items: center;

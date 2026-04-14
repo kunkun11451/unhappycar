@@ -50,10 +50,10 @@
         copyBtn: $('#copyBtn'),
         settingsBtn: $('#settingsBtn'),
         settingsModal: $('#settingsModal'),
-        modalUndoBtn: $('#modalUndoBtn'),
+        modalUndoBtnItem: $('#modalUndoBtnItem'),
         orderToggle: $('#orderToggle'),
         themeSelect: $('#themeSelect'),
-        modalResetBtn: $('#modalResetBtn'),
+        modalResetBtnItem: $('#modalResetBtnItem'),
         alertModal: $('#alertModal'),
         alertTitle: $('#alertTitle'),
         alertMessage: $('#alertMessage'),
@@ -201,7 +201,7 @@
         els.settingsModal.querySelector('.settings-backdrop').addEventListener('click', () => closeModal(els.settingsModal));
 
         // 撤销上一轮
-        els.modalUndoBtn.addEventListener('click', () => {
+        els.modalUndoBtnItem.addEventListener('click', () => {
             closeModal(els.settingsModal);
             if (state.undoStack.length === 0) {
                 showToast('无法撤销到更早的状态');
@@ -213,7 +213,7 @@
         });
 
         // 设置中的重置按钮
-        els.modalResetBtn.addEventListener('click', () => {
+        els.modalResetBtnItem.addEventListener('click', () => {
             closeModal(els.settingsModal);
             confirmReset();
         });
@@ -272,6 +272,35 @@
                 }
             });
         }
+
+        // 全局处理 clickable-item 的涟漪动画
+        document.addEventListener('click', function (e) {
+            const item = e.target.closest('.clickable-item');
+            if (item) {
+                const rect = item.getBoundingClientRect();
+                let x = e.clientX - rect.left;
+                let y = e.clientY - rect.top;
+
+                if (e.clientX === 0 && e.clientY === 0) {
+                    x = rect.width / 2;
+                    y = rect.height / 2;
+                }
+
+                const ripple = document.createElement('div');
+                ripple.className = 'ripple';
+
+                const size = Math.max(rect.width, rect.height);
+                ripple.style.width = ripple.style.height = `${size}px`;
+                ripple.style.left = `${x - size / 2}px`;
+                ripple.style.top = `${y - size / 2}px`;
+
+                item.appendChild(ripple);
+
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            }
+        });
     }
 
     function switchTab(tabName) {
