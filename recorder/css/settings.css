@@ -117,6 +117,7 @@
     align-items: center;
     flex-shrink: 0;
     position: relative;
+    border-radius: 16px 16px 0 0;
 }
 
 .settings-header h2 {
@@ -505,6 +506,16 @@ input:checked+.slider:before {
         max-width: 90px;
     }
 
+    #btInput {
+        max-width: none !important;
+        width: 65% !important;
+    }
+
+    #alertInput {
+        max-width: none !important;
+        width: 100% !important;
+    }
+
     .shortcut-input {
         width: 100%;
     }
@@ -531,9 +542,9 @@ input:checked+.slider:before {
 /* Toast Notification Styles */
 .toast-notification {
     position: fixed;
-    bottom: 30px;
+    top: 30px;
     left: 50%;
-    transform: translateX(-50%) translateY(100px);
+    transform: translateX(-50%) translateY(-100px);
     background: rgba(15, 23, 42, 0.9);
     backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -893,39 +904,25 @@ body.light-theme .spinner-large {
 }
 
 .quick-theme-picker {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
+    user-select: none;
+    -webkit-user-select: none;
+    overflow: visible !important;
 }
 
-.quick-theme-row {
-    position: relative;
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.22);
-}
-
-.quick-theme-row:last-child {
-    border-bottom: none;
-}
-
-.quick-theme-row span {
-    color: #ffffff;
-    font-size: 0.64rem;
-    letter-spacing: 0.5px;
-    pointer-events: none;
-    text-shadow: 0 0 3px rgba(0, 0, 0, 0.85), 0 0 1px rgba(0, 0, 0, 0.9);
-}
-
-.quick-theme-row input[type="color"] {
-    position: absolute;
-    inset: 0;
+.quick-theme-popup {
+    visibility: hidden;
     opacity: 0;
-    cursor: pointer;
-    width: 100%;
-    height: 100%;
+    transform: translateY(10px) scale(0.96);
+    transform-origin: bottom center;
+    transition: visibility 0.25s, opacity 0.25s, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+}
+
+.quick-theme-popup.show {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
 }
 
 .emoji-check {

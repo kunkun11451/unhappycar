@@ -364,7 +364,8 @@
         const all = [];
         const seen = new Set();
 
-        Object.values(emojiUrls || {}).forEach(list => {
+        Object.entries(emojiUrls || {}).forEach(([charName, list]) => {
+            if (charName === '崩铁') return; 
             if (!Array.isArray(list)) return;
             list.forEach(url => {
                 if (!url || seen.has(url)) return;
@@ -840,7 +841,10 @@
                         <div class="emoji-grid" id="emojiSelectedGrid"></div>
                     </div>
                     <div class="emoji-pick-actions">
-                        <button class="btn" id="emojiPickPresetBtn" style="margin-right: auto;">预设</button>
+                        <div style="position: relative; display: inline-block; margin-right: auto; flex-shrink: 0;">
+                            <button class="btn" id="emojiPickPresetBtn">预设</button>
+                            <div id="emojiPresetMenu" class="quick-theme-popup" style="position: absolute; bottom: 100%; left: 0; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 4px; z-index: 1000; margin-bottom: 8px; min-width: 160px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); cursor: default; display: flex; flex-direction: column; gap: 2px;"></div>
+                        </div>
                         <button class="btn" id="emojiPickClear">清空</button>
                         <button class="btn primary" id="emojiPickConfirm">确认</button>
                     </div>
@@ -859,47 +863,178 @@
         let localBgColor = settings.backgroundColor || '#242424';
         let localFontColor = settings.fontColor || '#0f172a';
         let localBtnColor = settings.btnColor || '#e1be88';
+        let localEmojiLayout = settings.emojiLayout || 'grid';
+        let localEmojiScale = settings.emojiScale || 1.0;
+        let quickPickerDocListenerController = null;
 
-        const renderQuickColorPicker = (container, bgColor, fontColor, btnColor) => {
+        const renderQuickColorPicker = (container, bgColor, fontColor, btnColor, layout, scale) => {
             if (!container) return;
 
+            container.style.position = 'relative';
+            container.style.display = 'inline-block';
+
             container.innerHTML = `
-                <div class="emoji-option bg-color-picker quick-theme-picker" style="position: relative; border: 2px solid rgba(255,255,255,0.2);" title="点击对应区域调整颜色">
-                    <div class="quick-theme-row" data-role="bg" style="background:${bgColor};">
-                        <span>背景</span>
-                        <input type="color" value="${bgColor}" id="emojiQuickBgColor" aria-label="背景颜色">
-                    </div>
-                    <div class="quick-theme-row" data-role="font" style="background:${fontColor};">
-                        <span>文字</span>
-                        <input type="color" value="${fontColor}" id="emojiQuickFontColor" aria-label="文字颜色">
-                    </div>
-                    <div class="quick-theme-row" data-role="btn" style="background:${btnColor};">
-                        <span>控件</span>
-                        <input type="color" value="${btnColor}" id="emojiQuickBtnColor" aria-label="控件颜色">
+                <div class="emoji-option quick-theme-picker" id="emojiQuickMenuToggle" style="border: 2px solid rgba(255,255,255,0.2); cursor: pointer; display: flex; align-items: center; justify-content: center; background: ${bgColor}; margin: 0; box-sizing: border-box;" title="点此调整颜色与排列">
+                    <span id="emojiQuickMenuToggleText" style="color: ${fontColor}; pointer-events: none; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; filter: drop-shadow(0 0 2px rgba(0,0,0,0.5));">
+                        <svg class="settings-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 100%; height: 100%;">
+                            <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle>
+                            <circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle>
+                            <circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle>
+                            <circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle>
+                            <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.551-2.5 5.551-5.652C22 5.61 17.5 2 12 2z"></path>
+                        </svg>
+                    </span>
+                </div>
+                
+                <div id="emojiQuickMenuPopup" class="quick-theme-popup" style="position: absolute; bottom: 100%; left: 0; background: ${bgColor}; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 10px; z-index: 1000; margin-bottom: 8px; width: 220px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); cursor: default;">
+                    <style>
+                            .quick-theme-menu-item { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; color: ${fontColor}; font-size: 0.85rem; }
+                            .quick-theme-menu-item:last-child { margin-bottom: 0; }
+                            .quick-theme-menu-item input[type="color"] { border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; padding: 0; cursor: pointer; }
+                            .quick-theme-menu-item .btn-icon { color: ${fontColor}; border-color: rgba(255,255,255,0.1); }
+                            .quick-theme-menu-item select { color: ${fontColor}; background-color: rgba(0,0,0,0.1); border-color: rgba(255,255,255,0.1); }
+                        </style>
+                        <div class="quick-theme-menu-item">
+                            <span>背景颜色</span>
+                            <input type="color" value="${bgColor}" id="emojiQuickBgColor" style="width:28px;height:28px;">
+                        </div>
+                        <div class="quick-theme-divider" style="height: 1px; background: ${fontColor}; opacity: 0.1; margin: 4px 6px;"></div>
+                        <div class="quick-theme-menu-item">
+                            <span>字体颜色</span>
+                            <input type="color" value="${fontColor}" id="emojiQuickFontColor" style="width:28px;height:28px;">
+                        </div>
+                        <div class="quick-theme-divider" style="height: 1px; background: ${fontColor}; opacity: 0.1; margin: 4px 6px;"></div>
+                        <div class="quick-theme-menu-item">
+                            <span>控件颜色</span>
+                            <input type="color" value="${btnColor}" id="emojiQuickBtnColor" style="width:28px;height:28px;">
+                        </div>
+                        <div class="quick-theme-divider" style="height: 1px; background: ${fontColor}; opacity: 0.1; margin: 4px 6px;"></div>
+                        <div class="quick-theme-menu-item">
+                            <span>排列方式</span>
+                            <select id="emojiQuickLayout" class="settings-select" style="padding: 2px 24px 2px 8px; font-size: 0.8rem; width: auto; max-width: 80px; height: 28px;">
+                                <option value="grid" ${layout === 'grid' ? 'selected' : ''}>网格</option>
+                                <option value="diamond" ${layout === 'diamond' ? 'selected' : ''}>菱形</option>
+                                <option value="hex" ${layout === 'hex' ? 'selected' : ''}>六边形</option>
+                                <option value="spiral" ${layout === 'spiral' ? 'selected' : ''}>螺旋</option>
+                                <option value="foam" ${layout === 'foam' ? 'selected' : ''}>泡泡</option>
+                                <option value="mix" ${layout === 'mix' ? 'selected' : ''}>堆叠</option>
+                            </select>
+                        </div>
+                        <div class="quick-theme-divider" style="height: 1px; background: ${fontColor}; opacity: 0.1; margin: 4px 6px;"></div>
+                        <div class="quick-theme-menu-item">
+                            <span>表情大小</span>
+                            <div style="display: flex; align-items: center; gap: 4px;">
+                                <button class="btn btn-icon" id="emojiQuickScaleDec" style="width: 24px; height: 24px; padding: 0;">-</button>
+                                <span id="emojiQuickScaleVal" style="min-width: 2em; text-align: center; user-select: none; -webkit-user-select: none;">${scale.toFixed(1)}</span>
+                                <button class="btn btn-icon" id="emojiQuickScaleInc" style="width: 24px; height: 24px; padding: 0;">+</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `;
 
-            const bindColorInput = (id, onColor) => {
+            const toggle = container.querySelector('#emojiQuickMenuToggle');
+            const popup = container.querySelector('#emojiQuickMenuPopup');
+
+            toggle.addEventListener('click', (e) => {
+                if (e.target.closest('#emojiQuickMenuPopup')) return;
+                e.stopPropagation();
+                popup.classList.toggle('show');
+            });
+
+            if (quickPickerDocListenerController) {
+                quickPickerDocListenerController.abort();
+            }
+            quickPickerDocListenerController = new AbortController();
+
+            document.addEventListener('click', (e) => {
+                if (document.body.contains(container) && !container.contains(e.target)) {
+                    popup.classList.remove('show');
+                }
+            }, { signal: quickPickerDocListenerController.signal });
+
+            const bindColorInput = (id, onColor, targetElementCallback) => {
                 const input = container.querySelector(`#${id}`);
                 if (!input) return;
                 input.addEventListener('input', (e) => {
                     const value = e.target.value;
                     onColor(value);
-                    const row = input.closest('.quick-theme-row');
-                    if (row) row.style.background = value;
+                    if (targetElementCallback) {
+                        targetElementCallback(value);
+                    }
                 });
             };
 
             bindColorInput('emojiQuickBgColor', (value) => {
                 localBgColor = value;
+            }, (val) => {
+                toggle.style.background = val;
+                popup.style.background = val;
             });
+
             bindColorInput('emojiQuickFontColor', (value) => {
                 localFontColor = value;
+            }, (val) => {
+                const span = container.querySelector('#emojiQuickMenuToggleText');
+                if (span) span.style.color = val;
+                const items = popup.querySelectorAll('.quick-theme-menu-item');
+                items.forEach(item => item.style.color = val);
+                const buttons = popup.querySelectorAll('.btn-icon');
+                buttons.forEach(btn => btn.style.color = val);
+                const selects = popup.querySelectorAll('.settings-select');
+                selects.forEach(sel => sel.style.color = val);
+                const dividers = popup.querySelectorAll('.quick-theme-divider');
+                dividers.forEach(div => div.style.background = val);
             });
+
             bindColorInput('emojiQuickBtnColor', (value) => {
                 localBtnColor = value;
             });
+
+            const layoutSelect = container.querySelector('#emojiQuickLayout');
+            if (layoutSelect) {
+                layoutSelect.addEventListener('change', (e) => {
+                    localEmojiLayout = e.target.value;
+                });
+            }
+
+            const scaleDec = container.querySelector('#emojiQuickScaleDec');
+            const scaleInc = container.querySelector('#emojiQuickScaleInc');
+            const scaleVal = container.querySelector('#emojiQuickScaleVal');
+            if (scaleDec && scaleInc && scaleVal) {
+                const updateScale = (delta) => {
+                    localEmojiScale = Math.max(0.1, Math.min(5.0, (localEmojiScale + delta)));
+                    scaleVal.textContent = localEmojiScale.toFixed(1);
+                };
+                
+                const attachHoldEvent = (btn, delta) => {
+                    let timer = null;
+                    let interval = null;
+                    const stopHold = (e) => {
+                        if (e && e.pointerId && btn.hasPointerCapture(e.pointerId)) {
+                            btn.releasePointerCapture(e.pointerId);
+                        }
+                        clearTimeout(timer);
+                        clearInterval(interval);
+                    };
+                    btn.addEventListener('pointerdown', (e) => {
+                        if (e.pointerId) btn.setPointerCapture(e.pointerId);
+                        e.preventDefault();
+                        updateScale(delta);
+                        timer = setTimeout(() => {
+                            interval = setInterval(() => {
+                                updateScale(delta);
+                            }, 80);
+                        }, 400);
+                    });
+                    btn.addEventListener('pointerup', stopHold);
+                    btn.addEventListener('pointercancel', stopHold);
+                    btn.addEventListener('contextmenu', (e) => e.preventDefault());
+                };
+                
+                attachHoldEvent(scaleDec, -0.1);
+                attachHoldEvent(scaleInc, 0.1);
+            }
         };
 
         const renderSelected = () => {
@@ -921,7 +1056,7 @@
                 `).join('');
 
                 const quickPickerMount = selectedGrid.querySelector('#emojiQuickThemePickerMount');
-                renderQuickColorPicker(quickPickerMount, localBgColor, localFontColor, localBtnColor);
+                renderQuickColorPicker(quickPickerMount, localBgColor, localFontColor, localBtnColor, localEmojiLayout, localEmojiScale);
             }
         };
 
@@ -963,14 +1098,28 @@
             const emojiUrls = await loadEmojiUrls();
             const charData = window.characterData || {};
             const result = {};
+            const unmappedUrls = [];
 
             for (const [charName, urls] of Object.entries(emojiUrls || {})) {
-                if (urls && urls.length > 0 && charData[charName]) {
-                    result[charName] = urls;
+                if (charName === '崩铁') continue;
+                if (urls && urls.length > 0) {
+                    if (charData[charName]) {
+                        result[charName] = urls;
+                    } else {
+                        unmappedUrls.push(...urls);
+                    }
                 }
             }
 
-            return result;
+            const finalResult = {};
+            if (unmappedUrls.length > 0) {
+                finalResult['未实装或其他角色'] = [...new Set(unmappedUrls)]; // 去重
+            }
+            for (const key in result) {
+                finalResult[key] = result[key];
+            }
+
+            return finalResult;
         })();
 
         const charData = window.characterData || {};
@@ -1033,10 +1182,21 @@
                 const selectedCount = (urls || []).filter(url => selected.includes(url)).length;
                 const displayName = matchRange ? highlightText(name, searchTerm, matchRange) : name;
 
+                let avatarHtml = '';
+                if (name === '未实装或其他角色') {
+                    avatarHtml = `
+                        <div class="char-pref-avatar" style="background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; box-sizing: border-box; border: 1px solid rgba(255,255,255,0.1); overflow: hidden;">
+                            <img src="https://upload-bbs.miyoushe.com/upload/2026/02/01/284249424/e792aef6b6978b37340d0d4b44e7f699_1599720184154830647.png" style="width: 100%; height: 100%; object-fit: cover;" alt="其他角色">
+                        </div>
+                    `;
+                } else {
+                    avatarHtml = `<img src="${defaultAvatar}" class="char-pref-avatar" alt="${name}">`;
+                }
+
                 return `
                     <div class="char-pref-item" data-char="${name}" data-rendered="false">
                         <div class="char-pref-header">
-                            <img src="${defaultAvatar}" class="char-pref-avatar" alt="${name}">
+                            ${avatarHtml}
                             <span class="char-pref-name">${displayName}</span>
                             <span class="char-emoji-count">${selectedCount} 个已选</span>
                         </div>
@@ -1125,12 +1285,19 @@
                 settings.backgroundColor = localBgColor;
                 settings.fontColor = localFontColor;
                 settings.btnColor = localBtnColor;
+                settings.emojiLayout = localEmojiLayout;
+                settings.emojiScale = localEmojiScale;
+                
                 const mainColorInput = document.getElementById('personalizeBgColor');
                 if (mainColorInput) mainColorInput.value = localBgColor;
                 const mainFontColorInput = document.getElementById('personalizeFontColor');
                 if (mainFontColorInput) mainFontColorInput.value = localFontColor;
                 const mainBtnColorInput = document.getElementById('personalizeBtnColor');
                 if (mainBtnColorInput) mainBtnColorInput.value = localBtnColor;
+                const mainLayoutSelect = document.getElementById('personalizeEmojiLayout');
+                if (mainLayoutSelect) mainLayoutSelect.value = localEmojiLayout;
+                const mainScaleText = document.getElementById('personalizeEmojiScaleValue');
+                if (mainScaleText) mainScaleText.textContent = localEmojiScale.toFixed(1);
                 
                 const bgModeSelect = document.getElementById('personalizeBgMode');
                 if (bgModeSelect) bgModeSelect.value = 'emoji';
@@ -1144,6 +1311,7 @@
 
         if (selectedGrid) {
             selectedGrid.addEventListener('click', (e) => {
+                if (e.target.closest('#emojiQuickMenuToggle')) return;
                 const option = e.target.closest('.emoji-option');
                 if (!option) return;
                 const url = option.dataset.url;
@@ -1171,28 +1339,48 @@
         }
 
         const presetBtn = modal.querySelector('#emojiPickPresetBtn');
-        if (presetBtn) {
+        const emojiPresetMenu = modal.querySelector('#emojiPresetMenu');
+        
+        if (presetBtn && emojiPresetMenu) {
             presetBtn.addEventListener('click', (e) => {
-                showPresetMenu(e.target, selected, {
-                    bgColor: localBgColor,
-                    fontColor: localFontColor,
-                    btnColor: localBtnColor
-                }, (newSelection, loadedPreset) => {
-                     // Update selected array
-                     selected.splice(0, selected.length, ...newSelection);
-                     if (loadedPreset) {
-                         localBgColor = loadedPreset.bgColor || localBgColor;
-                         localFontColor = loadedPreset.fontColor || localFontColor;
-                         localBtnColor = loadedPreset.btnColor || localBtnColor;
-                     }
-                     renderSelected();
-                     // Refresh char list to show correct selection state
-                     if (searchInput) {
-                         renderCharList(searchInput.value.trim().replace(/['\s]/g, ''));
-                     } else {
-                         renderCharList();
-                     }
-                });
+                e.stopPropagation();
+                const isShowing = emojiPresetMenu.classList.contains('show');
+                if (isShowing) {
+                    emojiPresetMenu.classList.remove('show');
+                } else {
+                    renderPresetMenuContent(emojiPresetMenu, selected, {
+                        bgColor: localBgColor,
+                        fontColor: localFontColor,
+                        btnColor: localBtnColor,
+                        emojiLayout: localEmojiLayout,
+                        emojiScale: localEmojiScale
+                    }, (newSelection, loadedPreset) => {
+                        // Update selected array
+                        selected.splice(0, selected.length, ...newSelection);
+                        if (loadedPreset) {
+                            localBgColor = loadedPreset.bgColor || localBgColor;
+                            localFontColor = loadedPreset.fontColor || localFontColor;
+                            localBtnColor = loadedPreset.btnColor || localBtnColor;
+                            localEmojiLayout = loadedPreset.emojiLayout || localEmojiLayout;
+                            localEmojiScale = loadedPreset.emojiScale !== undefined ? loadedPreset.emojiScale : localEmojiScale;
+                        }
+                        renderSelected();
+                        // Refresh char list to show correct selection state
+                        if (searchInput) {
+                            renderCharList(searchInput.value.trim().replace(/['\s]/g, ''));
+                        } else {
+                            renderCharList();
+                        }
+                    });
+                    emojiPresetMenu.style.background = localBgColor;
+                    emojiPresetMenu.classList.add('show');
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (document.body.contains(emojiPresetMenu) && !presetBtn.contains(e.target) && !emojiPresetMenu.contains(e.target)) {
+                    emojiPresetMenu.classList.remove('show');
+                }
             });
         }
 
@@ -1207,55 +1395,16 @@
         modal.querySelector('.settings-backdrop').addEventListener('click', closeModal);
     }
 
-    function showPresetMenu(triggerBtn, currentSelection, currentColors, onLoadCallback) {
-        let menu = document.getElementById('emojiPresetMenu');
-        if (menu) menu.remove();
-
-        menu = document.createElement('div');
-        menu.id = 'emojiPresetMenu';
-        menu.style.cssText = `
-            position: absolute;
-            z-index: 2200;
-            background: rgba(30, 30, 30, 0.95);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 4px;
-            min-width: 160px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-            color: #f1f5f9;
-            font-size: 0.9rem;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        `;
-
-        const rect = triggerBtn.getBoundingClientRect();
-        // Adjust for modal scroll/viewport? triggerBtn is fixed in modal footer usually?
-        // Modal uses fixed positioning. The menu is appended to body, so we need page coordinates.
-        // rect values are viewport relative.
-        // window.scrollY is needed if body scrolls. But settings modal is fixed full screen.
-        menu.style.left = rect.left + 'px';
-        menu.style.bottom = (window.innerHeight - rect.top + 5) + 'px'; // Show above button if footer is at bottom
-        // Or show below? Footer is usually at bottom.
-        // Let's check modal style. It's centered.
-        // Let's just put it below button for now, or detect.
-        menu.style.top = (rect.bottom + 5) + 'px';
-        menu.style.bottom = 'auto'; // Reset
-        
-        // If too close to bottom, flip
-        if (window.innerHeight - rect.bottom < 200) {
-            menu.style.top = 'auto';
-            menu.style.bottom = (window.innerHeight - rect.top + 5) + 'px';
-        }
-
+    function renderPresetMenuContent(menu, currentSelection, currentColors, onLoadCallback) {
+        menu.innerHTML = '';
         if (!Array.isArray(settings.emojiPresets)) settings.emojiPresets = [];
+
+        const fontColor = currentColors.fontColor || '#f1f5f9';
 
         // Save Item
         const saveItem = document.createElement('div');
         saveItem.innerHTML = '<span>+ 保存当前预设</span>';
-        saveItem.style.cssText = 'padding: 8px 12px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; transition: background 0.2s;';
+        saveItem.style.cssText = `padding: 8px 12px; cursor: pointer; border-radius: 4px; display: flex; align-items: center; transition: background 0.2s; color: ${fontColor}; font-size: 0.9rem;`;
         saveItem.onmouseover = () => saveItem.style.background = 'rgba(255, 255, 255, 0.1)';
         saveItem.onmouseout = () => saveItem.style.background = 'transparent';
         saveItem.onclick = () => {
@@ -1274,6 +1423,8 @@
                             settings.emojiPresets[existingIdx].bgColor = currentColors.bgColor;
                             settings.emojiPresets[existingIdx].fontColor = currentColors.fontColor;
                             settings.emojiPresets[existingIdx].btnColor = currentColors.btnColor;
+                            settings.emojiPresets[existingIdx].emojiLayout = currentColors.emojiLayout;
+                            settings.emojiPresets[existingIdx].emojiScale = currentColors.emojiScale;
                             saveSettings();
                         };
 
@@ -1288,14 +1439,16 @@
                             images: [...currentSelection],
                             bgColor: currentColors.bgColor,
                             fontColor: currentColors.fontColor,
-                            btnColor: currentColors.btnColor
+                            btnColor: currentColors.btnColor,
+                            emojiLayout: currentColors.emojiLayout,
+                            emojiScale: currentColors.emojiScale
                         });
                         saveSettings();
                     }
                 }
             };
             
-            menu.remove(); // Remove menu before showing prompt
+            menu.classList.remove('show'); // Hide menu before showing prompt
 
             if (window.showCustomPrompt) {
                 const existingNames = settings.emojiPresets.map(p => p.name);
@@ -1310,12 +1463,14 @@
         // Divider
         if (settings.emojiPresets.length > 0) {
             const separator = document.createElement('div');
-            separator.style.cssText = 'height: 1px; background: rgba(255, 255, 255, 0.1); margin: 4px 6px;';
+            separator.className = 'quick-theme-divider';
+            separator.style.cssText = `height: 1px; background: ${fontColor}; opacity: 0.15; margin: 4px 6px;`;
             menu.appendChild(separator);
 
             settings.emojiPresets.forEach((preset, idx) => {
                 const item = document.createElement('div');
-                item.style.cssText = 'padding: 8px 12px; cursor: pointer; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s;';
+                item.className = 'quick-theme-divider-label';
+                item.style.cssText = `padding: 8px 12px; cursor: pointer; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; color: ${fontColor};`;
                 item.title = `包含 ${preset.images.length} 个表情`;
                 
                 const label = document.createElement('span');
@@ -1332,7 +1487,7 @@
                     const handleDelete = () => {
                         settings.emojiPresets.splice(idx, 1);
                         saveSettings();
-                        menu.remove();
+                        menu.classList.remove('show');
                     };
 
                     if (window.showCustomConfirm) {
@@ -1349,24 +1504,104 @@
                 item.onmouseout = () => item.style.background = 'transparent';
                 item.onclick = () => {
                    if (onLoadCallback) onLoadCallback(preset.images, preset);
-                   menu.remove();
+                   menu.classList.remove('show');
                 };
                 
                 menu.appendChild(item);
             });
         }
 
-        document.body.appendChild(menu);
+        // IO Row at bottom
+        const separatorBottom = document.createElement('div');
+        separatorBottom.className = 'quick-theme-divider';
+        separatorBottom.style.cssText = `height: 1px; background: ${fontColor}; opacity: 0.15; margin: 4px 6px;`;
+        menu.appendChild(separatorBottom);
 
-        // Backdrop/Click-outsie
-        const outsideHandler = (e) => {
-            if (!menu.contains(e.target) && e.target !== triggerBtn) {
-                menu.remove();
-                document.removeEventListener('mousedown', outsideHandler);
+        const ioRow = document.createElement('div');
+        ioRow.style.cssText = `display: flex; gap: 4px; padding: 4px; margin-top: 2px;`;
+
+        const exportBtn = document.createElement('button');
+        exportBtn.className = 'btn';
+        exportBtn.style.cssText = `flex: 1; padding: 6px; font-size: 0.8rem; border-radius: 4px;`;
+        exportBtn.textContent = '导出';
+        exportBtn.onclick = async (e) => {
+            e.stopPropagation();
+            menu.classList.remove('show');
+            try {
+                const dataStr = JSON.stringify(settings.emojiPresets || []);
+                const exportText = '导出的表情符号墙纸预设：\n\n' + dataStr;
+                await navigator.clipboard.writeText(exportText);
+                if (window.showToast) window.showToast('预设内容已导出到剪贴板');
+                else alert('预设内容已导出到剪贴板');
+            } catch (err) {
+                console.error('Export failed', err);
+                if (window.showCustomAlert) window.showCustomAlert('导出失败，请检查浏览器剪贴板权限');
+                else alert('导出失败，请检查浏览器剪贴板权限');
             }
         };
-        // Delay adding listener to avoid immediate trigger
-        setTimeout(() => document.addEventListener('mousedown', outsideHandler), 0);
+
+        const importBtn = document.createElement('button');
+        importBtn.className = 'btn';
+        importBtn.style.cssText = `flex: 1; padding: 6px; font-size: 0.8rem; border-radius: 4px;`;
+        importBtn.textContent = '导入';
+        importBtn.onclick = (e) => {
+            e.stopPropagation();
+            menu.classList.remove('show');
+            
+            const doImport = async () => {
+                try {
+                    let text = await navigator.clipboard.readText();
+                    if (!text) {
+                        if (window.showToast) window.showToast('剪贴板为空');
+                        return;
+                    }
+                    
+                    text = text.trim();
+                    if (text.startsWith('导出的表情符号墙纸预设：')) {
+                        const arrayStart = text.indexOf('[');
+                        if (arrayStart !== -1) {
+                            text = text.substring(arrayStart);
+                        }
+                    }
+
+                    const parsed = JSON.parse(text);
+
+                    if (Array.isArray(parsed)) {
+                        const validUrls = new Set(await getAllEmojiUrls());
+                        const sanitized = parsed.map(p => {
+                            if (Array.isArray(p.images)) {
+                                p.images = p.images.filter(url => validUrls.has(url));
+                            } else {
+                                p.images = [];
+                            }
+                            return p;
+                        });
+                        
+                        settings.emojiPresets = sanitized;
+                        if (typeof saveSettings === 'function') saveSettings();
+                        if (window.showToast) window.showToast('预设导入成功');
+                    } else {
+                        throw new Error('解析失败，数据不是数组格式');
+                    }
+                } catch (err) {
+                    console.error('Import failed', err);
+                    if (window.showCustomAlert) window.showCustomAlert('导入失败：内容格式不正确或未获取到剪贴板权限，请确保你已经复制了预设数据。');
+                    else alert('导入失败：内容格式不正确或未获取到剪贴板权限。');
+                }
+            };
+
+            if (window.showCustomConfirm) {
+                window.showCustomConfirm('请先复制已导出的预设内容后点击确定，将自动读取剪贴板覆盖当前所有预设。', doImport, null, '导入预设');
+            } else {
+                if (confirm('请先复制已导出的预设内容后点击确定，将自动读取剪贴板覆盖当前所有预设。')) {
+                    doImport();
+                }
+            }
+        };
+
+        ioRow.appendChild(exportBtn);
+        ioRow.appendChild(importBtn);
+        menu.appendChild(ioRow);
     }
 
     function syncUiVisibility() {
@@ -1415,16 +1650,6 @@
             });
         }
         
-        const resetFontBtn = document.getElementById('resetFontColorBtn');
-        if (resetFontBtn) {
-            resetFontBtn.addEventListener('click', () => {
-                settings.fontColor = '#0f172a';
-                if(fontColorInput) fontColorInput.value = settings.fontColor;
-                saveWallpaperSettings();
-                applyElementColors();
-            });
-        }
-
         const btnColorInput = document.getElementById('personalizeBtnColor');
         if (btnColorInput) {
             btnColorInput.value = settings.btnColor || '#e1be88';
@@ -1439,16 +1664,6 @@
             });
         }
         
-        const resetBtnBtn = document.getElementById('resetBtnColorBtn');
-        if (resetBtnBtn) {
-            resetBtnBtn.addEventListener('click', () => {
-                settings.btnColor = '#e1be88';
-                if(btnColorInput) btnColorInput.value = settings.btnColor;
-                saveWallpaperSettings();
-                applyElementColors();
-            });
-        }
-
         const useHostWallpaperToggle = document.getElementById('useHostWallpaperToggle');
         if (useHostWallpaperToggle) {
             useHostWallpaperToggle.checked = settings.useHostWallpaper;
@@ -1587,7 +1802,6 @@
         
         const emojiScaleValueDisplay = document.getElementById('personalizeEmojiScaleValue');
         if (emojiScaleDecreaseBtn && emojiScaleIncreaseBtn && emojiScaleValueDisplay) {
-            let currentScale = settings.emojiScale || 1.0;
             let renderTimer = null;
             
             const updateScale = (newScale) => {
@@ -1595,10 +1809,9 @@
                 if (newScale < 0.1) newScale = 0.1;
                 if (newScale > 5.0) newScale = 5.0;
                 
-                currentScale = newScale;
-                emojiScaleValueDisplay.textContent = currentScale.toFixed(1);
+                settings.emojiScale = newScale;
+                emojiScaleValueDisplay.textContent = settings.emojiScale.toFixed(1);
                 
-                settings.emojiScale = currentScale;
                 saveWallpaperSettings();
                 
                 // Debounce heavy rendering
@@ -1609,15 +1822,37 @@
             };
 
             // Initialize display
-            emojiScaleValueDisplay.textContent = currentScale.toFixed(1);
+            emojiScaleValueDisplay.textContent = (settings.emojiScale || 1.0).toFixed(1);
 
-            emojiScaleDecreaseBtn.addEventListener('click', () => {
-                updateScale(Math.round((currentScale - 0.1) * 10) / 10);
-            });
+            const attachHoldEvent = (btn, delta) => {
+                let timer = null;
+                let interval = null;
+                const stopHold = (e) => {
+                    if (e && e.pointerId && btn.hasPointerCapture(e.pointerId)) {
+                        btn.releasePointerCapture(e.pointerId);
+                    }
+                    clearTimeout(timer);
+                    clearInterval(interval);
+                };
+                btn.addEventListener('pointerdown', (e) => {
+                    if (e.pointerId) btn.setPointerCapture(e.pointerId);
+                    e.preventDefault();
+                    let currentScale = settings.emojiScale || 1.0;
+                    updateScale(Math.round((currentScale + delta) * 10) / 10);
+                    timer = setTimeout(() => {
+                        interval = setInterval(() => {
+                            let currentScale = settings.emojiScale || 1.0;
+                            updateScale(Math.round((currentScale + delta) * 10) / 10);
+                        }, 80);
+                    }, 400);
+                });
+                btn.addEventListener('pointerup', stopHold);
+                btn.addEventListener('pointercancel', stopHold);
+                btn.addEventListener('contextmenu', (e) => e.preventDefault());
+            };
 
-            emojiScaleIncreaseBtn.addEventListener('click', () => {
-                updateScale(Math.round((currentScale + 0.1) * 10) / 10);
-            });
+            attachHoldEvent(emojiScaleDecreaseBtn, -0.1);
+            attachHoldEvent(emojiScaleIncreaseBtn, 0.1);
         }
 
         if (bgColorInput) {
