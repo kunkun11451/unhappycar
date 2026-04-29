@@ -1015,7 +1015,6 @@ position: absolute;
     border-radius: 50%; /* 圆形头像 */
     border: 2px solid #ddd; /* 添加边框 */
     margin-bottom: 10px;
-    background-color: #f9f9f9;
 }
 
 .character-management-name {

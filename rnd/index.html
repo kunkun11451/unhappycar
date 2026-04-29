@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">    <title>unhappycar</title>
     <link rel="icon" href="https://bbs-static.miyoushe.com/static/2024/06/12/7982e4f54092be80c43a251f26e44235_6026540790739799944.png" type="image/png">
     <link rel="stylesheet" href="css/styles.css">
+    <script src="../announcement.js" defer></script>
     <link rel="stylesheet" href="css/teamManagement.css">
     <link rel="stylesheet" href="css/updateLog.css">
     <link rel="stylesheet" href="css/placeholderCards.css">
@@ -37,14 +38,7 @@
             <button class="start-button" id="exploreButton">进去看看</button>
         </div>
     
-    <!-- 更新日志 -->
-    <div id="updateLog">
-        <button class="update-log-close" id="updateLogClose">×</button>
-        <h3>更新日志</h3>
-        <div id="updateLogContent">
-            <p>正在加载更新日志...</p>
-        </div>
-    </div>
+
     </div>    <!-- 主游戏界面 -->
     <div id="gameScreen" style="display: none;">        <!-- 房间码复制区域 -->
         <div id="roomCodeSection" class="room-code-section" style="display: none;">
@@ -185,7 +179,8 @@
     </div>
 
     <!-- 引入JS文件 -->
-    <script src="js/characters.js"></script>
+    <script src="../characters.js"></script>
+    <script src="js/teamData.js"></script>
     <script src="js/characterManagement.js"></script>
     <script src="js/teamManagement.js"></script>
     <script src="js/mission.js"></script>
@@ -310,8 +305,6 @@
     <footer class="footer">
         <p>随机角色事件生成器 </p>
         <p>原项目@虾仁不眨眼<a href="https://happy-car.netlify.app" target="_blank" style="color: rgb(69, 69, 138); text-decoration: underline;">happy-car</a> </p>        
-        <p>反馈bug等请 <a href="https://github.com/kunkun11451/unhappycar" target="_blank" style="color: rgb(69, 69, 138); text-decoration: underline;">访问 GitHub 项目</a>查看</p>
-        <p id="newDomainTip">试试我们非常嚎记的新域名 <a href="https://unhappycar.games" target="_blank" style="color: rgb(69, 69, 138); text-decoration: underline;">unhappycar.games</a></p>        
         <img src="https://upload-bbs.miyoushe.com/upload/2024/06/29/273489775/4be47bf1376bfb4f69c1e3fe26c8a8e8_8119842655567179283.png" style="width: auto; height: 8em;">
         
     </footer>

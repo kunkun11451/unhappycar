@@ -1,0 +1,77 @@
+name: Update Characters
+
+on:
+  schedule:
+    - cron: '0 4 * * 3' # 每周三 04:00 UTC
+  workflow_dispatch:
+
+jobs:
+  update-characters:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Check schedule
+        id: check_schedule
+        run: |
+          python -c "
+          import os
+          from datetime import datetime
+          
+          # 起始日期：2025-12-03（周三）
+          start_date = datetime(2025, 12, 3).date()
+          today = datetime.utcnow().date()
+          
+          days_diff = (today - start_date).days
+          should_run = 'false'
+          
+          # 3 周（21 天）执行一次
+          if days_diff >= 0 and days_diff % 21 == 0:
+              should_run = 'true'
+          
+          # 手动触发时一定执行
+          if os.environ.get('GITHUB_EVENT_NAME') != 'schedule':
+              should_run = 'true'
+          
+          print(f'Today: {today}, Start Date: {start_date}, Diff: {days_diff}, Should Run: {should_run}')
+          
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+              print(f'should_run={should_run}', file=fh)
+          "
+
+      - name: Install dependencies
+        if: steps.check_schedule.outputs.should_run == 'true'
+        run: |
+          python -m pip install --upgrade pip
+          pip install playwright
+          playwright install --with-deps chromium
+
+      - name: Run update script
+        if: steps.check_schedule.outputs.should_run == 'true'
+        env:
+          PLAYWRIGHT_HEADLESS: "1"
+        run: python update_characters.py scrape
+
+      - name: Commit and push changes
+        if: steps.check_schedule.outputs.should_run == 'true'
+        run: |
+          if git diff --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git config user.name "Characters Data Update Bot"
+          git config user.email "noreply@github.com"
+          git add characters.js
+          git commit -m "Update Characters Data"
+          git push origin main
