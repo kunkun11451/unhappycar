@@ -1,5 +1,21 @@
 // 角色数据
 window.characterData = {
+    "尼可": {
+        "头像": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/6a0cf98d/233e3baf9bd2c030a49b46c31173da9e.png",
+        "元素类型": "火",
+        "武器类型": "法器",
+        "星级": "五星",
+        "体型": "成女",
+        "国家": ""
+    },
+    "布伦妮": {
+        "头像": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/6a0cf98d/e1a65f12e336519381e38a4068d537d3.png",
+        "元素类型": "风",
+        "武器类型": "法器",
+        "星级": "四星",
+        "体型": "萝莉",
+        "国家": "蒙德"
+    },
     "莉奈娅": {
         "头像": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/69d58c7d/d1c44e49e1fcfdf9474ba6c2d2c9369d.png",
         "元素类型": "岩",
@@ -263,7 +279,7 @@ window.characterData = {
         "星级": "五星",
         "体型": "成女",
         "国家": "枫丹"
-    },    
+    },
     "千织": {
         "头像": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/67c7f6c8/2eeb4b86d43acc81c6f9b37bdba03e83.png",
         "元素类型": "岩",
