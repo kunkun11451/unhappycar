@@ -1,5 +1,13 @@
 // 角色数据
 window.characterData = {
+    "洛恩": {
+        "头像": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/6a0cf98d/e3c37d250fc8af7e63992f6bd50a3ee7.png",
+        "元素类型": "冰",
+        "武器类型": "长柄武器",
+        "星级": "五星",
+        "体型": "少年",
+        "国家": "蒙德"
+    },
     "尼可": {
         "头像": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/6a0cf98d/233e3baf9bd2c030a49b46c31173da9e.png",
         "元素类型": "火",
