@@ -448,7 +448,10 @@ def main():
     update_parser.add_argument("--data", required=True, help="JSON string of updates {name: body_type}")
 
     args = parser.parse_args()
-    files_to_update = ["characters.js"]
+    files_to_update = [
+        "characters.js",
+        os.path.join("bp", "js", "characters.js")
+    ]
 
     if args.command == "scrape" or args.command is None:
         existing_data = load_existing_data(files_to_update[0]) if files_to_update else {}

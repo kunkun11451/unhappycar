@@ -119,7 +119,7 @@
             
             const currentHost = window.location.hostname;
             const newDomainTip = document.getElementById('newDomainTip');
-            if (currentHost === 'unhappycar.games' || currentHost === 'www.unhappycar.games') {
+            if (currentHost === 'unhappycar.netlify.app' || currentHost === 'www.unhappycar.netlify.app') {
                 if (newDomainTip) {
                     newDomainTip.style.display = 'none';
                 }

@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BP记录器</title>
+    <link rel="icon" href="https://upload-bbs.miyoushe.com/upload/2024/06/29/273489775/4be47bf1376bfb4f69c1e3fe26c8a8e8_8119842655567179283.png" type="image/png">
+    <link rel="stylesheet" href="css/app.css" />
+    <link rel="stylesheet" href="css/light-theme.css" />
+    <link rel="stylesheet" href="css/manual-mode.css" />
+    <link rel="stylesheet" href="css/settings.css" />
+    <script src="https://unpkg.com/pinyin-pro"></script>
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="container">
+        <h1>BP记录器</h1>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="panel">
+        <button id="settingsBtn" class="settings-btn" title="设置" aria-label="设置">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+        <div class="panel-header" style="display:flex; flex-direction:row; align-items:center; justify-content:center; position:relative;">
+          <h2 id="panelTitle" style="margin:0; width:auto;">上传截图与识别</h2>
+        </div>
+        <div class="panel-actions">
+          <input type="file" id="file" accept="image/*" style="display:none" />
+          <div class="action-combo" id="actionCombo">
+            <button id="mainActionBtn" class="btn-glass btn-glass-primary main-action" title="选择图片">选择图片</button>
+            <button id="actionToggleBtn" class="action-toggle btn-glass btn-glass-primary" title="展开操作" aria-expanded="false">▾</button>
+            <div class="action-dropdown" id="actionDropdown" role="menu" aria-hidden="true">
+              <button class="action-item" data-action="select">选择图片</button>
+              <button class="action-item" data-action="paste">从剪贴板粘贴</button>
+              <button class="action-item" data-action="capture">截取窗口</button>
+            </div>
+          </div>
+          <!-- 更新提示 -->
+          <!-- <div class="update-notice" id="updateNotice" role="status" aria-live="polite" data-version="6.1" style="display:flex;flex-direction:column;align-items:center;">
+            <button class="close-btn" id="updateCloseBtn" aria-label="关闭更新提示">×</button>
+            <div class="update-text">支持识别的角色已更新至 <span class="kbd">6.6</span> 版本</div>
+            <div class="update-text">有问题请通过 <span class="kbd">Ctrl</span>+<span class="kbd">F5</span> 硬刷新网页</div>
+            <div class="update-time" id="updateTime" style="font-size:12px; color:var(--muted); margin-top:6px">2026-5-20</div>
+          </div> -->
+        </div>
+        <div class="upload-hints">
+
+          <p class="hint" style="margin-top:8px">自动识别主要支持PC端在4人联机状态时使用 <a href="#" id="openCaptureGuide" class="link">详细信息</a>。</p>
+          <p class="hint" id="downloadDesktopAppHint" style="margin-top:4px"><a href="#" id="openDownloadModalBtn" class="link">下载</a>桌面版应用程序获取更好的上传截图体验</p>
+          <div class="upload-actions-bottom" style="margin-top:15px; display:flex; justify-content:center;">
+            <!-- resetRecords moved to settings -->
+          </div>
+
+        </div>
+
+        <!-- 结果标题与轮次展示（居中） -->
+          <div class="round-header">
+            <h2 class="round-title">当前结果</h2>
+            <div class="round-nav" style="display:flex; align-items:center; justify-content:center; gap:8px;">
+              <button id="prevRoundBtn" class="btn-glass btn-glass-secondary" style="display:none; padding:4px 8px; height:28px; min-width:28px; border-radius:14px;" title="上一轮">‹</button>
+              <div id="roundNo" class="round-no muted"></div>
+              <button id="nextRoundBtn" class="btn-glass btn-glass-secondary" style="display:none; padding:4px 8px; height:28px; min-width:28px; border-radius:14px;" title="下一轮">›</button>
+            </div>
+            <div id="roundTip" class="muted"></div>
+            <div id="bpModeText" class="muted bp-mode-text" style="text-align:center;margin-top:6px"></div>
+          </div>
+          <div class="slots" id="roundSlots" style="margin-top:10px"></div>
+            <div class="radio-inputs" id="viewSwitcher" role="tablist" aria-label="视图切换" style="margin:12px auto 0;">
+              <label class="radio" role="presentation">
+                <input type="radio" name="viewmode" value="overview" aria-controls="overviewSection" aria-label="状态总览" />
+                <span class="radio-item">状态总览</span>
+              </label>
+              <label class="radio" role="presentation">
+                <input type="radio" name="viewmode" value="history" checked aria-controls="historySection" aria-label="历史记录" />
+                <span class="radio-item">历史记录</span>
+              </label>
+              <label class="radio" role="presentation">
+                <input type="radio" name="viewmode" value="random" aria-controls="randomSection" aria-label="随机工具" />
+                <span class="radio-item">随机工具</span>
+              </label>
+            </div>
+
+        <div id="viewsWrapper" style="position:relative; overflow:hidden;">
+          <section id="overviewSection" data-view="overview" style="display:none; width:100%;">
+            <h2 style="margin-top:16px">状态总览</h2>
+            <div class="picker-controls" id="catalogControls" style="margin-bottom:8px">
+              <div class="catalog-search-wrap">
+                <div class="catalog-search-inner" id="catalogSearchInner" data-placeholder="搜索名称 / 筛选标签">
+                  <input type="text" id="catalogSearchInput" placeholder="搜索名称 / 筛选标签" autocomplete="off" />
+                </div>
+                <div class="catalog-tag-menu" id="catalogTagMenu"></div>
+              </div>
+            </div>
+            <div id="catalogContainer">
+              <div id="catalogGrid" class="catalog"></div>
+            </div>
+          </section>
+          <section id="historySection" data-view="history" style="width:100%;">
+            <h2 style="margin-top:16px">历史记录</h2>
+            <div id="historyContent" class="history-container" style="margin-top:10px"></div>
+          </section>
+
+          <section id="randomSection" data-view="random" style="display:none; width:100%;">
+            <h2 style="margin-top:16px">随机工具</h2>
+            <p class="hint" style="text-align:center;margin:6px 0 12px">可自定义多个随机抽取卡片，数据保存在本地缓存。<a href="#" id="restoreBuiltins" class="link" title="恢复内置工具">恢复/更新内置工具</a></p>
+            <div id="toolsGrid" class="tools-grid"></div>
+          </section>
+        </div>
+      <!-- 布局占位符，用于在视图切换时保持页面高度不塌陷 -->
+      <div id="layoutSpacer" style="width:100%; height:0; pointer-events:none;"></div>
+      </section>
+
+      <!-- 角色选择器 Modal -->
+      <div id="picker" class="modal">
+        <div class="dialog">
+          <button id="closePickerX" class="modal-x" aria-label="关闭" title="关闭">×</button>
+          <div class="picker-header-row">
+            <h2>调整角色</h2>
+            <button id="closePicker" style="display:none">关闭</button>
+          </div>
+          <div class="picker-split-layout">
+            <div class="picker-left-panel">
+              <input type="text" id="searchInput" placeholder="搜索角色（支持拼音首字母：lxz→旅行者）" />
+              <div class="filter-container" id="eleFilters"></div>
+              <div class="filter-container" id="wpnFilters"></div>
+            </div>
+            <div class="picker-right-panel">
+              <div class="manual-slots-grid" id="manualSlotsGrid">
+                <div class="manual-slot" data-slot-index="0">
+                  <div class="slot-label">1P</div>
+                  <div class="slot-content"></div>
+                </div>
+                <div class="manual-slot" data-slot-index="1">
+                  <div class="slot-label">2P</div>
+                  <div class="slot-content"></div>
+                </div>
+                <div class="manual-slot" data-slot-index="2">
+                  <div class="slot-label">3P</div>
+                  <div class="slot-content"></div>
+                </div>
+                <div class="manual-slot" data-slot-index="3">
+                  <div class="slot-label">4P</div>
+                  <div class="slot-content"></div>
+                </div>
+              </div>
+              <button id="manualMultiConfirmBtn" class="btn-glass btn-glass-primary" style="margin-top:12px; width:17%; padding:8px 0;">确定</button>
+            </div>
+          </div>
+          <div id="pickerGrid" class="grid"></div>
+        </div>
+      </div>
+
+
+      
+    </main>
+
+    <!-- 下载说明弹窗 -->
+    <div id="downloadModal" class="modal" style="display:none">
+      <div class="dialog" style="max-width: 500px; text-align: left;">
+        <button id="closeDownloadModalX" class="modal-x" aria-label="关闭" title="关闭">×</button>
+        <h2 style="margin:0 0 12px; text-align:center; color:#6db3ff">下载桌面端注意事项</h2>
+        <div style="font-size: 14px; line-height: 1.6; color: var(--text-color);">
+          <p>桌面端BP记录器能够带来：</p>
+          <ul style="padding-left: 20px; margin-bottom: 12px;">
+            <li><strong style="color:var(--text-color);">全局快捷键一键截图</strong>，识别结果即时在屏幕内弹出通知，全程无需切换窗口。</li>
+          </ul>
+          <div style="background: rgba(255, 60, 60, 0.1); border-left: 4px solid #ff5a5a; padding: 10px; margin-bottom: 16px; border-radius: 4px;">
+            <p style="margin: 0 0 4px 0;"><strong style="color: #ff5a5a;">环境要求提醒：</strong></p>
+            <p style="margin: 0;">本程序采用了轻量化打包（仅1MB），首次运行时如果您的电脑没有安装过 <strong>.NET Desktop Runtime 10</strong> 环境，系统会自动弹窗提示安装。请点击弹窗中的“是”前往微软官网下载并安装该环境包。</p>
+          </div>
+          <div style="text-align:center; margin-top: 20px;">
+            <a href="PickSnapDesktop.zip" id="confirmDownloadBtn" class="btn-glass btn-glass-primary" style="display:inline-block; text-decoration:none; padding: 8px 24px; font-size: 15px;" download>下载</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 历史单轮编辑弹窗 -->
+    <div id="roundEditModal" class="modal" style="display:none">
+      <div class="dialog" style="max-width: 920px;">
+        <button id="closeRoundEditX" class="modal-x" aria-label="关闭" title="关闭">×</button>
+        <h2 style="margin:0 0 6px; text-align:center; color:#6db3ff" id="roundEditTitle">编辑本轮</h2>
+        <div style="margin-top:6px; text-align:center" class="hint">调整BP记录</div>
+        <div style="border-top:1px solid var(--border); margin-top:12px; padding-top:12px; display:flex; flex-direction:column; gap:14px">
+          <div id="roundEditSlots" class="slots" style="margin-top:10px"></div>
+          <div class="setting-row">
+            <div class="setting-text">
+              <div class="title">忽略本轮BP</div>
+              <div class="desc muted">打开后本轮使用的角色不计入BP</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="ignoreRoundBpToggle" />
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="setting-row">
+            <div class="setting-text">
+              <div class="title">重新识别</div>
+              <div class="desc muted">上传截图识别覆盖本轮记录</div>
+            </div>
+            <div>
+              <input type="file" id="reidentifyFile" accept="image/*" style="display:none" />
+              <button id="reidentifyUploadBtn" class="btn-glass btn-glass-primary" title="重新识别覆盖本轮">重新识别</button>
+            </div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-text">
+              <div class="title">删除本轮记录</div>
+              <div class="desc muted">完全移除本轮使用记录</div>
+            </div>
+            <button id="deleteRoundBtn" class="btn-glass btn-glass-danger">删除</button>
+          </div>
+          <div class="round-edit-footer">
+            <button id="roundEditSaveBtn" class="btn-glass btn-glass-primary" style="min-width:160px">保存</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+        <!-- 轮次编辑选择弹窗 -->
+        <div id="historyRoundSelectModal" class="modal" style="display:none">
+          <div class="dialog" style="max-width: 720px; max-height: 80vh; overflow:hidden; display:flex; flex-direction:column;">
+            <button id="closeHistoryRoundSelectX" class="modal-x" aria-label="关闭" title="关闭">×</button>
+            <h2 style="margin:0 0 8px; text-align:center; color:#6db3ff">编辑轮次</h2>
+            <div id="historyRoundSelectContent" style="flex:1 1 auto; overflow:auto; border:1px solid var(--border); border-radius:10px; padding:8px;"></div>
+          </div>
+        </div>
+
+        <!-- 玩家记录交换弹窗 -->
+        <div id="historySwapModal" class="modal" style="display:none">
+          <div class="dialog" style="max-width: 420px;">
+            <button id="closeHistorySwapX" class="modal-x" aria-label="关闭" title="关闭">×</button>
+            <h2 style="margin:0 0 10px; text-align:center; color:#6db3ff">交换记录</h2>
+            <p class="muted" style="margin:0 0 14px; text-align:center;">选择两位玩家，互换所有使用记录</p>
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px;">
+              <div style="flex:1; text-align:center;">
+                <div id="historySwapSideLeft" class="swap-side swap-side-left"></div>
+              </div>
+              <div style="flex:0 0 auto; font-size:22px; color:var(--muted);">⇄</div>
+              <div style="flex:1; text-align:center;">
+                <div id="historySwapSideRight" class="swap-side swap-side-right"></div>
+              </div>
+            </div>
+            <button id="historySwapConfirm" class="btn-glass btn-glass-primary" style="width:100%; margin-top:4px;">确认交换</button>
+          </div>
+        </div>
+
+      <!-- 拥有状态设置弹窗 -->
+      <div id="ownershipModal" class="modal" style="display:none">
+        <div class="dialog ownership-dialog">
+          <button id="ownershipBackBtn" class="modal-back-btn" aria-label="返回" title="返回" style="display: none;">&#x2190;</button>
+          <button id="closeOwnershipModalX" class="modal-x" aria-label="关闭" title="关闭">×</button>
+          <div class="ownership-step" id="ownershipStepMode">
+            <h2 class="ownership-title">编辑拥有状态</h2>
+            <p class="muted ownership-desc">添加拥有状态后可使用“拥有”/“未拥有”筛选标签。</p>
+            <div class="ownership-mode-grid">
+              <button type="button" class="ownership-mode-card" data-ownership-mode="manual">
+                <div class="ownership-mode-card-icon">🎯</div>
+                <div class="ownership-mode-card-body">
+                  <div class="ownership-mode-card-title">手动选择</div>
+                  <p class="ownership-mode-card-desc">浏览列表，逐个勾选已拥有角色。</p>
+                </div>
+              </button>
+              <button type="button" class="ownership-mode-card" data-ownership-mode="parser">
+                <div class="ownership-mode-card-icon">📋</div>
+                <div class="ownership-mode-card-body">
+                  <div class="ownership-mode-card-title">从米游社识别</div>
+                  <p class="ownership-mode-card-desc">从米游社养成计算器中复制角色列表进行解析。</p>
+                </div>
+
+              </button>
+            </div>
+          </div>
+
+          <div class="ownership-step" id="ownershipStepManual" style="display:none">
+            <div class="ownership-step-header">
+              <div class="ownership-step-title">
+                <h3>手动选择拥有角色</h3>
+                <div class="muted small" id="ownershipManualCount"></div>
+              </div>
+            </div>
+            <div class="ownership-toolbar">
+              <input type="text" id="ownershipManualSearch" placeholder="搜索角色名 / 拼音首字母" autocomplete="off" />
+              <div class="ownership-toolbar-right">
+                <button type="button" id="ownershipManualSelectAll" class="btn-glass btn-glass-secondary">全选</button>
+                <button type="button" id="ownershipManualClear" class="btn-glass btn-glass-secondary">清空</button>
+              </div>
+            </div>
+            <div class="ownership-manual-grid" id="ownershipManualGrid"></div>
+            <div class="ownership-step-footer">
+              <button type="button" id="ownershipManualSave" class="btn-glass btn-glass-primary">保存</button>
+            </div>
+          </div>
+
+          <div class="ownership-step" id="ownershipStepParser" style="display:none">
+            <div class="ownership-step-header">
+              <div class="ownership-step-title">
+                <h3>从米游社养成计算器识别</h3>
+                <div class="muted small">复制“已拥有”列表后粘贴解析</div>
+              </div>
+            </div>
+            <div class="ownership-parser-tutorial">
+              <ol>
+                <li>打开 <a href="https://act.mihoyo.com/ys/event/calculator/#/character" target="_blank" rel="noopener">米游社养成计算器</a>，登录后切到“已拥有”界面；</li>
+                <li>法1：按 <span class="kbd">Ctrl</span> + <span class="kbd">A</span> 全选页面，再按 <span class="kbd">Ctrl</span> + <span class="kbd">C</span> 复制；（需要轻松复制插件否则无法选中）
+                <br>法2：打开浏览器控制台（按 <span class="kbd">F12</span> 或 <span class="kbd">Ctrl</span> + <span class="kbd">Shift</span> + <span class="kbd">I</span>），粘贴以下脚本并回车运行：
+                <pre style="background:rgba(0,0,0,0.55); padding:10px; border-radius:8px; color:#dfe8f5; overflow:auto;"><code>(function(){
+  const nodes = document.querySelectorAll('p.gt-mobile-caption-c2-3');
+  const names = Array.from(nodes, el => el.textContent.trim()).filter(Boolean);
+  console.log(names);
+})();
+</code></pre> 运行后控制台会输出一个角色名数组，右键结果选择“复制object”即可
+                <li>回到此处粘贴内容后点击“解析并应用”。</li>
+              </ol>
+            </div>
+            <textarea id="ownershipParserInput" class="ownership-parser-input" placeholder="在此粘贴从养成计算器复制的全部内容"></textarea>
+            <div class="ownership-parser-actions">
+              <button type="button" id="ownershipParserParse" class="btn-glass btn-glass-primary">解析并应用</button>
+            </div>
+            <div class="ownership-parser-status" id="ownershipParserStatus" data-state="neutral"></div>
+          </div>
+        </div>
+      </div>
+
+    <!-- 设置弹窗 -->
+    <div id="settingsModal" class="modal" style="display: none;">
+      <div class="dialog">
+        <button id="closeSettingsModalX" class="modal-x" aria-label="关闭" title="关闭">×</button>
+        <h2 style="color:#6db3ff;">设置</h2>
+        <div class="settings-content" style="display:flex; flex-direction:column; gap:16px; margin-top:20px;">
+          <div class="setting-row">
+            <div class="setting-text">
+              <div class="title">工作模式</div>
+              <div class="desc muted">切换截图识别或手动记录</div>
+            </div>
+            <div class="bp-options" id="modeSwitchGroup">
+              <button id="modeSwitchBtn" class="btn-glass btn-glass-secondary" style="min-width: 90px;">截图识别</button>
+            </div>
+          </div>
+          <div id="desktopSettingsSection" style="display:none; flex-direction:column; gap:16px;">
+            <div class="setting-row">
+              <div class="setting-text">
+                <div class="title">识别快捷键</div>
+                <div class="desc muted">点击设置识别快捷键，支持单键或组合键</div>
+              </div>
+              <input type="text" id="desktopHotkeyInput" class="setting-input" style="width:120px; padding:4px 8px; border-radius:4px; border:1px solid #4a5568; background:#2d3748; color:#fff;" placeholder="输入快捷键" readonly />
+            </div>
+            <div class="setting-row">
+              <div class="setting-text">
+                <div class="title">截图目标窗口</div>
+                <div class="desc muted">自动寻找并截取该名称的游戏窗口</div>
+              </div>
+              <input type="text" id="desktopWindowTitleInput" class="setting-input" style="width:120px; padding:4px 8px; border-radius:4px; border:1px solid #4a5568; background:#2d3748; color:#fff;" placeholder="如: 原神" />
+            </div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-text">
+              <div class="title">BP模式</div>
+              <div class="desc muted">选择角色禁选记录模式</div>
+            </div>
+            <div id="modeButtons" style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn-glass btn-glass-secondary" data-mode="personal">个人BP</button>
+              <button class="btn-glass btn-glass-secondary" data-mode="global">全局BP</button>
+              <button id="btnCustomBp" class="btn-glass btn-glass-secondary" data-mode="custom">自定义</button>
+            </div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-text">
+              <div class="title">重置记录</div>
+              <div class="desc muted">清除当前使用记录</div>
+            </div>
+            <button id="resetRecords" class="btn-glass btn-glass-danger">重置记录</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/characters.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/manual-mode.js"></script>
+    <script src="js/settings.js"></script>
+    <script src="js/theme-toggle-button.js"></script>
+    <script>
+      (function(){
+        try{
+          const notice = document.getElementById('updateNotice');
+          const timeEl = document.getElementById('updateTime');
+          const btn = document.getElementById('updateCloseBtn');
+          const version = notice && notice.dataset ? notice.dataset.version || '' : '';
+          const LS_KEY_VER = 'updateNoticeLastDismissedVersion';
+          const LS_KEY_TEXT = 'updateNoticeLastDismissedText';
+
+          function getCurrentNoticeText(){
+            if (!notice) return '';
+            const els = Array.from(notice.querySelectorAll('.update-text'));
+            return els.map(e=> (e.textContent||'').trim()).join('\n');
+          }
+          const currentText = getCurrentNoticeText();
+
+          try{
+            const dismissedVer = localStorage.getItem(LS_KEY_VER) || '';
+            const dismissedText = localStorage.getItem(LS_KEY_TEXT) || '';
+            if (dismissedVer && version && dismissedVer === version && dismissedText === currentText){
+              if (notice) notice.style.display = 'none';
+            }
+          }catch(e){ /* ignore storage errors */ }
+
+          if (btn){
+            btn.addEventListener('click', ()=>{
+              try{
+                if (version) localStorage.setItem(LS_KEY_VER, version);
+                localStorage.setItem(LS_KEY_TEXT, currentText);
+              }catch(e){}
+              if (notice) notice.style.display = 'none';
+            });
+          }
+        }catch(e){ console.error(e); }
+      })();
+    </script>
+    
+    <!-- 全局加载遮罩（识别中） -->
+    <div id="loadingOverlay" class="loading-overlay" aria-hidden="true">
+      <canvas id="loadingCanvas"></canvas>
+      <div class="loading-text">正在识别，请稍候…</div>
+    </div>
+
+      <!-- 校准视频教程弹窗 -->
+    <div id="calibVideoModal" class="modal" style="display:none">
+      <div class="dialog calib-video-dialog">
+        <button id="closeCalibVideoX" class="modal-x" aria-label="关闭" title="关闭">×</button>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+          <h2 class="calib-title" style="margin:0">位置校准视频教程</h2>
+        </div>
+        <div style="margin-top:10px">
+          <video id="calibVideo" controls preload="metadata" style="width:100%; border-radius:12px; border:1px solid var(--border); background:#000">
+            <source src="./js/tutorial.mp4" type="video/mp4" />
+            您的浏览器不支持视频标签。
+          </video>
+        </div>
+      </div>
+    </div>
+
+    <!-- 自定义BP模式弹窗 -->
+    <div id="customBpModal" class="modal" style="display: none;">
+      <div class="dialog" style="max-width: 400px;">
+        <button id="closeCustomBpModalX" class="modal-x" aria-label="关闭" title="关闭">×</button>
+        <h2 style="color:#6db3ff;">自定义BP模式</h2>
+        <div class="custom-bp-setting">
+          <label>五星角色</label>
+          <div class="bp-options" data-rarity="fiveStar">
+            <button class="btn-glass btn-glass-secondary" data-mode="global">全局</button>
+            <button class="btn-glass btn-glass-secondary" data-mode="personal">个人</button>
+            <button class="btn-glass btn-glass-secondary" data-mode="off">关闭</button>
+          </div>
+        </div>
+        <div class="custom-bp-setting">
+          <label>四星角色</label>
+          <div class="bp-options" data-rarity="fourStar">
+            <button class="btn-glass btn-glass-secondary" data-mode="global">全局</button>
+            <button class="btn-glass btn-glass-secondary" data-mode="personal">个人</button>
+            <button class="btn-glass btn-glass-secondary" data-mode="off">关闭</button>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:center;margin-top:40px;">
+          <button id="saveCustomBp" class="btn-glass btn-glass-primary" style="width: 35%;">确定</button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

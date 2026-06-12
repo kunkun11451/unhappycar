@@ -13,7 +13,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const characterManagement = document.getElementById("characterManagement");
     const characterHistory = document.getElementById("characterHistory");
     const eventManagement = document.getElementById("eventManagement");
-    const sharedEvents = document.getElementById("sharedEvents");
     const eventHistory = document.getElementById("eventHistory");
     const moreSettings = document.getElementById("moreSettings");
     const gameSettings = document.getElementById("gameSettings");
@@ -122,34 +121,6 @@ document.addEventListener('DOMContentLoaded', () => {
             selectOption(eventManagement, "事件管理", eventManagementContent);
             currentActiveOption = eventManagement; // 更新当前活跃选项
 
-        });
-    }
-
-    if(sharedEvents) {
-        sharedEvents.addEventListener("click", () => {
-            if (currentActiveOption === sharedEvents) {
-                return;
-            }
-            // The sharedEvents module now generates content instead of a modal
-            if (window.sharedEvents && typeof window.sharedEvents.renderUserView === 'function') {
-                // Request the libraries first
-                if (typeof window.sharedEvents.requestSharedLibraries === 'function') {
-                    window.sharedEvents.requestSharedLibraries();
-                }
-
-                // Create a container for the content
-                const container = document.createElement('div');
-                container.id = 'sharedEventsContainer'; // Add an ID for styling if needed
-                container.style.height = '100%';
-                
-                selectOption(sharedEvents, "事件创意工坊", container);
-                
-                // Call the render function which populates the container
-                window.sharedEvents.renderUserView(container);
-                currentActiveOption = sharedEvents;
-            } else {
-                console.error('sharedEvents module or renderUserView function not found.');
-            }
         });
     }
 
@@ -978,7 +949,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // 创建新的临时连接
             const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-            const wsUrl = isLocalDev ? 'ws://127.0.0.1:3000' : 'wss://unhappycar.tech:3000';
+            const wsUrl = isLocalDev ? 'ws://127.0.0.1:3000' : 'wss://rnd.unhappycar.xyz';
             
             console.log('Creating new temporary WebSocket connection:', wsUrl);
             

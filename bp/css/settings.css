@@ -1,0 +1,89 @@
+
+/* Settings Button */
+.settings-btn {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  z-index: 1100;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background .18s ease, transform .12s ease, color .18s ease;
+  padding: 8px;
+}
+.settings-btn:hover { 
+  transform: none; 
+  background: rgba(255,255,255,0.08); 
+  color: var(--text);
+}
+.settings-btn:active { transform: scale(0.92); }
+
+.theme-light .settings-btn {
+  background: transparent;
+  color: #666;
+  border: none;
+  box-shadow: none;
+}
+.theme-light .settings-btn:hover {
+  background: rgba(0,0,0,0.06);
+  color: #000;
+}
+
+/* Setting Row */
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  transition: background .2s;
+}
+.setting-row:hover {
+  background: rgba(255,255,255,0.06);
+}
+.theme-light .setting-row {
+  background: rgba(0,0,0,0.03);
+  border-color: rgba(0,0,0,0.08);
+}
+.theme-light .setting-row:hover {
+  background: rgba(0,0,0,0.06);
+}
+
+@media (max-width:720px){ .settings-btn{ right:8px; top:8px } }
+
+/* Modal Close Button (X) */
+.modal-x {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .2s, color .2s;
+}
+.modal-x:hover {
+  background: rgba(255,255,255,0.1);
+  color: var(--text);
+}
+.theme-light .modal-x:hover {
+  background: rgba(0,0,0,0.06);
+  color: #000;
+}

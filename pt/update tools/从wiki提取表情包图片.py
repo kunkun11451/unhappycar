@@ -128,7 +128,7 @@ AVATAR_MAPPING = {
     'dainsleif': '戴因斯雷布',
     'alice': '爱丽丝',
     'sandrone': '桑多涅',
-    'nicole': '妮可',
+    'nicole': '尼可',
     'rerir': '雷利尔',
     'lohen': '洛恩'
 }

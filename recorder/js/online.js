@@ -242,7 +242,7 @@
             reconnectionDelayMax: 5000,
             timeout: 20000
         };
-        const serverUrl = 'https://unhappycar.tech:4000';
+        const serverUrl = 'https://recorder.unhappycar.xyz:4000';
 
         socket = window.io(serverUrl, opts);
 
