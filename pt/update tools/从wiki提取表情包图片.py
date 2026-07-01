@@ -8,7 +8,7 @@ from datetime import datetime
 AVATAR_MAPPING = {
     "aino": "爱诺",
     "albedo": "阿贝多",
-    "alhatham": "艾尔海森",
+    'alhaitham': '艾尔海森',
     "aloy": "埃洛伊",
     "amber": "安柏",
     "arlecchino": "阿蕾奇诺",
@@ -130,7 +130,8 @@ AVATAR_MAPPING = {
     'sandrone': '桑多涅',
     'nicole': '尼可',
     'rerir': '雷利尔',
-    'lohen': '洛恩'
+    'lohen': '洛恩',
+    'prune': '布伦妮'
 }
 # ==AUTO_MAPPING_END==
 

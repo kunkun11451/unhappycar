@@ -317,7 +317,8 @@ const NATION_ICON_MAP = {
   '须弥': 'https://upload-bbs.miyoushe.com/upload/2024/05/18/298130464/f2b593734cb924b8d4017c3f9fe8ee26_3832341326944379486.png',
   '枫丹': 'https://upload-bbs.miyoushe.com/upload/2024/05/18/298130464/cb36f5c1b6a85a5f313ab64ca04c2d5d_3595323083267783878.png',
   '纳塔': 'https://upload-bbs.miyoushe.com/upload/2024/08/23/298130464/04591e46b22fd6bd0202cfba7d380e79_8536478856212962072.png',
-  '挪德卡莱': 'https://gi.yatta.moe/assets/UI/chapter/UI_ChapterIcon_NodKrai.png',
+  '挪德卡莱': 'https://upload-bbs.miyoushe.com/upload/2026/07/01/284249424/8d9cc9c979d93d7c9d6cde5da5494708_4510649793699086428.png',
+  '至冬': 'https://upload-bbs.miyoushe.com/upload/2026/07/01/284249424/992d3da3f24629feae6db6bc92b1cf86_1097618849429261659.png',
   '未知': 'https://gi.yatta.moe/assets/UI/chapter/UI_ChapterIcon_Aster.png'
 };
 
@@ -388,7 +389,7 @@ function ensureCatalogTagMenu(){
   const elementOrder = ['火','水','风','雷','草','冰','岩'];
   const weaponOrder = ['单手剑','双手剑','长柄武器','弓','法器'];
   const bodyOrder = ['萝莉','少年','少女','成男','成女'];
-  const nationOrder = ['蒙德','璃月','稻妻','须弥','枫丹','纳塔','挪德卡莱','未知'];
+  const nationOrder = ['蒙德','璃月','稻妻','须弥','枫丹','纳塔','挪德卡莱','至冬','未知'];
   const sortByOrder = (list, order)=> list.slice().sort((a,b)=>{
     const ia = order.indexOf(a);
     const ib = order.indexOf(b);
