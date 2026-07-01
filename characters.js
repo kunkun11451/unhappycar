@@ -1,5 +1,13 @@
 // 角色数据
 window.characterData = {
+    "桑多涅": {
+        "头像": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/6a44588e/417922ce01627959571b3355b9f462ac.png",
+        "元素类型": "冰",
+        "武器类型": "双手剑",
+        "星级": "五星",
+        "体型": "少女",
+        "国家": "至冬"
+    },
     "洛恩": {
         "头像": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/6a0cf98d/e3c37d250fc8af7e63992f6bd50a3ee7.png",
         "元素类型": "冰",

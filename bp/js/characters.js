@@ -1,5 +1,21 @@
 // 角色数据
 window.characterData = {
+    "桑多涅": {
+        "头像": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/6a44588e/417922ce01627959571b3355b9f462ac.png",
+        "元素类型": "冰",
+        "武器类型": "双手剑",
+        "星级": "五星",
+        "体型": "少女",
+        "国家": "至冬"
+    },
+    "洛恩": {
+        "头像": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/6a0cf98d/e3c37d250fc8af7e63992f6bd50a3ee7.png",
+        "元素类型": "冰",
+        "武器类型": "长柄武器",
+        "星级": "五星",
+        "体型": "",
+        "国家": "蒙德"
+    },
     "尼可": {
         "头像": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/6a0cf98d/233e3baf9bd2c030a49b46c31173da9e.png",
         "元素类型": "火",
@@ -15,7 +31,7 @@ window.characterData = {
         "星级": "四星",
         "体型": "萝莉",
         "国家": "蒙德"
-    },    
+    },
     "莉奈娅": {
         "头像": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/69d58c7d/d1c44e49e1fcfdf9474ba6c2d2c9369d.png",
         "元素类型": "岩",
@@ -293,7 +309,7 @@ window.characterData = {
         "星级": "五星",
         "体型": "成女",
         "国家": "枫丹"
-    },    
+    },
     "千织": {
         "头像": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/67c7f6c8/2eeb4b86d43acc81c6f9b37bdba03e83.png",
         "元素类型": "岩",
@@ -931,5 +947,5 @@ window.characterData = {
         "武器类型": "单手剑",
         "星级": "五星",
         "国家": "未知"
-    },
+    }
 };
