@@ -7,7 +7,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>stories</title>
     <link rel="stylesheet" href="style.css">
-    <script src="../announcement.js" defer></script>
     <link rel="icon" href="https://upload-bbs.miyoushe.com/upload/2026/02/02/284249424/69cdea8060c889a0302415294ca0600b_6320169270240776196.png" type="image/png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -25,11 +24,20 @@
             <div class="cover-wrapper">
                 <img src="https://upload-bbs.miyoushe.com/upload/2026/02/02/284249424/69cdea8060c889a0302415294ca0600b_6320169270240776196.png" alt="cover" class="player-cover" id="playerCover">
             </div>
-            <div class="marquee-container">
-                <h2 class="book-title marquee-text" id="bookTitle">加载中...</h2>
+            <div class="titles-wrapper">
+                <div class="marquee-container">
+                    <h2 class="book-title marquee-text" id="bookTitle">加载中...</h2>
+                </div>
+                <div class="marquee-container">
+                    <h3 class="chapter-title marquee-text" id="chapterTitle">加载中...</h3>
+                </div>
             </div>
-            <div class="marquee-container">
-                <h3 class="chapter-title marquee-text" id="chapterTitle">加载中...</h3>
+        </div>
+
+        <!-- 字幕滚动区 -->
+        <div class="lyrics-container" id="lyricsContainer" style="display: none;">
+            <div class="lyrics-content" id="lyricsContent">
+                <!-- 动态生成歌词行 -->
             </div>
         </div>
 
@@ -61,7 +69,7 @@
 
             <!-- 第二排 -->
             <div class="secondary-controls">
-                <button class="text-btn" id="speedBtn">1.0x</button>
+                <button class="icon-btn" id="settingsBtn" title="设置"><i class="fas fa-cog"></i></button>
                 <button class="text-btn icon-btn" id="menuBtn" title="选集" style="width: auto; padding: 0 15px; border-radius: 20px; gap: 8px; font-size: 0.9rem; align-items: center; display: flex;"><i class="fas fa-list"></i> 书籍与章节</button>
                 <button class="icon-btn" id="timerBtn" title="定时"><i class="fas fa-clock"></i></button>
             </div>
@@ -71,12 +79,54 @@
     <!-- 选集模态框 (侧边栏) -->
     <div class="modal-overlay" id="menuModal">
         <div class="modal-content glass-panel drawer drawer-fixed">
-            <div class="modal-header">
-                <select id="bookSelect" class="book-dropdown"></select>
-                <button class="icon-btn close-btn"><i class="fas fa-times"></i></button>
+            <div class="modal-header drawer-header">
+                <div class="drawer-tabs">
+                    <button class="drawer-tab active" data-tab="shelf"><i class="fas fa-book"></i> 书架</button>
+                    <button class="drawer-tab" data-tab="history"><i class="fas fa-history"></i> 历史</button>
+                </div>
+                <div class="header-actions">
+                    <button class="icon-btn back-btn" id="shelfBackBtn" style="display: none;"><i class="fas fa-arrow-left"></i></button>
+                    <button class="icon-btn close-btn" style="flex-shrink: 0;"><i class="fas fa-times"></i></button>
+                </div>
             </div>
-            <div class="modal-body" id="bookList">
-                <!-- 动态生成列表 -->
+
+            <!-- 书架面板 -->
+            <div class="drawer-panel active" id="shelfPanel">
+                <!-- 全集封面网格 (1级) -->
+                <div class="series-grid-view" id="seriesGridView">
+                    <div class="modal-body">
+                        <div class="book-grid" id="seriesGrid">
+                            <!-- 动态生成全集封面卡片 -->
+                        </div>
+                    </div>
+                </div>
+                <!-- 书籍封面网格 (2级) -->
+                <div class="book-grid-view" id="bookGridView" style="display: none;">
+                    <div class="modal-body">
+                        <div class="book-grid" id="bookGrid">
+                            <!-- 动态生成书籍封面卡片 -->
+                        </div>
+                    </div>
+                </div>
+                <!-- 章节列表（3级） -->
+                <div class="chapter-list-view" id="chapterListView" style="display: none;">
+                    <div class="chapter-list-header" id="chapterListHeader">
+                        <!-- 动态显示书名和章节数 -->
+                    </div>
+                    <div class="modal-body" id="bookList">
+                        <!-- 动态生成章节列表 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 历史面板 -->
+            <div class="drawer-panel" id="historyPanel">
+                <div class="modal-body" id="historyList">
+                    <!-- 动态生成历史记录 -->
+                </div>
+                <div class="history-footer" id="historyFooter" style="display: none;">
+                    <button class="clear-history-btn" id="clearHistoryBtn"><i class="fas fa-trash-alt"></i> 清空历史</button>
+                </div>
             </div>
         </div>
     </div>
@@ -132,17 +182,35 @@
         </div>
     </div>
 
-    <!-- 倍速模态框 -->
-    <div class="modal-overlay" id="speedModal">
+    <!-- 综合设置模态框 (原倍速模态框) -->
+    <div class="modal-overlay" id="settingsModal">
         <div class="modal-content glass-panel popup">
             <div class="modal-header">
-                <h3>播放速度</h3>
+                <h3>播放设置</h3>
                 <button class="icon-btn close-btn"><i class="fas fa-times"></i></button>
             </div>
-            <div class="modal-body">
-                <div class="speed-slider-container">
-                    <span class="speed-value-display" id="speedValueDisplay">1.0x</span>
-                    <input type="range" class="speed-slider" id="speedSlider" min="0" max="5" value="2" step="1">
+            <div class="modal-body settings-body">
+                <!-- 字幕开关 -->
+                <div class="setting-item">
+                    <div class="setting-label" style="margin-bottom: 0;">
+                        <span><i class="fas fa-closed-captioning"></i> 字幕</span>
+                        <label class="switch">
+                            <input type="checkbox" id="subtitleToggle" checked>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+                
+
+                <!-- 播放速度 -->
+                <div class="setting-item speed-setting">
+                    <div class="setting-label">
+                        <span><i class="fas fa-tachometer-alt"></i> 播放速度</span>
+                        <span class="value-display speed-value-display" id="speedValueDisplay">1.0x</span>
+                    </div>
+                    <div class="setting-slider-row">
+                        <input type="range" class="speed-slider" id="speedSlider" min="0" max="5" value="2" step="1">
+                    </div>
                     <div class="speed-marks">
                         <span>0.5</span>
                         <span>0.75</span>
@@ -152,12 +220,28 @@
                         <span>2.0</span>
                     </div>
                 </div>
+
+                <!-- 均衡器 -->
+                <div class="setting-item eq-setting">
+                    <div class="setting-label" style="margin-bottom: 0;">
+                        <span><i class="fas fa-sliders-h"></i> 均衡器</span>
+                        <label class="switch">
+                            <input type="checkbox" id="eqToggle">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="eq-panel" id="eqPanel" style="display: none;">
+                        <div class="eq-canvas-wrapper">
+                            <canvas id="eqCanvas"></canvas>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <audio id="audioPlayer"></audio>
-    <script src="https://pub-fe126a6238c04beb9f31c1ad2a56231a.r2.dev/data.js"></script>
+    <audio id="audioPlayer" crossorigin="anonymous"></audio>
+    <script src="https://story.unhappycar.xyz/data.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

@@ -34,11 +34,10 @@ body {
 /* 毛玻璃主面板 */
 .player-container {
     width: 95%;
-    max-width: 400px;
+    max-width: 425px;
     min-height: 480px;
     height: 60vh;
     max-height: 600px;
-    background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -49,6 +48,13 @@ body {
     box-shadow: 0 4px 32px 0 rgba(0, 0, 0, 0.3);
     position: relative;
     overflow: hidden;
+    transition: height 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), min-height 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), max-height 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.player-container.has-lyrics {
+    height: 90vh;
+    min-height: 650px;
+    max-height: 800px;
 }
 
 /* 通用按钮样式 */
@@ -100,36 +106,33 @@ button {
     align-items: center;
     justify-content: center;
     width: 100%;
+    transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 /* 封面图片 */
 .cover-wrapper {
     width: 140px;
     height: 140px;
-    border-radius: 50%;
+    border-radius: 15px;
     overflow: hidden;
     margin: -20px auto 20px auto;
     box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-    border: 3px solid rgba(255,255,255,0.2);
-    /* 解决部分设备旋转模糊问题 */
     transform: translateZ(0);
+    transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.titles-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .player-cover {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    animation: rotateCover 25s linear infinite;
-    animation-play-state: paused;
-}
-
-.player-container.isPlaying .player-cover {
-    animation-play-state: running;
-}
-
-@keyframes rotateCover {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
 }
 
 /* 书名与章节滚动条 */
@@ -167,6 +170,7 @@ button {
     line-height: 1.3;
     text-shadow: 0 4px 10px rgba(0,0,0,0.4);
     display: inline-block;
+    transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .chapter-title {
@@ -176,6 +180,43 @@ button {
     color: rgba(255, 255, 255, 0.9);
     text-shadow: 0 2px 5px rgba(0,0,0,0.2);
     display: inline-block;
+    transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* has-lyrics overrides */
+.player-container.has-lyrics .track-info {
+    position: relative;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 15px;
+    margin-top: -25px;
+    flex-grow: 0;
+    min-height: 80px;
+}
+.player-container.has-lyrics .cover-wrapper {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%) translateZ(0);
+    width: 80px;
+    height: 80px;
+    margin: 0;
+}
+.player-container.has-lyrics .titles-wrapper {
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 0 90px;
+}
+.player-container.has-lyrics .book-title {
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+    text-align: center;
+}
+.player-container.has-lyrics .chapter-title {
+    font-size: 0.9rem;
+    text-align: center;
 }
 
 /* 进度条 */
@@ -198,7 +239,7 @@ button {
     height: 20px;
     display: flex;
     align-items: center;
-    cursor: pointer;
+    cursor: default;
 }
 
 .progress-bar {
@@ -232,9 +273,51 @@ button {
     transition: transform 0.2s ease, background 0.2s ease;
 }
 
-.progress-bar-wrapper.dragging .progress::after {
-    transform: translateY(-50%) scale(1.5);
-    background: #4ade80;
+@keyframes shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+.progress-bar-wrapper.loading .progress-bar {
+    background: linear-gradient(90deg, 
+        rgba(255, 255, 255, 0.15) 30%, 
+        rgba(255, 255, 255, 0.55) 50%, 
+        rgba(255, 255, 255, 0.15) 70%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite linear;
+}
+
+.progress-bar-wrapper.loading .progress {
+    opacity: 0;
+}
+
+/* 播放按钮加载与禁用状态 */
+.play-btn.loading {
+    pointer-events: none !important;
+    opacity: 0.6 !important;
+}
+
+.play-btn.loading i::before {
+    content: "\f110" !important;
+}
+
+.play-btn.loading i {
+    display: inline-block;
+    animation: fa-spin 2s infinite linear;
+}
+
+@keyframes fa-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* 控制区 */
@@ -252,7 +335,7 @@ button {
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    max-width: 280px;
+    max-width: 320px;
 }
 
 .secondary-controls {
@@ -370,6 +453,18 @@ button {
 /* 列表样式 */
 .options-list {
     list-style: none;
+    scrollbar-width: none; 
+    -ms-overflow-style: none; 
+}
+.options-list::-webkit-scrollbar {
+    display: none; 
+}
+.timer-fixed-height .modal-body {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.timer-fixed-height .modal-body::-webkit-scrollbar {
+    display: none;
 }
 
 .options-list li, .book-item {
@@ -443,11 +538,7 @@ button {
     align-items: center;
     gap: 15px;
 }
-.speed-value-display {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #4ade80;
-}
+
 .speed-slider {
     width: 100%;
     -webkit-appearance: none;
@@ -483,7 +574,32 @@ button {
     font-size: 0.8rem;
     color: #ccc;
     padding: 0;
+    margin-top: 5px;
 }
+
+/* ============= 均衡器面板 ============= */
+.eq-setting {
+    margin-top: 5px;
+}
+
+.eq-panel {
+    margin-top: 12px;
+    padding: 10px 0 5px;
+}
+
+.eq-canvas-wrapper {
+    position: relative;
+}
+
+#eqCanvas {
+    width: 100%;
+    height: 160px;
+    border-radius: 12px;
+    display: block;
+    touch-action: none;
+    cursor: pointer;
+}
+
 
 .timer-slider-wrapper {
     max-height: 0;
@@ -506,52 +622,497 @@ button {
     color: #4ade80;
 }
 
-/* 顶部书籍选择框 */
-.book-dropdown {
-    padding: 8px 12px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 8px;
+/* ============= 抽屉 Tab 栏 ============= */
+.drawer-header {
+    gap: 10px;
+}
+
+.drawer-tabs {
+    display: flex;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 3px;
+}
+
+.drawer-tab {
+    padding: 8px 18px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.5);
+    transition: all 0.25s ease;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.drawer-tab:hover {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.drawer-tab.active {
+    background: rgba(255, 255, 255, 0.15);
     color: #fff;
-    font-size: 1rem;
-    outline: none;
-    -webkit-appearance: none;
-    appearance: none;
+    font-weight: 600;
+}
+
+/* 面板切换 */
+.drawer-panel {
+    display: none;
+    flex-direction: column;
+    flex-grow: 1;
+    overflow: hidden;
+    min-height: 0;
+}
+
+.drawer-panel.active {
+    display: flex;
+}
+
+/* ============= Header Actions 返回按钮 ============= */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.back-btn {
+    opacity: 0;
+    transform: translateX(10px) scale(0.8);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+}
+
+.back-btn.visible {
+    display: flex !important;
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    pointer-events: auto;
+}
+
+/* ============= 书籍封面网格 ============= */
+.series-grid-view,
+.book-grid-view,
+.chapter-list-view {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    overflow: hidden;
+    min-height: 0;
+}
+
+.series-grid-view,
+.book-grid-view {
+    animation: fadeSlideIn 0.3s ease;
+}
+
+.chapter-list-view {
+    animation: fadeSlideInRight 0.3s ease;
+}
+
+@keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateX(-15px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeSlideInRight {
+    from { opacity: 0; transform: translateX(15px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.book-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    padding: 4px 2px;
+}
+
+.book-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
     cursor: pointer;
+    transition: transform 0.2s ease;
+    padding: 6px;
+    border-radius: 12px;
 }
 
-.book-dropdown option {
-    background: #1e1e1e;
+.book-card:hover {
+    transform: translateY(-3px);
+}
+
+.book-card:active {
+    transform: scale(0.95);
+}
+
+.book-cover-wrapper {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    position: relative;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.book-cover-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.book-card:hover .book-cover-wrapper img {
+    transform: scale(1.05);
+}
+
+/* 当前正在播放的书籍卡片 */
+.book-card.playing .book-cover-wrapper {
+    border-color: rgba(74, 222, 128, 0.5);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 12px rgba(74, 222, 128, 0.2);
+}
+
+.book-card .book-card-title {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.7);
+    text-align: center;
+    line-height: 1.3;
+    max-width: 100%;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.book-card.playing .book-card-title {
+    color: #4ade80;
+    font-weight: 600;
+}
+
+/* 封面上的正在播放角标 */
+.book-playing-badge {
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    width: 20px;
+    height: 20px;
+    background: rgba(74, 222, 128, 0.9);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.55rem;
     color: #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
-.book-dropdown:focus {
-    border-color: rgba(255, 255, 255, 0.5);
+/* ============= 章节列表头部 ============= */
+.chapter-list-header {
+    flex-shrink: 0;
+    padding: 4px 4px 10px 4px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
-/* 章节列表网格化布局优化 */
+.chapter-list-header .header-cover {
+    width: 42px;
+    height: 56px;
+    border-radius: 5px;
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.chapter-list-header .header-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.chapter-list-header .header-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.chapter-list-header .header-book-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #fff;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.chapter-list-header .header-chapter-count {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* ============= 章节列表优化 ============= */
 .chapter-list {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
 }
+
 .chapter-item {
-    padding: 12px 15px;
+    position: relative;
+    padding: 12px 14px;
     background: rgba(255, 255, 255, 0.05);
-    border-radius: 8px;
-    font-size: 0.95rem;
+    border-radius: 10px;
+    font-size: 0.92rem;
     color: #e0e0e0;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid transparent;
 }
+
+/* 进度条 — 章节 div 内嵌底色填充 */
+.chapter-item .chapter-progress-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 0%;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    transition: width 0.4s ease;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.chapter-item .chapter-text {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.chapter-item .chapter-index {
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.3);
+    min-width: 22px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.chapter-item .chapter-name {
+    flex-grow: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.chapter-item .chapter-progress-text {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.3);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
 .chapter-item:hover {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.08);
 }
+
+/* 正在播放的章节 */
 .chapter-item.playing {
-    background: rgba(74, 222, 128, 0.2);
+    background: rgba(74, 222, 128, 0.12);
+    border-color: rgba(74, 222, 128, 0.3);
+}
+
+.chapter-item.playing .chapter-progress-fill {
+    background: rgba(255, 255, 255, 0.18);
+}
+
+.chapter-item.playing .chapter-name {
     color: #4ade80;
-    font-weight: bold;
-    border-left: 4px solid #4ade80;
+    font-weight: 600;
+}
+
+.chapter-item.playing .chapter-index {
+    color: #4ade80;
+}
+
+/* 播放指示器脉冲动画 */
+.chapter-item.playing .chapter-index::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background: #4ade80;
+    border-radius: 50%;
+    animation: pulse-dot 1.5s ease-in-out infinite;
+    vertical-align: middle;
+}
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.7); }
+}
+
+/* 已完全听完的章节 — 灰色半透明 */
+.chapter-item.completed {
+    opacity: 0.45;
+}
+
+.chapter-item.completed .chapter-progress-fill {
+    background: rgba(255, 255, 255, 0.05);
+    width: 100% !important;
+}
+
+.chapter-item.completed .chapter-progress-text {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* 有部分进度的章节 */
+.chapter-item.has-progress .chapter-progress-text {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* ============= 播放历史记录 ============= */
+.history-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: rgba(255, 255, 255, 0.3);
+    gap: 12px;
+}
+
+.history-empty i {
+    font-size: 2.5rem;
+    opacity: 0.3;
+}
+
+.history-empty span {
+    font-size: 0.9rem;
+}
+
+.history-item {
+    position: relative;
+    padding: 12px 14px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    overflow: hidden;
+    margin-bottom: 6px;
+    border: 1px solid transparent;
+}
+
+/* 历史条目 — 内嵌进度条底色 */
+.history-item .history-progress-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 0%;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.history-item .history-content {
+    position: relative;
+    z-index: 1;
+}
+
+.history-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.history-item .history-book-title {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.4);
+    margin-bottom: 3px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.history-item .history-chapter-title {
+    font-size: 0.92rem;
+    color: #e0e0e0;
+    font-weight: 500;
+    margin-bottom: 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.history-item .history-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.history-item .history-progress-label {
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 500;
+}
+
+/* 历史已完成 */
+.history-item.completed .history-progress-fill {
+    background: rgba(255, 255, 255, 0.04);
+    width: 100% !important;
+}
+
+.history-item.completed {
+    opacity: 0.55;
+}
+
+.history-item.completed .history-progress-label {
+    color: rgba(255, 255, 255, 0.35);
+}
+
+/* 历史底栏 */
+.history-footer {
+    flex-shrink: 0;
+    padding: 10px 0 0 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    margin-top: 8px;
+}
+
+.clear-history-btn {
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    color: rgba(255, 120, 120, 0.8);
+    background: rgba(255, 120, 120, 0.08);
+    border: 1px solid rgba(255, 120, 120, 0.12);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.clear-history-btn:hover {
+    background: rgba(255, 120, 120, 0.15);
+    color: rgba(255, 120, 120, 1);
 }
 
 /* 倒计时显示 */
@@ -562,4 +1123,174 @@ button {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
     font-size: 0.9rem;
+}
+
+/* ================= 字幕区样式 ================= */
+.lyrics-container {
+    flex-grow: 1;
+    width: 100%;
+    margin-bottom: 20px;
+    position: relative;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 15%, #000 85%, transparent 100%);
+    mask-image: linear-gradient(180deg, transparent 0%, #000 15%, #000 85%, transparent 100%);
+}
+
+.lyrics-container::-webkit-scrollbar {
+    display: none;
+}
+
+.lyrics-content {
+    position: relative;
+    top: 0;
+    width: 100%;
+    text-align: left;
+    padding: 50% 0;
+}
+
+.lyric-line {
+    font-size: 1.1rem;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.4);
+    margin: 15px 0;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    filter: blur(1px);
+    cursor: pointer;
+}
+
+.lyric-line:hover {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.lyric-line.active {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    filter: blur(0px);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.lyrics-container.is-scrolling .lyric-line {
+    filter: blur(0px);
+}
+
+.lyric-line.placeholder {
+    color: rgba(255, 255, 255, 0.3);
+    font-style: italic;
+}
+
+/* ================= 设置面板样式 ================= */
+.settings-body {
+    padding: 10px 15px 20px 15px;
+}
+
+.setting-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.setting-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    font-size: 1.05rem;
+    font-weight: 500;
+    margin-bottom: 15px;
+    color: #e0e0e0;
+}
+
+
+
+.setting-slider-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.value-display {
+    min-width: 50px;
+    text-align: right;
+    font-weight: bold;
+    color: #4ade80;
+}
+
+.system-slider {
+    flex-grow: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+    outline: none;
+}
+
+.system-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+
+/* iOS Switch Style */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 28px;
+}
+
+.switch input { 
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider.round {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.2);
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+input:checked + .slider.round {
+    background-color: #4ade80;
+}
+
+input:checked + .slider.round:before {
+    transform: translateX(22px);
+}
+
+/* 响应式调整 */
+@media (max-width: 500px) {
+    .player-container {
+        border: none;
+        box-shadow: none;
+        padding: 10px 15px;
+    }
 }
