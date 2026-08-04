@@ -3,11 +3,14 @@
     padding: 0;
     box-sizing: border-box;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    touch-action: manipulation;
 }
 
 html, body {
     background-color: #2c2c2c; 
     overscroll-behavior: none; 
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 body {
@@ -246,31 +249,27 @@ button {
     width: 100%;
     height: 6px;
     background: rgba(255, 255, 255, 0.2);
-    border-radius: 3px;
+    border-radius: 4px;
     position: relative;
+    transition: height 0.2s ease;
 }
 
 .progress {
     height: 100%;
-    background: linear-gradient(90deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,1) 100%);
+    background: linear-gradient(90deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.9) 100%);
     width: 0%;
-    border-radius: 3px;
+    border-radius: 4px;
     position: relative;
     min-width: 6px;
+    transition: background 0.2s ease;
 }
 
-.progress::after {
-    content: '';
-    position: absolute;
-    right: -6px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 12px;
-    height: 12px;
-    background: #fff;
-    border-radius: 50%;
-    box-shadow: 0 0 5px rgba(0,0,0,0.3);
-    transition: transform 0.2s ease, background 0.2s ease;
+.progress-bar-wrapper.dragging .progress-bar {
+    height: 10px;
+}
+
+.progress-bar-wrapper.dragging .progress {
+    background: linear-gradient(90deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,1) 100%);
 }
 
 @keyframes shimmer {
@@ -1151,11 +1150,11 @@ button {
 
 .lyric-line {
     font-size: 1.1rem;
-    font-weight: 400;
+    font-weight: 550;
     color: rgba(255, 255, 255, 0.4);
     margin: 15px 0;
     transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-    filter: blur(1px);
+    filter: blur(1.5px);
     cursor: pointer;
 }
 
@@ -1165,10 +1164,37 @@ button {
 
 .lyric-line.active {
     font-size: 1.1rem;
-    font-weight: 700;
-    color: #fff;
+    font-weight: 730;
     filter: blur(0px);
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.lyric-line.active:not([data-has-words="true"]) {
+    background: linear-gradient(
+        85deg,
+        rgba(255, 255, 255, 0.95) 0%,
+        rgba(255, 255, 255, 0.95) max(0%, calc(var(--line-progress, 0%) * 1.4 - 40%)),
+        rgba(255, 255, 255, 0.35) var(--line-progress, 0%),
+        rgba(255, 255, 255, 0.35) 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.lyric-line .word {
+    display: inline-block;
+}
+
+/* 逐字模式*/
+.lyric-line.active .word {
+    background: linear-gradient(
+        85deg,
+        rgba(255, 255, 255, 0.95) 0%,
+        rgba(255, 255, 255, 0.95) max(0%, calc(var(--word-progress, 0%) * 1.4 - 40%)),
+        rgba(255, 255, 255, 0.35) var(--word-progress, 0%),
+        rgba(255, 255, 255, 0.35) 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .lyrics-container.is-scrolling .lyric-line {

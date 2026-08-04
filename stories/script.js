@@ -1,5 +1,11 @@
 // DOM 元素
 const audio = document.getElementById('audioPlayer');
+
+const originalAudioPlay = audio.play;
+audio.play = function() {
+    if (window.ensureEQContext) window.ensureEQContext();
+    return originalAudioPlay.apply(this, arguments);
+};
 const playBtn = document.getElementById('playBtn');
 const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
@@ -10,6 +16,8 @@ const durationEl = document.getElementById('duration');
 const bookTitleEl = document.getElementById('bookTitle');
 const chapterTitleEl = document.getElementById('chapterTitle');
 const playerContainer = document.querySelector('.player-container');
+const localFileInput = document.getElementById('localFileInput');
+const localFileBtn = document.getElementById('localFileBtn');
 
 // 模态框
 const menuBtn = document.getElementById('menuBtn');
@@ -38,6 +46,24 @@ const speedValueDisplay = document.getElementById('speedValueDisplay');
 let flatPlaylist = [];
 let currentIndex = 0; // Index in flatPlaylist
 let currentPlayId = '';
+let playbackUIAnimation = null;
+
+function updatePlaybackUI() {
+    if (!audio.paused) {
+        if (!isDraggingProgress) {
+            if (audio.readyState >= 1) {
+                const progressPercent = (audio.duration) ? (audio.currentTime / audio.duration) * 100 : 0;
+                progressBar.style.width = `${progressPercent}%`;
+            }
+        }
+        
+        if (!isDraggingProgress) {
+            syncLyrics();
+        }
+        
+        playbackUIAnimation = requestAnimationFrame(updatePlaybackUI);
+    }
+}
 
 function buildPlaylist() {
     flatPlaylist = [];
@@ -130,7 +156,18 @@ document.addEventListener('visibilitychange', () => {
 
 // 自定义平滑滚动
 function smoothScrollTo(element, target, duration) {
+    if (element.dataset.currentTarget === String(target)) {
+        return; 
+    }
+    element.dataset.currentTarget = target;
+
     if (currentScrollAnimation) cancelAnimationFrame(currentScrollAnimation);
+    
+    if (duration <= 0) {
+        element.scrollTop = target;
+        currentScrollAnimation = null;
+        return;
+    }
     
     const start = element.scrollTop;
     const change = target - start;
@@ -715,7 +752,7 @@ function extractSYLTData(buffer, start, size) {
         offset += 2;
     }
     
-    const sylt = [];
+    const rawSylt = [];
     const textDecoder = new TextDecoder(encoding === 3 ? "utf-8" : "utf-16le");
     
     while (offset < start + size) {
@@ -729,7 +766,7 @@ function extractSYLTData(buffer, start, size) {
             if (offset + 4 > start + size) break;
             const time = view.getUint32(offset);
             offset += 4;
-            sylt.push({ text, time });
+            rawSylt.push({ text, time });
         } else {
             while (offset < start + size && view.getUint16(offset, true) !== 0) offset += 2;
             if (offset >= start + size) break;
@@ -739,10 +776,46 @@ function extractSYLTData(buffer, start, size) {
             if (offset + 4 > start + size) break;
             const time = view.getUint32(offset);
             offset += 4;
-            sylt.push({ text, time });
+            rawSylt.push({ text, time });
         }
     }
-    return sylt;
+    
+    const mergedSylt = [];
+    rawSylt.forEach(item => {
+        if (mergedSylt.length > 0 && mergedSylt[mergedSylt.length - 1].time === item.time) {
+            mergedSylt[mergedSylt.length - 1].text += item.text;
+        } else {
+            mergedSylt.push({ text: item.text, time: item.time });
+        }
+    });
+
+    // 检测是否为逐字歌词并进行行级组装
+    if (mergedSylt.length > 20 && mergedSylt.filter(s => s.text.startsWith('   ')).length > 5) {
+        let lines = [];
+        let currentLine = null;
+        mergedSylt.forEach((item, i) => {
+            if (item.text.startsWith('   ') || !currentLine) {
+                if (currentLine) lines.push(currentLine);
+                currentLine = {
+                    time: item.time,
+                    text: '',
+                    words: []
+                };
+            }
+            let cleanText = item.text.replace(/^   /, '');
+            let nextTime = i < mergedSylt.length - 1 ? mergedSylt[i+1].time : item.time + 1000;
+            currentLine.text += cleanText;
+            currentLine.words.push({
+                text: cleanText,
+                time: item.time,
+                duration: nextTime - item.time
+            });
+        });
+        if (currentLine) lines.push(currentLine);
+        return lines;
+    }
+    
+    return rawSylt;
 }
 
 // 渲染歌词 UI
@@ -756,13 +829,28 @@ function renderLyrics() {
     currentSyltData.forEach((line, index) => {
         const p = document.createElement('p');
         p.className = 'lyric-line';
-        p.textContent = line.text;
         p.dataset.index = index;
         p.dataset.time = line.time;
         
+        if (line.words && line.words.length > 0) {
+            p.dataset.hasWords = "true";
+            line.words.forEach(word => {
+                const span = document.createElement('span');
+                span.className = 'word';
+                span.dataset.time = word.time;
+                span.dataset.duration = word.duration;
+                span.textContent = word.text;
+                p.appendChild(span);
+            });
+        } else {
+            p.textContent = line.text;
+        }
+        
         p.addEventListener('click', () => {
             if (progressWrapper.classList.contains('loading')) return;
-            audio.currentTime = line.time / 1000;
+            const targetTime = line.time / 1000;
+            audio.currentTime = targetTime;
+            syncLyrics(true, targetTime);
             if(!isPlaying) togglePlay();
         });
         
@@ -787,10 +875,11 @@ function updateLyricsDisplay() {
     }
 }
 
-function syncLyrics(forceScroll = false) {
+function syncLyrics(forceScroll = false, previewTime = null) {
     if (!lyricsEnabled || currentSyltData.length === 0 || lyricsContainer.style.display === 'none') return;
     
-    const currentMs = audio.currentTime * 1000;
+    const timeToUse = previewTime !== null ? previewTime : audio.currentTime;
+    const currentMs = timeToUse * 1000;
     let activeIndex = -1;
     
     for (let i = 0; i < currentSyltData.length; i++) {
@@ -808,22 +897,75 @@ function syncLyrics(forceScroll = false) {
         
         let changed = false;
         if (prevActive !== activeLine) {
-            if (prevActive) prevActive.classList.remove('active');
+            if (prevActive) {
+                prevActive.classList.remove('active');
+                if (prevActive.dataset.hasWords === "true") {
+                    prevActive.querySelectorAll('.word.active').forEach(span => span.classList.remove('active'));
+                }
+            }
             if (activeLine) activeLine.classList.add('active');
             changed = true;
         }
 
         if ((changed || forceScroll) && activeLine && !isUserScrolling) {
             const containerHeight = lyricsContainer.clientHeight;
-            const offsetTop = activeLine.offsetTop;
             
-            if (activeIndex > 0) {
-                const prevLine = lines[activeIndex - 1];
-                const targetScroll = prevLine.offsetTop;
-                smoothScrollTo(lyricsContainer, targetScroll, 400);
+            function getTargetScrollForIndex(idx) {
+                if (idx <= 0) return lines[0].offsetTop - containerHeight * 0.4;
+                return lines[idx - 1].offsetTop - containerHeight * 0.1; 
+            }
+
+            if (previewTime !== null) {
+                const currentTarget = getTargetScrollForIndex(activeIndex);
+                let nextTarget = currentTarget;
+                let progress = 0;
+                
+                if (activeIndex < currentSyltData.length - 1) {
+                    nextTarget = getTargetScrollForIndex(activeIndex + 1);
+                    const startMs = currentSyltData[activeIndex].time;
+                    const endMs = currentSyltData[activeIndex + 1].time;
+                    if (endMs > startMs) {
+                        progress = (currentMs - startMs) / (endMs - startMs);
+                    }
+                }
+                
+                const interpolatedScroll = currentTarget + (nextTarget - currentTarget) * progress;
+                smoothScrollTo(lyricsContainer, interpolatedScroll, 0); 
             } else {
-                const targetScroll = offsetTop - containerHeight * 0.3;
+                const targetScroll = getTargetScrollForIndex(activeIndex);
                 smoothScrollTo(lyricsContainer, targetScroll, 400);
+            }
+        }
+
+        // 逐字及行级进度推进填充逻辑
+        if (activeLine) {
+            if (activeLine.dataset.hasWords === "true") {
+                const wordSpans = activeLine.querySelectorAll('.word');
+                wordSpans.forEach(span => {
+                    const wTime = parseFloat(span.dataset.time);
+                    const wDuration = parseFloat(span.dataset.duration);
+                    let p = 0;
+                    if (isNaN(wDuration) || wDuration <= 0) {
+                        p = currentMs >= wTime ? 100 : 0;
+                    } else if (currentMs >= wTime + wDuration) {
+                        p = 100;
+                    } else if (currentMs > wTime) {
+                        p = ((currentMs - wTime) / wDuration) * 100;
+                    }
+                    span.style.setProperty('--word-progress', `${p}%`);
+                });
+            } else {
+                const lineStart = currentSyltData[activeIndex].time;
+                const lineEnd = (activeIndex < currentSyltData.length - 1) 
+                    ? currentSyltData[activeIndex + 1].time 
+                    : lineStart + 3000;
+                let lineP = 0;
+                if (currentMs >= lineEnd) {
+                    lineP = 100;
+                } else if (currentMs > lineStart) {
+                    lineP = Math.min(100, ((currentMs - lineStart) / (lineEnd - lineStart)) * 100);
+                }
+                activeLine.style.setProperty('--line-progress', `${lineP}%`);
             }
         }
     } else {
@@ -906,6 +1048,9 @@ function setupEventListeners() {
     audio.addEventListener('playing', () => {
         progressWrapper.classList.remove('loading');
         updatePlayBtnLoadingState();
+        if (!playbackUIAnimation) {
+            playbackUIAnimation = requestAnimationFrame(updatePlaybackUI);
+        }
     });
     audio.addEventListener('error', () => {
         progressWrapper.classList.remove('loading');
@@ -935,16 +1080,28 @@ function setupEventListeners() {
         }
     });
 
+    audio.addEventListener('play', () => {
+        // RAF 循环改由 playing 事件启动（Safari 兼容）
+    });
+
+    audio.addEventListener('pause', () => {
+        if (playbackUIAnimation) {
+            cancelAnimationFrame(playbackUIAnimation);
+            playbackUIAnimation = null;
+        }
+    });
+
+    // Safari 跳转后 currentTime 回弹修复：在 seeked 时强制同步
+    audio.addEventListener('seeked', () => {
+        syncLyrics(true);
+    });
+
     audio.addEventListener('timeupdate', () => {
         if (!isDraggingProgress) {
             if (audio.readyState >= 1) {
                 currentTimeEl.textContent = formatTime(audio.currentTime);
-                const progressPercent = (audio.duration) ? (audio.currentTime / audio.duration) * 100 : 0;
-                progressBar.style.width = `${progressPercent}%`;
             }
         }
-        
-        syncLyrics();
         
         // 更新系统媒体进度状态
         if ('mediaSession' in navigator && !isNaN(audio.duration)) {
@@ -981,14 +1138,8 @@ function setupEventListeners() {
     });
 
     // 进度条拖拽与点击解析
-    let updateProgressUI = (x) => {
-        const width = progressWrapper.clientWidth;
-        let percent = x / width;
-        if(percent < 0) percent = 0;
-        if(percent > 1) percent = 1;
-        progressBar.style.width = `${percent * 100}%`;
-        return percent;
-    };
+    let dragStartX = 0;
+    let dragStartProgress = 0;
 
     let startDrag = (e) => {
         if(isNaN(audio.duration)) return;
@@ -997,18 +1148,26 @@ function setupEventListeners() {
         if (isPlaying) audio.pause();
         progressWrapper.classList.add('dragging');
         
-        const rect = progressWrapper.getBoundingClientRect();
-        const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-        updateProgressUI(clientX - rect.left);
-        currentTimeEl.textContent = formatTime(updateProgressUI(clientX - rect.left) * audio.duration);
+        dragStartX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+        dragStartProgress = audio.duration ? audio.currentTime / audio.duration : 0;
     };
 
     let onDrag = (e) => {
         if (!isDraggingProgress) return;
-        const rect = progressWrapper.getBoundingClientRect();
-        const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-        let p = updateProgressUI(clientX - rect.left);
-        currentTimeEl.textContent = formatTime(p * audio.duration);
+        const currentX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+        const width = progressWrapper.clientWidth;
+        
+        let deltaProgress = (currentX - dragStartX) / width;
+        let newProgress = dragStartProgress + deltaProgress;
+        
+        if (newProgress < 0) newProgress = 0;
+        if (newProgress > 1) newProgress = 1;
+        
+        progressBar.style.width = `${newProgress * 100}%`;
+        
+        const previewTime = newProgress * audio.duration;
+        currentTimeEl.textContent = formatTime(previewTime);
+        syncLyrics(true, previewTime);
     };
 
     let stopDrag = (e) => {
@@ -1016,11 +1175,18 @@ function setupEventListeners() {
         isDraggingProgress = false;
         progressWrapper.classList.remove('dragging');
         
-        const rect = progressWrapper.getBoundingClientRect();
-        const clientX = e.type.includes('touch') ? e.changedTouches[0].clientX : e.clientX;
-        let percent = updateProgressUI(clientX - rect.left);
+        const currentX = e.type.includes('touch') ? e.changedTouches[0].clientX : e.clientX;
+        const width = progressWrapper.clientWidth;
         
-        audio.currentTime = percent * audio.duration;
+        let deltaProgress = (currentX - dragStartX) / width;
+        let newProgress = dragStartProgress + deltaProgress;
+        
+        if (newProgress < 0) newProgress = 0;
+        if (newProgress > 1) newProgress = 1;
+        
+        audio.currentTime = newProgress * audio.duration;
+        progressBar.style.width = `${newProgress * 100}%`;
+        
         if (wasPlayingBeforeDrag) {
             const playPromise = audio.play();
             if (playPromise !== undefined) {
@@ -1144,6 +1310,49 @@ function setupEventListeners() {
         const episodes = parseInt(episodeSlider.value);
         episodeValueDisplay.textContent = episodes + '集';
         setEpisodeTimer(episodes);
+    });
+
+    // 本地文件调试
+    localFileBtn?.addEventListener('click', () => {
+        localFileInput.click();
+    });
+
+    localFileInput?.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (isPlaying) togglePlay();
+        currentPlayId = 'local';
+        bookTitleEl.textContent = '本地文件';
+        chapterTitleEl.textContent = file.name;
+        updateMarquee(bookTitleEl);
+        updateMarquee(chapterTitleEl);
+        
+        currentSyltData = [];
+        renderLyrics();
+        
+        try {
+            const buffer = await file.arrayBuffer();
+            const sylt = parseSYLT(buffer);
+            if (sylt && sylt.length > 0) {
+                currentSyltData = sylt;
+                renderLyrics();
+            }
+        } catch(err) {
+            console.warn("Failed to parse local file SYLT", err);
+        }
+        
+        const url = URL.createObjectURL(file);
+        audio.src = url;
+        audio.dataset.savedTime = '';
+        
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(e => console.warn('Play interrupted:', e));
+        }
+        isPlaying = true;
+        updatePlayBtn();
+        updateLyricsDisplay();
     });
 }
 
@@ -1641,6 +1850,24 @@ document.addEventListener('DOMContentLoaded', init);
         };
     }
 
+    // 暴露给全局的函数，在音频实际播放前调用
+    window.ensureEQContext = function() {
+        if (!eqEnabled) return;
+        if (!audioCtx) {
+            initAudioContext();
+            applyEQGains();
+            startEQVisualization();
+        }
+        if (audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume().catch(() => {});
+        }
+    };
+
+    document.addEventListener('touchstart', () => {
+        if (audioCtx && (audioCtx.state === 'suspended' || audioCtx.state === 'interrupted')) {
+            audioCtx.resume().catch(() => {});
+        }
+    }, { passive: true });
     function applyEQGains() {
         if (!bassFilter) return;
         bassFilter.gain.value = eqValues.bass;
@@ -1941,19 +2168,15 @@ document.addEventListener('DOMContentLoaded', init);
             });
         }
 
-        // 如果之前保存了 enabled 状态，在首次用户交互时初始化
+        // 兼容旧代码：如果之前保存了 enabled 状态，在首次交互时初始化（虽然已经被 window.ensureEQContext 接管，但保留作为双保险）
         if (saved.enabled) {
             const initOnInteraction = () => {
-                if (!audioCtx) {
-                    initAudioContext();
-                    applyEQGains();
-                    eqEnabled = true;
-                }
+                window.ensureEQContext();
                 document.removeEventListener('click', initOnInteraction);
                 document.removeEventListener('touchstart', initOnInteraction);
             };
-            document.addEventListener('click', initOnInteraction);
-            document.addEventListener('touchstart', initOnInteraction);
+            document.addEventListener('click', initOnInteraction, { once: true });
+            document.addEventListener('touchstart', initOnInteraction, { passive: true, once: true });
         }
     });
 })();
