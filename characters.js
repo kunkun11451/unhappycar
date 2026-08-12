@@ -1,5 +1,21 @@
 // 角色数据
 window.characterData = {
+    "奥黛塔": {
+        "头像": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/6a7ba976/38c83cb1b5c605921b3d773d9e5dffc2.png",
+        "元素类型": "冰",
+        "武器类型": "单手剑",
+        "星级": "五星",
+        "体型": "少女",
+        "国家": "至冬"
+    },
+    "阿罗夏": {
+        "头像": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/6a7ba976/faa96b61235674d245e3134c4175f684.png",
+        "元素类型": "雷",
+        "武器类型": "长柄武器",
+        "星级": "四星",
+        "体型": "少年",
+        "国家": "至冬"
+    },
     "桑多涅": {
         "头像": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/6a44588e/417922ce01627959571b3355b9f462ac.png",
         "元素类型": "冰",
