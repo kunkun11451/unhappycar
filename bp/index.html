@@ -51,7 +51,7 @@
         <div class="upload-hints">
 
           <p class="hint" style="margin-top:8px">自动识别主要支持PC端在4人联机状态时使用 <a href="#" id="openCaptureGuide" class="link">详细信息</a>。</p>
-          <p class="hint" id="downloadDesktopAppHint" style="margin-top:4px"><a href="#" id="openDownloadModalBtn" class="link">下载</a>桌面版应用程序获取更好的上传截图体验</p>
+          <p class="hint" id="downloadDesktopAppHint" style="margin-top:4px"><a href="#" id="openDownloadModalBtn" class="link">下载</a>桌面版应用程序获取更好的使用体验</p>
           <div class="upload-actions-bottom" style="margin-top:15px; display:flex; justify-content:center;">
             <!-- resetRecords moved to settings -->
           </div>
@@ -163,18 +163,21 @@
     <div id="downloadModal" class="modal" style="display:none">
       <div class="dialog" style="max-width: 500px; text-align: left;">
         <button id="closeDownloadModalX" class="modal-x" aria-label="关闭" title="关闭">×</button>
-        <h2 style="margin:0 0 12px; text-align:center; color:#6db3ff">下载桌面端注意事项</h2>
+        <h2 style="margin:0 0 12px; text-align:center; color:#6db3ff">注意事项</h2>
         <div style="font-size: 14px; line-height: 1.6; color: var(--text-color);">
           <p>桌面端BP记录器能够带来：</p>
           <ul style="padding-left: 20px; margin-bottom: 12px;">
-            <li><strong style="color:var(--text-color);">全局快捷键一键截图</strong>，识别结果即时在屏幕内弹出通知，全程无需切换窗口。</li>
+            <li><strong style="color:var(--text-color);">通过快捷键一键识别</strong>，识别结果即时在屏幕内弹出通知，显示识别结果、标红根据规则BP的角色。</li>
+            <img src="css/img/1.png" style="display:block; width:100%; max-width:448px; margin:8px auto 12px; border-radius:6px;" />
+            <li><strong style="color:var(--text-color);">通过快捷键调用随机工具</strong>，便捷地在游戏中触发抽取，无需切换窗口。（可在“随机工具”页面对内容进行设置和排序）</li>
+            <img src="css/img/2.png" style="display:block; width:100%; max-width:448px; margin:8px auto 12px; border-radius:6px;" />
           </ul>
-          <div style="background: rgba(255, 60, 60, 0.1); border-left: 4px solid #ff5a5a; padding: 10px; margin-bottom: 16px; border-radius: 4px;">
-            <p style="margin: 0 0 4px 0;"><strong style="color: #ff5a5a;">环境要求提醒：</strong></p>
-            <p style="margin: 0;">本程序采用了轻量化打包（仅1MB），首次运行时如果您的电脑没有安装过 <strong>.NET Desktop Runtime 10</strong> 环境，系统会自动弹窗提示安装。请点击弹窗中的“是”前往微软官网下载并安装该环境包。</p>
-          </div>
           <div style="text-align:center; margin-top: 20px;">
             <a href="PickSnapDesktop.zip" id="confirmDownloadBtn" class="btn-glass btn-glass-primary" style="display:inline-block; text-decoration:none; padding: 8px 24px; font-size: 15px;" download>下载</a>
+          </div>
+          <div style="background: rgba(255, 60, 60, 0.1); border-left: 4px solid #ff5a5a; padding: 10px; margin-top: 16px; border-radius: 4px;">
+            <p style="margin: 0 0 4px 0;"><strong style="color: #ff5a5a;">环境要求提醒：</strong></p>
+            <p style="margin: 0;">本程序采用了轻量化打包（仅1MB），首次运行时如果您的电脑没有安装过 <strong>.NET Desktop Runtime 10</strong> 环境，系统会自动弹窗提示安装。请点击弹窗中的“是”前往微软官网下载并安装该环境包。</p>
           </div>
         </div>
       </div>
@@ -352,10 +355,10 @@
             </div>
             <div class="setting-row">
               <div class="setting-text">
-                <div class="title">截图目标窗口</div>
-                <div class="desc muted">自动寻找并截取该名称的游戏窗口</div>
+                <div class="title">随机工具快捷键</div>
+                <div class="desc muted">快捷触发“随机工具”中的抽取功能</div>
               </div>
-              <input type="text" id="desktopWindowTitleInput" class="setting-input" style="width:120px; padding:4px 8px; border-radius:4px; border:1px solid #4a5568; background:#2d3748; color:#fff;" placeholder="如: 原神" />
+              <input type="text" id="desktopRandomToolHotkeyInput" class="setting-input" style="width:120px; padding:4px 8px; border-radius:4px; border:1px solid #4a5568; background:#2d3748; color:#fff;" placeholder="输入快捷键" readonly />
             </div>
           </div>
           <div class="setting-row">

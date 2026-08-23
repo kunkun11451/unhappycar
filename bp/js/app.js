@@ -2438,7 +2438,7 @@ async function startRecognition(file){
            type: 'showNotification',
            title: '识别成功',
            body: bodyText,
-           isError: conflictNames.length > 0
+           isError: false
         }));
       } catch(err) {}
     }
@@ -4388,10 +4388,11 @@ function ensureBuiltInTools(){
     tools.push({
       id: crypto.randomUUID?.() || String(Date.now()+Math.random()),
       title: '方位',
-      content: '[类型][方位]',
+      content: '[类型][方位] [点数]',
       entries: [
         { name: '类型', values: ['等级','命座','生命','防御','精通','攻击'] },
-        { name: '方位', values: ['上','下','左','右','左上','左下','右上','右下'] }
+        { name: '方位', values: ['上','下','左','右','左上','左下','右上','右下'] },
+        { name: '点数', values: ['1点','2点','3点','4点','5点','6点'] }
       ]
     });
     changed = true;
