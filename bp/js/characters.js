@@ -1,5 +1,21 @@
 // 角色数据
 window.characterData = {
+    "薇斯纳": {
+        "头像": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/6ab31686/88e4654b892a5ada8d0fd21301c07518.png",
+        "元素类型": "风",
+        "武器类型": "单手剑",
+        "星级": "五星",
+        "体型": "少女",
+        "国家": "至冬"
+    },
+    "沃雅妮莎": {
+        "头像": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/6ab31686/750126424226dddd1dbe8a75db5cbad1.png",
+        "元素类型": "水",
+        "武器类型": "法器",
+        "星级": "五星",
+        "体型": "少女",
+        "国家": "至冬"
+    },
     "奥黛塔": {
         "头像": "https://act-webstatic.mihoyo.com/hk4e/e20200928calculate/item_icon/6a7ba976/38c83cb1b5c605921b3d773d9e5dffc2.png",
         "元素类型": "冰",
