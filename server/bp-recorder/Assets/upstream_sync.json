@@ -1,6 +1,6 @@
 {
-  "model_version": "1.0.36",
-  "onnx_sha256": "3833a142c416601534a8d1cb4e3a1d6197e1b080783b7b15c4a76072917c1cfa",
-  "combat_avatar_sha256": "6c8e3641de636477add75e20ae2f077ec834bbf48f0405dbc9bf7b7be3e2470e",
-  "last_content_modified_time": "2026-10-10T16:00:09Z"
+  "model_version": "1.0.39",
+  "onnx_sha256": "eed6a4681c000ef81dd378fc6379955bf841ee3e3e0503ac90876281e91eeeb6",
+  "combat_avatar_sha256": "3a7dcd3becc28c8366b0d8286ade1f88ea6a4c6039e31339fafe91bd7b3926f6",
+  "last_content_modified_time": "2026-10-28T04:00:21Z"
 }
